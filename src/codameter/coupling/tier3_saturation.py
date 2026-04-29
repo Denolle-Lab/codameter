@@ -20,5 +20,5 @@ def saturation_sensitivity_diagnostic(*args, **kwargs):
     """Stub. Raises :class:`NotImplementedError`."""
     raise NotImplementedError(
         "Tier 3 saturation-dependent diagnostic is scheduled for "
-        "dvv-workflow v0.3."
+        "codameter v0.3."
     )

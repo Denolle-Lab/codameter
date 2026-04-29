@@ -4,14 +4,14 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from dvv_workflow.forward.damage import logarithmic_healing, snieder_healing
-from dvv_workflow.forward.poroelastic import (
+from codameter.forward.damage import logarithmic_healing, snieder_healing
+from codameter.forward.poroelastic import (
     drained_pressure_response,
     groundwater_level_okubo,
     roeloffs_pressure_response,
     talwani_precipitation_response,
 )
-from dvv_workflow.forward.thermoelastic import (
+from codameter.forward.thermoelastic import (
     berger_temperature_response,
     fourier_temperature_decomposition,
     thermal_skin_depth,

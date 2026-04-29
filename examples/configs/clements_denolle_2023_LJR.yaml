@@ -2,7 +2,7 @@
 #
 # Worked-example config for re-running the Clements & Denolle (2023, JGR
 # Solid Earth) single-station autocorrelation analysis through the
-# dvv-workflow pipeline. The site sits in a managed unconfined aquifer
+# codameter pipeline. The site sits in a managed unconfined aquifer
 # (San Gabriel Basin, greater LA) and is the type-locality of the
 # 2004-05 winter precipitation response (their Figure 5).
 #
@@ -75,7 +75,7 @@ metadata:
   data_doi: "10.5281/zenodo.6413275"
   notes: |
     Run this config against the unpacked Zenodo data with:
-        dvv-workflow cd2023 \
+        codameter cd2023 \
             --data-dir /path/to/clements_denolle_2023_data \
             --station CI.LJR \
             --config examples/configs/clements_denolle_2023_LJR.yaml \

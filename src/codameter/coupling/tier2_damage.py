@@ -32,7 +32,7 @@ def damage_permeability_split_window(*args, **kwargs):
     """Stub. Raises :class:`NotImplementedError`."""
     raise NotImplementedError(
         "Tier 2 damage-permeability diagnostic is scheduled for "
-        "dvv-workflow v0.3. See §9.3 of Denolle (in prep) for the "
+        "codameter v0.3. See §9.3 of Denolle (in prep) for the "
         "framework, and contact the authors for the prototype "
         "implementation in coupling_tier_tests.py."
     )

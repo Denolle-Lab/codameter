@@ -1,15 +1,15 @@
 """
-Command-line interface for dvv-workflow.
+Command-line interface for codameter.
 
 Usage::
 
-    dvv-workflow run --config site.yaml --dvv dvv.parquet \
+    codameter run --config site.yaml --dvv dvv.parquet \
                      --precip precip.csv --temp temp.csv \
                      --output ./results
 
 For the Clements & Denolle (2023) demo::
 
-    dvv-workflow cd2023 --data-dir /path/to/data-0.2.0 \
+    codameter cd2023 --data-dir /path/to/data-0.2.0 \
                         --station CI.LJR \
                         --output ./results_cd2023
 """
@@ -77,14 +77,14 @@ def _add_cd2023_subcommand(sub: argparse._SubParsersAction) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="dvv-workflow",
+        prog="codameter",
         description=(
             "Operational pipeline for interpreting seismic velocity "
             "changes (dv/v) as coupled stress and strain meters."
         ),
     )
     parser.add_argument("--version", action="version",
-                        version=f"dvv-workflow {__version__}")
+                        version=f"codameter {__version__}")
     sub = parser.add_subparsers(dest="cmd", required=True)
     _add_run_subcommand(sub)
     _add_cd2023_subcommand(sub)
@@ -138,7 +138,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
         except ImportError:
             print(
                 "matplotlib not installed; skipping diagnostic plot. "
-                "Install with `pip install dvv-workflow[all]` to enable."
+                "Install with `pip install codameter[all]` to enable."
             )
     return 0
 

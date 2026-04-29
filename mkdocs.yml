@@ -1,8 +1,8 @@
-site_name: dvv-workflow
+site_name: codameter
 site_description: Operational pipeline for interpreting seismic velocity changes (dv/v) as stress and strain meters
-site_url: https://denolle-lab.github.io/dvv-workflow/
-repo_url: https://github.com/Denolle-Lab/dvv-workflow
-repo_name: Denolle-Lab/dvv-workflow
+site_url: https://denolle-lab.github.io/codameter/
+repo_url: https://github.com/Denolle-Lab/codameter
+repo_name: Denolle-Lab/codameter
 
 theme:
   name: material

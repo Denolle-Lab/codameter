@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Synthetic-Parkfield end-to-end demonstration of ``dvv-workflow``.
+Synthetic-Parkfield end-to-end demonstration of ``codameter``.
 
 This script generates a 10-year synthetic Parkfield-like dv/v dataset by
 forward-modelling the contributions of:
@@ -12,7 +12,7 @@ forward-modelling the contributions of:
   * a Snieder-style logarithmic healing transient from a single M~6 earthquake
     at year 4 (Snieder et al. 2017).
 
-The synthetic is then fed through the six-phase ``dvv-workflow`` pipeline as
+The synthetic is then fed through the six-phase ``codameter`` pipeline as
 if it were real ambient-noise data. The script prints the per-phase summary,
 verifies that the truth amplitudes are recovered within ~3σ, and writes the
 standard artifact bundle (summary, JSON, parameter table, residuals CSV,
@@ -28,7 +28,7 @@ Run::
 
 or via the high-level API in your own code::
 
-    from dvv_workflow import run_workflow
+    from codameter import run_workflow
     result = run_workflow(dvv_df, forcings, site, earthquake_times=[eq])
 """
 from __future__ import annotations
@@ -40,14 +40,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from dvv_workflow import Site, run_workflow
-from dvv_workflow.config import (
+from codameter import Site, run_workflow
+from codameter.config import (
     AnalysisConfig, ForcingSpec, Forcings, Layer, Location,
     MaterialProperties, Measurement, Prior, VelocityModel,
 )
-from dvv_workflow.forward.damage import snieder_healing
-from dvv_workflow.forward.poroelastic import groundwater_level_okubo
-from dvv_workflow.forward.thermoelastic import thermoelastic_dvv
+from codameter.forward.damage import snieder_healing
+from codameter.forward.poroelastic import groundwater_level_okubo
+from codameter.forward.thermoelastic import thermoelastic_dvv
 
 
 YEAR_S = 365.25 * 86400.0
@@ -57,7 +57,7 @@ def build_parkfield_site() -> Site:
     """Construct the Parkfield-like Site programmatically.
 
     The same site is also available as ``examples/configs/parkfield.yaml``
-    and can be loaded with :func:`dvv_workflow.load_site`. We build it
+    and can be loaded with :func:`codameter.load_site`. We build it
     inline here so the example is fully self-contained.
     """
     return Site(

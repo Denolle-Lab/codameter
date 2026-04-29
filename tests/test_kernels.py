@@ -4,12 +4,12 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from dvv_workflow.kernels import disba_wrapper
-from dvv_workflow.kernels.depth_resolution import (
+from codameter.kernels import disba_wrapper
+from codameter.kernels.depth_resolution import (
     depth_frequency_table,
     peak_sensitivity_depth,
 )
-from dvv_workflow.kernels.velocity_models import VelocityProfile, make_fine_model
+from codameter.kernels.velocity_models import VelocityProfile, make_fine_model
 
 
 # ---------------------------------------------------------------------------

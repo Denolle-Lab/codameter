@@ -4,8 +4,8 @@ Forward forcing models (Phase 3).
 Each module implements one physical pathway from an environmental forcing
 to a predicted :math:`\\delta v / v` time series. The models are intentionally
 kept small and side-effect-free so they can be combined linearly in
-:mod:`dvv_workflow.inverse.linear_fit` and nonlinearly in
-:mod:`dvv_workflow.inverse.coupled_inversion`.
+:mod:`codameter.inverse.linear_fit` and nonlinearly in
+:mod:`codameter.inverse.coupled_inversion`.
 
 References
 ----------

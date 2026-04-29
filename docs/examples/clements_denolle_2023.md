@@ -1,7 +1,7 @@
 # Clements & Denolle (2023) — running the workflow on the real archive
 
 The script `examples/02_clements_denolle_2023.py` is the canonical
-harness for testing `dvv-workflow` against
+harness for testing `codameter` against
 
 > Clements, T. & Denolle, M. A. (2023). The seismic signature of
 > California's earthquakes, droughts, and floods.
@@ -100,12 +100,12 @@ before forming the ratio.
 
 ## Caveats
 
-- The PRISM extraction at each station is not part of `dvv-workflow`
+- The PRISM extraction at each station is not part of `codameter`
   — use the upstream Julia tooling (`PRISMgetscript.jl` /
   `bil2netcdf.jl`) or any other GIS workflow to produce the per-station
   CSVs. The harness expects daily precipitation (m) and daily air
   temperature (°C).
-- `dvv-workflow` v0.1 uses the Okubo et al. (2024) exponential-decay
+- `codameter` v0.1 uses the Okubo et al. (2024) exponential-decay
   GWL proxy by default, **not** the Roeloffs (1988) drained term that
   C&D 2023 used at most sites. To reproduce the C&D 2023 fit
   exactly, set the `hydrological.model: roeloffs1988` field in the

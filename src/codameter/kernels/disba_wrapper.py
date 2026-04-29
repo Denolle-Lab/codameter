@@ -4,7 +4,7 @@ sensitivity-kernel computation.
 
 ``disba`` is an optional dependency. When it is not installed, this module
 exposes the same API but raises an :class:`ImportError` with a clear
-remediation message at call time, allowing :mod:`dvv_workflow.kernels` to be
+remediation message at call time, allowing :mod:`codameter.kernels` to be
 imported regardless. The flag :data:`DISBA_AVAILABLE` lets callers check
 upfront.
 
@@ -36,7 +36,7 @@ def _require_disba() -> None:
         raise ImportError(
             "The 'disba' package is required for sensitivity-kernel "
             "computation. Install it with:\n\n"
-            "    pip install 'dvv-workflow[kernels]'\n\n"
+            "    pip install 'codameter[kernels]'\n\n"
             "or directly:\n\n"
             "    pip install 'disba>=0.7,<0.8'"
         )
@@ -88,7 +88,7 @@ def rayleigh_sensitivity_kernel(
     ----------
     profile
         Layered velocity model. Must be finely discretised — use
-        :func:`dvv_workflow.kernels.make_fine_model` first.
+        :func:`codameter.kernels.make_fine_model` first.
     frequency_hz
         Single frequency in Hz.
     parameter

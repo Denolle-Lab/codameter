@@ -16,5 +16,5 @@ from __future__ import annotations
 def thermo_capillary_diagnostic(*args, **kwargs):
     """Stub. Raises :class:`NotImplementedError`."""
     raise NotImplementedError(
-        "Tier 4 thermo-capillary diagnostic is scheduled for dvv-workflow v0.4."
+        "Tier 4 thermo-capillary diagnostic is scheduled for codameter v0.4."
     )

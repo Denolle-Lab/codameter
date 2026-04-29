@@ -2,7 +2,7 @@ r"""
 Prior helpers for the v0.2 MCMC backend.
 
 For v0.1 (WLS), priors are not used in the inversion itself — they are still
-recorded in the :class:`~dvv_workflow.config.MaterialProperties` of the Site
+recorded in the :class:`~codameter.config.MaterialProperties` of the Site
 so the interpretation module can fold them into uncertainty propagation. The
 helpers in this module compute log-prior contributions and validate the
 prior dict that downstream MCMC code will consume.

@@ -1,30 +1,30 @@
 # Installation
 
-`dvv-workflow` runs on Python 3.10+, on Linux and macOS. Windows is not
+`codameter` runs on Python 3.10+, on Linux and macOS. Windows is not
 officially tested but should work for the pure-Python core.
 
 ## From PyPI (recommended)
 
 ```bash
 # Core install — numpy / scipy / pandas / pyarrow / matplotlib
-pip install dvv-workflow
+pip install codameter
 ```
 
 Optional extras:
 
 ```bash
-pip install "dvv-workflow[kernels]"   # adds disba for Phase 1 sensitivity kernels
-pip install "dvv-workflow[mcmc]"      # adds emcee + corner for Phase 4 (v0.2+)
-pip install "dvv-workflow[docs]"      # adds mkdocs + mkdocstrings
-pip install "dvv-workflow[test]"      # adds pytest + pytest-cov
-pip install "dvv-workflow[dev]"       # everything above + black/ruff/mypy/pre-commit
+pip install "codameter[kernels]"   # adds disba for Phase 1 sensitivity kernels
+pip install "codameter[mcmc]"      # adds emcee + corner for Phase 4 (v0.2+)
+pip install "codameter[docs]"      # adds mkdocs + mkdocstrings
+pip install "codameter[test]"      # adds pytest + pytest-cov
+pip install "codameter[dev]"       # everything above + black/ruff/mypy/pre-commit
 ```
 
 ## From source
 
 ```bash
-git clone https://github.com/Denolle-Lab/dvv-workflow.git
-cd dvv-workflow
+git clone https://github.com/Denolle-Lab/codameter.git
+cd codameter
 pip install -e ".[dev]"
 pre-commit install
 pytest
@@ -34,13 +34,13 @@ pytest
 
 ```bash
 conda env create -f environment.yml
-conda activate dvv-workflow
+conda activate codameter
 ```
 
 ## Verifying the install
 
 ```bash
-python -c "import dvv_workflow; print(dvv_workflow.__version__)"
+python -c "import codameter; print(codameter.__version__)"
 # 0.1.0
 
 python examples/01_parkfield_synthetic.py --no-plot

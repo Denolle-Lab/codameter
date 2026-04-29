@@ -33,7 +33,7 @@ def plot_workflow_six_panel(
     Parameters
     ----------
     result
-        A :class:`~dvv_workflow.workflow.WorkflowResult` instance.
+        A :class:`~codameter.workflow.WorkflowResult` instance.
     figsize
         Matplotlib figsize.
     title
@@ -44,7 +44,7 @@ def plot_workflow_six_panel(
 
     fig, axes = plt.subplots(3, 2, figsize=figsize, constrained_layout=True)
     if title is None:
-        title = f"dvv-workflow: {result.site.site_id}"
+        title = f"codameter: {result.site.site_id}"
     fig.suptitle(title, fontsize=12, fontweight="bold")
 
     dvv = result.phase0.dvv
@@ -120,11 +120,16 @@ def plot_workflow_six_panel(
     # --- Panel 5: kernel depth summary
     ax = axes[2, 0]
     profile = result.phase1.profile
-    depths_km = profile.midpoint_depths
-    ax.barh(
-        depths_km, profile.vs, height=profile.thickness * 0.9,
-        color="lightsteelblue", edgecolor="k", lw=0.5,
-    )
+    # Build a staircase curve: for each layer top→bottom, Vs is constant
+    depths_top = np.concatenate([[0.0], np.cumsum(profile.thickness[:-1])])
+    depths_bot = np.cumsum(profile.thickness)
+    vs_vals = profile.vs
+    depth_curve, vs_curve = [], []
+    for z0, z1, vs in zip(depths_top, depths_bot, vs_vals):
+        depth_curve.extend([z0, z1])
+        vs_curve.extend([vs, vs])
+    ax.plot(vs_curve, depth_curve, color="steelblue", lw=1.8)
+    ax.fill_betweenx(depth_curve, vs_curve, alpha=0.15, color="steelblue")
     pd_km = result.phase1.peak_depth_km
     ax.axhline(pd_km, color="tomato", lw=1.5, label=f"peak depth = {pd_km*1000:.0f} m")
     ax.invert_yaxis()

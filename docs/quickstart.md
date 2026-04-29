@@ -6,8 +6,8 @@ example because it has no external dependencies.
 ## 1. Install
 
 ```bash
-git clone https://github.com/Denolle-Lab/dvv-workflow.git
-cd dvv-workflow
+git clone https://github.com/Denolle-Lab/codameter.git
+cd codameter
 pip install -e .
 ```
 
@@ -23,7 +23,7 @@ Expected output (abridged):
 [step 1/3] generating 10 years of synthetic Parkfield data...
 [step 2/3] running six-phase workflow...
 
-=== dvv-workflow result for site 'parkfield_synthetic' ===
+=== codameter result for site 'parkfield_synthetic' ===
 
 Phase 0  Data:    n=3650 samples, outliers=0
 Phase 1  Kernel:  fc=1.04 Hz -> peak depth = 385 m  (mu=3.2 GPa, K=9.5 GPa)
@@ -60,8 +60,8 @@ The high-level API takes three things: a `Site` (from a YAML config),
 a dv/v DataFrame, and a forcings dict.
 
 ```python
-from dvv_workflow import run_workflow, load_site
-from dvv_workflow.data.loaders import load_dvv, load_csv_timeseries
+from codameter import run_workflow, load_site
+from codameter.data.loaders import load_dvv, load_csv_timeseries
 
 site = load_site("examples/configs/parkfield.yaml")
 dvv  = load_dvv("my_dvv.parquet")        # needs columns "dvv" and "dvv_err"

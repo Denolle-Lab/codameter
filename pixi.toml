@@ -1,0 +1,66 @@
+[workspace]
+name = "codameter"
+version = "0.1.0"
+description = "Operational six-phase workflow for interpreting seismic velocity changes (dv/v) as stress and strain meters"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "osx-64", "linux-64"]
+
+# ── Core runtime deps (conda-forge) ─────────────────────────────────────────
+[dependencies]
+python     = ">=3.10,<3.13"
+numpy      = ">=1.24"
+scipy      = ">=1.10"
+pandas     = ">=2.0"
+pyarrow    = ">=12.0"
+matplotlib = ">=3.7"
+pyyaml     = ">=6.0"
+xarray     = ">=2023.6"
+
+# codameter itself – editable install via pip
+[pypi-dependencies]
+codameter = { path = ".", editable = true }
+disba = ">=0.7,<0.8"
+
+# ── Features ────────────────────────────────────────────────────────────────
+
+[feature.notebooks.dependencies]
+jupyterlab = ">=4.0"
+ipywidgets = ">=8.1"
+ipykernel  = ">=6.0"
+nbformat   = ">=5.9"
+
+[feature.kernels.pypi-dependencies]
+disba = ">=0.7,<0.8"
+
+[feature.test.dependencies]
+pytest     = ">=7.4"
+pytest-cov = ">=4.1"
+hypothesis = ">=6.80"
+
+[feature.test.pypi-dependencies]
+nbval = ">=0.11"    # for notebook-based pytest
+
+
+[feature.dev.dependencies]
+black      = ">=23.10"
+ruff       = ">=0.1"
+mypy       = ">=1.6"
+pre-commit = ">=3.5"
+
+# ── Environments ─────────────────────────────────────────────────────────────
+[environments]
+# `pixi install` / `pixi run` uses this by default
+default  = { features = ["notebooks"],                            solve-group = "main" }
+test     = { features = ["test"],                                 solve-group = "main" }
+dev      = { features = ["dev", "test", "notebooks", "kernels"], solve-group = "main" }
+
+# ── Tasks ────────────────────────────────────────────────────────────────────
+[tasks]
+# Start JupyterLab
+lab = { cmd = "jupyter lab", description = "Launch JupyterLab" }
+
+# Run the full test suite
+test = { cmd = "pytest -ra --cov=src/codameter --cov-report=term", description = "Run pytest" }
+
+# Run only the Parkfield notebook-friendly example
+parkfield = { cmd = "python examples/01_parkfield_synthetic.py", description = "Synthetic Parkfield demo" }

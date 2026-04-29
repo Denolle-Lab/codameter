@@ -2,7 +2,7 @@
 
 ## Thermoelastic
 
-::: dvv_workflow.forward.thermoelastic
+::: codameter.forward.thermoelastic
     options:
       show_root_heading: false
       members:
@@ -13,7 +13,7 @@
 
 ## Poroelastic
 
-::: dvv_workflow.forward.poroelastic
+::: codameter.forward.poroelastic
     options:
       show_root_heading: false
       members:
@@ -24,7 +24,7 @@
 
 ## Damage / healing
 
-::: dvv_workflow.forward.damage
+::: codameter.forward.damage
     options:
       show_root_heading: false
       members:

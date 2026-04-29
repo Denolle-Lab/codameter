@@ -1,9 +1,9 @@
-# dvv-workflow
+# codameter
 
 **An operational six-phase workflow for interpreting relative seismic velocity
 changes ($\delta v / v$) as stress and strain meters.**
 
-`dvv-workflow` is the executable companion to *Denolle (in prep, JGR Solid
+`codameter` is the executable companion to *Denolle (in prep, JGR Solid
 Earth)*. Given a $\delta v / v$ time series and the relevant environmental
 forcings (temperature, precipitation, earthquake catalog, ...), the package
 extracts:
@@ -23,8 +23,8 @@ the JGR figures.
 ## At a glance
 
 ```python
-from dvv_workflow import run_workflow, load_site
-from dvv_workflow.data.loaders import load_dvv, load_csv_timeseries
+from codameter import run_workflow, load_site
+from codameter.data.loaders import load_dvv, load_csv_timeseries
 
 site = load_site("parkfield.yaml")
 dvv  = load_dvv("parkfield.parquet")
@@ -77,11 +77,11 @@ Please cite both:
   note   = {in preparation}
 }
 
-@software{dvv_workflow_2026,
-  title  = {dvv-workflow: Operational pipeline for interpreting seismic velocity changes as stress and strain meters},
+@software{codameter_2026,
+  title  = {codameter: Operational pipeline for interpreting seismic velocity changes as stress and strain meters},
   author = {Denolle, Marine A.},
   year   = {2026},
   doi    = {10.5281/zenodo.PLACEHOLDER},
-  url    = {https://github.com/Denolle-Lab/dvv-workflow}
+  url    = {https://github.com/Denolle-Lab/codameter}
 }
 ```

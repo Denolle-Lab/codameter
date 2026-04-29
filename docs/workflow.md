@@ -1,6 +1,6 @@
 # The six-phase workflow
 
-`dvv-workflow` is built around the operational workflow of §12 of *Denolle
+`codameter` is built around the operational workflow of §12 of *Denolle
 (in prep, JGR Solid Earth)*. Each phase is a self-contained step with
 typed inputs, a typed result object, and side-effect-free execution.
 The orchestrator `run_workflow()` wires them together; you can also

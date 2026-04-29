@@ -432,7 +432,7 @@ class WorkflowResult:
         anom = self.phase5.report
         coup = self.phase2.report
         lines = [
-            f"=== dvv-workflow result for site {self.site.site_id!r} ===",
+            f"=== codameter result for site {self.site.site_id!r} ===",
             "",
             f"Phase 0  Data:    n={len(self.phase0.dvv)} samples, "
             f"outliers={self.phase0.quality.n_outliers}",
@@ -523,7 +523,7 @@ class WorkflowResult:
     def plot_phases(self, **kwargs: Any) -> Any:
         """Return a 6-panel matplotlib figure summarising the run.
 
-        Lazily imports :mod:`dvv_workflow.plotting` to avoid a hard
+        Lazily imports :mod:`codameter.plotting` to avoid a hard
         matplotlib dependency at import time.
         """
         from .plotting import plot_workflow_six_panel

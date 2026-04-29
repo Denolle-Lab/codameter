@@ -17,7 +17,7 @@ manuscript). The intended v0.2 implementation will:
 1. Use the WLS amplitudes from :func:`linear_fit` as a starting point.
 2. Sample :math:`\beta_{\rm eff}(\omega)`, :math:`\mu'`, hydraulic
    diffusivity, and the Snieder relaxation times jointly with `emcee`.
-3. Use the prior dict from :class:`~dvv_workflow.config.MaterialProperties`
+3. Use the prior dict from :class:`~codameter.config.MaterialProperties`
    for regularisation.
 
 In v0.1 this is a stub that raises :class:`NotImplementedError`. The CLI
@@ -43,7 +43,7 @@ def coupled_inversion(
         Always — coupled inversion is scheduled for v0.2.
     """
     raise NotImplementedError(
-        "coupled_inversion (Eq. 19) is deferred to v0.2 of dvv-workflow.\n"
+        "coupled_inversion (Eq. 19) is deferred to v0.2 of codameter.\n"
         "For v0.1, use linear_fit() with the Phase-2 coupling diagnostics "
         "informing whether a hard escalation is warranted. If so, the "
         "recommended workaround is to:\n"
@@ -64,5 +64,5 @@ def state_dependent_forward(
     Will be implemented in v0.2 alongside :func:`coupled_inversion`.
     """
     raise NotImplementedError(
-        "state_dependent_forward (Eq. 19) is deferred to v0.2 of dvv-workflow."
+        "state_dependent_forward (Eq. 19) is deferred to v0.2 of codameter."
     )

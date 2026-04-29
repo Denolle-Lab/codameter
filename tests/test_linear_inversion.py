@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from dvv_workflow.inverse.linear_fit import build_predictor_matrix, linear_fit
-from dvv_workflow.inverse.posterior import Posterior
+from codameter.inverse.linear_fit import build_predictor_matrix, linear_fit
+from codameter.inverse.posterior import Posterior
 
 
 class TestBuildPredictorMatrix:

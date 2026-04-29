@@ -2,7 +2,7 @@
 
 ## Tier 1 — poroelastic (operational in v0.1)
 
-::: dvv_workflow.coupling.tier1_poroelastic
+::: codameter.coupling.tier1_poroelastic
     options:
       show_root_heading: false
       members:
@@ -12,7 +12,7 @@
 
 ## Decision tree
 
-::: dvv_workflow.coupling.decision_tree
+::: codameter.coupling.decision_tree
     options:
       show_root_heading: false
       members:

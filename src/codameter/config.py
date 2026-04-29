@@ -9,7 +9,7 @@ reproduced from a single text file plus the input data.
 
 Example
 -------
->>> from dvv_workflow import Site
+>>> from codameter import Site
 >>> site = Site.from_yaml("examples/configs/parkfield.yaml")
 >>> site.site_id
 'parkfield_hrsn'
@@ -106,7 +106,7 @@ class ForcingSpec:
     """Configuration for a single forcing channel.
 
     The ``model`` field selects the forward model. Allowed values depend on
-    the physical channel — see ``dvv_workflow.forward`` for the catalog.
+    the physical channel — see ``codameter.forward`` for the catalog.
     """
 
     enabled: bool = False

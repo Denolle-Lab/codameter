@@ -5,11 +5,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from dvv_workflow.coupling.decision_tree import (
+from codameter.coupling.decision_tree import (
     diagnose_all_tiers,
     escalation_decision,
 )
-from dvv_workflow.coupling.tier1_poroelastic import (
+from codameter.coupling.tier1_poroelastic import (
     drainage_peclet,
     frequency_dependent_beta_eff,
     tidal_beta_estimate,

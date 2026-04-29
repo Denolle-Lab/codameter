@@ -15,7 +15,7 @@ import pyarrow as pa
 import pyarrow.feather as feather
 import pytest
 
-from dvv_workflow.data.loaders import (
+from codameter.data.loaders import (
     load_clements_denolle_2023,
     load_csv_timeseries,
     load_dvv,

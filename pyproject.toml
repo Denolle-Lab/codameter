@@ -3,7 +3,7 @@ requires = ["hatchling>=1.18"]
 build-backend = "hatchling.build"
 
 [project]
-name = "dvv-workflow"
+name = "codameter"
 description = "Operational six-phase workflow for interpreting seismic velocity changes (dv/v) as stress and strain meters"
 readme = "README.md"
 license = { text = "MIT" }
@@ -56,28 +56,28 @@ test = [
     "hypothesis>=6.80",
 ]
 dev = [
-    "dvv-workflow[kernels,mcmc,docs,test]",
+    "codameter[kernels,mcmc,docs,test]",
     "black>=23.10",
     "ruff>=0.1",
     "mypy>=1.6",
     "pre-commit>=3.5",
 ]
-all = ["dvv-workflow[kernels,mcmc]"]
+all = ["codameter[kernels,mcmc]"]
 
 [project.scripts]
-dvv-workflow = "dvv_workflow.cli:main"
+codameter = "codameter.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Denolle-Lab/dvv-workflow"
-Documentation = "https://denolle-lab.github.io/dvv-workflow"
-Issues = "https://github.com/Denolle-Lab/dvv-workflow/issues"
-Source = "https://github.com/Denolle-Lab/dvv-workflow"
+Homepage = "https://github.com/Denolle-Lab/codameter"
+Documentation = "https://denolle-lab.github.io/codameter"
+Issues = "https://github.com/Denolle-Lab/codameter/issues"
+Source = "https://github.com/Denolle-Lab/codameter"
 
 [tool.hatch.version]
-path = "src/dvv_workflow/_version.py"
+path = "src/codameter/_version.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/dvv_workflow"]
+packages = ["src/codameter"]
 
 # ---------- tooling ----------
 
@@ -128,7 +128,7 @@ markers = [
 
 [tool.coverage.run]
 branch = true
-source = ["src/dvv_workflow"]
+source = ["src/codameter"]
 
 [tool.coverage.report]
 exclude_lines = [

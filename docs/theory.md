@@ -1,13 +1,13 @@
 # Theory pointer
 
-The full theoretical framework that `dvv-workflow` operationalises is
+The full theoretical framework that `codameter` operationalises is
 documented in:
 
 > **Denolle, M. A.** (in prep, submitted to *JGR Solid Earth*).
 > Seismic Velocity Changes as Stress and Strain Meters: A Unified Framework
 > for Forcing, Coupling, and Inversion.
 
-This page is a roadmap that points from each `dvv-workflow` module to the
+This page is a roadmap that points from each `codameter` module to the
 relevant section of that paper. We do not reproduce derivations here — the
 package's job is to let you *run* the framework, not re-derive it.
 

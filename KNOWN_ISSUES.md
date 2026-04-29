@@ -1,4 +1,4 @@
-# Known issues for `dvv-workflow` v0.1
+# Known issues for `codameter` v0.1
 
 This file documents known limitations and quirks at the v0.1 release.
 Each item links to the upstream tracker issue once filed.
@@ -10,7 +10,7 @@ Each item links to the upstream tracker issue once filed.
 **Severity:** documentation discrepancy — does **not** affect inversion results.
 
 The implementation of `snieder_healing()` in
-`src/dvv_workflow/forward/damage.py` returns **positive** values for
+`src/codameter/forward/damage.py` returns **positive** values for
 `elapsed_s > 0`, while its docstring describes the kernel as
 "negative valued, with $L(0) = -\ln(\tau_{\max}/\tau_{\min})$ and $L \to 0$
 as $t \to \infty$."
@@ -66,7 +66,7 @@ v0.2).
 The Tier 1 poroelastic diagnostic (`drainage_peclet`,
 `frequency_dependent_beta_eff`) is fully working. Tiers 2 (damage–
 permeability), 3 (saturation-dependent nonlinear elasticity), and 4
-(thermo-capillary) have stub modules under `src/dvv_workflow/coupling/`
+(thermo-capillary) have stub modules under `src/codameter/coupling/`
 that document their planned API but do nothing yet. The
 `decision_tree.escalation_decision` only inspects Tier 1.
 
@@ -90,7 +90,7 @@ The package installs and runs without `disba`; the
 $z_{\text{peak}} \approx V_S / (3f)$ rule of thumb (Equation S2 of
 Hillers et al. 2015) when `mode='rule_of_thumb'` is used. For
 production-quality kernel-weighted depth integrals, install with
-`pip install "dvv-workflow[kernels]"` and pass `mode='kernel'` to
+`pip install "codameter[kernels]"` and pass `mode='kernel'` to
 `Phase1.run`.
 
 ---
@@ -99,7 +99,7 @@ production-quality kernel-weighted depth integrals, install with
 
 The Clements & Denolle (2023) Zenodo archive uses Apache Feather as the
 on-disk format. `load_clements_denolle_2023` therefore depends on
-`pyarrow`, which is a hard dependency of `dvv-workflow`. If you are
+`pyarrow`, which is a hard dependency of `codameter`. If you are
 in a constrained environment without `pyarrow`, you can convert the
 upstream feather files to Parquet once with `pandas`, then point the
 loader at the converted directory; the loader auto-detects the

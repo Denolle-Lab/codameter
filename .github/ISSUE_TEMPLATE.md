@@ -31,7 +31,7 @@ in `tests/conftest.py` or against the C&D 2023 synthetic harness:
 
 ## Environment
 
-- `dvv-workflow` version (`python -c "import dvv_workflow; print(dvv_workflow.__version__)"`):
+- `codameter` version (`python -c "import codameter; print(codameter.__version__)"`):
 - Python version:
 - OS:
 - Optional dependencies installed (disba? emcee?):

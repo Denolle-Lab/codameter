@@ -5,7 +5,7 @@ The :func:`make_fine_model` function discretises a coarse layered model
 (typically 3--5 layers) onto a fine grid suitable for sensitivity-kernel
 computation. It is a direct port of the helper used in the manuscript's
 ``notebooks/06b_sensitivity_kernel_disba.ipynb`` and is the canonical place
-to add layers — every other module in :mod:`dvv_workflow.kernels` consumes
+to add layers — every other module in :mod:`codameter.kernels` consumes
 its output.
 
 Convention

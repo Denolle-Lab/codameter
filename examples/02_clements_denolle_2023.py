@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Clements & Denolle (2023) end-to-end test harness for ``dvv-workflow``.
+Clements & Denolle (2023) end-to-end test harness for ``codameter``.
 
-This script is the canonical demonstration that ``dvv-workflow`` interoperates
+This script is the canonical demonstration that ``codameter`` interoperates
 with the data products from
 
     Clements, T. & Denolle, M. A. (2023). The seismic signature of California's
@@ -64,9 +64,9 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.feather as feather
 
-from dvv_workflow import Site, load_site, run_workflow
-from dvv_workflow.data.loaders import load_clements_denolle_2023, load_csv_timeseries
-from dvv_workflow.cli import _default_cd2023_site
+from codameter import Site, load_site, run_workflow
+from codameter.data.loaders import load_clements_denolle_2023, load_csv_timeseries
+from codameter.cli import _default_cd2023_site
 
 
 # ---------------------------------------------------------------------------
@@ -122,8 +122,8 @@ def _generate_synthetic_cd2023(
          + 0.4 * rng.standard_normal(n))
 
     # Forward model the dv/v
-    from dvv_workflow.forward.poroelastic import groundwater_level_okubo
-    from dvv_workflow.forward.thermoelastic import thermoelastic_dvv
+    from codameter.forward.poroelastic import groundwater_level_okubo
+    from codameter.forward.thermoelastic import thermoelastic_dvv
 
     dGWL = groundwater_level_okubo(P, t_s, porosity=0.10,
                                    decay_rate_per_s=1.0 / (180 * 86400.0))

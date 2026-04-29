@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `dvv-workflow` will be documented in this file.
+All notable changes to `codameter` will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -46,7 +46,7 @@ Initial release. Implements the v0.1 scope of the build plan.
   - `forward/capillary.py` — Tier 4 stub for v0.4.
 - **Public API.** `run_workflow()` high-level entry point + `Site`
   dataclass + the six `PhaseN` classes for low-level control.
-- **CLI.** `dvv-workflow run --config X` and `dvv-workflow cd2023
+- **CLI.** `codameter run --config X` and `codameter cd2023
   --data-dir Y --station Z`. The `cd2023` subcommand wires directly
   to the Clements & Denolle (2023) Zenodo archive.
 - **Examples.**

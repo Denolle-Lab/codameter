@@ -1,13 +1,13 @@
-# dvv-workflow
+# codameter
 
-[![CI](https://github.com/Denolle-Lab/dvv-workflow/actions/workflows/ci.yml/badge.svg)](https://github.com/Denolle-Lab/dvv-workflow/actions/workflows/ci.yml)
+[![CI](https://github.com/Denolle-Lab/codameter/actions/workflows/ci.yml/badge.svg)](https://github.com/Denolle-Lab/codameter/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 
 **An operational six-phase workflow for interpreting relative seismic velocity
 changes ($\delta v / v$) as stress and strain meters.**
 
-`dvv-workflow` implements the workflow of Denolle (in prep, *JGR Solid Earth*)
+`codameter` implements the workflow of Denolle (in prep, *JGR Solid Earth*)
 as an executable Python pipeline. Given a $\delta v / v$ time series and the
 relevant environmental forcings (temperature, precipitation, earthquake
 catalog, etc.), the package extracts:
@@ -20,7 +20,7 @@ catalog, etc.), the package extracts:
 
 The repository is the operational counterpart to the manuscript-companion
 [`dvv-coupled`](https://github.com/Denolle-Lab/dvv-coupled) repo (which
-generates the JGR figures); `dvv-workflow` is the tool that any group can
+generates the JGR figures); `codameter` is the tool that any group can
 apply to their own data.
 
 > **Status — v0.1.** Phases 0, 1, 2 (Tier 1 only), 3 (linear), 5 (anomaly), and
@@ -33,20 +33,20 @@ apply to their own data.
 
 ```bash
 # core install (numpy / scipy / pandas / matplotlib only)
-pip install dvv-workflow
+pip install codameter
 
 # with disba sensitivity kernels (Phase 1)
-pip install "dvv-workflow[kernels]"
+pip install "codameter[kernels]"
 
 # everything — kernels, MCMC backend, dev tools
-pip install "dvv-workflow[all]"
+pip install "codameter[all]"
 ```
 
 From source:
 
 ```bash
-git clone https://github.com/Denolle-Lab/dvv-workflow.git
-cd dvv-workflow
+git clone https://github.com/Denolle-Lab/codameter.git
+cd codameter
 pip install -e ".[dev]"
 pre-commit install
 pytest
@@ -57,7 +57,7 @@ pytest
 ## 60-second quickstart
 
 ```python
-from dvv_workflow import run_workflow
+from codameter import run_workflow
 
 result = run_workflow(
     dvv_data="parkfield.parquet",
@@ -77,7 +77,7 @@ result.export("runs/parkfield/")   # all artifacts to disk
 The same task from the command line:
 
 ```bash
-dvv-workflow run --config examples/configs/parkfield.yaml \
+codameter run --config examples/configs/parkfield.yaml \
                  --output runs/parkfield/
 ```
 
@@ -108,9 +108,9 @@ python examples/05_clements_denolle_demo.py \
     --output runs/CI.LJR/
 ```
 
-The loader in `dvv_workflow.data.loaders.load_clements_denolle_2023()` reads
+The loader in `codameter.data.loaders.load_clements_denolle_2023()` reads
 the Arrow / Feather output of the upstream Julia pipeline (`03-dvv-comp.jl`)
-and converts it to the standard `dvv-workflow` format.
+and converts it to the standard `codameter` format.
 
 ---
 
@@ -130,7 +130,7 @@ and converts it to the standard `dvv-workflow` format.
 
 ## Citing
 
-If you use `dvv-workflow` in published work, please cite both the framework
+If you use `codameter` in published work, please cite both the framework
 paper and the software:
 
 ```bibtex
@@ -142,12 +142,12 @@ paper and the software:
   note   = {in prep}
 }
 
-@software{dvv_workflow,
+@software{codameter,
   author = {Denolle, M. A. and the GAIA HazLab},
-  title  = {dvv-workflow: An operational pipeline for interpreting seismic velocity changes},
+  title  = {codameter: An operational pipeline for interpreting seismic velocity changes},
   year   = {2026},
   doi    = {10.5281/zenodo.XXXXXXX},
-  url    = {https://github.com/Denolle-Lab/dvv-workflow}
+  url    = {https://github.com/Denolle-Lab/codameter}
 }
 ```
 

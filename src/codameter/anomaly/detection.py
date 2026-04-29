@@ -211,7 +211,7 @@ def detect_anomalies(
     Parameters
     ----------
     residuals
-        Output of :class:`~dvv_workflow.inverse.LinearFitResult.residuals`.
+        Output of :class:`~codameter.inverse.LinearFitResult.residuals`.
         If a ``pandas.Series`` is passed, the index is used to label
         transient onset times.
     n_lags, z_threshold, min_transient_length, rolling_window

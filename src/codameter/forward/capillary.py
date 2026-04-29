@@ -7,7 +7,7 @@ contact stiffness with a saturation-dependent effective pressure that
 includes capillary suction (Shi et al., 2026; Vahedifard et al., 2018).
 This produces hysteretic :math:`\delta v / v` signatures during wetting--drying
 cycles that are not captured by the saturated poroelastic models in
-:mod:`dvv_workflow.forward.poroelastic`.
+:mod:`codameter.forward.poroelastic`.
 
 This module is **scheduled for v0.2** with the Tier 3 coupling extension.
 For now it provides a stub that explains the equations and raises
@@ -52,7 +52,7 @@ def capillary_dvv(
         Always, until v0.2.
     """
     raise NotImplementedError(
-        "Capillary / Tier-3 forward model is scheduled for dvv-workflow v0.2. "
+        "Capillary / Tier-3 forward model is scheduled for codameter v0.2. "
         "For now, treat saturation effects as part of the residual in "
         "Phase 5, or supply an empirical S_w-dependent beta to the "
         "linear regression. See §9.4 of Denolle (in prep) for the full "

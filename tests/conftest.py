@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from dvv_workflow.config import (
+from codameter.config import (
     AnalysisConfig,
     ForcingSpec,
     Forcings,
@@ -22,9 +22,9 @@ from dvv_workflow.config import (
     Site,
     VelocityModel,
 )
-from dvv_workflow.forward.damage import snieder_healing
-from dvv_workflow.forward.poroelastic import groundwater_level_okubo
-from dvv_workflow.forward.thermoelastic import thermoelastic_dvv
+from codameter.forward.damage import snieder_healing
+from codameter.forward.poroelastic import groundwater_level_okubo
+from codameter.forward.thermoelastic import thermoelastic_dvv
 
 # ---------------------------------------------------------------------------
 # Constants used by multiple fixtures

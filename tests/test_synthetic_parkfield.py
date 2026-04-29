@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from dvv_workflow import run_workflow
+from codameter import run_workflow
 
 
 class TestEndToEnd:

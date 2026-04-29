@@ -1,4 +1,4 @@
-name: dvv-workflow
+name: codameter
 channels:
   - conda-forge
   - defaults
