@@ -1,0 +1,87 @@
+# Clements & Denolle (2023) — station CI.LJR (La Jolla Arroyo, San Gabriel Basin)
+#
+# Worked-example config for re-running the Clements & Denolle (2023, JGR
+# Solid Earth) single-station autocorrelation analysis through the
+# dvv-workflow pipeline. The site sits in a managed unconfined aquifer
+# (San Gabriel Basin, greater LA) and is the type-locality of the
+# 2004-05 winter precipitation response (their Figure 5).
+#
+# Velocity model: simplified southern-California crust, calibrated to
+# place the 2-4 Hz Rayleigh-wave kernel peak in the upper few hundred
+# metres where the basin aquifer lives.
+
+site_id: cd2023_CI_LJR
+
+location:
+  lat: 34.123
+  lon: -118.108
+  elevation_m: 230
+
+measurement:
+  type: cross_correlation        # autocorrelation in the upstream pipeline
+  frequency_band_hz: [2.0, 4.0]  # the C&D 2023 default band
+
+velocity_model:
+  source: simplified_so_cal
+  layers:
+    - {thickness_km: 0.10, vp: 1.20, vs: 0.45, rho: 1.9}   # alluvium
+    - {thickness_km: 0.40, vp: 2.50, vs: 1.20, rho: 2.2}   # weathered
+    - {thickness_km: 1.50, vp: 4.20, vs: 2.40, rho: 2.5}   # consolidated
+    - {thickness_km: 3.00, vp: 5.50, vs: 3.20, rho: 2.7}   # upper crust
+    - {thickness_km: 10.0, vp: 6.20, vs: 3.60, rho: 2.8}
+
+forcings:
+  thermoelastic:
+    enabled: true
+    source_data: temperature.csv     # daily PRISM, interpolated to station
+    model: phase_shift
+    time_shift_days: 50              # C&D 2023 fit a 30-90 day range
+  hydrological:
+    enabled: true
+    source_data: precipitation.csv   # daily PRISM
+    model: okubo_gwl                 # exponential-decay GWL proxy
+  capillary:
+    enabled: false
+  loading:
+    enabled: false
+  damage:
+    enabled: false                   # CI.LJR has no co-located large EQ in the period
+
+material_properties:
+  beta_prior:        {mean: 240,  std: 80}
+  mu_prime_prior:    {mean: 250,  std: 90}
+  porosity_prior:    {mean: 0.10, std: 0.05}        # alluvium
+  skempton_B_prior:  {mean: 0.6,  std: 0.15}
+  biot_alpha_prior:  {mean: 0.8,  std: 0.10}
+  hydraulic_diffusivity_prior_log10: {mean: -1.0, std: 1.0}   # 0.1 m^2/s nominal
+
+analysis:
+  start_date: "2002-01-01"
+  end_date:   "2022-12-31"
+  trend_baseline_years: [2002, 2003]
+  uncertainty_method: wls
+  mcmc:
+    backend: emcee
+    n_walkers: 64
+    n_steps: 5000
+    burn_in: 1000
+    seed: 42
+
+metadata:
+  citation: |
+    Clements, T., & Denolle, M. A. (2023). The seismic signature of
+    California's earthquakes, droughts, and floods. JGR Solid Earth,
+    128, e2022JB025553.
+  data_doi: "10.5281/zenodo.6413275"
+  notes: |
+    Run this config against the unpacked Zenodo data with:
+        dvv-workflow cd2023 \
+            --data-dir /path/to/clements_denolle_2023_data \
+            --station CI.LJR \
+            --config examples/configs/clements_denolle_2023_LJR.yaml \
+            --precip /path/to/precipitation.csv \
+            --temp   /path/to/temperature.csv \
+            --output runs/cd2023_CI_LJR/
+    Or use the standalone harness in examples/02_clements_denolle_2023.py
+    which generates a synthetic LJR-like dataset if no real data is
+    available, so you can validate the wiring before the 4.4 GB download.

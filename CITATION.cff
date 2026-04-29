@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software and the JGR paper."
+title: "dvv-workflow: An operational pipeline for interpreting seismic velocity changes as stress and strain meters"
+abstract: >
+  dvv-workflow implements the six-phase operational workflow of Denolle (in
+  prep, JGR Solid Earth) for interpreting relative seismic velocity changes
+  (delta v / v) as coupled stress and strain meters. Given a delta v / v
+  time series and the relevant environmental forcings, the package extracts
+  depth-resolved stress estimates with propagated uncertainties, water-table
+  inversions, coupling-tier diagnostics, and anomaly classifications.
+authors:
+  - family-names: Denolle
+    given-names: Marine A.
+    affiliation: "University of Washington — GAIA HazLab"
+    orcid: "https://orcid.org/0000-0002-1610-2250"
+type: software
+license: MIT
+repository-code: "https://github.com/Denolle-Lab/dvv-workflow"
+keywords:
+  - seismology
+  - ambient noise
+  - dvv
+  - poroelasticity
+  - thermoelasticity
+  - groundwater
+  - stress monitoring
+version: "0.1.0"
+date-released: "2026-04-29"
+preferred-citation:
+  type: article
+  title: "Relative seismic velocity changes as coupled stress and strain meters: a unified framework"
+  authors:
+    - family-names: Denolle
+      given-names: Marine A.
+  year: 2026
+  journal: "Journal of Geophysical Research: Solid Earth"
+  notes: "in preparation"

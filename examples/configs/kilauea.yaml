@@ -1,0 +1,78 @@
+# Kīlauea Volcano, Hawaii
+#
+# Worked-example configuration matching §10.3 of Denolle (in prep). The
+# 2018 caldera collapse provides a forcing-strain anchor: ~3 m of vertical
+# subsidence over the summit produces an estimated ~170 kPa of tensile
+# stress per major collapse event, with β_radial ≈ 300 in the radial-fracture
+# direction.
+
+site_id: kilauea_summit
+
+location:
+  lat: 19.42
+  lon: -155.29
+  elevation_m: 1230
+
+measurement:
+  type: cross_correlation
+  frequency_band_hz: [1.0, 3.0]    # 100–500 m sensitivity (caldera-scale)
+
+velocity_model:
+  source: kilauea_simplified
+  layers:
+    - {thickness_km: 0.05, vp: 1.0, vs: 0.4, rho: 1.7}   # surface ash + clinker
+    - {thickness_km: 0.50, vp: 2.5, vs: 1.3, rho: 2.4}   # weathered basalt
+    - {thickness_km: 2.00, vp: 4.0, vs: 2.2, rho: 2.7}   # massive basalt
+    - {thickness_km: 50.0, vp: 6.0, vs: 3.4, rho: 3.0}
+
+forcings:
+  thermoelastic:
+    enabled: true
+    source_data: T.csv
+    model: phase_shift
+    time_shift_days: 30
+  hydrological:
+    enabled: true
+    source_data: P.csv
+    model: okubo_gwl
+  capillary:
+    enabled: false
+  loading:
+    enabled: false
+  damage:
+    enabled: true
+    catalog: kilauea_eq.csv
+    search_radius_km: 30
+    healing_form: logarithmic_snieder
+
+material_properties:
+  # Kīlauea-specific deviatoric β from the 2018 caldera-collapse calibration
+  beta_prior:        {mean: 300,  std: 100}
+  mu_prime_prior:    {mean: 200,  std: 80}
+  porosity_prior:    {mean: 0.10, std: 0.05}      # vesicular basalt
+  skempton_B_prior:  {mean: 0.5,  std: 0.20}
+  biot_alpha_prior:  {mean: 0.7,  std: 0.15}
+  hydraulic_diffusivity_prior_log10: {mean: -1.0, std: 1.0}   # tighter, 0.1 m^2/s nominal
+
+analysis:
+  start_date: "2010-01-01"
+  end_date:   "2022-12-31"
+  trend_baseline_years: [2010, 2011]
+  uncertainty_method: wls
+  mcmc:
+    backend: emcee
+    n_walkers: 64
+    n_steps: 5000
+    burn_in: 1000
+    seed: 42
+
+metadata:
+  notes: |
+    The 2018 sequence is the central calibration target. Each major
+    collapse event is treated as a damage forcing, with the post-event
+    healing fit providing the τ_min, τ_max bounds for subsequent events.
+    The Phase 6 stress estimate is in the radial-fracture direction
+    (S_Hmax aligned with the rift), so β here is *deviatoric* — see
+    §10.3 of the manuscript for why the isotropic formulation fails.
+  citation: |
+    Section 10.3 of Denolle (in prep, JGR Solid Earth).

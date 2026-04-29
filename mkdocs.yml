@@ -1,0 +1,77 @@
+site_name: dvv-workflow
+site_description: Operational pipeline for interpreting seismic velocity changes (dv/v) as stress and strain meters
+site_url: https://denolle-lab.github.io/dvv-workflow/
+repo_url: https://github.com/Denolle-Lab/dvv-workflow
+repo_name: Denolle-Lab/dvv-workflow
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+    - content.code.copy
+    - content.tabs.link
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Quickstart: quickstart.md
+  - Six-phase workflow: workflow.md
+  - Theory pointer: theory.md
+  - Examples:
+    - examples/parkfield.md
+    - examples/clements_denolle_2023.md
+  - API reference:
+    - api/index.md
+    - High-level: api/high_level.md
+    - Forward models: api/forward.md
+    - Coupling: api/coupling.md
+    - Inversion: api/inverse.md
+  - Known issues: known_issues.md
+  - Changelog: changelog.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: false
+            show_root_heading: true
+            show_signature_annotations: true
+            members_order: source
+            heading_level: 3
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      permalink: true
+  - tables
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

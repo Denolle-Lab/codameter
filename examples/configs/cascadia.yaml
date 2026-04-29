@@ -1,0 +1,73 @@
+# Northern Cascadia — interplate locked zone offshore Vancouver Island /
+# Washington State.
+#
+# Worked-example configuration matching §10.2 of Denolle (in prep). The
+# Cascadia case is the volumetric-strain example: secular contraction from
+# slow-slip cycles is approximately isotropic, β ≈ 3160, and the dv/v
+# increase rate (~50× larger than Parkfield) yields an isotropic stress
+# rate of 0.58 kPa/yr that matches borehole stress data within uncertainty.
+
+site_id: cascadia_lz
+
+location:
+  lat: 47.6
+  lon: -122.3
+  elevation_m: 10
+
+measurement:
+  type: cross_correlation
+  frequency_band_hz: [0.4, 0.8]    # ~3–5 km kernel peak depth
+
+velocity_model:
+  source: cascadia_simplified
+  layers:
+    - {thickness_km: 1.0,  vp: 4.5, vs: 2.5, rho: 2.5}   # sediment / weathered
+    - {thickness_km: 10.0, vp: 6.0, vs: 3.4, rho: 2.7}   # upper crust
+    - {thickness_km: 50.0, vp: 7.0, vs: 4.0, rho: 3.0}   # lower crust / upper mantle
+
+forcings:
+  thermoelastic:
+    enabled: false   # too deep for thermal annual penetration
+  hydrological:
+    enabled: true
+    model: roeloffs1988             # use the drained-only erfc form
+    source_data: P.csv
+  capillary:
+    enabled: false
+  loading:
+    enabled: true                   # surface load matters at this depth
+    source_data: P.csv              # same proxy
+  damage:
+    enabled: false                  # Cascadia is interseismic-quiet
+
+material_properties:
+  # Cascadia interseismic shows isotropic strain → large β
+  beta_prior:        {mean: 3160, std: 600}
+  mu_prime_prior:    {mean: 618,  std: 120}
+  porosity_prior:    {mean: 0.02, std: 0.01}
+  skempton_B_prior:  {mean: 0.6,  std: 0.15}
+  biot_alpha_prior:  {mean: 0.8,  std: 0.10}
+  hydraulic_diffusivity_prior_log10: {mean: 0.0, std: 1.0}
+
+analysis:
+  start_date: "2005-01-01"
+  end_date:   "2024-12-31"
+  trend_baseline_years: [2005, 2006]
+  uncertainty_method: wls
+  mcmc:
+    backend: emcee
+    n_walkers: 64
+    n_steps: 5000
+    burn_in: 1000
+    seed: 42
+
+metadata:
+  notes: |
+    The Cascadia case demonstrates Tier 1 poroelastic coupling at the
+    drained–undrained transition. The frequency-dependent β_eff(ω) is the
+    primary diagnostic — with a 3-day drainage timescale the seasonal
+    forcing is firmly in the drained regime while tidal forcing is
+    undrained, recovering αB·B = 0.6 from the amplitude ratio
+    (synthetic Fig. 19c).
+  citation: |
+    Section 10.2 of Denolle (in prep, JGR Solid Earth).

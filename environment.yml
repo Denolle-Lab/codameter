@@ -1,0 +1,20 @@
+name: dvv-workflow
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.10,<3.13
+  - numpy>=1.24
+  - scipy>=1.10
+  - pandas>=2.0
+  - pyarrow>=12.0
+  - matplotlib>=3.7
+  - pyyaml>=6.0
+  - xarray>=2023.6
+  - jupyter>=1.0
+  - ipywidgets>=8.1
+  - pip
+  - pip:
+    - disba>=0.7,<0.8
+    - emcee>=3.1
+    - -e .

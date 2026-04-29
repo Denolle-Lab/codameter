@@ -1,0 +1,81 @@
+# Parkfield, California — HRSN array, San Andreas Fault zone
+#
+# Worked-example configuration matching §10.1 of Denolle (in prep, JGR Solid
+# Earth) and the linear-superposition fit of Okubo et al. (2024). Use this
+# config as a starting template for any interseismic strike-slip site with
+# significant thermoelastic + hydrological + post-seismic damage signal.
+#
+# Velocity model: 4-layer simplified Jeppson & Tobin (2015) inversion, which
+# gives peak Rayleigh-wave sensitivity at ~400 m for the 0.9–1.2 Hz band.
+
+site_id: parkfield_hrsn
+
+location:
+  lat: 35.97
+  lon: -120.55
+  elevation_m: 350
+
+measurement:
+  type: cross_correlation
+  frequency_band_hz: [0.9, 1.2]
+
+velocity_model:
+  source: jeppson_tobin_2015
+  layers:
+    - {thickness_km: 0.10, vp: 1.5, vs: 0.6, rho: 1.9}
+    - {thickness_km: 0.67, vp: 2.5, vs: 1.2, rho: 2.2}
+    - {thickness_km: 1.00, vp: 4.5, vs: 2.5, rho: 2.5}
+    - {thickness_km: 50.0, vp: 5.8, vs: 3.4, rho: 2.7}
+
+forcings:
+  thermoelastic:
+    enabled: true
+    source_data: T.csv             # daily air temperature
+    model: phase_shift
+    time_shift_days: 50            # Okubo et al. (2024)
+  hydrological:
+    enabled: true
+    source_data: P.csv             # daily precipitation (m)
+    model: okubo_gwl
+  capillary:
+    enabled: false                 # deferred to v0.3 (Tier 3)
+  loading:
+    enabled: false                 # surface load is sub-dominant at this site
+  damage:
+    enabled: true
+    catalog: regional_eq.csv       # earthquakes within search_radius_km
+    search_radius_km: 50
+    healing_form: logarithmic_snieder
+
+material_properties:
+  beta_prior:        {mean: 240,  std: 80}    # acoustoelastic, dimensionless
+  mu_prime_prior:    {mean: 250,  std: 90}    # nonlinear-elasticity, dimensionless
+  porosity_prior:    {mean: 0.05, std: 0.02}
+  skempton_B_prior:  {mean: 0.6,  std: 0.15}
+  biot_alpha_prior:  {mean: 0.8,  std: 0.10}
+  hydraulic_diffusivity_prior_log10: {mean: 0.0, std: 1.0}   # 10^x m^2/s
+
+analysis:
+  start_date: "2002-01-01"
+  end_date:   "2022-12-31"
+  trend_baseline_years: [2002, 2003]
+  uncertainty_method: wls          # 'wls' (v0.1) or 'mcmc' (v0.2+)
+  mcmc:
+    backend: emcee
+    n_walkers: 64
+    n_steps: 5000
+    burn_in: 1000
+    seed: 42
+
+metadata:
+  notes: |
+    The 20-year δv/v increase at Parkfield is incompatible with volumetric
+    strain sign but is consistent with deviatoric axial contraction in
+    the S_Hmax direction (Eq. 8 of Denolle, in prep). The scalar β
+    framework is therefore *known* to be insufficient at this site —
+    we run it anyway as a baseline so that the residual can be flagged
+    by Phase 5.
+  citation: |
+    Okubo, K., Denolle, M. A., Behboudi, E., Onnela, J.-P. (2024).
+    Monitoring velocity changes over 20 years at Parkfield.
+    JGR Solid Earth, 129, e2023JB028084.

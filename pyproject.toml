@@ -1,0 +1,139 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dvv-workflow"
+description = "Operational six-phase workflow for interpreting seismic velocity changes (dv/v) as stress and strain meters"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Marine A. Denolle", email = "mdenolle@uw.edu" },
+]
+keywords = [
+    "seismology",
+    "ambient noise",
+    "dvv",
+    "poroelasticity",
+    "thermoelasticity",
+    "groundwater",
+    "stress monitoring",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pandas>=2.0",
+    "pyarrow>=12.0",
+    "matplotlib>=3.7",
+    "PyYAML>=6.0",
+    "xarray>=2023.6",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+kernels = ["disba>=0.7,<0.8"]
+mcmc = ["emcee>=3.1"]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.4",
+    "mkdocstrings[python]>=0.24",
+]
+test = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "hypothesis>=6.80",
+]
+dev = [
+    "dvv-workflow[kernels,mcmc,docs,test]",
+    "black>=23.10",
+    "ruff>=0.1",
+    "mypy>=1.6",
+    "pre-commit>=3.5",
+]
+all = ["dvv-workflow[kernels,mcmc]"]
+
+[project.scripts]
+dvv-workflow = "dvv_workflow.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Denolle-Lab/dvv-workflow"
+Documentation = "https://denolle-lab.github.io/dvv-workflow"
+Issues = "https://github.com/Denolle-Lab/dvv-workflow/issues"
+Source = "https://github.com/Denolle-Lab/dvv-workflow"
+
+[tool.hatch.version]
+path = "src/dvv_workflow/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dvv_workflow"]
+
+# ---------- tooling ----------
+
+[tool.black]
+line-length = 88
+target-version = ["py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "NPY", # NumPy-specific rules
+]
+ignore = [
+    "E501",  # line length handled by black
+    "B008",  # function call in default argument
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B011"]
+"__init__.py" = ["F401"]  # unused-import OK in __init__
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+warn_return_any = true
+ignore_missing_imports = true
+disallow_untyped_defs = false  # gradually typed
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "needs_disba: requires the optional disba dependency",
+    "needs_emcee: requires the optional emcee dependency",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/dvv_workflow"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
