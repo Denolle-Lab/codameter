@@ -208,7 +208,7 @@ def _default_cd2023_site(station: str) -> Site:
         forcings=Forcings(
             thermoelastic=ForcingSpec(enabled=True, model="phase_shift",
                                       extra={"time_shift_days": 50.0}),
-            hydrological=ForcingSpec(enabled=True, model="okubo_gwl"),
+            hydrological=ForcingSpec(enabled=True, model="baseflow"),
             damage=ForcingSpec(enabled=True, model="snieder_healing"),
         ),
         material_properties=MaterialProperties(

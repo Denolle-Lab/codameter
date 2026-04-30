@@ -22,6 +22,8 @@ from __future__ import annotations
 from .damage import logarithmic_healing, snieder_healing
 from .loading import surface_load_dvv
 from .poroelastic import (
+    baseflow_recharge_response,
+    cdm_precipitation_response,
     drained_pressure_response,
     groundwater_level_okubo,
     roeloffs_pressure_response,
@@ -42,7 +44,9 @@ __all__ = [
     "roeloffs_pressure_response",
     "talwani_precipitation_response",
     "drained_pressure_response",
+    "baseflow_recharge_response",
     "groundwater_level_okubo",
+    "cdm_precipitation_response",
     "surface_load_dvv",
     "logarithmic_healing",
     "snieder_healing",

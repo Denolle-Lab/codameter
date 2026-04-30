@@ -122,10 +122,10 @@ def _generate_synthetic_cd2023(
          + 0.4 * rng.standard_normal(n))
 
     # Forward model the dv/v
-    from codameter.forward.poroelastic import groundwater_level_okubo
+    from codameter.forward.poroelastic import baseflow_recharge_response
     from codameter.forward.thermoelastic import thermoelastic_dvv
 
-    dGWL = groundwater_level_okubo(P, t_s, porosity=0.10,
+    dGWL = baseflow_recharge_response(P, t_s, porosity=0.10,
                                    decay_rate_per_s=1.0 / (180 * 86400.0))
     dGWL_centred = dGWL - dGWL.mean()
     T_pred = thermoelastic_dvv(T, t_s, sensitivity_amplitude=1.0,

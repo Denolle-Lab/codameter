@@ -39,7 +39,7 @@ forcings:
   hydrological:
     enabled: true
     source_data: precipitation.csv   # daily PRISM
-    model: okubo_gwl                 # exponential-decay GWL proxy
+    model: baseflow                  # exponential-decay recharge/baseflow proxy
   capillary:
     enabled: false
   loading:

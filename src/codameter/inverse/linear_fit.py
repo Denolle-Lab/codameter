@@ -45,7 +45,11 @@ import numpy as np
 import pandas as pd
 
 from ..forward.damage import snieder_healing
-from ..forward.poroelastic import groundwater_level_okubo
+from ..forward.poroelastic import (
+    baseflow_recharge_response,
+    cdm_precipitation_response,
+    talwani_precipitation_response,
+)
 from ..forward.thermoelastic import thermoelastic_dvv
 from .posterior import Posterior
 
@@ -86,14 +90,24 @@ class PredictorMatrix:
         return int(self.X.shape[1])
 
 
+_HYDRO_MODELS = frozenset({"baseflow", "okubo_gwl", "talwani", "drained", "cdm", "precomputed"})
+
+
 def build_predictor_matrix(
     times_s: np.ndarray,
     *,
     precipitation_m: np.ndarray | None = None,
     temperature_C: np.ndarray | None = None,
     earthquake_times_s: list[float] | None = None,
+    hydrological_model: str = "baseflow",
     porosity: float = 0.05,
     decay_rate_per_s: float = 1.0 / (180.0 * 86400.0),
+    depth_m: float = 100.0,
+    diffusivity_m2_s: float = 0.01,
+    skempton_B: float = 0.6,
+    poisson_undrained: float = 0.3,
+    window_days: int = 365 * 8,
+    precipitation_warmup_m: np.ndarray | None = None,
     time_shift_days: float = 50.0,
     tau_min_s: float = 86400.0,
     tau_max_s: float = 30.0 * 365.25 * 86400.0,
@@ -102,17 +116,16 @@ def build_predictor_matrix(
     r"""Construct the Eq. 6 design matrix.
 
     Each forcing channel that is not ``None`` adds one column to the design
-    matrix (precipitation through the GWL convolution, temperature through
-    the phase-shifted thermoelastic predictor, each earthquake through the
-    Snieder healing kernel).
+    matrix (precipitation through the selected hydrological model, temperature
+    through the phase-shifted thermoelastic predictor, each earthquake through
+    the Snieder healing kernel).
 
     Parameters
     ----------
     times_s
         Sample times in seconds (uniform sampling assumed).
     precipitation_m
-        Precipitation per sample in metres (will be converted to GWL via
-        :func:`groundwater_level_okubo`). Set to ``None`` to skip the
+        Precipitation per sample in metres. Set to ``None`` to skip the
         hydrological column.
     temperature_C
         Surface temperature anomaly (°C). Set to ``None`` to skip the
@@ -120,8 +133,44 @@ def build_predictor_matrix(
     earthquake_times_s
         Origin times of earthquakes in the same time base as ``times_s``.
         One ``s_i`` parameter is fit per event.
+    hydrological_model
+        Which forward model to use for the hydrological column. Options:
+
+                * ``"baseflow"`` (default) — exponential-decay recharge / baseflow
+                    proxy from Akasaka & Nakanishi (2000), Sens-Schoenfelder & Wegler
+                    (2006), and Okubo et al. (2024). Controlled by ``porosity`` and
+                    ``decay_rate_per_s``. ``"okubo_gwl"`` is accepted as a legacy alias.
+        * ``"talwani"`` — full Biot (undrained + drained) convolution from
+          Talwani et al. (2007) / Clements & Denolle (2023). Controlled by
+          ``depth_m``, ``diffusivity_m2_s``, ``skempton_B``, and
+          ``poisson_undrained``.
+    * ``"cdm"`` — Cumulative Departure from k-day rolling Mean
+          (Clements & Denolle 2023 CDMk). Captures multi-year drought
+          accumulation. Controlled by ``window_days``. Pass
+          ``precipitation_warmup_m`` (precipitation before the first dv/v
+          observation) to avoid start-up bias; if ``None`` the on-range data
+          is used with an expanding-mean initialisation.
+        * ``"precomputed"`` — ``precipitation_m`` is already the final GWL
+          proxy (e.g. an externally computed CDM or GRACE GWL record). No
+          forward model is applied; the column is only centred.
     porosity, decay_rate_per_s
-        Forward parameters used to map precipitation to GWL.
+        Forward parameters for the ``"baseflow"`` model.
+    depth_m
+        Depth in metres at which to evaluate pore pressure for the
+          ``"talwani"`` and ``"drained"`` models. Should match the Phase 1
+          kernel-peak depth. Clements & Denolle (2023) use 500 m.
+    diffusivity_m2_s
+        Hydraulic diffusivity (m²/s) for ``"talwani"`` / ``"drained"``.
+        Needs optimisation; range explored in C&D (2023): 5×10⁻⁵–∞.
+        For multi-year drought signals ~ 1×10⁻⁵\u20131×10⁻³ m²/s.
+    skempton_B, poisson_undrained
+        Poroelastic parameters for the ``"talwani"`` model.
+    window_days
+        Rolling-mean window for the ``"cdm"`` model.
+    precipitation_warmup_m
+        Historical precipitation (before the first sample in ``times_s``)
+        prepended for start-up of the ``"cdm"`` model.  Length should be at
+        least ``window_days``.  Silently ignored for other models.
     time_shift_days
         Lag between surface temperature and dv/v response (Okubo 2024
         finds ~50 d at Parkfield).
@@ -146,14 +195,53 @@ def build_predictor_matrix(
         units["a0"] = "fraction"
 
     if precipitation_m is not None:
-        gwl = groundwater_level_okubo(
-            precipitation_m,
-            times_s,
-            porosity=porosity,
-            decay_rate_per_s=decay_rate_per_s,
-        )
+        if hydrological_model not in _HYDRO_MODELS:
+            raise ValueError(
+                f"hydrological_model {hydrological_model!r} not recognised; "
+                f"choose one of {sorted(_HYDRO_MODELS)}"
+            )
+        if hydrological_model in {"baseflow", "okubo_gwl"}:
+            col = baseflow_recharge_response(
+                precipitation_m,
+                times_s,
+                porosity=porosity,
+                decay_rate_per_s=decay_rate_per_s,
+            )
+        elif hydrological_model in {"talwani", "drained"}:
+            # Talwani convolution requires a uniform time grid.
+            # Compute on a regular daily grid spanning the data range, then
+            # interpolate back to the (potentially gapped) observation times.
+            dt_s = 86400.0
+            t_uni = np.arange(times_s[0], times_s[-1] + dt_s, dt_s)
+            p_arr = np.asarray(precipitation_m, dtype=float)
+            p_uni = np.interp(t_uni, times_s, p_arr, left=0.0, right=0.0)
+            col_uni = talwani_precipitation_response(
+                p_uni,
+                t_uni,
+                depth_m=depth_m,
+                diffusivity_m2_s=diffusivity_m2_s,
+                skempton_B=skempton_B,
+                poisson_undrained=poisson_undrained,
+                drained_only=(hydrological_model == "drained"),
+            )
+            col = np.interp(times_s, t_uni, col_uni)
+        elif hydrological_model == "cdm":
+            # Cumulative Departure from rolling Mean.
+            # Prepend warmup (if provided) for a properly initialised rolling
+            # mean, then discard the warmup samples from the output.
+            p_arr = np.asarray(precipitation_m, dtype=float)
+            if precipitation_warmup_m is not None:
+                pw = np.asarray(precipitation_warmup_m, dtype=float)
+                full = np.concatenate([pw, p_arr])
+                cdm_full = cdm_precipitation_response(full, window_days=window_days)
+                col = cdm_full[len(pw) :]
+            else:
+                col = cdm_precipitation_response(p_arr, window_days=window_days)
+        else:  # "precomputed"
+            # precipitation_m is already the GWL proxy; just centre it.
+            col = np.asarray(precipitation_m, dtype=float)
         # Centre to keep the intercept interpretable
-        columns.append(gwl - gwl.mean())
+        columns.append(col - col.mean())
         names.append("p1_dGWL")
         units["p1_dGWL"] = "fraction / m"
 
@@ -195,8 +283,14 @@ def build_predictor_matrix(
         parameter_names=names,
         units=units,
         metadata={
+            "hydrological_model": hydrological_model,
             "porosity": porosity,
             "decay_rate_per_s": decay_rate_per_s,
+            "depth_m": depth_m,
+            "diffusivity_m2_s": diffusivity_m2_s,
+            "skempton_B": skempton_B,
+            "poisson_undrained": poisson_undrained,
+            "window_days": window_days,
             "time_shift_days": time_shift_days,
             "tau_min_s": tau_min_s,
             "tau_max_s": tau_max_s,

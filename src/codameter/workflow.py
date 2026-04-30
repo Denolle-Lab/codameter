@@ -249,6 +249,7 @@ class Phase3:
         *,
         earthquake_times: list[pd.Timestamp] | None = None,
         time_shift_days: float | None = None,
+        precipitation_warmup_m: "np.ndarray | None" = None,
     ) -> Phase3Result:
         # Convert dvv index to seconds since first sample
         t0 = phase0.dvv.index[0]
@@ -286,13 +287,31 @@ class Phase3:
                 "channel enabled and that forcings dict was passed to Phase 0."
             )
 
+        hydro_spec = site.forcings.hydrological
+        hydro_model = hydro_spec.model or "baseflow"
+        hydro_extra = hydro_spec.extra or {}
+
         pm = build_predictor_matrix(
             times_s,
             precipitation_m=precip,
             temperature_C=temp,
             earthquake_times_s=eq_times_s,
-            time_shift_days=time_shift_days,
+            hydrological_model=hydro_model,
             porosity=site.material_properties.porosity_prior.mean,
+            decay_rate_per_s=float(
+                hydro_extra.get("decay_rate_per_s", 1.0 / (180.0 * 86400.0))
+            ),
+            depth_m=float(hydro_extra.get("depth_m", 100.0)),
+            diffusivity_m2_s=float(hydro_extra.get("diffusivity_m2_s", 0.01)),
+            skempton_B=float(
+                hydro_extra.get(
+                    "skempton_B", site.material_properties.skempton_B_prior.mean
+                )
+            ),
+            poisson_undrained=float(hydro_extra.get("poisson_undrained", 0.3)),
+            window_days=int(hydro_extra.get("window_days", 365 * 8)),
+            precipitation_warmup_m=precipitation_warmup_m,
+            time_shift_days=time_shift_days,
         )
         forcings_used: list[str] = []
         if precip is not None:
@@ -445,6 +464,14 @@ class WorkflowResult:
             f"escalate={coup.escalate}",
             f"Phase 3  Design:  forcings={self.phase3.forcings_used}, "
             f"n_par={fit.predictor_matrix.n_par}",
+        ]
+        # Functional form of the fitted model
+        non_intercept = [n for n in fit.parameter_names if n != "a0"]
+        rhs_terms = ["a0"] + [f"p({n})*f_{n}(t)" for n in non_intercept]
+        lines.append(
+            "           Model:   dv/v(t) = " + " + ".join(rhs_terms) + " + eps(t)"
+        )
+        lines += [
             f"Phase 4  Fit:     chi2_red={fit.chi2_reduced:.2f}, "
             f"rank={fit.rank}/{fit.predictor_matrix.n_par}",
         ]
@@ -539,6 +566,7 @@ def run_workflow(
     earthquake_times: list[pd.Timestamp] | None = None,
     kernel_mode: str = "rule_of_thumb",
     time_shift_days: float | None = None,
+    precipitation_warmup_m: "np.ndarray | None" = None,
 ) -> WorkflowResult:
     """Run all six phases end-to-end with sensible defaults.
 
@@ -559,6 +587,10 @@ def run_workflow(
         ``"kernel"`` (uses disba) or ``"rule_of_thumb"`` (Vs/3f).
     time_shift_days
         Override for the thermoelastic shift parameter.
+    precipitation_warmup_m
+        Historical precipitation (before the first dv/v observation, in metres)
+        used to initialise the CDM rolling mean. Only used when
+        ``site.forcings.hydrological.model == "cdm"``.
 
     Returns
     -------
@@ -568,7 +600,8 @@ def run_workflow(
     p1 = Phase1.run(site, mode=kernel_mode)
     p2 = Phase2.diagnose(site, p1)
     p3 = Phase3.run(site, p0, earthquake_times=earthquake_times,
-                    time_shift_days=time_shift_days)
+                    time_shift_days=time_shift_days,
+                    precipitation_warmup_m=precipitation_warmup_m)
     p4 = Phase4.run(p0, p3, coupling=p2)
     p5 = Phase5.run(p0, p4)
     p6 = Phase6.run(site, p1, p4)

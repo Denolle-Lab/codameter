@@ -34,7 +34,7 @@ forcings:
   hydrological:
     enabled: true
     source_data: P.csv
-    model: okubo_gwl
+    model: baseflow
   capillary:
     enabled: false
   loading:

@@ -12,8 +12,8 @@ through the coupled Biot equations. We implement three commonly used forms:
 2. **Talwani et al. (2007)** — Roeloffs extended to a time series of
    precipitation loads (Eq. 9 of Clements & Denolle, 2023).
 
-3. **Okubo et al. (2024)** — Akasaka & Nakanishi (2000) /
-   Sens-Schoenfelder & Wegler (2006) groundwater-level model
+3. **Baseflow reservoir model** — Akasaka & Nakanishi (2000) /
+    Sens-Schoenfelder & Wegler (2006) exponential groundwater-storage model
    :math:`\Delta GWL(t_i) = \sum_n p(t_n)/\phi \cdot \exp[-\alpha_0(t_i - t_n)]`.
    This is the model used in the Parkfield dv/v fit (their Eq. 4).
 
@@ -182,11 +182,11 @@ def talwani_precipitation_response(
     if not np.allclose(np.diff(t), dt, rtol=1e-3):
         raise ValueError("uniform sampling required for Talwani response")
 
-    # Deviation from running mean (Talwani 2007 / C&D 2023 spec)
-    cumsum = np.cumsum(p)
-    counts = np.arange(1, len(p) + 1)
-    running_mean = cumsum / counts
-    deviation = p - running_mean
+    # Deviation from the long-term (global) mean — Clements & Denolle (2023)
+    # use "precip .- mean(precip)" where mean is the mean over the entire
+    # series being fitted.  An expanding or causal running mean creates
+    # artificial early-period biases and misrepresents drought drainage.
+    deviation = p - np.mean(p)
     delta_p = rho_water * g * deviation  # Pa
 
     # Time-elapsed matrix (n - i) * dt for each pair (i, n)
@@ -217,18 +217,96 @@ def talwani_precipitation_response(
 
 
 # ---------------------------------------------------------------------------
-# Okubo (2024) groundwater-level model
+# CDM (Clements & Denolle 2023): Cumulative Departure from rolling Mean
 # ---------------------------------------------------------------------------
 
 
-def groundwater_level_okubo(
+def cdm_precipitation_response(
+    precipitation_m: np.ndarray | pd.Series,
+    *,
+    window_days: int = 365 * 8,
+) -> np.ndarray:
+    r"""Cumulative Departure from k-day rolling Mean (CDMk).
+
+    Implements the CDM function of Clements & Denolle (2023) (their Julia
+    source file ``04-fit-thermo-hydro-models.jl``)::
+
+        CDM(A, k) = cumsum(A - Amean)
+
+    where ``Amean[i]`` is the backward k-day rolling mean at sample ``i``
+    (for the first ``k-1`` samples an expanding sample mean is used instead).
+
+    Physically this is a groundwater-storage proxy: positive values indicate
+    accumulated surplus, negative values indicate drought deficit.  The
+    ``window_days`` parameter is the characteristic "memory" of the system;
+    Clements & Denolle (2023) optimise it in the range 1–14 years.
+
+    .. note::
+        For a correct start-up (no spin-up bias), pass a ``precipitation_m``
+        that begins **at least** ``window_days`` before the first dv/v
+        observation.  Discard the leading warmup samples from the returned
+        array before passing to the inversion.
+
+    Parameters
+    ----------
+    precipitation_m
+        Precipitation per sample (any consistent unit; the absolute scale
+        absorbs into the regression coefficient).
+    window_days
+        Rolling-average window length in samples (assumed daily).  Optimised
+        in C&D 2023 as :math:`k \in [365, 365\times14]` with initial value
+        :math:`365\times8 \approx 8\,\text{yr}`.
+
+    Returns
+    -------
+    np.ndarray
+        CDM series, same length as ``precipitation_m``.
+    """
+    p = np.asarray(precipitation_m, dtype=float)
+    n = len(p)
+    k = window_days
+    if k <= 0:
+        raise ValueError("window_days must be positive")
+    if n == 0:
+        return np.array([], dtype=float)
+
+    # Backward rolling mean (causal):
+    #   first k-1 samples → expanding mean
+    #   samples k-1 … n-1 → mean of the previous k samples
+    cum = np.empty(n + 1)
+    cum[0] = 0.0
+    np.cumsum(p, out=cum[1:])
+
+    rolling_avg = np.empty(n)
+    # expanding mean for start-up
+    n_start = min(n, k)
+    rolling_avg[:n_start] = cum[1 : n_start + 1] / np.arange(1, n_start + 1)
+    # fixed k-day backward window
+    if n > k:
+        rolling_avg[k:] = (cum[k + 1 :] - cum[1 : n - k + 1]) / k
+
+    return np.cumsum(p - rolling_avg)
+
+
+# ---------------------------------------------------------------------------
+# Baseflow reservoir model
+# ---------------------------------------------------------------------------
+
+
+def baseflow_recharge_response(
     precipitation_m: np.ndarray | pd.Series,
     times_s: np.ndarray,
     *,
     porosity: float = 0.05,
     decay_rate_per_s: float = 1.0 / (180.0 * 86400.0),
 ) -> np.ndarray:
-    r"""Groundwater-level proxy from precipitation (Okubo et al., 2024 Eq. 4).
+    r"""Baseflow-style groundwater-storage proxy from precipitation.
+
+    This is the single linear-reservoir / exponential-decay recharge model
+    used by Akasaka & Nakanishi (2000), Sens-Schoenfelder & Wegler (2006),
+    and Okubo et al. (2024, Eq. 4). It is best interpreted as a shallow
+    baseflow or groundwater-storage proxy rather than a full poroelastic
+    pressure-diffusion model.
 
     .. math::
         \Delta GWL(t_i) = \sum_{n=0}^{i} \frac{p(t_n)}{\phi}
@@ -266,3 +344,24 @@ def groundwater_level_okubo(
         elapsed = t[i] - t[: i + 1]
         out[i] = float(np.sum(p[: i + 1] / porosity * np.exp(-decay_rate_per_s * elapsed)))
     return out
+
+
+def groundwater_level_okubo(
+    precipitation_m: np.ndarray | pd.Series,
+    times_s: np.ndarray,
+    *,
+    porosity: float = 0.05,
+    decay_rate_per_s: float = 1.0 / (180.0 * 86400.0),
+) -> np.ndarray:
+    """Compatibility alias for :func:`baseflow_recharge_response`.
+
+    The old name is kept so existing notebooks/configs continue to run, but
+    new code should use ``baseflow_recharge_response`` and model key
+    ``"baseflow"``.
+    """
+    return baseflow_recharge_response(
+        precipitation_m,
+        times_s,
+        porosity=porosity,
+        decay_rate_per_s=decay_rate_per_s,
+    )

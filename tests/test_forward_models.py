@@ -6,8 +6,8 @@ import pytest
 
 from codameter.forward.damage import logarithmic_healing, snieder_healing
 from codameter.forward.poroelastic import (
+    baseflow_recharge_response,
     drained_pressure_response,
-    groundwater_level_okubo,
     roeloffs_pressure_response,
     talwani_precipitation_response,
 )
@@ -206,7 +206,7 @@ class TestOkuboGwl:
     def test_zero_input(self):
         n = 100
         t = np.arange(n) * 86400.0
-        out = groundwater_level_okubo(np.zeros(n), t)
+        out = baseflow_recharge_response(np.zeros(n), t)
         assert np.allclose(out, 0.0)
 
     def test_delta_input_decays(self):
@@ -214,7 +214,7 @@ class TestOkuboGwl:
         t = np.arange(n) * 86400.0
         P = np.zeros(n)
         P[0] = 0.01
-        out = groundwater_level_okubo(P, t, decay_rate_per_s=1 / (180 * 86400))
+        out = baseflow_recharge_response(P, t, decay_rate_per_s=1 / (180 * 86400))
         # The output is monotonically decreasing after t=0
         assert np.all(np.diff(out) <= 1e-12)
         # Should decay to ~exp(-1) over 180 days

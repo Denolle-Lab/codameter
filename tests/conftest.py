@@ -23,7 +23,7 @@ from codameter.config import (
     VelocityModel,
 )
 from codameter.forward.damage import snieder_healing
-from codameter.forward.poroelastic import groundwater_level_okubo
+from codameter.forward.poroelastic import baseflow_recharge_response
 from codameter.forward.thermoelastic import thermoelastic_dvv
 
 # ---------------------------------------------------------------------------
@@ -139,7 +139,7 @@ def synthetic_data(parkfield_site: Site):
     # Truth amplitudes
     truth = {"a0": 0.0, "p1_dGWL": -3.0e-3, "p2_T": 8.0e-5, "s_eq": -2.0e-3}
 
-    dGWL = groundwater_level_okubo(
+    dGWL = baseflow_recharge_response(
         P, t_s, porosity=0.05, decay_rate_per_s=1.0 / (180.0 * 86400.0)
     )
     dGWL_centered = dGWL - dGWL.mean()

@@ -20,6 +20,7 @@
         - roeloffs_pressure_response
         - drained_pressure_response
         - talwani_precipitation_response
+        - baseflow_recharge_response
         - groundwater_level_okubo
 
 ## Damage / healing

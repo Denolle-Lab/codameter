@@ -46,7 +46,7 @@ from codameter.config import (
     MaterialProperties, Measurement, Prior, VelocityModel,
 )
 from codameter.forward.damage import snieder_healing
-from codameter.forward.poroelastic import groundwater_level_okubo
+from codameter.forward.poroelastic import baseflow_recharge_response
 from codameter.forward.thermoelastic import thermoelastic_dvv
 
 
@@ -80,7 +80,7 @@ def build_parkfield_site() -> Site:
                 enabled=True, model="phase_shift",
                 extra={"time_shift_days": 50.0},
             ),
-            hydrological=ForcingSpec(enabled=True, model="okubo_gwl"),
+            hydrological=ForcingSpec(enabled=True, model="baseflow"),
             damage=ForcingSpec(enabled=True, model="snieder_healing"),
         ),
         material_properties=MaterialProperties(
@@ -119,7 +119,7 @@ def make_synthetic(n_years: int = 10, seed: int = 42) -> tuple[
     truth = {"p1_dGWL": -3.0e-3, "p2_T": 8.0e-5, "s_eq": -2.0e-3}
 
     # Build the synthetic dv/v
-    dGWL = groundwater_level_okubo(
+    dGWL = baseflow_recharge_response(
         P, t_s, porosity=0.05, decay_rate_per_s=1.0 / (180 * 86400.0),
     )
     dGWL_centred = dGWL - dGWL.mean()
