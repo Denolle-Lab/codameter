@@ -37,6 +37,67 @@ conda env create -f environment.yml
 conda activate codameter
 ```
 
+## Optional: California CVM / SCEC UCVM access
+
+`codameter` can build California site velocity models from SCEC UCVM when a
+local `ucvm_query` command is available. UCVM is an external SCEC package with
+large model files, so it is not bundled into the Python wheel. Use one of the
+options below for California deployments.
+
+### Option A — native UCVM install
+
+Install UCVM from SCEC, including the California models you need, then point
+`codameter` at the resulting executable and config file:
+
+```yaml
+velocity_model:
+   source: auto
+property_sources:
+   enabled: true
+   order: [ucvm, usgs_vs30, default]
+   ucvm:
+      executable: /path/to/ucvm_query
+      config_path: /path/to/ucvm/conf/ucvm.conf
+      models: [cvmsi, cvms5, cvms, cvmh]
+```
+
+### Option B — Docker-backed `ucvm_query` wrapper
+
+If Docker is available, install a lightweight wrapper from this repository:
+
+```bash
+pixi run install-ucvm-query
+# or, without pixi:
+python scripts/install_ucvm_query_docker.py
+```
+
+The wrapper defaults to SCEC's `sceccode/ucvm_257_cvmsi:0801` image and writes
+`.codameter/bin/ucvm_query`. Use it directly in YAML:
+
+```yaml
+velocity_model:
+   source: auto
+property_sources:
+   enabled: true
+   order: [ucvm, usgs_vs30, default]
+   ucvm:
+      executable: .codameter/bin/ucvm_query
+      models: [cvmsi]
+```
+
+Alternatively, skip the wrapper and let `codameter` call Docker directly:
+
+```yaml
+property_sources:
+   ucvm:
+      docker_image: sceccode/ucvm_257_cvmsi:0801
+      models: [cvmsi]
+```
+
+For broader California coverage, install/use images or native models matching
+your region. Common UCVM model keys include `cvmsi`, `cvms5`, `cvms`, `cvmh`,
+`cca`, `cs173`, `cs173h`, and `cencal`; some are many GB to tens of GB.
+
 ## Verifying the install
 
 ```bash

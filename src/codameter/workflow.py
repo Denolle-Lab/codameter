@@ -377,23 +377,41 @@ class Phase6:
         pressure_sensitivity: tuple[float, float] | None = None
         head_change: WaterTableEstimate | None = None
         if "p1_dGWL" in phase4.fit.parameter_names:
-            # p1 has units fraction / m_water; convert via rho g to fraction / Pa
             p1_mean, p1_std = phase4.fit.posterior.marginal("p1_dGWL")
-            rho_w = 1000.0
-            g = 9.81
-            d_dvv_dp = p1_mean / (rho_w * g)
-            d_dvv_dp_std = p1_std / (rho_w * g)
-            pressure_sensitivity = (float(d_dvv_dp), float(d_dvv_dp_std))
-            notes.append(
-                f"d(dv/v)/dp = {d_dvv_dp:.2e} +/- {d_dvv_dp_std:.2e} 1/Pa"
-            )
+            metadata = phase4.fit.predictor_matrix.metadata
+            hydro_model = metadata.get("hydrological_model")
+            hydro_units = metadata.get("hydrological_predictor_units")
 
-            head_change = invert_head_change_from_dvv(
-                phase4.fit.residuals,
-                p1_hydrology=p1_mean,
-                p1_hydrology_std=p1_std,
-                times=site_index_or_none(phase4),
-            )
+            if hydro_units == "m_water_head":
+                # p1 has units fraction / m_water; convert via rho g to fraction / Pa
+                rho_w = 1000.0
+                g = 9.81
+                d_dvv_dp = p1_mean / (rho_w * g)
+                d_dvv_dp_std = p1_std / (rho_w * g)
+                pressure_sensitivity = (float(d_dvv_dp), float(d_dvv_dp_std))
+                notes.append(
+                    f"d(dv/v)/dp = {d_dvv_dp:.2e} +/- {d_dvv_dp_std:.2e} 1/Pa"
+                )
+
+                head_change = invert_head_change_from_dvv(
+                    phase4.fit.residuals,
+                    p1_hydrology=p1_mean,
+                    p1_hydrology_std=p1_std,
+                    times=site_index_or_none(phase4),
+                )
+            elif hydro_units == "Pa":
+                # Talwani / drained predictors are already pore-pressure series in Pa.
+                pressure_sensitivity = (float(p1_mean), float(p1_std))
+                notes.append(
+                    f"d(dv/v)/dp = {p1_mean:.2e} +/- {p1_std:.2e} 1/Pa"
+                )
+            else:
+                notes.append(
+                    "Hydrological coefficient is not converted to pressure: "
+                    f"model={hydro_model!r}, predictor_units={hydro_units!r}. "
+                    "Calibrate this proxy to pressure/head before interpreting "
+                    "d(dv/v)/dp or mu_prime."
+                )
 
         mu_prime_estimate: tuple[float, float] | None = None
         beta_prior = site.material_properties.beta_prior
@@ -465,6 +483,22 @@ class WorkflowResult:
             f"Phase 3  Design:  forcings={self.phase3.forcings_used}, "
             f"n_par={fit.predictor_matrix.n_par}",
         ]
+        prop_resolution = self.site.metadata.get("property_resolution")
+        if prop_resolution:
+            lines.insert(
+                4,
+                "           Properties: "
+                f"source={prop_resolution.get('source', 'n/a')}, "
+                f"confidence={prop_resolution.get('confidence', 'n/a')}",
+            )
+        likelihood = coup.to_dict().get("likelihood", {})
+        if likelihood:
+            lines.append(
+                "           Coupling likelihood: "
+                f"{likelihood.get('label', 'n/a')} "
+                f"(score={likelihood.get('score', float('nan')):.2f}) — "
+                f"{likelihood.get('recommendation', 'n/a')}"
+            )
         # Functional form of the fitted model
         non_intercept = [n for n in fit.parameter_names if n != "a0"]
         rhs_terms = ["a0"] + [f"p({n})*f_{n}(t)" for n in non_intercept]
@@ -506,6 +540,7 @@ class WorkflowResult:
                 "peak_depth_km": self.phase1.peak_depth_km,
                 "bulk_modulus_GPa": self.phase1.bulk_modulus_pa_at_peak / 1e9,
                 "shear_modulus_GPa": self.phase1.shear_modulus_pa_at_peak / 1e9,
+                "property_resolution": self.site.metadata.get("property_resolution"),
             },
             "phase2": self.phase2.report.to_dict(),
             "phase3": {

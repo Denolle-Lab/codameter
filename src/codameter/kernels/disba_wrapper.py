@@ -68,8 +68,12 @@ def rayleigh_phase_velocity(
     f = np.atleast_1d(np.asarray(frequencies_hz, dtype=float))
     periods = 1.0 / f
     pd = PhaseDispersion(*profile.to_arrays())
-    cpr = pd(periods, mode=mode, wave="rayleigh")
-    return np.asarray(cpr.velocity)
+    order = np.argsort(periods)
+    cpr = pd(periods[order], mode=mode, wave="rayleigh")
+    velocity_sorted = np.asarray(cpr.velocity)
+    velocity = np.empty_like(velocity_sorted)
+    velocity[order] = velocity_sorted
+    return velocity
 
 
 def rayleigh_sensitivity_kernel(

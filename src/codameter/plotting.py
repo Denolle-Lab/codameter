@@ -17,6 +17,7 @@ directly for publication figures.
 """
 from __future__ import annotations
 
+import textwrap
 from typing import Any
 
 import numpy as np
@@ -25,7 +26,7 @@ import numpy as np
 def plot_workflow_six_panel(
     result: Any,
     *,
-    figsize: tuple[float, float] = (12.0, 9.0),
+    figsize: tuple[float, float] = (16.0, 10.0),
     title: str | None = None,
 ):
     """Return a 6-panel matplotlib Figure summarising a workflow run.
@@ -42,7 +43,13 @@ def plot_workflow_six_panel(
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
 
-    fig, axes = plt.subplots(3, 2, figsize=figsize, constrained_layout=True)
+    fig, axes = plt.subplots(
+        3,
+        2,
+        figsize=figsize,
+        constrained_layout=True,
+        gridspec_kw={"width_ratios": [1.15, 1.85], "hspace": 0.18},
+    )
     if title is None:
         title = f"codameter: {result.site.site_id}"
     fig.suptitle(title, fontsize=12, fontweight="bold")
@@ -143,15 +150,35 @@ def plot_workflow_six_panel(
     ax = axes[2, 1]
     ax.axis("off")
     coup = result.phase2.report
-    text_lines = [
+    likelihood = getattr(coup, "likelihood", {}) or {}
+    text_lines: list[str] = [
         "Coupling (Phase 2):",
         f"  Pe        = {coup.tier1.get('drainage_peclet', float('nan')):.2f}",
         f"  status    = {coup.tier1.get('status', 'n/a')}",
+    ]
+    if likelihood:
+        text_lines.extend(
+            [
+                f"  likelihood= {likelihood.get('label', 'n/a')} "
+                f"(score={likelihood.get('score', float('nan')):.2f})",
+                "  recommendation:",
+                *[
+                    "    " + line
+                    for line in textwrap.wrap(
+                        str(likelihood.get("recommendation", "n/a")),
+                        width=72,
+                    )
+                ],
+            ]
+        )
+    text_lines.extend(
+        [
         f"  beta_eff  = {coup.tier1.get('beta_eff_at_forcing', 0.0):+.0f}",
         f"  beta_drnd = {coup.tier1.get('beta_drained', 0.0):+.0f}",
         "",
         "Interpretation (Phase 6):",
-    ]
+        ]
+    )
     if result.phase6.pressure_sensitivity is not None:
         m, s = result.phase6.pressure_sensitivity
         text_lines.append(f"  d(dv/v)/dp = {m:+.2e} +/- {s:.2e}  1/Pa")
@@ -159,10 +186,13 @@ def plot_workflow_six_panel(
         m, s = result.phase6.mu_prime_estimate
         text_lines.append(f"  mu_prime   = {m:+.0f} +/- {s:.0f}")
     for note in result.phase6.notes:
-        text_lines.append(f"  - {note}")
+        wrapped = textwrap.wrap(str(note), width=92)
+        if wrapped:
+            text_lines.append(f"  - {wrapped[0]}")
+            text_lines.extend(f"    {line}" for line in wrapped[1:])
     ax.text(
         0.02, 0.98, "\n".join(text_lines), transform=ax.transAxes,
-        va="top", ha="left", family="monospace", fontsize=8.5,
+        va="top", ha="left", family="monospace", fontsize=8.0,
     )
     ax.set_title("(f) Coupling + interpretation")
 

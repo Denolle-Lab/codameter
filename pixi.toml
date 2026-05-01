@@ -67,3 +67,6 @@ test = { cmd = "pytest -ra --cov=src/codameter --cov-report=term", description =
 
 # Run only the Parkfield notebook-friendly example
 parkfield = { cmd = "python examples/01_parkfield_synthetic.py", description = "Synthetic Parkfield demo" }
+
+# Optional California CVM support via SCEC's Docker image.
+install-ucvm-query = { cmd = "python scripts/install_ucvm_query_docker.py", description = "Create a local ucvm_query wrapper backed by Docker/SCEC UCVM" }

@@ -90,7 +90,9 @@ class PredictorMatrix:
         return int(self.X.shape[1])
 
 
-_HYDRO_MODELS = frozenset({"baseflow", "okubo_gwl", "talwani", "drained", "cdm", "precomputed"})
+_HYDRO_MODELS = frozenset(
+    {"baseflow", "okubo_gwl", "okubo2024", "talwani", "drained", "cdm", "precomputed"}
+)
 
 
 def build_predictor_matrix(
@@ -139,7 +141,8 @@ def build_predictor_matrix(
                 * ``"baseflow"`` (default) — exponential-decay recharge / baseflow
                     proxy from Akasaka & Nakanishi (2000), Sens-Schoenfelder & Wegler
                     (2006), and Okubo et al. (2024). Controlled by ``porosity`` and
-                    ``decay_rate_per_s``. ``"okubo_gwl"`` is accepted as a legacy alias.
+                    ``decay_rate_per_s``. ``"okubo_gwl"`` and ``"okubo2024"``
+                    are accepted as legacy aliases.
         * ``"talwani"`` — full Biot (undrained + drained) convolution from
           Talwani et al. (2007) / Clements & Denolle (2023). Controlled by
           ``depth_m``, ``diffusivity_m2_s``, ``skempton_B``, and
@@ -200,7 +203,7 @@ def build_predictor_matrix(
                 f"hydrological_model {hydrological_model!r} not recognised; "
                 f"choose one of {sorted(_HYDRO_MODELS)}"
             )
-        if hydrological_model in {"baseflow", "okubo_gwl"}:
+        if hydrological_model in {"baseflow", "okubo_gwl", "okubo2024"}:
             col = baseflow_recharge_response(
                 precipitation_m,
                 times_s,
@@ -243,7 +246,18 @@ def build_predictor_matrix(
         # Centre to keep the intercept interpretable
         columns.append(col - col.mean())
         names.append("p1_dGWL")
-        units["p1_dGWL"] = "fraction / m"
+        if hydrological_model in {"baseflow", "okubo_gwl", "okubo2024"}:
+            hydro_predictor_units = "m_water_head"
+            units["p1_dGWL"] = "fraction / m water head"
+        elif hydrological_model in {"talwani", "drained"}:
+            hydro_predictor_units = "Pa"
+            units["p1_dGWL"] = "fraction / Pa"
+        elif hydrological_model == "cdm":
+            hydro_predictor_units = "m_cumulative_departure"
+            units["p1_dGWL"] = "fraction / m cumulative departure"
+        else:
+            hydro_predictor_units = "precomputed"
+            units["p1_dGWL"] = "fraction / precomputed unit"
 
     if temperature_C is not None:
         T = np.asarray(temperature_C, dtype=float)
@@ -284,6 +298,9 @@ def build_predictor_matrix(
         units=units,
         metadata={
             "hydrological_model": hydrological_model,
+            "hydrological_predictor_units": (
+                hydro_predictor_units if precipitation_m is not None else None
+            ),
             "porosity": porosity,
             "decay_rate_per_s": decay_rate_per_s,
             "depth_m": depth_m,

@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from codameter.coupling.decision_tree import (
+    coupling_likelihood_from_peclet,
     diagnose_all_tiers,
     escalation_decision,
 )
@@ -115,6 +116,18 @@ class TestEscalationDecision:
         assert decision in {"warn", "escalate"}
 
 
+class TestCouplingLikelihood:
+    def test_high_near_transition(self):
+        likelihood = coupling_likelihood_from_peclet(1.0)
+        assert likelihood["label"] == "high"
+        assert likelihood["score"] == pytest.approx(1.0)
+
+    def test_very_low_far_from_transition(self):
+        likelihood = coupling_likelihood_from_peclet(1e4, ratio_eff_to_drained=1.0)
+        assert likelihood["label"] == "very low"
+        assert likelihood["score"] < 0.1
+
+
 class TestDiagnoseAllTiers:
     def test_full_report_structure(self):
         report = diagnose_all_tiers(
@@ -127,6 +140,8 @@ class TestDiagnoseAllTiers:
         d = report.to_dict()
         assert "tier1" in d
         assert "escalate" in d
+        assert "likelihood" in d
+        assert d["likelihood"]["label"] in {"very low", "low", "moderate", "high"}
 
 
 # ---------------------------------------------------------------------------

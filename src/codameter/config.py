@@ -227,16 +227,51 @@ class Site:
             )
         measurement = Measurement(**measurement_raw)
 
-        vm_raw = data["velocity_model"]
-        layers = [Layer(**L) for L in vm_raw["layers"]]
-        velocity_model = VelocityModel(
-            layers=layers, source=vm_raw.get("source", "user")
-        )
-
         forcings = _parse_forcings(data.get("forcings", {}))
-        material_properties = _parse_material_properties(
-            data.get("material_properties", {})
+        vm_raw = dict(data.get("velocity_model", {}))
+        material_raw = dict(data.get("material_properties", {}))
+        metadata = dict(data.get("metadata", {}))
+
+        resolution = None
+        source = vm_raw.get("source", "user")
+        needs_resolution = (
+            source == "auto"
+            or data.get("property_sources", {}).get("enabled", False)
+            or "layers" not in vm_raw
         )
+        if needs_resolution:
+            from .data.property_providers import resolve_site_properties
+
+            property_sources = dict(data.get("property_sources", {}))
+            property_sources.pop("enabled", None)
+            max_depth_m = float(property_sources.pop("max_depth_m", 1000.0))
+            resolution = resolve_site_properties(
+                location,
+                measurement,
+                property_sources=property_sources,
+                max_depth_m=max_depth_m,
+            )
+            metadata["property_resolution"] = resolution.to_metadata()
+
+        if "layers" in vm_raw and source != "auto":
+            layers = [Layer(**L) for L in vm_raw["layers"]]
+            velocity_model = VelocityModel(
+                layers=layers, source=vm_raw.get("source", "user")
+            )
+        elif resolution is not None and resolution.velocity_model is not None:
+            velocity_model = resolution.velocity_model
+        else:
+            raise ValueError(
+                "velocity_model.layers are required unless velocity_model.source "
+                "is 'auto' or property_sources.enabled is true"
+            )
+
+        if resolution is not None and resolution.material_properties is not None:
+            material_properties = _parse_material_properties_with_base(
+                material_raw, resolution.material_properties
+            )
+        else:
+            material_properties = _parse_material_properties(material_raw)
         analysis = _parse_analysis(data.get("analysis", {}))
 
         return cls(
@@ -247,7 +282,7 @@ class Site:
             forcings=forcings,
             material_properties=material_properties,
             analysis=analysis,
-            metadata=data.get("metadata", {}),
+            metadata=metadata,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -346,6 +381,19 @@ def _forcing_to_dict(spec: ForcingSpec) -> dict[str, Any]:
 
 def _parse_material_properties(raw: dict[str, Any]) -> MaterialProperties:
     kwargs: dict[str, Prior] = {}
+    for name in MaterialProperties().__dict__:
+        if name in raw:
+            kwargs[name] = Prior(**raw[name])
+    return MaterialProperties(**kwargs)
+
+
+def _parse_material_properties_with_base(
+    raw: dict[str, Any],
+    base: MaterialProperties,
+) -> MaterialProperties:
+    kwargs: dict[str, Prior] = {
+        name: getattr(base, name) for name in base.__dict__
+    }
     for name in MaterialProperties().__dict__:
         if name in raw:
             kwargs[name] = Prior(**raw[name])

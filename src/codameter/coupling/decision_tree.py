@@ -19,6 +19,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from .tier1_poroelastic import drainage_peclet, frequency_dependent_beta_eff
@@ -39,6 +40,7 @@ class CouplingReport:
     tier2: dict[str, Any] = field(default_factory=dict)
     tier3: dict[str, Any] = field(default_factory=dict)
     tier4: dict[str, Any] = field(default_factory=dict)
+    likelihood: dict[str, Any] = field(default_factory=dict)
     soft_warnings: list[str] = field(default_factory=list)
     hard_escalations: list[str] = field(default_factory=list)
     deferred_tiers: list[str] = field(default_factory=list)
@@ -59,6 +61,7 @@ class CouplingReport:
             "tier2": self.tier2,
             "tier3": self.tier3,
             "tier4": self.tier4,
+            "likelihood": self.likelihood,
             "soft_warnings": self.soft_warnings,
             "hard_escalations": self.hard_escalations,
             "deferred_tiers": self.deferred_tiers,
@@ -68,6 +71,12 @@ class CouplingReport:
     def __str__(self) -> str:
         lines = ["Coupling diagnostic report:"]
         lines.append(f"  Tier 1 (poroelastic): {self.tier1.get('status', 'n/a')}")
+        if self.likelihood:
+            lines.append(
+                "  Coupling likelihood: "
+                f"{self.likelihood.get('label', 'n/a')} "
+                f"(score={self.likelihood.get('score', float('nan')):.2f})"
+            )
         for name in ("tier2", "tier3", "tier4"):
             t = getattr(self, name)
             status = t.get("status", "deferred")
@@ -111,6 +120,63 @@ def escalation_decision(
     if pe_hard_low <= peclet <= pe_hard_high:
         return "escalate"
     return "safe"
+
+
+def coupling_likelihood_from_peclet(
+    peclet: float,
+    *,
+    ratio_eff_to_drained: float | None = None,
+) -> dict[str, Any]:
+    r"""Estimate qualitative likelihood that coupled physics matters.
+
+    The likelihood is a bounded diagnostic score, not a Bayesian posterior.
+    It peaks near :math:`\mathrm{Pe}_d = 1`, where the forcing period is close
+    to the drainage time and drained/undrained assumptions are most fragile.
+    A secondary contribution comes from the frequency-dependent beta ratio.
+
+    Returns a dict with ``score`` in [0, 1], a qualitative ``label``, and an
+    ``evidence`` list suitable for reports.
+    """
+    if peclet <= 0:
+        raise ValueError("peclet must be positive")
+
+    log_distance = abs(float(np.log10(peclet)))
+    pe_score = float(np.exp(-(log_distance / 1.0) ** 2))
+    beta_score = 0.0
+    evidence = [
+        f"Pe={peclet:.2g}; coupling risk peaks near Pe≈1",
+    ]
+    if ratio_eff_to_drained is not None:
+        deviation = abs(float(ratio_eff_to_drained) - 1.0)
+        beta_score = float(np.clip(deviation / 0.5, 0.0, 1.0))
+        evidence.append(
+            f"|beta_eff/beta_drained - 1|={deviation:.2g} at forcing frequency"
+        )
+
+    score = max(pe_score, beta_score)
+    if score >= 0.75:
+        label = "high"
+        recommendation = "coupled inversion is likely warranted"
+    elif score >= 0.35:
+        label = "moderate"
+        recommendation = "inspect coupling terms and consider coupled inversion"
+    elif score >= 0.10:
+        label = "low"
+        recommendation = "linear model probably acceptable, but note uncertainty"
+    else:
+        label = "very low"
+        recommendation = "linear superposition is likely adequate"
+
+    return {
+        "score": float(score),
+        "label": label,
+        "recommendation": recommendation,
+        "evidence": evidence,
+        "components": {
+            "peclet_score": pe_score,
+            "beta_frequency_score": beta_score,
+        },
+    }
 
 
 def diagnose_all_tiers(
@@ -176,6 +242,10 @@ def diagnose_all_tiers(
         if beta_drained != 0
         else None,
     }
+    report.likelihood = coupling_likelihood_from_peclet(
+        pe,
+        ratio_eff_to_drained=report.tier1["ratio_eff_to_drained"],
+    )
     if decision == "warn":
         report.soft_warnings.append(
             f"Tier 1: Pe = {pe:.2f} in soft-warning band — frequency-dependent "
