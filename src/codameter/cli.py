@@ -185,9 +185,18 @@ def _cmd_cd2023(args: argparse.Namespace) -> int:
 def _default_cd2023_site(station: str) -> Site:
     """Build a Parkfield-like default Site for the C&D 2023 demo."""
     from .config import (
-        AnalysisConfig, Layer, Location, MaterialProperties,
-        Measurement, Prior, Site, VelocityModel, Forcings, ForcingSpec,
+        AnalysisConfig,
+        Forcings,
+        ForcingSpec,
+        Layer,
+        Location,
+        MaterialProperties,
+        Measurement,
+        Prior,
+        Site,
+        VelocityModel,
     )
+
     return Site(
         site_id=station.replace(".", "_") + "_cd2023",
         location=Location(lat=35.95, lon=-120.55, elevation_m=600.0),
@@ -207,7 +216,12 @@ def _default_cd2023_site(station: str) -> Site:
         ),
         forcings=Forcings(
             thermoelastic=ForcingSpec(enabled=True, model="phase_shift",
-                                      extra={"time_shift_days": 50.0}),
+                                      extra={
+                                          "fit_time_shift": True,
+                                          "time_shift_min_days": 30.0,
+                                          "time_shift_max_days": 90.0,
+                                          "time_shift_step_days": 1.0,
+                                      }),
             hydrological=ForcingSpec(enabled=True, model="baseflow"),
             damage=ForcingSpec(enabled=True, model="snieder_healing"),
         ),

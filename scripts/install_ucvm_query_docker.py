@@ -51,10 +51,33 @@ def main() -> int:
 
     target = args.target.expanduser().resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
+    # SCEC Docker images ship ucvm_query at this fixed path.  The container's
+    # entrypoint is `bash --login`, which cannot exec a compiled binary passed
+    # as a positional argument.  Use --entrypoint to call ucvm_query directly
+    # and supply LD_LIBRARY_PATH so shared libs resolve without the login shell.
+    # --platform linux/amd64 is required on Apple-Silicon (aarch64) hosts.
+    _ucvm_bin = "/home/ucvmuser/app/ucvm/bin/ucvm_query"
+    _ucvm_conf = "/home/ucvmuser/app/ucvm/conf/ucvm.conf"
+    _ucvm_lib = ":".join([
+        "/home/ucvmuser/app/ucvm/model/cvmsi/lib",
+        "/home/ucvmuser/app/ucvm/lib/proj/lib",
+        "/home/ucvmuser/app/ucvm/lib/curl/lib",
+        "/home/ucvmuser/app/ucvm/lib/sqlite/lib",
+        "/home/ucvmuser/app/ucvm/lib/tiff/lib",
+        "/home/ucvmuser/app/ucvm/lib/openssl/lib",
+        "/home/ucvmuser/app/ucvm/lib/hdf5/lib",
+        "/home/ucvmuser/app/ucvm/lib/euclid3/lib",
+        "/home/ucvmuser/app/ucvm/lib/fftw/lib",
+    ])
     target.write_text(
         "#!/usr/bin/env sh\n"
         "set -eu\n"
-        f"exec {docker!s} run --rm -i {args.image!s} ucvm_query \"$@\"\n"
+        f"exec {docker!s} run --rm -i"
+        " --platform linux/amd64"
+        f" -e LD_LIBRARY_PATH={_ucvm_lib}"
+        f" --entrypoint {_ucvm_bin}"
+        f" {args.image!s}"
+        f" -f {_ucvm_conf} \"$@\"\n"
     )
     target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 

@@ -248,7 +248,7 @@ def thermoelastic_dvv(
     if shift_s == 0:
         return sensitivity_amplitude * (T - T.mean())
 
-    # Linear interpolation by shift
-    shifted_t = t - shift_s
-    T_shift = np.interp(t, shifted_t, T - T.mean(), left=0.0, right=0.0)
+    # Linear interpolation of the lagged forcing T(t - shift).
+    sample_t = t - shift_s
+    T_shift = np.interp(sample_t, t, T - T.mean(), left=0.0, right=0.0)
     return sensitivity_amplitude * T_shift

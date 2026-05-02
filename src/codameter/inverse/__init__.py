@@ -24,6 +24,7 @@ from .linear_fit import (
     LinearFitResult,
     PredictorMatrix,
     build_predictor_matrix,
+    fit_temperature_time_shift,
     linear_fit,
 )
 from .posterior import Posterior
@@ -34,6 +35,7 @@ __all__ = [
     "LinearFitResult",
     "PredictorMatrix",
     "build_predictor_matrix",
+    "fit_temperature_time_shift",
     "coupled_inversion",
     "Posterior",
     "gaussian_log_prior",

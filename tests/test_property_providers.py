@@ -84,12 +84,20 @@ def test_provider_chain_falls_back_to_defaults_when_all_external_miss():
 
 def test_ucvm_provider_parses_local_command(tmp_path: Path):
     exe = tmp_path / "ucvm_query"
+    # Mock reads lon/lat/depth lines from stdin and prints one UCVM columnar
+    # result line per depth (last 3 numeric cols = cmb_vp, cmb_vs, cmb_rho).
     exe.write_text(
         "#!/usr/bin/env python3\n"
-        "import json, sys\n"
-        "assert '-l' in sys.argv\n"
+        "import sys\n"
         "assert '-m' in sys.argv\n"
-        "print(json.dumps({'vp': 1800.0, 'vs': 700.0, 'rho': 2000.0}))\n"
+        "assert '-l' not in sys.argv, 'should use stdin, not -l'\n"
+        "for raw in sys.stdin:\n"
+        "    line = raw.strip()\n"
+        "    if not line:\n"
+        "        continue\n"
+        "    lon, lat, depth = line.split()[:3]\n"
+        "    print(f'  {lon}  {lat}  {depth}  280.0  400.0  mock"
+        "  1800.0  700.0  2000.0  none  0.0  0.0  0.0  crust  1800.0  700.0  2000.0')\n"
     )
     exe.chmod(exe.stat().st_mode | 0o111)
 
@@ -114,11 +122,17 @@ def test_ucvm_provider_tries_multiple_models(tmp_path: Path):
     exe = tmp_path / "ucvm_query"
     exe.write_text(
         "#!/usr/bin/env python3\n"
-        "import json, sys\n"
+        "import sys\n"
         "model = sys.argv[sys.argv.index('-m') + 1]\n"
         "if model == 'bad':\n"
         "    raise SystemExit(2)\n"
-        "print(json.dumps({'vp': 2000.0, 'vs': 800.0, 'rho': 2100.0}))\n"
+        "for raw in sys.stdin:\n"
+        "    line = raw.strip()\n"
+        "    if not line:\n"
+        "        continue\n"
+        "    lon, lat, depth = line.split()[:3]\n"
+        "    print(f'  {lon}  {lat}  {depth}  280.0  400.0  mock"
+        "  2000.0  800.0  2100.0  none  0.0  0.0  0.0  crust  2000.0  800.0  2100.0')\n"
     )
     exe.chmod(exe.stat().st_mode | 0o111)
 
@@ -137,14 +151,28 @@ def test_ucvm_provider_tries_multiple_models(tmp_path: Path):
 
 def test_ucvm_provider_can_use_docker_image(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     docker = tmp_path / "docker"
+    # Mock Docker binary: verify correct flags for Apple-Silicon-compatible
+    # invocation (--platform linux/amd64, -e LD_LIBRARY_PATH, --entrypoint,
+    # -f config) and stdin-based batch querying.
     docker.write_text(
         "#!/usr/bin/env python3\n"
-        "import json, sys\n"
-        "assert sys.argv[1:4] == ['run', '--rm', 'sceccode/ucvm_257_cvmsi:0801']\n"
-        "assert sys.argv[4] == 'ucvm_query'\n"
-        "assert '-l' in sys.argv\n"
+        "import sys\n"
+        "assert 'run' in sys.argv\n"
+        "assert '--rm' in sys.argv\n"
+        "assert '-i' in sys.argv\n"
+        "assert '--platform' in sys.argv\n"
+        "assert '--entrypoint' in sys.argv\n"
+        "assert '-e' in sys.argv\n"
+        "assert '-f' in sys.argv, 'missing -f config flag'\n"
         "assert '-m' in sys.argv\n"
-        "print(json.dumps({'vp': 1900.0, 'vs': 750.0, 'rho': 2050.0}))\n"
+        "assert '-l' not in sys.argv, 'should use stdin, not -l'\n"
+        "for raw in sys.stdin:\n"
+        "    line = raw.strip()\n"
+        "    if not line:\n"
+        "        continue\n"
+        "    lon, lat, depth = line.split()[:3]\n"
+        "    print(f'  {lon}  {lat}  {depth}  280.0  400.0  cvmsi"
+        "  1900.0  750.0  2050.0  none  0.0  0.0  0.0  crust  1900.0  750.0  2050.0')\n"
     )
     docker.chmod(docker.stat().st_mode | 0o111)
     monkeypatch.setenv("PATH", f"{tmp_path}:{os.environ.get('PATH', '')}")

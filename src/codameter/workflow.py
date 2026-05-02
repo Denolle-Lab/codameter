@@ -49,7 +49,6 @@ from .interpretation.stress_at_depth import (
     StressEstimate,
     bridge_relation,
     constrain_mu_prime,
-    propagate_to_pressure_sensitivity,
 )
 from .interpretation.water_table import (
     WaterTableEstimate,
@@ -59,11 +58,11 @@ from .inverse.linear_fit import (
     LinearFitResult,
     PredictorMatrix,
     build_predictor_matrix,
+    fit_temperature_time_shift,
     linear_fit,
 )
 from .kernels.depth_resolution import depth_frequency_table, peak_sensitivity_depth
 from .kernels.velocity_models import VelocityProfile
-
 
 # ---------------------------------------------------------------------------
 # Per-phase result containers
@@ -106,6 +105,9 @@ class Phase3Result:
     predictor_matrix: PredictorMatrix
     times_s: np.ndarray
     forcings_used: list[str]
+    predictor_kwargs: dict[str, Any] = field(default_factory=dict)
+    fit_time_shift: bool = False
+    time_shift_grid_days: np.ndarray | None = None
 
 
 @dataclass
@@ -249,7 +251,7 @@ class Phase3:
         *,
         earthquake_times: list[pd.Timestamp] | None = None,
         time_shift_days: float | None = None,
-        precipitation_warmup_m: "np.ndarray | None" = None,
+        precipitation_warmup_m: np.ndarray | None = None,
     ) -> Phase3Result:
         # Convert dvv index to seconds since first sample
         t0 = phase0.dvv.index[0]
@@ -274,11 +276,37 @@ class Phase3:
         else:
             eq_times_s = []
 
-        # Use the per-site thermoelastic time shift if specified
+        thermo_spec = site.forcings.thermoelastic
+        thermo_extra = thermo_spec.extra or {}
+
+        # Use the per-site thermoelastic time shift if specified. If requested,
+        # Phase 4 will profile over a candidate shift grid and replace this
+        # provisional design matrix with the best-shift matrix.
+        fixed_shift_override = time_shift_days is not None
         if time_shift_days is None:
             time_shift_days = float(
-                site.forcings.thermoelastic.extra.get("time_shift_days", 50.0)
+                thermo_extra.get("time_shift_days", 50.0)
             )
+        fit_time_shift = (
+            bool(thermo_extra.get("fit_time_shift", False))
+            and temp is not None
+            and not fixed_shift_override
+        )
+        time_shift_grid_days = None
+        if fit_time_shift:
+            if "time_shift_grid_days" in thermo_extra:
+                time_shift_grid_days = np.asarray(
+                    thermo_extra["time_shift_grid_days"], dtype=float
+                )
+            else:
+                shift_min = float(thermo_extra.get("time_shift_min_days", 0.0))
+                shift_max = float(thermo_extra.get("time_shift_max_days", 90.0))
+                shift_step = float(thermo_extra.get("time_shift_step_days", 1.0))
+                if shift_step <= 0:
+                    raise ValueError("time_shift_step_days must be positive")
+                time_shift_grid_days = np.arange(
+                    shift_min, shift_max + 0.5 * shift_step, shift_step
+                )
 
         if precip is None and temp is None and not eq_times_s:
             raise ValueError(
@@ -291,28 +319,29 @@ class Phase3:
         hydro_model = hydro_spec.model or "baseflow"
         hydro_extra = hydro_spec.extra or {}
 
-        pm = build_predictor_matrix(
-            times_s,
-            precipitation_m=precip,
-            temperature_C=temp,
-            earthquake_times_s=eq_times_s,
-            hydrological_model=hydro_model,
-            porosity=site.material_properties.porosity_prior.mean,
-            decay_rate_per_s=float(
+        predictor_kwargs = {
+            "precipitation_m": precip,
+            "temperature_C": temp,
+            "earthquake_times_s": eq_times_s,
+            "hydrological_model": hydro_model,
+            "porosity": site.material_properties.porosity_prior.mean,
+            "decay_rate_per_s": float(
                 hydro_extra.get("decay_rate_per_s", 1.0 / (180.0 * 86400.0))
             ),
-            depth_m=float(hydro_extra.get("depth_m", 100.0)),
-            diffusivity_m2_s=float(hydro_extra.get("diffusivity_m2_s", 0.01)),
-            skempton_B=float(
+            "depth_m": float(hydro_extra.get("depth_m", 100.0)),
+            "diffusivity_m2_s": float(hydro_extra.get("diffusivity_m2_s", 0.01)),
+            "skempton_B": float(
                 hydro_extra.get(
                     "skempton_B", site.material_properties.skempton_B_prior.mean
                 )
             ),
-            poisson_undrained=float(hydro_extra.get("poisson_undrained", 0.3)),
-            window_days=int(hydro_extra.get("window_days", 365 * 8)),
-            precipitation_warmup_m=precipitation_warmup_m,
-            time_shift_days=time_shift_days,
-        )
+            "poisson_undrained": float(hydro_extra.get("poisson_undrained", 0.3)),
+            "window_days": int(hydro_extra.get("window_days", 365 * 8)),
+            "precipitation_warmup_m": precipitation_warmup_m,
+            "time_shift_days": time_shift_days,
+        }
+
+        pm = build_predictor_matrix(times_s, **predictor_kwargs)
         forcings_used: list[str] = []
         if precip is not None:
             forcings_used.append("hydrological")
@@ -325,6 +354,9 @@ class Phase3:
             predictor_matrix=pm,
             times_s=times_s,
             forcings_used=forcings_used,
+            predictor_kwargs=predictor_kwargs,
+            fit_time_shift=fit_time_shift,
+            time_shift_grid_days=time_shift_grid_days,
         )
 
 
@@ -340,11 +372,22 @@ class Phase4:
         if coupling is not None and coupling.report.escalate:
             # In v0.1 we still run the WLS fit but flag it loudly.
             pass
-        fit = linear_fit(
-            phase0.dvv.to_numpy(),
-            phase3.predictor_matrix,
-            sigma_dvv=phase0.sigma_dvv.to_numpy(),
-        )
+        if phase3.fit_time_shift:
+            predictor_kwargs = dict(phase3.predictor_kwargs)
+            predictor_kwargs.pop("time_shift_days", None)
+            fit = fit_temperature_time_shift(
+                phase0.dvv.to_numpy(),
+                phase3.times_s,
+                sigma_dvv=phase0.sigma_dvv.to_numpy(),
+                time_shift_grid_days=phase3.time_shift_grid_days,
+                **predictor_kwargs,
+            )
+        else:
+            fit = linear_fit(
+                phase0.dvv.to_numpy(),
+                phase3.predictor_matrix,
+                sigma_dvv=phase0.sigma_dvv.to_numpy(),
+            )
         return Phase4Result(fit=fit)
 
 
@@ -500,11 +543,29 @@ class WorkflowResult:
                 f"{likelihood.get('recommendation', 'n/a')}"
             )
         # Functional form of the fitted model
+        fit_meta = fit.predictor_matrix.metadata
+        thermo_shift_days: float | None = (
+            fit_meta.get("time_shift_days_best")
+            if fit_meta.get("fit_time_shift")
+            else None
+        )
         non_intercept = [n for n in fit.parameter_names if n != "a0"]
-        rhs_terms = ["a0"] + [f"p({n})*f_{n}(t)" for n in non_intercept]
+
+        def _term(n: str) -> str:
+            if n == "p2_T" and thermo_shift_days is not None:
+                return f"p({n})*f_{n}(t-{thermo_shift_days:.1f}d)"
+            return f"p({n})*f_{n}(t)"
+
+        rhs_terms = ["a0"] + [_term(n) for n in non_intercept]
         lines.append(
             "           Model:   dv/v(t) = " + " + ".join(rhs_terms) + " + eps(t)"
         )
+        if fit_meta.get("fit_time_shift"):
+            lines.append(
+                "           Thermoelastic shift: "
+                f"best={fit_meta.get('time_shift_days_best', float('nan')):.1f} days "
+                f"from {len(fit_meta.get('time_shift_grid_days', []))} candidates"
+            )
         lines += [
             f"Phase 4  Fit:     chi2_red={fit.chi2_reduced:.2f}, "
             f"rank={fit.rank}/{fit.predictor_matrix.n_par}",
@@ -546,6 +607,7 @@ class WorkflowResult:
             "phase3": {
                 "forcings_used": self.phase3.forcings_used,
                 "n_par": int(self.phase4.fit.predictor_matrix.n_par),
+                "metadata": self.phase4.fit.predictor_matrix.metadata,
             },
             "phase4": self.phase4.fit.to_dict(),
             "phase5": self.phase5.report.to_dict(),
@@ -601,7 +663,7 @@ def run_workflow(
     earthquake_times: list[pd.Timestamp] | None = None,
     kernel_mode: str = "rule_of_thumb",
     time_shift_days: float | None = None,
-    precipitation_warmup_m: "np.ndarray | None" = None,
+    precipitation_warmup_m: np.ndarray | None = None,
 ) -> WorkflowResult:
     """Run all six phases end-to-end with sensible defaults.
 

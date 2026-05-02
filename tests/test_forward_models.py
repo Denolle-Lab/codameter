@@ -18,7 +18,6 @@ from codameter.forward.thermoelastic import (
     thermoelastic_dvv,
 )
 
-
 # ---------------------------------------------------------------------------
 # Thermoelastic
 # ---------------------------------------------------------------------------
@@ -112,6 +111,18 @@ class TestThermoelasticDvv:
                 np.ones(10), np.arange(10) * 86400.0,
                 sensitivity_amplitude=1.0, time_shift_days=-1.0,
             )
+
+    def test_phase_shift_positive_lags_temperature(self):
+        n = 10
+        t = np.arange(n) * 86400.0
+        T = np.arange(n, dtype=float)
+        out = thermoelastic_dvv(
+            T, t, sensitivity_amplitude=1.0, time_shift_days=2.0
+        )
+        expected = np.interp(
+            t - 2.0 * 86400.0, t, T - T.mean(), left=0.0, right=0.0
+        )
+        assert out == pytest.approx(expected)
 
     def test_skin_depth_mode_returns_array(self):
         n = 365 * 4

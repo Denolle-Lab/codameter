@@ -4,12 +4,10 @@ This is the integration test that catches wiring problems between the phases.
 """
 from __future__ import annotations
 
+import copy
 import json
 import tempfile
 from pathlib import Path
-
-import numpy as np
-import pytest
 
 from codameter import run_workflow
 
@@ -50,6 +48,24 @@ class TestEndToEnd:
             assert abs((mean - true_val) / std) < 4, (
                 f"{name}: truth {true_val:+.3e} vs fit {mean:+.3e} ± {std:.2e}"
             )
+
+    def test_workflow_fits_temperature_shift(self, synthetic_data):
+        s = synthetic_data
+        site = copy.deepcopy(s["site"])
+        site.forcings.thermoelastic.extra = {
+            "fit_time_shift": True,
+            "time_shift_min_days": 40.0,
+            "time_shift_max_days": 60.0,
+            "time_shift_step_days": 1.0,
+        }
+        result = run_workflow(
+            s["dvv"], s["forcings"], site,
+            earthquake_times=s["earthquake_times"],
+        )
+        metadata = result.phase4.fit.predictor_matrix.metadata
+
+        assert metadata["fit_time_shift"] is True
+        assert metadata["time_shift_days_best"] == 50.0
 
     def test_residuals_pass_whiteness(self, synthetic_data):
         s = synthetic_data

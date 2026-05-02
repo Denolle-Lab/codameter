@@ -16,15 +16,11 @@ nonlinear and are either fixed from priors or scanned on a coarse grid.
 
 This module implements the linear-amplitude inversion via a weighted-least-
 squares (WLS) fit with measurement-error weights ``1 / sigma_dvv^2``. The
-resulting posterior is Gaussian (Eq. 6 is linear in its amplitudes), and the
-covariance of :math:`(a_0, p_1, p_2, s_1, \ldots)` is returned in closed
-form.
-
-In v0.1 we do not jointly sample the nonlinear shift / tau parameters
-(deferred to the MCMC backend in v0.2). For Parkfield-like applications,
-fixing ``time_shift_days`` to ~50 days and ``tau_min/tau_max`` to
-``(1 day, 30 yr)`` recovers the Okubo et al. (2024) fit to <2 % in
-amplitudes; see ``examples/01_parkfield_full_pipeline.py``.
+resulting posterior is Gaussian for a fixed set of nonlinear parameters, and
+the covariance of :math:`(a0, p_1, p_2, s_1, \ldots)` is returned in closed
+form. The thermoelastic time shift can be selected by a coarse-profile
+likelihood scan: for each candidate shift, solve the WLS amplitudes, then keep
+the shift with the smallest reduced chi-square.
 
 References
 ----------
@@ -52,6 +48,8 @@ from ..forward.poroelastic import (
 )
 from ..forward.thermoelastic import thermoelastic_dvv
 from .posterior import Posterior
+
+DEFAULT_TIME_SHIFT_GRID_DAYS = np.arange(0.0, 90.0 + 1.0, 1.0)
 
 
 # ---------------------------------------------------------------------------
@@ -355,6 +353,7 @@ class LinearFitResult:
             "rank": int(self.rank),
             "n_obs": int(self.n_obs),
             "n_par": int(self.n_par),
+            "metadata": self.predictor_matrix.metadata,
         }
 
     def summary(self) -> pd.DataFrame:
@@ -482,3 +481,88 @@ def linear_fit(
         n_par=int(p),
         predictor_matrix=predictor_matrix,
     )
+
+
+def fit_temperature_time_shift(
+    dvv: np.ndarray | pd.Series,
+    times_s: np.ndarray,
+    *,
+    sigma_dvv: np.ndarray | float | None = None,
+    time_shift_grid_days: np.ndarray | list[float] | tuple[float, ...] | None = None,
+    precipitation_m: np.ndarray | None = None,
+    temperature_C: np.ndarray | None = None,
+    earthquake_times_s: list[float] | None = None,
+    hydrological_model: str = "baseflow",
+    porosity: float = 0.05,
+    decay_rate_per_s: float = 1.0 / (180.0 * 86400.0),
+    depth_m: float = 100.0,
+    diffusivity_m2_s: float = 0.01,
+    skempton_B: float = 0.6,
+    poisson_undrained: float = 0.3,
+    window_days: int = 365 * 8,
+    precipitation_warmup_m: np.ndarray | None = None,
+    tau_min_s: float = 86400.0,
+    tau_max_s: float = 30.0 * 365.25 * 86400.0,
+    include_intercept: bool = True,
+    rcond: float | None = None,
+) -> LinearFitResult:
+    """Profile-likelihood scan for the thermoelastic time shift.
+
+    The temperature shift is nonlinear, while the amplitudes remain linear for
+    a fixed shift. This helper scans candidate ``time_shift_grid_days`` values,
+    runs :func:`linear_fit` at each shift, and returns the fit with the lowest
+    reduced chi-square. The selected grid and chi-square curve are stored in the
+    returned predictor-matrix metadata.
+    """
+    if temperature_C is None:
+        raise ValueError("temperature_C is required to fit a time shift")
+
+    if time_shift_grid_days is None:
+        grid = DEFAULT_TIME_SHIFT_GRID_DAYS.copy()
+    else:
+        grid = np.asarray(time_shift_grid_days, dtype=float)
+    if grid.ndim != 1 or len(grid) == 0:
+        raise ValueError("time_shift_grid_days must be a non-empty 1-D sequence")
+    if np.any(~np.isfinite(grid)) or np.any(grid < 0):
+        raise ValueError("time_shift_grid_days must contain finite non-negative values")
+
+    # Preserve user order for reporting, but avoid redundant fits.
+    grid = np.unique(grid)
+    fits: list[LinearFitResult] = []
+    chi2_values: list[float] = []
+    for shift_days in grid:
+        pm = build_predictor_matrix(
+            times_s,
+            precipitation_m=precipitation_m,
+            temperature_C=temperature_C,
+            earthquake_times_s=earthquake_times_s,
+            hydrological_model=hydrological_model,
+            porosity=porosity,
+            decay_rate_per_s=decay_rate_per_s,
+            depth_m=depth_m,
+            diffusivity_m2_s=diffusivity_m2_s,
+            skempton_B=skempton_B,
+            poisson_undrained=poisson_undrained,
+            window_days=window_days,
+            precipitation_warmup_m=precipitation_warmup_m,
+            time_shift_days=float(shift_days),
+            tau_min_s=tau_min_s,
+            tau_max_s=tau_max_s,
+            include_intercept=include_intercept,
+        )
+        fit = linear_fit(dvv, pm, sigma_dvv=sigma_dvv, rcond=rcond)
+        fits.append(fit)
+        chi2_values.append(float(fit.chi2_reduced))
+
+    best_idx = int(np.nanargmin(chi2_values))
+    best = fits[best_idx]
+    best.predictor_matrix.metadata.update(
+        {
+            "fit_time_shift": True,
+            "time_shift_days": float(grid[best_idx]),
+            "time_shift_days_best": float(grid[best_idx]),
+            "time_shift_grid_days": list(map(float, grid)),
+            "time_shift_chi2_reduced": chi2_values,
+        }
+    )
+    return best

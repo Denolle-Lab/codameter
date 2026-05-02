@@ -2,10 +2,14 @@
 from __future__ import annotations
 
 import numpy as np
-import pandas as pd
 import pytest
 
-from codameter.inverse.linear_fit import build_predictor_matrix, linear_fit
+from codameter.forward.thermoelastic import thermoelastic_dvv
+from codameter.inverse.linear_fit import (
+    build_predictor_matrix,
+    fit_temperature_time_shift,
+    linear_fit,
+)
 from codameter.inverse.posterior import Posterior
 
 
@@ -105,6 +109,31 @@ class TestLinearFit:
         assert "ci95_low" in df.columns
         assert "ci95_high" in df.columns
         assert len(df) == result.predictor_matrix.n_par
+
+    def test_fits_best_temperature_shift(self):
+        n = 365 * 3
+        t = np.arange(n) * 86400.0
+        rng = np.random.default_rng(12)
+        temp = rng.standard_normal(n)
+        true_shift = 37.0
+        temp_pred = thermoelastic_dvv(
+            temp, t, sensitivity_amplitude=1.0, time_shift_days=true_shift
+        )
+        truth = np.array([1.0e-4, 8.0e-5])
+        d = truth[0] + truth[1] * temp_pred
+
+        result = fit_temperature_time_shift(
+            d,
+            t,
+            temperature_C=temp,
+            sigma_dvv=1e-9,
+            time_shift_grid_days=np.arange(20.0, 51.0, 1.0),
+        )
+
+        assert result.predictor_matrix.metadata["time_shift_days_best"] == pytest.approx(
+            true_shift
+        )
+        assert result.posterior.marginal("p2_T")[0] == pytest.approx(truth[1])
 
 
 class TestPosterior:

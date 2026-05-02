@@ -35,7 +35,10 @@ forcings:
     enabled: true
     source_data: temperature.csv     # daily PRISM, interpolated to station
     model: phase_shift
-    time_shift_days: 50              # C&D 2023 fit a 30-90 day range
+    fit_time_shift: true             # profile-likelihood scan over lag
+    time_shift_min_days: 30
+    time_shift_max_days: 90
+    time_shift_step_days: 1
   hydrological:
     enabled: true
     source_data: precipitation.csv   # daily PRISM
