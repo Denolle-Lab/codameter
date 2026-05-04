@@ -55,6 +55,79 @@ class TestBuildPredictorMatrix:
         assert "a0" not in pm.parameter_names
         assert pm.n_par == 1
 
+    def test_surface_load_column(self):
+        n = 200
+        t = np.arange(n) * 86400.0
+        rng = np.random.default_rng(1)
+        rain = rng.lognormal(-3, 1, n) * 0.01
+        pm = build_predictor_matrix(
+            t, surface_load_m=rain, loading_model="instantaneous"
+        )
+        # a0 + p3_load = 2 columns
+        assert pm.parameter_names == ["a0", "p3_load"]
+        # Centred to zero mean
+        assert abs(pm.X[:, 1].mean()) < 1e-12
+        # Spike-day rain produces a spike in the load column (instantaneous)
+        spike_idx = int(np.argmax(rain))
+        assert pm.X[spike_idx, 1] == pytest.approx(
+            pm.X[:, 1].max(), rel=1e-12
+        )
+        assert pm.metadata["loading_model"] == "instantaneous"
+
+    def test_surface_load_snowpack_smooths(self):
+        n = 365
+        t = np.arange(n) * 86400.0
+        rng = np.random.default_rng(2)
+        rain = rng.lognormal(-3, 1, n) * 0.01
+        pm_inst = build_predictor_matrix(
+            t, surface_load_m=rain, loading_model="instantaneous"
+        )
+        pm_snow = build_predictor_matrix(
+            t,
+            surface_load_m=rain,
+            loading_model="snowpack",
+            snowpack_decay_rate_per_s=1.0 / (60.0 * 86400.0),
+        )
+        # Snowpack accumulator is autocorrelated (today depends on yesterday)
+        # while instantaneous is essentially i.i.d. (just the centred rain).
+        def lag1_corr(x: np.ndarray) -> float:
+            x = x - x.mean()
+            return float(np.sum(x[1:] * x[:-1]) / np.sum(x * x))
+
+        assert lag1_corr(pm_snow.X[:, 1]) > lag1_corr(pm_inst.X[:, 1]) + 0.3
+        assert pm_snow.X[:, 1].std() > 0
+        assert pm_snow.metadata["loading_model"] == "snowpack"
+
+    def test_surface_load_recovery(self):
+        """Inject a known beta_load and verify the fit recovers it."""
+        n = 1500
+        t = np.arange(n) * 86400.0
+        rng = np.random.default_rng(3)
+        rain = rng.lognormal(-3, 1, n) * 0.01
+        # Build the design matrix with both temperature and loading
+        temp = 15 + 8 * np.sin(2 * np.pi * t / (365.25 * 86400.0))
+        pm = build_predictor_matrix(
+            t, temperature_C=temp, surface_load_m=rain,
+            loading_model="instantaneous",
+        )
+        # Inject ground-truth coefficients
+        true_a0 = 0.0
+        true_p2 = 5.0e-5
+        true_p3 = 1.5
+        col_T = pm.X[:, pm.parameter_names.index("p2_T")]
+        col_L = pm.X[:, pm.parameter_names.index("p3_load")]
+        sigma = 1e-4
+        d = (
+            true_a0
+            + true_p2 * col_T
+            + true_p3 * col_L
+            + sigma * rng.standard_normal(n)
+        )
+        fit = linear_fit(d, pm, sigma_dvv=sigma)
+        m_p3, s_p3 = fit.posterior.marginal("p3_load")
+        z = abs(m_p3 - true_p3) / s_p3
+        assert z < 4.0, f"recovery failed: z={z:.1f}, m={m_p3:.3f}"
+
 
 class TestLinearFit:
     def test_recovers_truth_no_noise(self):

@@ -41,6 +41,10 @@ import numpy as np
 import pandas as pd
 
 from .anomaly.detection import AnomalyReport, detect_anomalies
+from .anomaly.residual_patterns import (
+    ResidualPatterns,
+    classify_residual_patterns,
+)
 from .config import Site
 from .coupling.decision_tree import CouplingReport, diagnose_all_tiers
 from .data.covariates import align_forcings
@@ -115,6 +119,12 @@ class Phase4Result:
     """Output of :class:`Phase4`."""
 
     fit: LinearFitResult
+    stage: str = "single"  # "stage_a", "stage_b", or "single"
+    stage_a_fit: LinearFitResult | None = None
+    stage_b_fit: LinearFitResult | None = None
+    decision_trail: list[str] = field(default_factory=list)
+    residual_patterns: dict[str, Any] | None = None
+    optional_term_decisions: dict[str, dict[str, Any]] = field(default_factory=dict)
 
 
 @dataclass
@@ -218,6 +228,8 @@ class Phase2:
         diffusivity_m2_s: float | None = None,
         beta_drained: float | None = None,
         alpha_B_skempton: float | None = None,
+        phase0: Phase0Result | None = None,
+        earthquake_times: list[pd.Timestamp] | None = None,
     ) -> Phase2Result:
         if diffusivity_m2_s is None:
             diffusivity_m2_s = (
@@ -231,12 +243,43 @@ class Phase2:
                 * site.material_properties.skempton_B_prior.mean
             )
         L = phase1.peak_depth_km * 1000.0
+
+        dvv_arr: np.ndarray | None = None
+        times_s: np.ndarray | None = None
+        precip: np.ndarray | None = None
+        temp: np.ndarray | None = None
+        sigma: np.ndarray | None = None
+        eq_s: np.ndarray | None = None
+        if phase0 is not None:
+            t0 = phase0.dvv.index[0]
+            times_s = (phase0.dvv.index - t0).total_seconds().to_numpy()
+            dvv_arr = phase0.dvv.to_numpy()
+            if phase0.sigma_dvv is not None:
+                sigma = phase0.sigma_dvv.to_numpy()
+            fa = phase0.forcings_aligned
+            if "precipitation" in fa:
+                precip = fa["precipitation"].to_numpy()
+            if "temperature" in fa:
+                temp = fa["temperature"].to_numpy()
+            if earthquake_times:
+                eq_s = np.array(
+                    [(pd.Timestamp(et) - t0).total_seconds()
+                     for et in earthquake_times],
+                    dtype=float,
+                )
+
         report = diagnose_all_tiers(
             forcing_period_s=forcing_period_s,
             diffusion_length_m=L,
             diffusivity_m2_s=diffusivity_m2_s,
             beta_drained=beta_drained,
             alpha_B_skempton=alpha_B_skempton,
+            dvv=dvv_arr,
+            times_s=times_s,
+            precipitation_m=precip,
+            temperature_C=temp,
+            sigma_dvv=sigma,
+            earthquake_times_s=eq_s,
         )
         return Phase2Result(report=report)
 
@@ -252,6 +295,8 @@ class Phase3:
         earthquake_times: list[pd.Timestamp] | None = None,
         time_shift_days: float | None = None,
         precipitation_warmup_m: np.ndarray | None = None,
+        optional_terms_override: dict[str, bool] | None = None,
+        loading_bulk_modulus_GPa: float | None = None,
     ) -> Phase3Result:
         # Convert dvv index to seconds since first sample
         t0 = phase0.dvv.index[0]
@@ -319,10 +364,48 @@ class Phase3:
         hydro_model = hydro_spec.model or "baseflow"
         hydro_extra = hydro_spec.extra or {}
 
+        # Surface-loading column: instantaneous elastic compression by the
+        # rain water column (or accumulated snowpack), distinct from the
+        # diffused poroelastic / baseflow proxy. Reuses the precipitation
+        # series unless an explicit ``load_height_m`` override is given.
+        loading_spec = site.forcings.loading
+        loading_extra = loading_spec.extra or {}
+        loading_enabled = bool(loading_spec.enabled) and precip is not None
+        # Stage A of the staged workflow forces optional terms off so the
+        # core linear superposition can be fit cleanly first.
+        if optional_terms_override is not None and "loading" in optional_terms_override:
+            loading_enabled = bool(optional_terms_override["loading"]) and precip is not None
+        loading_model = loading_spec.model or "instantaneous"
+        snowpack_decay_rate_per_s = float(
+            loading_extra.get(
+                "snowpack_decay_rate_per_s", 1.0 / (30.0 * 86400.0)
+            )
+        )
+        if loading_enabled and "load_height_m" in loading_extra:
+            surface_load_m = np.asarray(
+                loading_extra["load_height_m"], dtype=float
+            )
+        elif loading_enabled:
+            surface_load_m = precip
+        else:
+            surface_load_m = None
+
+        # Allow caller (or config) to override the loading column's bulk
+        # modulus so the fitted coefficient comes out in the same units as
+        # the acoustoelastic beta_drained. Defaults to 1 GPa (legacy).
+        if loading_bulk_modulus_GPa is None:
+            loading_bulk_modulus_GPa = float(
+                loading_extra.get("bulk_modulus_GPa", 1.0)
+            )
+
         predictor_kwargs = {
             "precipitation_m": precip,
             "temperature_C": temp,
             "earthquake_times_s": eq_times_s,
+            "surface_load_m": surface_load_m,
+            "loading_model": loading_model,
+            "snowpack_decay_rate_per_s": snowpack_decay_rate_per_s,
+            "loading_bulk_modulus_GPa": float(loading_bulk_modulus_GPa),
             "hydrological_model": hydro_model,
             "porosity": site.material_properties.porosity_prior.mean,
             "decay_rate_per_s": float(
@@ -347,6 +430,8 @@ class Phase3:
             forcings_used.append("hydrological")
         if temp is not None:
             forcings_used.append("thermoelastic")
+        if surface_load_m is not None:
+            forcings_used.append("loading")
         if eq_times_s:
             forcings_used.append("damage")
 
@@ -473,6 +558,18 @@ class Phase6:
                 f"vs prior-predicted beta = {beta_prior_predicted:+.0f}"
             )
 
+        # Surface-loading sanity check: convert p3_load (fraction/strain) into
+        # an equivalent acoustoelastic beta and compare with beta_drained.
+        if "p3_load" in phase4.fit.parameter_names:
+            p3_mean, p3_std = phase4.fit.posterior.marginal("p3_load")
+            # p3_load * (rho g h / (3 kappa_ref)) where the column was built
+            # with kappa_ref = 1 GPa, so p3_load IS the acoustoelastic beta
+            # (dimensionless) at storm-load timescales.
+            notes.append(
+                f"beta_load (storm-band) = {p3_mean:+.1f} +/- {p3_std:.1f}  "
+                f"(prior beta = {beta_prior.mean:+.0f} +/- {beta_prior.std:.0f})"
+            )
+
         return Phase6Result(
             pressure_sensitivity=pressure_sensitivity,
             mu_prime_estimate=mu_prime_estimate,
@@ -577,6 +674,10 @@ class WorkflowResult:
             f"Phase 5  Anomaly: whiteness p={anom.whiteness_pvalue:.3f}, "
             f"transients={anom.n_transients}"
         )
+        if self.phase4.decision_trail:
+            lines.append("Staged-fit decision trail:")
+            for entry in self.phase4.decision_trail:
+                lines.append(f"  - {entry}")
         if self.phase6.pressure_sensitivity is not None:
             m, s = self.phase6.pressure_sensitivity
             lines.append(
@@ -610,6 +711,12 @@ class WorkflowResult:
                 "metadata": self.phase4.fit.predictor_matrix.metadata,
             },
             "phase4": self.phase4.fit.to_dict(),
+            "phase4_staged": {
+                "stage": self.phase4.stage,
+                "decision_trail": list(self.phase4.decision_trail),
+                "residual_patterns": self.phase4.residual_patterns,
+                "optional_term_decisions": self.phase4.optional_term_decisions,
+            },
             "phase5": self.phase5.report.to_dict(),
             "phase6": {
                 "pressure_sensitivity": self.phase6.pressure_sensitivity,
@@ -655,6 +762,71 @@ class WorkflowResult:
         return plot_workflow_six_panel(self, **kwargs)
 
 
+def _aic(fit: LinearFitResult) -> float:
+    """Akaike Information Criterion from a Gaussian WLS fit."""
+    n = int(fit.predictor_matrix.X.shape[0])
+    k = int(fit.predictor_matrix.n_par)
+    rss = float(np.sum(np.asarray(fit.residuals, dtype=float) ** 2))
+    if rss <= 0 or n <= 0:
+        return float("inf")
+    return n * np.log(rss / n) + 2 * k
+
+
+def _decide_optional_terms(
+    patterns: ResidualPatterns,
+    coupling_report: CouplingReport,
+    site: Site,
+) -> dict[str, dict[str, Any]]:
+    """Recommend which optional forcings to enable on Stage B.
+
+    Returns a dict keyed by term name with at least ``recommend`` (bool)
+    and ``reason`` (str). The orchestrator may add ``accepted`` and
+    ``delta_aic`` after the AIC-gate refit.
+    """
+    decisions: dict[str, dict[str, Any]] = {}
+
+    storm = bool(patterns.flags.get("storm_band", False))
+    tier1_safe = (coupling_report.tier1.get("status") == "safe")
+    if storm and tier1_safe:
+        decisions["loading"] = {
+            "recommend": True,
+            "reason": (
+                "storm-band residual structure detected "
+                f"(pearson |res|/P = {patterns.storm_band_pearson:.2f}, "
+                f"var ratio storm/dry = {patterns.storm_dry_var_ratio:.2f})"
+            ),
+        }
+    elif storm and not tier1_safe:
+        decisions["loading"] = {
+            "recommend": False,
+            "reason": (
+                "storm-band structure detected but Tier 1 not safe — "
+                "spikes may be poroelastic, not loading"
+            ),
+        }
+    else:
+        decisions["loading"] = {
+            "recommend": False,
+            "reason": "no storm-band residual structure",
+        }
+
+    # Coupled-inversion recommendation (informational only — not run here).
+    coupled = (
+        coupling_report.escalate
+        or coupling_report.likelihood.get("score", 0.0) >= 0.75
+    )
+    decisions["coupled_inversion"] = {
+        "recommend": bool(coupled),
+        "reason": (
+            f"aggregate coupling likelihood = "
+            f"{coupling_report.likelihood.get('label', 'n/a')} "
+            f"(score = {coupling_report.likelihood.get('score', 0.0):.2f})"
+        ),
+        "executed": False,
+    }
+    return decisions
+
+
 def run_workflow(
     dvv_data: pd.DataFrame,
     forcings: dict[str, pd.Series] | None,
@@ -695,11 +867,118 @@ def run_workflow(
     """
     p0 = Phase0.run(dvv_data, forcings, site)
     p1 = Phase1.run(site, mode=kernel_mode)
-    p2 = Phase2.diagnose(site, p1)
-    p3 = Phase3.run(site, p0, earthquake_times=earthquake_times,
-                    time_shift_days=time_shift_days,
-                    precipitation_warmup_m=precipitation_warmup_m)
-    p4 = Phase4.run(p0, p3, coupling=p2)
+    p2 = Phase2.diagnose(site, p1, phase0=p0, earthquake_times=earthquake_times)
+
+    # Use the Phase-1 calibrated bulk modulus (GPa) for the loading column,
+    # so the fitted p3_load coefficient comes out in the same units as
+    # beta_drained instead of absorbing the elastic constants.
+    loading_kappa_GPa = float(p1.bulk_modulus_pa_at_peak / 1e9)
+
+    # ---------------- Stage A: core linear superposition ----------------
+    # Force any optional forcings (loading, capillary, damage) off so the
+    # core hydrological + thermoelastic model is fit cleanly first.
+    stage_a_overrides = {"loading": False}
+    p3_a = Phase3.run(
+        site, p0,
+        earthquake_times=earthquake_times,
+        time_shift_days=time_shift_days,
+        precipitation_warmup_m=precipitation_warmup_m,
+        optional_terms_override=stage_a_overrides,
+        loading_bulk_modulus_GPa=loading_kappa_GPa,
+    )
+    p4_a = Phase4.run(p0, p3_a, coupling=p2)
+    fit_a = p4_a.fit
+
+    # ---------------- Inspect residuals + decide ----------------
+    precip_arr = (
+        p0.forcings_aligned["precipitation"].to_numpy()
+        if "precipitation" in p0.forcings_aligned
+        else None
+    )
+    patterns = classify_residual_patterns(
+        fit_a.residuals,
+        p3_a.times_s,
+        precipitation_m=precip_arr,
+        sigma_dvv=p0.sigma_dvv.to_numpy(),
+    )
+    decisions = _decide_optional_terms(patterns, p2.report, site)
+
+    decision_trail: list[str] = [
+        f"Stage A ({', '.join(p3_a.forcings_used)}): "
+        f"chi2_red = {fit_a.chi2_reduced:.2f}, AIC = {_aic(fit_a):.1f}",
+        "Residual patterns: "
+        + ", ".join(
+            f"{k}={'yes' if v else 'no'}" for k, v in patterns.flags.items()
+        ),
+    ]
+
+    # ---------------- Stage B: optional refit ----------------
+    p3, p4 = p3_a, p4_a
+    stage_label = "stage_a"
+    p3_b = None
+    p4_b = None
+
+    if decisions.get("loading", {}).get("recommend", False):
+        # User can also veto via site.forcings.loading.enabled = False.
+        if not site.forcings.loading.enabled:
+            decision_trail.append(
+                "  Loading recommended by residual analysis but "
+                "site.forcings.loading.enabled=False — leaving it off."
+            )
+            decisions["loading"]["accepted"] = False
+            decisions["loading"]["reason_final"] = "user disabled in config"
+        else:
+            p3_b = Phase3.run(
+                site, p0,
+                earthquake_times=earthquake_times,
+                time_shift_days=time_shift_days,
+                precipitation_warmup_m=precipitation_warmup_m,
+                optional_terms_override={"loading": True},
+                loading_bulk_modulus_GPa=loading_kappa_GPa,
+            )
+            p4_b = Phase4.run(p0, p3_b, coupling=p2)
+            fit_b = p4_b.fit
+            d_aic = _aic(fit_b) - _aic(fit_a)
+            decisions["loading"]["delta_aic"] = float(d_aic)
+            if d_aic <= -4.0:
+                p3, p4 = p3_b, p4_b
+                stage_label = "stage_b"
+                decisions["loading"]["accepted"] = True
+                decisions["loading"]["reason_final"] = (
+                    f"accepted (Δ AIC = {d_aic:+.1f} ≤ -4)"
+                )
+                decision_trail.append(
+                    f"Stage B ({', '.join(p3_b.forcings_used)}): "
+                    f"chi2_red = {fit_b.chi2_reduced:.2f}, "
+                    f"AIC = {_aic(fit_b):.1f} (Δ = {d_aic:+.1f}) → ACCEPT"
+                )
+            else:
+                decisions["loading"]["accepted"] = False
+                decisions["loading"]["reason_final"] = (
+                    f"rejected (Δ AIC = {d_aic:+.1f} > -4)"
+                )
+                decision_trail.append(
+                    f"Stage B candidate ({', '.join(p3_b.forcings_used)}): "
+                    f"chi2_red = {fit_b.chi2_reduced:.2f}, "
+                    f"AIC = {_aic(fit_b):.1f} (Δ = {d_aic:+.1f}) → reject; "
+                    "loading column does not improve AIC by ≥4."
+                )
+    else:
+        decision_trail.append(
+            "Stage B skipped — no residual pattern triggered an optional "
+            "term. " + decisions.get("loading", {}).get("reason", "")
+        )
+
+    p4 = Phase4Result(
+        fit=p4.fit,
+        stage=stage_label,
+        stage_a_fit=fit_a,
+        stage_b_fit=p4_b.fit if p4_b is not None else None,
+        decision_trail=decision_trail,
+        residual_patterns=patterns.to_dict(),
+        optional_term_decisions=decisions,
+    )
+
     p5 = Phase5.run(p0, p4)
     p6 = Phase6.run(site, p1, p4)
     return WorkflowResult(

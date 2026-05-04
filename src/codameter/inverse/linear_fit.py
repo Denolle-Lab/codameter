@@ -41,6 +41,7 @@ import numpy as np
 import pandas as pd
 
 from ..forward.damage import snieder_healing
+from ..forward.loading import surface_load_dvv
 from ..forward.poroelastic import (
     baseflow_recharge_response,
     cdm_precipitation_response,
@@ -92,6 +93,8 @@ _HYDRO_MODELS = frozenset(
     {"baseflow", "okubo_gwl", "okubo2024", "talwani", "drained", "cdm", "precomputed"}
 )
 
+_LOADING_MODELS = frozenset({"instantaneous", "snowpack"})
+
 
 def build_predictor_matrix(
     times_s: np.ndarray,
@@ -99,6 +102,10 @@ def build_predictor_matrix(
     precipitation_m: np.ndarray | None = None,
     temperature_C: np.ndarray | None = None,
     earthquake_times_s: list[float] | None = None,
+    surface_load_m: np.ndarray | None = None,
+    loading_model: str = "instantaneous",
+    snowpack_decay_rate_per_s: float = 1.0 / (30.0 * 86400.0),
+    loading_bulk_modulus_GPa: float = 1.0,
     hydrological_model: str = "baseflow",
     porosity: float = 0.05,
     decay_rate_per_s: float = 1.0 / (180.0 * 86400.0),
@@ -282,11 +289,54 @@ def build_predictor_matrix(
             units[name] = "fraction"
             eq_dates.append(name)
 
+    loading_used = False
+    if surface_load_m is not None:
+        if loading_model not in _LOADING_MODELS:
+            raise ValueError(
+                f"loading_model {loading_model!r} not recognised; "
+                f"choose one of {sorted(_LOADING_MODELS)}"
+            )
+        load_arr = np.asarray(surface_load_m, dtype=float)
+        if loading_model == "snowpack":
+            # Exponential-decay accumulator: SWE-like effective load
+            if snowpack_decay_rate_per_s <= 0:
+                raise ValueError("snowpack_decay_rate_per_s must be positive")
+            ts = np.asarray(times_s, dtype=float)
+            swe = np.zeros_like(load_arr)
+            for i in range(len(load_arr)):
+                if i == 0:
+                    swe[i] = load_arr[0]
+                else:
+                    dt = ts[i] - ts[i - 1]
+                    swe[i] = (
+                        swe[i - 1] * np.exp(-snowpack_decay_rate_per_s * dt)
+                        + load_arr[i]
+                    )
+            load_height = swe
+        else:  # instantaneous
+            load_height = load_arr
+        # Volumetric strain column: epsilon_v = rho g h / (3 kappa).
+        # Using the calibrated bulk modulus (Phase 1) places the fitted
+        # coefficient directly in the same units as the acoustoelastic beta.
+        # When loading_bulk_modulus_GPa is left at the default 1.0, the
+        # coefficient instead absorbs the elastic constants (legacy
+        # behaviour). Centre to keep the intercept interpretable.
+        col = surface_load_dvv(
+            load_height,
+            beta=1.0,
+            mu_GPa=1.0,
+            bulk_modulus_GPa=float(loading_bulk_modulus_GPa),
+        )
+        columns.append(col - col.mean())
+        names.append("p3_load")
+        units["p3_load"] = "fraction / strain"
+        loading_used = True
+
     if not columns:
         raise ValueError(
             "build_predictor_matrix needs at least one of precipitation_m, "
-            "temperature_C, or earthquake_times_s; otherwise the model is "
-            "just an intercept."
+            "temperature_C, surface_load_m, or earthquake_times_s; otherwise "
+            "the model is just an intercept."
         )
 
     X = np.column_stack(columns)
@@ -296,6 +346,13 @@ def build_predictor_matrix(
         units=units,
         metadata={
             "hydrological_model": hydrological_model,
+            "loading_model": loading_model if loading_used else None,
+            "snowpack_decay_rate_per_s": (
+                snowpack_decay_rate_per_s if loading_used else None
+            ),
+            "loading_bulk_modulus_GPa": (
+                float(loading_bulk_modulus_GPa) if loading_used else None
+            ),
             "hydrological_predictor_units": (
                 hydro_predictor_units if precipitation_m is not None else None
             ),
@@ -492,6 +549,10 @@ def fit_temperature_time_shift(
     precipitation_m: np.ndarray | None = None,
     temperature_C: np.ndarray | None = None,
     earthquake_times_s: list[float] | None = None,
+    surface_load_m: np.ndarray | None = None,
+    loading_model: str = "instantaneous",
+    snowpack_decay_rate_per_s: float = 1.0 / (30.0 * 86400.0),
+    loading_bulk_modulus_GPa: float = 1.0,
     hydrological_model: str = "baseflow",
     porosity: float = 0.05,
     decay_rate_per_s: float = 1.0 / (180.0 * 86400.0),
@@ -536,6 +597,10 @@ def fit_temperature_time_shift(
             precipitation_m=precipitation_m,
             temperature_C=temperature_C,
             earthquake_times_s=earthquake_times_s,
+            surface_load_m=surface_load_m,
+            loading_model=loading_model,
+            snowpack_decay_rate_per_s=snowpack_decay_rate_per_s,
+            loading_bulk_modulus_GPa=loading_bulk_modulus_GPa,
             hydrological_model=hydrological_model,
             porosity=porosity,
             decay_rate_per_s=decay_rate_per_s,

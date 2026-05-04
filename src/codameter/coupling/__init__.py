@@ -23,6 +23,9 @@ from .tier1_poroelastic import (
     frequency_dependent_beta_eff,
     tidal_beta_estimate,
 )
+from .tier2_damage import damage_permeability_split_window
+from .tier3_saturation import saturation_sensitivity_diagnostic
+from .tier4_thermo_capillary import thermo_capillary_diagnostic
 
 __all__ = [
     "CouplingReport",
@@ -31,4 +34,7 @@ __all__ = [
     "drainage_peclet",
     "frequency_dependent_beta_eff",
     "tidal_beta_estimate",
+    "damage_permeability_split_window",
+    "saturation_sensitivity_diagnostic",
+    "thermo_capillary_diagnostic",
 ]

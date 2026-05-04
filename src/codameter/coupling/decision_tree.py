@@ -23,6 +23,9 @@ import numpy as np
 import pandas as pd
 
 from .tier1_poroelastic import drainage_peclet, frequency_dependent_beta_eff
+from .tier2_damage import damage_permeability_split_window
+from .tier3_saturation import saturation_sensitivity_diagnostic
+from .tier4_thermo_capillary import thermo_capillary_diagnostic
 
 
 # Default thresholds (can be overridden via Site config in future versions)
@@ -189,6 +192,12 @@ def diagnose_all_tiers(
     tidal_dvv: pd.Series | None = None,
     tidal_strain: pd.Series | None = None,
     earthquake_catalog: pd.DataFrame | None = None,
+    dvv: pd.Series | np.ndarray | None = None,
+    times_s: np.ndarray | None = None,
+    precipitation_m: np.ndarray | None = None,
+    temperature_C: np.ndarray | None = None,
+    sigma_dvv: np.ndarray | None = None,
+    earthquake_times_s: np.ndarray | None = None,
 ) -> CouplingReport:
     """Run all available tier diagnostics and combine into a report.
 
@@ -279,10 +288,98 @@ def diagnose_all_tiers(
         except Exception as exc:  # pragma: no cover
             report.tier1["tidal_test_error"] = str(exc)
 
-    # ---------------- Tiers 2-4: deferred ----------------
-    report.deferred_tiers.extend(["tier2", "tier3", "tier4"])
-    report.tier2 = {"status": "deferred (v0.3)"}
-    report.tier3 = {"status": "deferred (v0.3)"}
-    report.tier4 = {"status": "deferred (v0.4)"}
+    # ---------------- Tiers 2-4: data-driven diagnostics ----------------
+    tier_scores: list[float] = [float(report.likelihood.get("score", 0.0))]
+
+    if dvv is not None and times_s is not None and precipitation_m is not None:
+        try:
+            t2 = damage_permeability_split_window(
+                dvv,
+                times_s,
+                precipitation_m=precipitation_m,
+                sigma_dvv=sigma_dvv,
+                earthquake_times_s=earthquake_times_s,
+            )
+        except Exception as exc:  # pragma: no cover
+            t2 = {"status": "deferred", "score": 0.0,
+                  "evidence": [f"Tier 2 error: {exc}"]}
+        report.tier2 = t2
+        tier_scores.append(float(t2.get("score", 0.0)))
+        if t2.get("status") == "warn":
+            report.soft_warnings.extend(t2.get("evidence", []))
+        elif t2.get("status") == "escalate":
+            report.hard_escalations.extend(t2.get("evidence", []))
+    else:
+        report.tier2 = {"status": "deferred",
+                        "evidence": ["Tier 2: dv/v or precipitation missing"]}
+        report.deferred_tiers.append("tier2")
+
+    if dvv is not None and times_s is not None and precipitation_m is not None:
+        try:
+            t3 = saturation_sensitivity_diagnostic(
+                dvv, times_s, precipitation_m=precipitation_m,
+            )
+        except Exception as exc:  # pragma: no cover
+            t3 = {"status": "deferred", "score": 0.0,
+                  "evidence": [f"Tier 3 error: {exc}"]}
+        report.tier3 = t3
+        tier_scores.append(float(t3.get("score", 0.0)))
+        if t3.get("status") == "warn":
+            report.soft_warnings.extend(t3.get("evidence", []))
+        elif t3.get("status") == "escalate":
+            report.hard_escalations.extend(t3.get("evidence", []))
+    else:
+        report.tier3 = {"status": "deferred",
+                        "evidence": ["Tier 3: dv/v or precipitation missing"]}
+        report.deferred_tiers.append("tier3")
+
+    if (times_s is not None and temperature_C is not None
+            and precipitation_m is not None):
+        try:
+            t4 = thermo_capillary_diagnostic(
+                times_s,
+                temperature_C=temperature_C,
+                precipitation_m=precipitation_m,
+            )
+        except Exception as exc:  # pragma: no cover
+            t4 = {"status": "deferred", "score": 0.0,
+                  "evidence": [f"Tier 4 error: {exc}"]}
+        report.tier4 = t4
+        tier_scores.append(float(t4.get("score", 0.0)))
+        if t4.get("status") == "warn":
+            report.soft_warnings.extend(t4.get("evidence", []))
+        elif t4.get("status") == "escalate":
+            report.hard_escalations.extend(t4.get("evidence", []))
+    else:
+        report.tier4 = {"status": "deferred",
+                        "evidence": ["Tier 4: T or precipitation missing"]}
+        report.deferred_tiers.append("tier4")
+
+    # Aggregate likelihood as max across all tiers
+    agg = float(max(tier_scores))
+    if agg >= 0.75:
+        label = "high"
+        rec = "coupled inversion is likely warranted"
+    elif agg >= 0.35:
+        label = "moderate"
+        rec = "inspect coupling terms and consider coupled inversion"
+    elif agg >= 0.10:
+        label = "low"
+        rec = "linear model probably acceptable, but note uncertainty"
+    else:
+        label = "very low"
+        rec = "linear superposition is likely adequate"
+    report.likelihood = {
+        **report.likelihood,
+        "score": agg,
+        "label": label,
+        "recommendation": rec,
+        "tier_scores": {
+            "tier1": tier_scores[0],
+            "tier2": report.tier2.get("score", 0.0),
+            "tier3": report.tier3.get("score", 0.0),
+            "tier4": report.tier4.get("score", 0.0),
+        },
+    }
 
     return report

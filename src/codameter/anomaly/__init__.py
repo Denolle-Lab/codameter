@@ -33,6 +33,10 @@ from .detection import (
     rolling_zscore,
     transient_segments,
 )
+from .residual_patterns import (
+    ResidualPatterns,
+    classify_residual_patterns,
+)
 
 __all__ = [
     "AnomalyReport",
@@ -43,4 +47,6 @@ __all__ = [
     "AnomalyCategory",
     "ATTRIBUTION_CATEGORIES",
     "attribute_anomaly",
+    "ResidualPatterns",
+    "classify_residual_patterns",
 ]
