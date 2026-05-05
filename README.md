@@ -128,6 +128,80 @@ and converts it to the standard `codameter` format.
 
 ---
 
+## Models, hyperparameters, and physical bounds
+
+### Where to find them in the code
+
+| What | File | Object / constant |
+|---|---|---|
+| Material-property priors | `src/codameter/config.py` | `MaterialProperties`, `Prior` |
+| Physical validity checks on priors | `src/codameter/inverse/priors.py` | `validate_priors` |
+| Thermal time-shift search grid | `src/codameter/inverse/linear_fit.py` | `DEFAULT_TIME_SHIFT_GRID_DAYS` |
+| Forward-model defaults | `src/codameter/inverse/linear_fit.py` | `build_predictor_matrix` kwargs |
+| Hard sign-constraint on regression coefficients | `src/codameter/workflow.py` | `_PHYSICAL_PARAM_BOUNDS` |
+
+---
+
+### Hydrological forward models
+
+| Model key | Physics | Key hyperparameters | Physical bounds |
+|---|---|---|---|
+| `"baseflow"` (aliases: `"okubo_gwl"`, `"okubo2024"`) | Exponential-decay recharge/baseflow (linear reservoir; Sens-Schoenfelder & Wegler 2006; Okubo et al. 2024 Eq. 4) | `porosity` (default 0.05), `decay_rate_per_s` (default 1 / 180 d) | porosity ∈ (0, 0.6] |
+| `"talwani"` | Full Biot convolution — undrained erf + drained erfc (Talwani et al. 2007; Clements & Denolle 2023 Eq. 9) | `depth_m` (default 100 m; C&D 2023: 500 m), `diffusivity_m2_s` (default 0.01; C&D range: 5×10⁻⁵–∞), `skempton_B` (default 0.6), `poisson_undrained` (default 0.3) | skempton_B ∈ [0, 1]; depth_m > 0 |
+| `"drained"` | Drained-only erfc term — limiting case of Talwani when Skempton's B → 0 | `depth_m`, `diffusivity_m2_s` (same defaults as talwani) | depth_m > 0 |
+| `"cdm"` | Cumulative Departure from k-day rolling Mean (Clements & Denolle 2023, CDMk) | `window_days` (default 365×8 = 2920 d; C&D 2023 optimise k ∈ [365, 365×14] d). Pass `precipitation_warmup_m` to pre-initialize the rolling mean | window_days ≥ 1 |
+| `"precomputed"` | External GWL proxy passed directly (e.g. GRACE, well level). No forward model applied; column is only centred. | — | — |
+
+### Thermoelastic forward model
+
+| Model key | Physics | Key hyperparameters | Physical bounds |
+|---|---|---|---|
+| `"phase_shift"` | Annual surface-temperature cycle with a fixed phase lag τ_T (Berger 1975; Richter et al. 2014; Okubo et al. 2024) | `time_shift_days` (default 50 d at Parkfield; Clements & Denolle 2023 optimise τ_T ∈ [0, 200] d; LJR optimum ≈ 100 d). Fitted by chi-square profiling on `DEFAULT_TIME_SHIFT_GRID_DAYS = np.arange(0, 201, 1)` days. | τ_T ≥ 0 |
+
+### Surface-loading forward models
+
+| Model key | Physics | Key hyperparameters | Physical bounds |
+|---|---|---|---|
+| `"instantaneous"` | Static elastic compression by the instantaneous rain water column (Tsai 2011; Fokker et al. 2021) | `loading_bulk_modulus_GPa` (default 1.0 GPa) | — |
+| `"snowpack"` | Accumulating SWE load with exponential melt | `snowpack_decay_rate_per_s` (default 1 / 30 d) | — |
+
+---
+
+### Material-property priors (`MaterialProperties`)
+
+All priors are **Gaussian N(mean, std)** and are defined in `src/codameter/config.py`.
+In v0.1 (WLS) they are not used in the inversion — they feed the Phase 6 uncertainty-propagation step.
+In v0.2+ (MCMC) they act as proper prior distributions.
+
+| Parameter | Default N(mean, std) | Physical bounds enforced | Where used |
+|---|---|---|---|
+| `beta_prior` | N(240, 80) dimensionless | — | Phase 6 β-bridge → stress at depth |
+| `mu_prime_prior` | N(250, 90) dimensionless | — | Phase 6 μ' constraint |
+| `porosity_prior` | N(0.05, 0.02) | (0, 0.6] — `validate_priors` raises if 3σ exceedance | `baseflow` forward model; Phase 6 |
+| `skempton_B_prior` | N(0.6, 0.15) | [0, 1] — `validate_priors` raises if 3σ exceedance | `talwani` forward model; Phase 6 |
+| `biot_alpha_prior` | N(0.8, 0.1) | [0, 1] — `validate_priors` raises if 3σ exceedance | Phase 6 |
+| `hydraulic_diffusivity_prior_log10` | N(0.0, 1.0) log₁₀(m²/s) | — | Phase 6 |
+
+Physical bound validation is implemented in `src/codameter/inverse/priors.py::validate_priors`.
+
+---
+
+### Hard physical sign-constraints on regression coefficients
+
+Defined as `_PHYSICAL_PARAM_BOUNDS` in `src/codameter/workflow.py` and enforced
+via bounded-variable least squares (`scipy.optimize.lsq_linear`, method `"bvls"`)
+in Phase 4.
+
+| Parameter | Bound | Physical reason |
+|---|---|---|
+| `p1_dGWL` | ≤ 0 | Rising water table (dGWL > 0) compresses and slows seismic velocity, so dv/v < 0. A positive coefficient is unphysical. |
+
+When a parameter is clamped at its bound, its posterior standard deviation is
+reported as 0.0 (parameter is not free). To add or modify bounds, edit the
+`_PHYSICAL_PARAM_BOUNDS` dict in `src/codameter/workflow.py`.
+
+---
+
 ## Citing
 
 If you use `codameter` in published work, please cite both the framework

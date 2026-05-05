@@ -345,7 +345,7 @@ class Phase3:
                 )
             else:
                 shift_min = float(thermo_extra.get("time_shift_min_days", 0.0))
-                shift_max = float(thermo_extra.get("time_shift_max_days", 90.0))
+                shift_max = float(thermo_extra.get("time_shift_max_days", 200.0))
                 shift_step = float(thermo_extra.get("time_shift_step_days", 1.0))
                 if shift_step <= 0:
                     raise ValueError("time_shift_step_days must be positive")
@@ -445,6 +445,14 @@ class Phase3:
         )
 
 
+# Physical sign constraints on regression coefficients.
+# - p1_dGWL: hydrological storage proxy (dGWL ≥ 0). When the water table
+#   rises, dv/v decreases, so the regression coefficient must be ≤ 0.
+_PHYSICAL_PARAM_BOUNDS: dict[str, tuple[float, float]] = {
+    "p1_dGWL": (-np.inf, 0.0),
+}
+
+
 class Phase4:
     """Linear (WLS) inversion."""
 
@@ -465,6 +473,7 @@ class Phase4:
                 phase3.times_s,
                 sigma_dvv=phase0.sigma_dvv.to_numpy(),
                 time_shift_grid_days=phase3.time_shift_grid_days,
+                parameter_bounds=_PHYSICAL_PARAM_BOUNDS,
                 **predictor_kwargs,
             )
         else:
@@ -472,6 +481,7 @@ class Phase4:
                 phase0.dvv.to_numpy(),
                 phase3.predictor_matrix,
                 sigma_dvv=phase0.sigma_dvv.to_numpy(),
+                parameter_bounds=_PHYSICAL_PARAM_BOUNDS,
             )
         return Phase4Result(fit=fit)
 

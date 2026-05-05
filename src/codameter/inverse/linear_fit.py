@@ -39,6 +39,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from scipy.optimize import lsq_linear
 
 from ..forward.damage import snieder_healing
 from ..forward.loading import surface_load_dvv
@@ -50,7 +51,7 @@ from ..forward.poroelastic import (
 from ..forward.thermoelastic import thermoelastic_dvv
 from .posterior import Posterior
 
-DEFAULT_TIME_SHIFT_GRID_DAYS = np.arange(0.0, 90.0 + 1.0, 1.0)
+DEFAULT_TIME_SHIFT_GRID_DAYS = np.arange(0.0, 200.0 + 1.0, 1.0)
 
 
 # ---------------------------------------------------------------------------
@@ -438,6 +439,7 @@ def linear_fit(
     *,
     sigma_dvv: np.ndarray | float | None = None,
     rcond: float | None = None,
+    parameter_bounds: dict[str, tuple[float, float]] | None = None,
 ) -> LinearFitResult:
     r"""Weighted least-squares fit of :math:`\delta v / v = X \mathbf{p}`.
 
@@ -505,7 +507,29 @@ def linear_fit(
     Xw = X * W_sqrt[:, None]
     dw = d * W_sqrt
 
-    p_hat, residuals_ssq, rank, _ = np.linalg.lstsq(Xw, dw, rcond=rcond)
+    # Build per-parameter bounds (default unconstrained)
+    names = list(predictor_matrix.parameter_names)
+    lb = np.full(p, -np.inf)
+    ub = np.full(p, +np.inf)
+    if parameter_bounds:
+        for k, (lo, hi) in parameter_bounds.items():
+            if k in names:
+                idx = names.index(k)
+                lb[idx] = float(lo) if lo is not None else -np.inf
+                ub[idx] = float(hi) if hi is not None else +np.inf
+    constrained = bool(np.isfinite(lb).any() or np.isfinite(ub).any())
+
+    if constrained:
+        sol = lsq_linear(Xw, dw, bounds=(lb, ub), method="bvls")
+        p_hat = sol.x
+        # Effective rank = number of free (non-active) parameters
+        tol = 1e-9
+        active = (np.isfinite(lb) & (p_hat - lb < tol)) | (
+            np.isfinite(ub) & (ub - p_hat < tol)
+        )
+        rank = int((~active).sum())
+    else:
+        p_hat, residuals_ssq, rank, _ = np.linalg.lstsq(Xw, dw, rcond=rcond)
 
     fitted = X @ p_hat
     res = d - fitted
@@ -522,6 +546,13 @@ def linear_fit(
     if not weighted:
         # Unweighted: rescale cov by residual variance
         cov = cov * (float(np.sum(res**2)) / dof)
+
+    # When a bound is active, that parameter is no longer free: zero its
+    # row/column in the covariance so the reported std is 0 (clamped).
+    if constrained and active.any():
+        cov = cov.copy()
+        cov[active, :] = 0.0
+        cov[:, active] = 0.0
 
     posterior = Posterior(
         mean=p_hat,
@@ -566,6 +597,7 @@ def fit_temperature_time_shift(
     tau_max_s: float = 30.0 * 365.25 * 86400.0,
     include_intercept: bool = True,
     rcond: float | None = None,
+    parameter_bounds: dict[str, tuple[float, float]] | None = None,
 ) -> LinearFitResult:
     """Profile-likelihood scan for the thermoelastic time shift.
 
@@ -615,7 +647,13 @@ def fit_temperature_time_shift(
             tau_max_s=tau_max_s,
             include_intercept=include_intercept,
         )
-        fit = linear_fit(dvv, pm, sigma_dvv=sigma_dvv, rcond=rcond)
+        fit = linear_fit(
+            dvv,
+            pm,
+            sigma_dvv=sigma_dvv,
+            rcond=rcond,
+            parameter_bounds=parameter_bounds,
+        )
         fits.append(fit)
         chi2_values.append(float(fit.chi2_reduced))
 
