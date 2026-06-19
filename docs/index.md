@@ -24,13 +24,13 @@ the JGR figures.
 
 ```python
 from codameter import run_workflow, load_site
-from codameter.data.loaders import load_dvv, load_csv_timeseries
+from codameter.data import load_dvv, load_timeseries
 
 site = load_site("parkfield.yaml")
 dvv  = load_dvv("parkfield.parquet")
 forc = {
-    "temperature":   load_csv_timeseries("T.csv"),
-    "precipitation": load_csv_timeseries("P.csv"),
+    "temperature":   load_timeseries("T.csv"),
+    "precipitation": load_timeseries("P.csv"),
 }
 
 result = run_workflow(dvv, forc, site)
@@ -59,6 +59,7 @@ details.
 ## Where next
 
 - **Just installed?** → [Quickstart](quickstart.md)
+- **Have a dv/v CSV or Parquet file?** → [Data requirements](data_requirements.md)
 - **Want the conceptual picture?** → [The six-phase workflow](workflow.md)
 - **Want the math?** → [Theory pointer](theory.md)
 - **Want a runnable example?** → [Parkfield synthetic](examples/parkfield.md)

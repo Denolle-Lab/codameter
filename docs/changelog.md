@@ -6,6 +6,22 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## Unreleased
 
+### Added
+
+- `codameter data-check` and `assess_data_readiness()` for goal-specific
+  input checklists covering groundwater/soil-moisture monitoring, stress
+  inversion at depth, and coupling-mechanism identification.
+- `load_timeseries()` as a clearer alias for scalar CSV/TSV/Parquet/Feather
+  forcing data.
+
+### Fixed
+
+- CLI forcing ingestion now treats `load_timeseries()` output as a
+  `pandas.Series`, fixing `codameter run --precip ... --temp ...`.
+- `codameter run` can accept an earthquake catalog via `--earthquakes`.
+- `load_dvv()` records whether `dvv_err` was user-supplied or defaulted so
+  readiness checks can flag missing measurement uncertainty correctly.
+
 ## 0.1.0 — 2026-04-29
 
 Initial release. Implements the v0.1 scope of the build plan.
@@ -46,7 +62,7 @@ Initial release. Implements the v0.1 scope of the build plan.
   - `forward/capillary.py` — Tier 4 stub for v0.4.
 - **Public API.** `run_workflow()` high-level entry point + `Site`
   dataclass + the six `PhaseN` classes for low-level control.
-- **CLI.** `codameter run --config X` and `codameter cd2023
+- **CLI.** `codameter run --config X --dvv Y` and `codameter cd2023
   --data-dir Y --station Z`. The `cd2023` subcommand wires directly
   to the Clements & Denolle (2023) Zenodo archive.
 - **Examples.**

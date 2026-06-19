@@ -50,7 +50,7 @@ htmlcov/
 Thumbs.db
 
 # Project-specific — never commit raw data or runs
-data/
+/data/
 runs/
 *.parquet
 !tests/data/*.parquet
