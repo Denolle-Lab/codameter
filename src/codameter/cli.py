@@ -53,6 +53,15 @@ def _add_run_subcommand(sub: argparse._SubParsersAction) -> None:
                    help="Skip writing the diagnostic figure.")
 
 
+def _add_validate_subcommand(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "validate",
+        help="Validate a Site YAML config without running the workflow.",
+    )
+    p.add_argument("--config", required=True, type=Path,
+                   help="Path to a Site YAML configuration file.")
+
+
 def _add_cd2023_subcommand(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser(
         "cd2023",
@@ -87,11 +96,14 @@ def main(argv: list[str] | None = None) -> int:
                         version=f"codameter {__version__}")
     sub = parser.add_subparsers(dest="cmd", required=True)
     _add_run_subcommand(sub)
+    _add_validate_subcommand(sub)
     _add_cd2023_subcommand(sub)
     args = parser.parse_args(argv)
 
     if args.cmd == "run":
         return _cmd_run(args)
+    if args.cmd == "validate":
+        return _cmd_validate(args)
     if args.cmd == "cd2023":
         return _cmd_cd2023(args)
     parser.error(f"Unknown command {args.cmd!r}")
@@ -141,6 +153,33 @@ def _cmd_run(args: argparse.Namespace) -> int:
                 "Install with `pip install codameter[all]` to enable."
             )
     return 0
+
+
+def _cmd_validate(args: argparse.Namespace) -> int:
+    """Load a Site config, validate it, and report problems. No workflow run."""
+    try:
+        site = load_site(args.config)
+    except (ValueError, FileNotFoundError, KeyError) as exc:
+        print(f"\u2717 {args.config}: invalid configuration\n  {exc}")
+        return 1
+
+    try:
+        problems = site.validate()
+    except ValueError as exc:
+        print(f"\u2717 {args.config}: {exc}")
+        return 1
+
+    if not problems:
+        print(
+            f"\u2713 {args.config}: valid. Site {site.site_id!r}, "
+            f"active forcings: {site.active_forcings or ['(none)']}."
+        )
+        return 0
+
+    print(f"\u26a0 {args.config}: {len(problems)} issue(s) found:")
+    for msg in problems:
+        print(f"  - {msg}")
+    return 1
 
 
 def _cmd_cd2023(args: argparse.Namespace) -> int:

@@ -535,7 +535,7 @@ class Phase6:
                     phase4.fit.residuals,
                     p1_hydrology=p1_mean,
                     p1_hydrology_std=p1_std,
-                    times=site_index_or_none(phase4),
+                    times=None,  # plotting re-attaches the index from residuals
                 )
             elif hydro_units == "Pa":
                 # Talwani / drained predictors are already pore-pressure series in Pa.
@@ -587,11 +587,6 @@ class Phase6:
             stress_estimate=None,
             notes=notes,
         )
-
-
-def site_index_or_none(phase4: Phase4Result) -> pd.DatetimeIndex | None:
-    """Best-effort recovery of a DatetimeIndex from the WLS residuals."""
-    return None  # workflow re-attaches via residual Series in plotting
 
 
 # ---------------------------------------------------------------------------

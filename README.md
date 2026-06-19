@@ -57,19 +57,19 @@ pytest
 ## 60-second quickstart
 
 ```python
-from codameter import run_workflow
+from codameter import run_workflow, load_site
+from codameter.data.loaders import load_dvv, load_csv_timeseries
 
-result = run_workflow(
-    dvv_data="parkfield.parquet",
-    forcings={
-        "temperature":   "T.csv",
-        "precipitation": "P.csv",
-        "earthquakes":   "eq.csv",
-    },
-    site_config="examples/configs/parkfield.yaml",
-)
+site = load_site("examples/configs/parkfield.yaml")
+dvv  = load_dvv("parkfield.parquet")        # DataFrame indexed by datetime
+forc = {
+    "temperature":   load_csv_timeseries("T.csv"),
+    "precipitation": load_csv_timeseries("P.csv"),
+}
 
-result.summary()                   # text summary of all six phases
+result = run_workflow(dvv, forc, site)   # dvv, forcings, site (positional)
+
+print(result.summary())            # text summary of all six phases
 fig = result.plot_phases()         # six-panel diagnostic figure
 result.export("runs/parkfield/")   # all artifacts to disk
 ```
@@ -79,6 +79,16 @@ The same task from the command line:
 ```bash
 codameter run --config examples/configs/parkfield.yaml \
                  --output runs/parkfield/
+```
+
+Validate a config before you run it (a fast pre-flight check that catches
+unknown forcing models, inverted date ranges, and unsupported options
+without executing the workflow):
+
+```bash
+codameter validate --config examples/configs/parkfield.yaml
+# ✓ examples/configs/parkfield.yaml: valid. Site 'parkfield_hrsn',
+#   active forcings: ['thermoelastic', 'hydrological', 'damage'].
 ```
 
 For the phase-by-phase API and the low-level physics modules, see
@@ -101,11 +111,19 @@ curl -L -O https://zenodo.org/records/6413275/files/data-0.2.0.zip
 unzip data-0.2.0.zip
 cd ../..
 
-# 2. Run the example
-python examples/05_clements_denolle_demo.py \
-    --station CI.LJR \
+# 2. Run the example (real-data mode)
+python examples/02_clements_denolle_2023.py \
+    --station  CI.LJR \
     --data-dir data/clements_denolle_2023 \
-    --output runs/CI.LJR/
+    --config   examples/configs/clements_denolle_2023_LJR.yaml \
+    --output   runs/CI.LJR/
+```
+
+Without `--data-dir`, the same script runs in **synthetic mode** end-to-end in
+<30 s (no download required):
+
+```bash
+python examples/02_clements_denolle_2023.py --output runs/cd2023_synthetic/
 ```
 
 The loader in `codameter.data.loaders.load_clements_denolle_2023()` reads

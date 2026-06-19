@@ -54,7 +54,21 @@ The artifacts in `runs/quickstart/` are:
 | `residuals.csv` | Observed dv/v, fitted, residual, σ per sample |
 | `diagnostic.png` | Six-panel diagnostic figure |
 
-## 3. Run on your own data
+## 3. Validate a config
+
+Before running, check a config with the pre-flight validator. It catches
+unknown forcing models, inverted date ranges, and unsupported options
+without executing the workflow:
+
+```bash
+codameter validate --config examples/configs/parkfield.yaml
+```
+
+A valid config prints a `✓` line listing the active forcings and exits 0;
+problems are reported as a `⚠` list and exit non-zero, so it can be used as
+a gate in scripts and CI.
+
+## 4. Run on your own data
 
 The high-level API takes three things: a `Site` (from a YAML config),
 a dv/v DataFrame, and a forcings dict.
@@ -75,7 +89,7 @@ print(result.summary())
 result.export("runs/my_site/")
 ```
 
-## 4. Run on Clements & Denolle (2023) data
+## 5. Run on Clements & Denolle (2023) data
 
 Synthetic mode (no download needed):
 
@@ -95,7 +109,7 @@ python examples/02_clements_denolle_2023.py \
     --output   runs/CI_LJR/
 ```
 
-## 5. Where next
+## 6. Where next
 
 - [The six-phase workflow](workflow.md) — what each phase does and why
 - [Known issues](known_issues.md) — read this before publishing results

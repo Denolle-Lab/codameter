@@ -46,7 +46,8 @@ Initial release. Implements the v0.1 scope of the build plan.
   - `forward/capillary.py` — Tier 4 stub for v0.4.
 - **Public API.** `run_workflow()` high-level entry point + `Site`
   dataclass + the six `PhaseN` classes for low-level control.
-- **CLI.** `codameter run --config X` and `codameter cd2023
+- **CLI.** `codameter run --config X`, `codameter validate --config X`
+  (pre-flight configuration check), and `codameter cd2023
   --data-dir Y --station Z`. The `cd2023` subcommand wires directly
   to the Clements & Denolle (2023) Zenodo archive.
 - **Examples.**
@@ -55,9 +56,11 @@ Initial release. Implements the v0.1 scope of the build plan.
   - `examples/02_clements_denolle_2023.py` — synthetic-or-real C&D 2023
     test harness, recovering truth amplitudes within 4σ in synthetic mode.
   - `examples/configs/{parkfield,cascadia,kilauea,clements_denolle_2023_LJR}.yaml`.
-- **Tests.** 75 unit + integration tests covering forward models,
-  coupling diagnostics, kernels, linear inversion, data loaders, and the
-  full six-phase pipeline. 63 % overall coverage; core modules at 80–90+%.
+- **Tests.** 100+ unit and integration tests covering forward models,
+    coupling diagnostics, kernels, linear inversion, data loaders, the
+    forcing-model registry, and the full six-phase pipeline. Core modules
+    at 80–90+% coverage. Run `pytest` to see the current count; one test
+    is skipped unless the optional `disba` extra is installed.
 - **CI.** GitHub Actions workflows for lint + pytest (Linux & macOS,
   Py 3.10–3.12), docs build, and PyPI/Zenodo release on tag.
 - **Docs scaffold** — mkdocs + mkdocstrings (`docs/*`).

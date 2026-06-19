@@ -45,6 +45,8 @@ nav:
     - Forward models: api/forward.md
     - Coupling: api/coupling.md
     - Inversion: api/inverse.md
+  - Agents:
+    - Making a review agent: agents/making-a-review-agent.md
   - Known issues: known_issues.md
   - Changelog: changelog.md
 

@@ -49,6 +49,7 @@ from ..forward.poroelastic import (
     talwani_precipitation_response,
 )
 from ..forward.thermoelastic import thermoelastic_dvv
+from ..forcing_models import canonical_model
 from .posterior import Posterior
 
 DEFAULT_TIME_SHIFT_GRID_DAYS = np.arange(0.0, 200.0 + 1.0, 1.0)
@@ -95,7 +96,6 @@ _HYDRO_MODELS = frozenset(
 )
 
 _LOADING_MODELS = frozenset({"instantaneous", "snowpack"})
-
 
 def build_predictor_matrix(
     times_s: np.ndarray,
@@ -204,12 +204,10 @@ def build_predictor_matrix(
         units["a0"] = "fraction"
 
     if precipitation_m is not None:
-        if hydrological_model not in _HYDRO_MODELS:
-            raise ValueError(
-                f"hydrological_model {hydrological_model!r} not recognised; "
-                f"choose one of {sorted(_HYDRO_MODELS)}"
-            )
-        if hydrological_model in {"baseflow", "okubo_gwl", "okubo2024"}:
+        # Resolve aliases (e.g. "okubo2024" -> "baseflow", "roeloffs1988" ->
+        # "drained") to the canonical name and raise a helpful error otherwise.
+        hydrological_model = canonical_model("hydrological", hydrological_model)
+        if hydrological_model == "baseflow":
             col = baseflow_recharge_response(
                 precipitation_m,
                 times_s,
@@ -252,7 +250,7 @@ def build_predictor_matrix(
         # Centre to keep the intercept interpretable
         columns.append(col - col.mean())
         names.append("p1_dGWL")
-        if hydrological_model in {"baseflow", "okubo_gwl", "okubo2024"}:
+        if hydrological_model == "baseflow":
             hydro_predictor_units = "m_water_head"
             units["p1_dGWL"] = "fraction / m water head"
         elif hydrological_model in {"talwani", "drained"}:
@@ -292,11 +290,7 @@ def build_predictor_matrix(
 
     loading_used = False
     if surface_load_m is not None:
-        if loading_model not in _LOADING_MODELS:
-            raise ValueError(
-                f"loading_model {loading_model!r} not recognised; "
-                f"choose one of {sorted(_LOADING_MODELS)}"
-            )
+        loading_model = canonical_model("loading", loading_model)
         load_arr = np.asarray(surface_load_m, dtype=float)
         if loading_model == "snowpack":
             # Exponential-decay accumulator: SWE-like effective load

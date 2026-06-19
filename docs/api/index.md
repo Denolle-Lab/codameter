@@ -43,11 +43,11 @@ from codameter.inverse.linear_fit import build_predictor_matrix, linear_fit
 | `codameter.forward.{thermoelastic,poroelastic,damage}` | stable |
 | `codameter.forward.{capillary,loading}` | experimental — physics in flux |
 | `codameter.coupling.tier1_poroelastic` | stable |
-| `codameter.coupling.{tier2,tier3,tier4}_*` | stub — v0.3+ |
+| `codameter.coupling.{tier2,tier3,tier4}_*` | experimental — diagnostics only (no auto-escalation), v0.3+ |
 | `codameter.inverse.linear_fit` | stable |
 | `codameter.inverse.coupled_inversion` | stub — v0.2 |
 | `codameter.interpretation.stress_at_depth` | stable |
-| `codameter.interpretation.water_table` | stub — v0.2 |
+| `codameter.interpretation.water_table` | experimental — simplified head-change estimate; full coupling v0.2 |
 | `codameter.kernels.disba_wrapper` | stable, optional |
 | `codameter.kernels.depth_resolution` | stable |
 | `codameter.data.loaders` | stable |

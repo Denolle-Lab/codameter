@@ -61,25 +61,37 @@ v0.2).
 
 ---
 
-## Tiers 2, 3, 4 — deferred to v0.3 / v0.4
+## Tiers 2, 3, 4 — diagnostics ship; full coupling deferred to v0.3 / v0.4
 
 The Tier 1 poroelastic diagnostic (`drainage_peclet`,
 `frequency_dependent_beta_eff`) is fully working. Tiers 2 (damage–
 permeability), 3 (saturation-dependent nonlinear elasticity), and 4
-(thermo-capillary) have stub modules under `src/codameter/coupling/`
-that document their planned API but do nothing yet. The
-`decision_tree.escalation_decision` only inspects Tier 1.
+(thermo-capillary) each ship a working, tested **diagnostic** function
+under `src/codameter/coupling/`
+(`damage_permeability_split_window`, `saturation_sensitivity_diagnostic`,
+`thermo_capillary_diagnostic`; see `tests/test_coupling_tiers.py`).
+
+What is *not* yet wired up: (1) `decision_tree.escalation_decision`
+only inspects the Tier 1 result, so the Tier 2–4 diagnostics must be
+called directly rather than through the automatic escalation path; and
+(2) the corresponding coupled *corrections* to the linear fit are
+deferred to v0.3 / v0.4. Treat these tiers as experimental diagnostics,
+not as automatic corrections.
 
 ---
 
-## Water-table inversion — deferred to v0.2
+## Water-table inversion — simplified estimate ships; full coupling deferred to v0.2
 
 Phase 6 currently produces a pressure-sensitivity estimate
 $d(\delta v/v)/dp$ and propagates it to a $\mu'$ estimate via the
-$\beta$-bridge. The full coupled hydromechanical inversion of
-Equations 20–22 (water table depth $h(t)$ and saturation $S_w(z, t)$
-as outputs of $\delta v/v$) is scheduled for v0.2; an
-`interpretation/water_table.py` stub is present.
+$\beta$-bridge. A simplified head-change estimate ships in
+`interpretation/water_table.py` (`pressure_to_head_change`,
+`invert_head_change_from_dvv`, returning a `WaterTableEstimate`),
+which converts the pressure change to an equivalent water-table head
+change under a hydrostatic assumption. The full coupled
+hydromechanical inversion of Equations 20–22 (water table depth $h(t)$
+and saturation $S_w(z, t)$ as joint outputs of $\delta v/v$) is
+scheduled for v0.2.
 
 ---
 

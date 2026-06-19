@@ -117,13 +117,29 @@ class ForcingSpec:
 
 @dataclass
 class Forcings:
-    """Full set of forcing channels."""
+    """Full set of forcing channels.
+
+    The ``model`` string on each channel is validated against
+    :data:`codameter.forcing_models.FORCING_MODELS` at construction, so an
+    unknown or mistyped model name fails immediately with the list of valid
+    options rather than deep inside the design-matrix builder.
+    """
 
     thermoelastic: ForcingSpec = field(default_factory=ForcingSpec)
     hydrological: ForcingSpec = field(default_factory=ForcingSpec)
     capillary: ForcingSpec = field(default_factory=ForcingSpec)
     loading: ForcingSpec = field(default_factory=ForcingSpec)
     damage: ForcingSpec = field(default_factory=ForcingSpec)
+
+    def __post_init__(self) -> None:
+        from .forcing_models import canonical_model
+
+        for channel in ("thermoelastic", "hydrological", "capillary",
+                        "loading", "damage"):
+            spec = getattr(self, channel)
+            if spec.model is not None:
+                # Raises ValueError listing valid options if unrecognised.
+                canonical_model(channel, spec.model)
 
 
 @dataclass
@@ -345,6 +361,75 @@ class Site:
             )
             if getattr(self.forcings, name).enabled
         ]
+
+    def validate(self) -> list[str]:
+        """Check the configuration for problems without running the workflow.
+
+        Structural errors (bad layers, inverted frequency band, unknown model
+        names, non-positive priors) already raise at construction time. This
+        method performs the remaining *cross-field* and *operational* checks
+        that would otherwise only surface mid-run, and returns them as a list
+        of human-readable advisory strings.
+
+        Returns
+        -------
+        list[str]
+            One message per issue found. An empty list means the site looks
+            ready to run. Use it for a pre-flight check, e.g.::
+
+                problems = site.validate()
+                if problems:
+                    raise SystemExit("\\n".join(problems))
+
+        Raises
+        ------
+        ValueError
+            Only for hard inconsistencies that make the run impossible
+            (currently: no forcing enabled at all).
+        """
+        from .forcing_models import canonical_model
+
+        issues: list[str] = []
+
+        # 1. Model keys (defensive: catches a model set after construction).
+        for channel in ("thermoelastic", "hydrological", "capillary",
+                        "loading", "damage"):
+            spec = getattr(self.forcings, channel)
+            if spec.model is not None:
+                try:
+                    canonical_model(channel, spec.model)
+                except ValueError as exc:
+                    issues.append(str(exc))
+
+        # 2. At least one forcing must be enabled for the workflow to fit.
+        active = self.active_forcings
+        if not active:
+            raise ValueError(
+                "No forcing channel is enabled — at least one of "
+                "thermoelastic, hydrological, capillary, loading, or damage "
+                "must have enabled=True for the workflow to fit anything."
+            )
+
+        # 3. Date range ordering.
+        if self.analysis.start_date >= self.analysis.end_date:
+            issues.append(
+                f"analysis.start_date ({self.analysis.start_date}) is not "
+                f"before analysis.end_date ({self.analysis.end_date})."
+            )
+
+        # 4. Uncertainty method availability (MCMC is deferred to v0.2).
+        if self.analysis.uncertainty_method not in {"wls", "mcmc"}:
+            issues.append(
+                "analysis.uncertainty_method must be 'wls' or 'mcmc', got "
+                f"{self.analysis.uncertainty_method!r}."
+            )
+        elif self.analysis.uncertainty_method == "mcmc":
+            issues.append(
+                "analysis.uncertainty_method='mcmc' is scheduled for v0.2; "
+                "v0.1 runs the WLS estimator regardless."
+            )
+
+        return issues
 
 
 def load_site(path: str | Path) -> Site:
