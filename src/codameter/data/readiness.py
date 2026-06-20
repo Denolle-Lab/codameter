@@ -8,7 +8,7 @@ goals.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sized
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -326,10 +326,10 @@ def _available_inputs(
         available.update(_normalise_key(name) for name in names)
 
     if earthquake_catalog is not None:
-        try:
-            has_events = len(earthquake_catalog) > 0  # type: ignore[arg-type]
-        except TypeError:
-            has_events = True
+        if isinstance(earthquake_catalog, Sized):
+            has_events = len(earthquake_catalog) > 0
+        else:
+            has_events = len(list(earthquake_catalog)) > 0
         if has_events:
             available.add("earthquake_catalog")
             available.add("earthquake_times")

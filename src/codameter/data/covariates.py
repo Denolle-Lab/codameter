@@ -7,6 +7,7 @@ weekly depending on smoothing). The functions here put them all on a single
 common grid for downstream regression, in a way that respects the physical
 units of each channel.
 """
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -21,7 +22,7 @@ _DEFAULT_AGG = {
     "snowmelt": "sum",
     "swe": "mean",
     "temperature": "mean",
-    "T": "mean",
+    "t": "mean",
     "groundwater_level": "mean",
     "gwl": "mean",
     "soil_moisture": "mean",
@@ -71,7 +72,12 @@ def resample_to(
     if method == "nearest":
         return _interp_to(series, target_index, kind="nearest")
     if method == "ffill":
-        return series.reindex(series.index.union(target_index)).sort_index().ffill().reindex(target_index)
+        return (
+            series.reindex(series.index.union(target_index))
+            .sort_index()
+            .ffill()
+            .reindex(target_index)
+        )
     raise ValueError(f"Unknown resampling method {method!r}")
 
 
@@ -105,9 +111,7 @@ def align_forcings(
         if method == "auto":
             agg = _DEFAULT_AGG.get(name.lower(), "mean")
             if agg in {"sum", "max", "min"}:
-                cols[name] = resample_to(
-                    s, target, method="aggregate", aggregation=agg
-                )
+                cols[name] = resample_to(s, target, method="aggregate", aggregation=agg)
             else:
                 cols[name] = resample_to(s, target, method="linear")
         else:
