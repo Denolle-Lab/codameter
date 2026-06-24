@@ -13,6 +13,7 @@ For the Clements & Denolle (2023) demo::
                         --station CI.LJR \
                         --output ./results_cd2023
 """
+
 from __future__ import annotations
 
 import argparse
@@ -25,9 +26,11 @@ from . import __version__
 from .config import Site, load_site
 from .data.loaders import (
     load_clements_denolle_2023,
-    load_csv_timeseries,
     load_dvv,
+    load_earthquake_catalog,
+    load_timeseries,
 )
+from .data.readiness import assess_data_readiness
 from .workflow import run_workflow
 
 
@@ -36,21 +39,62 @@ def _add_run_subcommand(sub: argparse._SubParsersAction) -> None:
         "run",
         help="Run the full six-phase workflow on user data.",
     )
-    p.add_argument("--config", required=True, type=Path,
-                   help="Path to a Site YAML configuration file.")
-    p.add_argument("--dvv", required=True, type=Path,
-                   help="Path to dv/v file (csv, parquet, or feather). "
-                        "Must contain 'dvv' and ideally 'dvv_err'.")
-    p.add_argument("--dvv-units", default="fraction", choices=["fraction", "percent"],
-                   help="Units of the dv/v column in the input file.")
-    p.add_argument("--precip", type=Path, default=None,
-                   help="Optional precipitation csv (column 'precipitation' in m).")
-    p.add_argument("--temp", type=Path, default=None,
-                   help="Optional temperature csv (column 'temperature' in degC).")
-    p.add_argument("--output", required=True, type=Path,
-                   help="Output directory (will be created).")
-    p.add_argument("--no-plot", action="store_true",
-                   help="Skip writing the diagnostic figure.")
+    p.add_argument(
+        "--config",
+        required=True,
+        type=Path,
+        help="Path to a Site YAML configuration file.",
+    )
+    p.add_argument(
+        "--dvv",
+        required=True,
+        type=Path,
+        help="Path to dv/v file (csv, parquet, or feather). "
+        "Must contain 'dvv' and ideally 'dvv_err'.",
+    )
+    p.add_argument(
+        "--dvv-units",
+        default="fraction",
+        choices=["fraction", "percent"],
+        help="Units of the dv/v column in the input file.",
+    )
+    p.add_argument(
+        "--precip",
+        type=Path,
+        default=None,
+        help="Optional precipitation csv (column 'precipitation' in m).",
+    )
+    p.add_argument(
+        "--temp",
+        type=Path,
+        default=None,
+        help="Optional temperature csv (column 'temperature' in degC).",
+    )
+    p.add_argument(
+        "--earthquakes",
+        type=Path,
+        default=None,
+        help="Optional earthquake catalog csv/parquet with time, "
+        "latitude, longitude, magnitude, and optional depth_km.",
+    )
+    p.add_argument(
+        "--min-magnitude",
+        type=float,
+        default=None,
+        help="Minimum earthquake magnitude when --earthquakes is used.",
+    )
+    p.add_argument(
+        "--search-radius-km",
+        type=float,
+        default=None,
+        help="Keep only earthquakes within this radius of the site.",
+    )
+    p.add_argument(
+        "--output", required=True, type=Path, help="Output directory (will be created)."
+    )
+    p.add_argument(
+        "--no-plot", action="store_true", help="Skip writing the diagnostic figure."
+    )
 
 
 def _add_validate_subcommand(sub: argparse._SubParsersAction) -> None:
@@ -58,8 +102,12 @@ def _add_validate_subcommand(sub: argparse._SubParsersAction) -> None:
         "validate",
         help="Validate a Site YAML config without running the workflow.",
     )
-    p.add_argument("--config", required=True, type=Path,
-                   help="Path to a Site YAML configuration file.")
+    p.add_argument(
+        "--config",
+        required=True,
+        type=Path,
+        help="Path to a Site YAML configuration file.",
+    )
 
 
 def _add_cd2023_subcommand(sub: argparse._SubParsersAction) -> None:
@@ -67,21 +115,124 @@ def _add_cd2023_subcommand(sub: argparse._SubParsersAction) -> None:
         "cd2023",
         help="Demo: run on the Clements & Denolle (2023) Zenodo archive.",
     )
-    p.add_argument("--data-dir", required=True, type=Path,
-                   help="Path to the unpacked Zenodo archive root.")
-    p.add_argument("--station", required=True,
-                   help="Station code, e.g. CI.LJR")
-    p.add_argument("--config", type=Path, default=None,
-                   help="Optional Site YAML; if omitted, a Parkfield-like "
-                        "default is used and the station name is set as site_id.")
-    p.add_argument("--output", required=True, type=Path,
-                   help="Output directory (will be created).")
-    p.add_argument("--precip", type=Path, default=None,
-                   help="Optional precipitation csv to add to the fit.")
-    p.add_argument("--temp", type=Path, default=None,
-                   help="Optional temperature csv to add to the fit.")
-    p.add_argument("--no-plot", action="store_true",
-                   help="Skip writing the diagnostic figure.")
+    p.add_argument(
+        "--data-dir",
+        required=True,
+        type=Path,
+        help="Path to the unpacked Zenodo archive root.",
+    )
+    p.add_argument("--station", required=True, help="Station code, e.g. CI.LJR")
+    p.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="Optional Site YAML; if omitted, a Parkfield-like "
+        "default is used and the station name is set as site_id.",
+    )
+    p.add_argument(
+        "--output", required=True, type=Path, help="Output directory (will be created)."
+    )
+    p.add_argument(
+        "--precip",
+        type=Path,
+        default=None,
+        help="Optional precipitation csv to add to the fit.",
+    )
+    p.add_argument(
+        "--temp",
+        type=Path,
+        default=None,
+        help="Optional temperature csv to add to the fit.",
+    )
+    p.add_argument(
+        "--no-plot", action="store_true", help="Skip writing the diagnostic figure."
+    )
+
+
+def _add_data_check_subcommand(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "data-check",
+        help="Inspect dv/v data and report what is missing for science goals.",
+    )
+    p.add_argument(
+        "--dvv",
+        required=True,
+        type=Path,
+        help="Path to dv/v file (csv, parquet, feather, or arrow).",
+    )
+    p.add_argument(
+        "--dvv-units",
+        default="fraction",
+        choices=["fraction", "percent"],
+        help="Units of the dv/v column in the input file.",
+    )
+    p.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="Optional Site YAML configuration file.",
+    )
+    p.add_argument(
+        "--goal",
+        action="append",
+        dest="goals",
+        default=None,
+        help="Science goal to check: groundwater, stress, or coupling. "
+        "May be supplied more than once. Defaults to all.",
+    )
+    p.add_argument(
+        "--precip", type=Path, default=None, help="Optional precipitation time series."
+    )
+    p.add_argument(
+        "--temp", type=Path, default=None, help="Optional temperature time series."
+    )
+    p.add_argument(
+        "--groundwater",
+        type=Path,
+        default=None,
+        help="Optional groundwater/well-level time series.",
+    )
+    p.add_argument(
+        "--soil-moisture",
+        type=Path,
+        default=None,
+        help="Optional soil-moisture time series.",
+    )
+    p.add_argument(
+        "--snowpack", type=Path, default=None, help="Optional snowpack/SWE time series."
+    )
+    p.add_argument(
+        "--barometric-pressure",
+        type=Path,
+        default=None,
+        help="Optional barometric-pressure time series.",
+    )
+    p.add_argument(
+        "--tide-strain",
+        type=Path,
+        default=None,
+        help="Optional earth-tide or strain time series.",
+    )
+    p.add_argument(
+        "--earthquakes", type=Path, default=None, help="Optional earthquake catalog."
+    )
+    p.add_argument(
+        "--min-magnitude",
+        type=float,
+        default=None,
+        help="Minimum earthquake magnitude when --earthquakes is used.",
+    )
+    p.add_argument(
+        "--search-radius-km",
+        type=float,
+        default=None,
+        help="Keep only earthquakes within this radius of the site.",
+    )
+    p.add_argument(
+        "--fail-on-missing",
+        action="store_true",
+        help="Exit non-zero when requested goals are missing " "required data.",
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -92,12 +243,14 @@ def main(argv: list[str] | None = None) -> int:
             "changes (dv/v) as coupled stress and strain meters."
         ),
     )
-    parser.add_argument("--version", action="version",
-                        version=f"codameter {__version__}")
+    parser.add_argument(
+        "--version", action="version", version=f"codameter {__version__}"
+    )
     sub = parser.add_subparsers(dest="cmd", required=True)
     _add_run_subcommand(sub)
     _add_validate_subcommand(sub)
     _add_cd2023_subcommand(sub)
+    _add_data_check_subcommand(sub)
     args = parser.parse_args(argv)
 
     if args.cmd == "run":
@@ -106,6 +259,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_validate(args)
     if args.cmd == "cd2023":
         return _cmd_cd2023(args)
+    if args.cmd == "data-check":
+        return _cmd_data_check(args)
     parser.error(f"Unknown command {args.cmd!r}")
     return 2
 
@@ -121,21 +276,38 @@ def _cmd_run(args: argparse.Namespace) -> int:
 
     forcings: dict[str, pd.Series] = {}
     if args.precip is not None:
-        f = load_csv_timeseries(args.precip)
-        col = "precipitation" if "precipitation" in f.columns else f.columns[0]
-        forcings["precipitation"] = f[col]
+        forcings["precipitation"] = _load_named_series(args.precip, "precipitation")
     if args.temp is not None:
-        f = load_csv_timeseries(args.temp)
-        col = "temperature" if "temperature" in f.columns else f.columns[0]
-        forcings["temperature"] = f[col]
+        forcings["temperature"] = _load_named_series(args.temp, "temperature")
+
+    earthquake_times = _load_earthquake_times(
+        args.earthquakes,
+        site,
+        min_magnitude=args.min_magnitude,
+        search_radius_km=args.search_radius_km,
+    )
 
     print(f"Loaded {len(dvv_data)} dv/v samples for site {site.site_id!r}.")
     if forcings:
         print(f"Loaded forcings: {list(forcings.keys())}")
     else:
-        print("No forcings loaded — running intercept-only model.")
+        print("No forcing time series loaded.")
+    if earthquake_times:
+        print(f"Loaded {len(earthquake_times)} earthquake times.")
+    if not forcings and not earthquake_times:
+        print(
+            "No physical inputs were provided. Supply at least one of "
+            "--precip, --temp, or --earthquakes, or run `codameter data-check` "
+            "to see what data are needed for your science goal."
+        )
+        return 2
 
-    result = run_workflow(dvv_data, forcings or None, site)
+    result = run_workflow(
+        dvv_data,
+        forcings or None,
+        site,
+        earthquake_times=earthquake_times or None,
+    )
     print(result.summary())
 
     args.output.mkdir(parents=True, exist_ok=True)
@@ -188,21 +360,20 @@ def _cmd_cd2023(args: argparse.Namespace) -> int:
     else:
         site = _default_cd2023_site(args.station)
 
-    print(f"Loading Clements & Denolle (2023) data for {args.station} "
-          f"from {args.data_dir}...")
+    print(
+        f"Loading Clements & Denolle (2023) data for {args.station} "
+        f"from {args.data_dir}..."
+    )
     dvv_data = load_clements_denolle_2023(args.data_dir, args.station)
-    print(f"  -> {len(dvv_data)} samples, "
-          f"{dvv_data.index[0]} to {dvv_data.index[-1]}")
+    print(
+        f"  -> {len(dvv_data)} samples, " f"{dvv_data.index[0]} to {dvv_data.index[-1]}"
+    )
 
     forcings: dict[str, pd.Series] = {}
     if args.precip is not None:
-        f = load_csv_timeseries(args.precip)
-        col = "precipitation" if "precipitation" in f.columns else f.columns[0]
-        forcings["precipitation"] = f[col]
+        forcings["precipitation"] = _load_named_series(args.precip, "precipitation")
     if args.temp is not None:
-        f = load_csv_timeseries(args.temp)
-        col = "temperature" if "temperature" in f.columns else f.columns[0]
-        forcings["temperature"] = f[col]
+        forcings["temperature"] = _load_named_series(args.temp, "temperature")
 
     result = run_workflow(dvv_data, forcings or None, site)
     print(result.summary())
@@ -219,6 +390,87 @@ def _cmd_cd2023(args: argparse.Namespace) -> int:
         except ImportError:
             print("matplotlib not installed; skipping diagnostic plot.")
     return 0
+
+
+def _cmd_data_check(args: argparse.Namespace) -> int:
+    site = load_site(args.config) if args.config is not None else None
+    dvv_data = load_dvv(args.dvv, units=args.dvv_units)
+
+    forcings: dict[str, pd.Series] = {}
+    optional_series = {
+        "precipitation": args.precip,
+        "temperature": args.temp,
+        "groundwater_level": args.groundwater,
+        "soil_moisture": args.soil_moisture,
+        "snowpack": args.snowpack,
+        "barometric_pressure": args.barometric_pressure,
+        "tide_strain": args.tide_strain,
+    }
+    for name, path in optional_series.items():
+        if path is not None:
+            forcings[name] = _load_named_series(path, name)
+
+    earthquake_catalog = None
+    if args.earthquakes is not None:
+        earthquake_catalog = _load_earthquake_catalog(
+            args.earthquakes,
+            site,
+            min_magnitude=args.min_magnitude,
+            search_radius_km=args.search_radius_km,
+        )
+
+    report = assess_data_readiness(
+        dvv_data,
+        site=site,
+        forcings=forcings or None,
+        earthquake_catalog=earthquake_catalog,
+        goals=args.goals,
+    )
+    print(report.to_text())
+    if args.fail_on_missing and report.has_missing_required:
+        return 1
+    return 0
+
+
+def _load_named_series(path: Path, name: str) -> pd.Series:
+    series = load_timeseries(path)
+    return series.rename(name)
+
+
+def _load_earthquake_times(
+    path: Path | None,
+    site: Site,
+    *,
+    min_magnitude: float | None,
+    search_radius_km: float | None,
+) -> list[pd.Timestamp]:
+    if path is None:
+        return []
+    catalog = _load_earthquake_catalog(
+        path,
+        site,
+        min_magnitude=min_magnitude,
+        search_radius_km=search_radius_km,
+    )
+    return [pd.Timestamp(t) for t in catalog.index]
+
+
+def _load_earthquake_catalog(
+    path: Path,
+    site: Site | None,
+    *,
+    min_magnitude: float | None,
+    search_radius_km: float | None,
+) -> pd.DataFrame:
+    site_lat = site.location.lat if site is not None else None
+    site_lon = site.location.lon if site is not None else None
+    return load_earthquake_catalog(
+        path,
+        site_lat=site_lat,
+        site_lon=site_lon,
+        search_radius_km=search_radius_km,
+        min_magnitude=min_magnitude,
+    )
 
 
 def _default_cd2023_site(station: str) -> Site:
@@ -254,13 +506,16 @@ def _default_cd2023_site(station: str) -> Site:
             source="parkfield_default",
         ),
         forcings=Forcings(
-            thermoelastic=ForcingSpec(enabled=True, model="phase_shift",
-                                      extra={
-                                          "fit_time_shift": True,
-                                          "time_shift_min_days": 30.0,
-                                          "time_shift_max_days": 90.0,
-                                          "time_shift_step_days": 1.0,
-                                      }),
+            thermoelastic=ForcingSpec(
+                enabled=True,
+                model="phase_shift",
+                extra={
+                    "fit_time_shift": True,
+                    "time_shift_min_days": 30.0,
+                    "time_shift_max_days": 90.0,
+                    "time_shift_step_days": 1.0,
+                },
+            ),
             hydrological=ForcingSpec(enabled=True, model="baseflow"),
             damage=ForcingSpec(enabled=True, model="snieder_healing"),
         ),

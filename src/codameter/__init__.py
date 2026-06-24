@@ -16,10 +16,12 @@ The public API exposes three usage tiers:
 
 See ``docs/quickstart.md`` for a 5-minute walkthrough.
 """
+
 from __future__ import annotations
 
 from ._version import __version__
 from .config import Site, load_site
+from .data.readiness import DataReadinessReport, GoalReadiness, assess_data_readiness
 from .workflow import (
     Phase0,
     Phase1,
@@ -40,6 +42,10 @@ __all__ = [
     # Configuration
     "Site",
     "load_site",
+    # Data guidance
+    "assess_data_readiness",
+    "DataReadinessReport",
+    "GoalReadiness",
     # Phase objects
     "Phase0",
     "Phase1",
