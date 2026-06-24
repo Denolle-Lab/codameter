@@ -70,18 +70,34 @@ a gate in scripts and CI.
 
 ## 4. Run on your own data
 
+Before fitting, ask codameter what your input file can support:
+
+```bash
+codameter data-check \
+  --dvv my_dvv.parquet \
+  --config examples/configs/parkfield.yaml \
+  --goal groundwater \
+  --goal stress \
+  --precip P.csv \
+  --temp T.csv
+```
+
+The report distinguishes data needed for the package to run from data needed
+for defensible groundwater, stress-at-depth, or coupling-mechanism inference.
+See [Data requirements](data_requirements.md) for the goal-by-goal checklist.
+
 The high-level API takes three things: a `Site` (from a YAML config),
 a dv/v DataFrame, and a forcings dict.
 
 ```python
 from codameter import run_workflow, load_site
-from codameter.data.loaders import load_dvv, load_csv_timeseries
+from codameter.data import load_dvv, load_timeseries
 
 site = load_site("examples/configs/parkfield.yaml")
 dvv  = load_dvv("my_dvv.parquet")        # needs columns "dvv" and "dvv_err"
 forc = {
-    "temperature":   load_csv_timeseries("T.csv"),
-    "precipitation": load_csv_timeseries("P.csv"),
+    "temperature":   load_timeseries("T.csv"),
+    "precipitation": load_timeseries("P.csv"),
 }
 
 result = run_workflow(dvv, forc, site)

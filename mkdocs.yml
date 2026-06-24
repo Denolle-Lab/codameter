@@ -34,6 +34,7 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - Quickstart: quickstart.md
+  - Data requirements: data_requirements.md
   - Six-phase workflow: workflow.md
   - Theory pointer: theory.md
   - Examples:

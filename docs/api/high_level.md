@@ -8,6 +8,8 @@
 
 ::: codameter.load_site
 
+::: codameter.assess_data_readiness
+
 ## Phase classes
 
 ::: codameter.workflow.Phase0

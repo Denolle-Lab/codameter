@@ -58,13 +58,13 @@ pytest
 
 ```python
 from codameter import run_workflow, load_site
-from codameter.data.loaders import load_dvv, load_csv_timeseries
+from codameter.data import load_dvv, load_timeseries
 
 site = load_site("examples/configs/parkfield.yaml")
 dvv  = load_dvv("parkfield.parquet")        # DataFrame indexed by datetime
 forc = {
-    "temperature":   load_csv_timeseries("T.csv"),
-    "precipitation": load_csv_timeseries("P.csv"),
+    "temperature":   load_timeseries("T.csv"),
+    "precipitation": load_timeseries("P.csv"),
 }
 
 result = run_workflow(dvv, forc, site)   # dvv, forcings, site (positional)
@@ -74,10 +74,23 @@ fig = result.plot_phases()         # six-panel diagnostic figure
 result.export("runs/parkfield/")   # all artifacts to disk
 ```
 
+Before fitting your own file, check what scientific interpretations your data
+can support:
+
+```bash
+codameter data-check --dvv parkfield.parquet \
+                     --config examples/configs/parkfield.yaml \
+                     --goal groundwater --goal stress --goal coupling \
+                     --precip P.csv --temp T.csv
+```
+
 The same task from the command line:
 
 ```bash
 codameter run --config examples/configs/parkfield.yaml \
+                 --dvv parkfield.parquet \
+                 --precip P.csv \
+                 --temp T.csv \
                  --output runs/parkfield/
 ```
 

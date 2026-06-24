@@ -3,7 +3,7 @@
 This directory holds ready-to-run `Site` configs for the `codameter`
 workflow. Each one is a complete YAML contract (location, velocity model,
 active forcings, priors, analysis window) that can be loaded with
-`load_site(...)` or run directly via `codameter run --config <file>`.
+`load_site(...)` or passed to `codameter run --config <file> --dvv <file>`.
 
 Validate any of them before running:
 
