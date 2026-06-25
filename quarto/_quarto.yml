@@ -1,0 +1,95 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - "*.qmd"
+
+execute:
+  freeze: auto      # cache executed cells; re-run only when the .qmd changes
+  warning: false
+  echo: true
+
+jupyter: codameter-pixi   # pixi env kernel (see README: render instructions)
+
+website:
+  title: "codameter"
+  description: "Seismic velocity changes as Bayesian stress & strain meters"
+  reader-mode: true
+  page-navigation: true
+  back-to-top-navigation: true
+  repo-url: https://github.com/Denolle-Lab/codameter
+  repo-actions: [edit, issue]
+  navbar:
+    background: primary
+    pinned: true
+    left:
+      - text: "Home"
+        file: index.qmd
+      - text: "Theory · Bayesian UQ"
+        file: theory-uq.qmd
+      - text: "Tutorial"
+        menu:
+          - text: "1 · Data & site readiness"
+            file: tutorial-01-data.qmd
+          - text: "2 · Decoupled forward models"
+            file: tutorial-02-forward.qmd
+          - text: "3 · Linear superposition & inversion"
+            file: tutorial-03-inversion.qmd
+          - text: "4 · When decoupling breaks: coupling diagnostics"
+            file: tutorial-04-coupling.qmd
+          - text: "5 · Interpretation: stress at depth"
+            file: tutorial-05-interpretation.qmd
+          - text: "6 · End-to-end Parkfield walkthrough"
+            file: tutorial-06-endtoend.qmd
+    right:
+      - icon: github
+        href: https://github.com/Denolle-Lab/codameter
+        aria-label: GitHub
+
+  sidebar:
+    style: docked
+    search: true
+    collapse-level: 2
+    contents:
+      - section: "Overview"
+        contents:
+          - index.qmd
+      - section: "Theoretical contribution"
+        contents:
+          - theory-uq.qmd
+      - section: "Implementation tutorial"
+        contents:
+          - tutorial-01-data.qmd
+          - tutorial-02-forward.qmd
+          - tutorial-03-inversion.qmd
+          - tutorial-04-coupling.qmd
+          - tutorial-05-interpretation.qmd
+          - tutorial-06-endtoend.qmd
+
+  page-footer:
+    left: "codameter · Denolle (in prep, *JGR Solid Earth*)"
+    right: "Built with [Quarto](https://quarto.org)"
+
+format:
+  html:
+    theme:
+      light: [cosmo, theme.scss]
+      dark: [darkly, theme-dark.scss]
+    toc: true
+    toc-depth: 3
+    toc-title: "On this page"
+    code-fold: show
+    code-tools: true
+    code-copy: true
+    code-overflow: wrap
+    code-line-numbers: false
+    highlight-style: github
+    fig-align: center
+    fig-responsive: true
+    df-print: kable
+    smooth-scroll: true
+    link-external-newwindow: true
+    html-math-method: mathjax
+    css: styles.css
+
+bibliography: references.bib

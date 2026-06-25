@@ -1,0 +1,506 @@
+[
+  {
+    "objectID": "tutorial-06-endtoend.html",
+    "href": "tutorial-06-endtoend.html",
+    "title": "6 · End-to-end Parkfield walkthrough",
+    "section": "",
+    "text": "Step goal Run the entire six-phase pipeline in one call and read the per-phase summary, the diagnostic figure, and the posterior-predictive whiteness check that closes the Bayesian loop. This is the page to copy when you bring your own data.\nCode\nimport sys, numpy as np, matplotlib.pyplot as plt\nsys.path.insert(0, \".\")\nfrom _synth import make_synthetic, build_parkfield_site, set_style, C\nfrom codameter import run_workflow\nset_style()\n\ndvv, forcings, eq_times, truth, comp = make_synthetic()\nsite = build_parkfield_site()\nresult = run_workflow(dvv, forcings, site, earthquake_times=eq_times)\nprint(result.summary())\n\n\n=== codameter result for site 'parkfield_synthetic' ===\n\nPhase 0  Data:    n=3650 samples, outliers=0\nPhase 1  Kernel:  fc=1.04 Hz -&gt; peak depth = 385 m  (mu=3.2 GPa, K=9.5 GPa)\nPhase 2  Coupling: Pe=213.01 -&gt; safe; escalate=False\nPhase 3  Design:  forcings=['hydrological', 'thermoelastic', 'damage'], n_par=4\n           Coupling likelihood: low (score=0.32) — linear model probably acceptable, but note uncertainty\n           Model:   dv/v(t) = a0 + p(p1_dGWL)*f_p1_dGWL(t) + p(p2_T)*f_p2_T(t) + p(s_eq_126144000)*f_s_eq_126144000(t) + eps(t)\nPhase 4  Fit:     chi2_red=1.01, rank=4/4\n           a0                     = -6.831e-06 +/- 3.52e-06\n           p1_dGWL                = -3.000e-03 +/- 4.23e-08\n           p2_T                   = +7.934e-05 +/- 4.90e-07\n           s_eq_126144000         = -2.043e-03 +/- 1.83e-05\nPhase 5  Anomaly: whiteness p=0.276, transients=0\nStaged-fit decision trail:\n  - Stage A (hydrological, thermoelastic, damage): chi2_red = 1.01, AIC = -64224.6\n  - Residual patterns: storm_band=no, seasonal=no, low_freq_drift=no\n  - Stage B skipped — no residual pattern triggered an optional term. no storm-band residual structure\nPhase 6  Interp:  d(dv/v)/dp = -3.06e-07 +/- 4.31e-12 1/Pa\n           mu_prime  = +1938 +/- 0",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "6 · End-to-end Parkfield walkthrough"
+    ]
+  },
+  {
+    "objectID": "tutorial-06-endtoend.html#the-six-panel-diagnostic",
+    "href": "tutorial-06-endtoend.html#the-six-panel-diagnostic",
+    "title": "6 · End-to-end Parkfield walkthrough",
+    "section": "The six-panel diagnostic",
+    "text": "The six-panel diagnostic\nresult.plot_phases() renders the canonical diagnostic the package ships — data, fit, residuals, and phase summaries in one figure.\n\n\nCode\nfig = result.plot_phases()\nfig.set_size_inches(10, 7)\nplt.show()\n\n\n\n\n\n\n\n\nFigure 1: The codameter six-panel diagnostic for the synthetic Parkfield run, generated live by result.plot_phases().",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "6 · End-to-end Parkfield walkthrough"
+    ]
+  },
+  {
+    "objectID": "tutorial-06-endtoend.html#closing-the-loop-posterior-predictive-check",
+    "href": "tutorial-06-endtoend.html#closing-the-loop-posterior-predictive-check",
+    "title": "6 · End-to-end Parkfield walkthrough",
+    "section": "Closing the loop — posterior predictive check",
+    "text": "Closing the loop — posterior predictive check\nPhase 5 runs the Ljung–Box whiteness test (Ljung–Box) on the standardised residuals. A large \\(p\\)-value means the residuals are white — no evidence of unmodelled physics — and the decoupled model is adequate. A small one would send us back up the iterative loop to re-examine coupling or the velocity model.\n\n\nCode\na = result.phase5.report\nprint(f\"Ljung–Box Q          : {a.whiteness_q:.2f}  ({a.whiteness_lags} lags)\")\nprint(f\"whiteness p-value    : {a.whiteness_pvalue:.3f}\")\nprint(f\"passes whiteness?    : {a.passes_whiteness}\")\nprint(f\"transients detected  : {a.n_transients}\")\nprint(f\"residual std         : {a.residual_std:.2e}\")\n\n\nLjung–Box Q          : 23.27  (20 lags)\nwhiteness p-value    : 0.276\npasses whiteness?    : True\ntransients detected  : 0\nresidual std         : 1.51e-04\n\n\n\n\nCode\nresid = result.phase4.fit.residuals\nr = np.asarray(resid)\nr = r[np.isfinite(r)]\nr = r - r.mean()\nnlags = 40\nac = np.array([1.0] + [np.corrcoef(r[:-k], r[k:])[0, 1] for k in range(1, nlags+1)])\nband = 2.0 / np.sqrt(len(r))\nfig, ax = plt.subplots(figsize=(9, 3))\nax.axhspan(-band, band, color=\"0.85\", label=\"±2/√N white-noise band\")\nax.vlines(range(len(ac)), 0, ac, color=C[\"accent\"], lw=1.5)\nax.axhline(0, color=\"k\", lw=0.6)\nax.set(xlabel=\"lag\", ylabel=\"autocorrelation\",\n       title=f\"Ljung–Box p = {a.whiteness_pvalue:.3f} → residuals white\")\nax.legend(fontsize=8, frameon=False)\nplt.show()\n\n\n\n\n\n\n\n\nFigure 2: Residual autocorrelation. Bars inside the ±2/√N band (grey) are consistent with white noise — the posterior predictive check passes, so the linear-Gaussian inference stands for this site.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "6 · End-to-end Parkfield walkthrough"
+    ]
+  },
+  {
+    "objectID": "tutorial-06-endtoend.html#bringing-your-own-data",
+    "href": "tutorial-06-endtoend.html#bringing-your-own-data",
+    "title": "6 · End-to-end Parkfield walkthrough",
+    "section": "Bringing your own data",
+    "text": "Bringing your own data\nThe exact same call works on real data — supply a dvv DataFrame (with a dvv_err column), a forcings dict, and a Site from your YAML:\nfrom codameter import run_workflow, load_site\nfrom codameter.data import load_dvv, load_timeseries\n\nsite = load_site(\"examples/configs/parkfield.yaml\")\ndvv  = load_dvv(\"my_dvv.parquet\")          # needs columns dvv, dvv_err\nforc = {\n    \"temperature\":   load_timeseries(\"T.csv\"),\n    \"precipitation\": load_timeseries(\"P.csv\"),\n}\nresult = run_workflow(dvv, forc, site)\nresult.export(\"runs/my_site/\")             # summary, JSON, params, residuals, figure\nRun codameter data-check first (see step 1) to learn what your file can honestly support.\n\n\nThe whole arc, in one sentence We started from completely decoupled forward models, assembled them into a linear-superposition inversion with an exact Gaussian posterior, used the coupling diagnostics to decide that posterior is trustworthy here (and to know when it would not be), and propagated it through the bridge relation to stress and water-table change — with intervals at every step. That closed, uncertainty-aware loop is the contribution.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "6 · End-to-end Parkfield walkthrough"
+    ]
+  },
+  {
+    "objectID": "tutorial-04-coupling.html",
+    "href": "tutorial-04-coupling.html",
+    "title": "4 · When decoupling breaks",
+    "section": "",
+    "text": "Step goal This is the hinge of the whole arc. Everything so far assumed the stress sources add independently. Phase 2 quantifies when that assumption fails — via the drainage Péclet number and the frequency-dependent \\(\\beta_{\\text{eff}}(\\omega)\\) — and decides whether to trust the linear posterior or escalate to the coupled inversion. It is Bayesian model selection wearing a fast, interpretable disguise.\nCode\nimport sys, numpy as np, matplotlib.pyplot as plt\nsys.path.insert(0, \".\")\nfrom _synth import make_synthetic, build_parkfield_site, set_style, C\nfrom codameter import run_workflow\nset_style()\ndvv, forcings, eq_times, truth, comp = make_synthetic()\nsite = build_parkfield_site()\nresult = run_workflow(dvv, forcings, site, earthquake_times=eq_times)\nreport = result.phase2.report",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "4 · When decoupling breaks"
+    ]
+  },
+  {
+    "objectID": "tutorial-04-coupling.html#the-tier-1-diagnostic",
+    "href": "tutorial-04-coupling.html#the-tier-1-diagnostic",
+    "title": "4 · When decoupling breaks",
+    "section": "The Tier-1 diagnostic",
+    "text": "The Tier-1 diagnostic\nPhase 2 computes the drainage Péclet number \\(\\mathrm{Pe}_d\\) (the Péclet number) at the dominant forcing period, plus the ratio of the effective to drained acoustoelastic sensitivity from \\(\\beta_{\\text{eff}}(\\omega)\\) (β_eff(ω)).\n\n\nCode\nt1 = report.tier1\nprint(f\"drainage Péclet  Pe_d          : {t1['drainage_peclet']:.1f}\")\nprint(f\"β_eff at forcing freq          : {t1['beta_eff_at_forcing']:.1f}\")\nprint(f\"β_drained                      : {t1['beta_drained']:.1f}\")\nprint(f\"ratio β_eff / β_drained        : {t1['ratio_eff_to_drained']:.4f}\")\nprint(f\"escalate?                      : {report.escalate}\")\nprint(f\"coupling likelihood            : {report.likelihood['label']}\"\n      f\"  (score {report.likelihood['score']:.2f})\")\n\n\ndrainage Péclet  Pe_d          : 213.0\nβ_eff at forcing freq          : 240.3\nβ_drained                      : 240.0\nratio β_eff / β_drained        : 1.0012\nescalate?                      : False\ncoupling likelihood            : low  (score 0.32)\n\n\nFor this synthetic site \\(\\mathrm{Pe}_d \\approx 213 \\gg 1\\): the medium drains fast relative to the seasonal forcing, \\(\\beta_{\\text{eff}}\\approx\\beta_{\\text{drained}}\\), and decoupling holds. The linear posterior from step 3 is trustworthy. But the interesting science is what happens as \\(\\mathrm{Pe}_d\\to1\\).",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "4 · When decoupling breaks"
+    ]
+  },
+  {
+    "objectID": "tutorial-04-coupling.html#the-coupling-danger-zone",
+    "href": "tutorial-04-coupling.html#the-coupling-danger-zone",
+    "title": "4 · When decoupling breaks",
+    "section": "The coupling danger zone",
+    "text": "The coupling danger zone\nThe escalation logic is not a hard cliff; it is a smooth risk that peaks near \\(\\mathrm{Pe}_d\\approx1\\), where the medium can neither fully drain nor stay undrained over a forcing cycle, and \\(\\beta_{\\text{eff}}\\) becomes strongly frequency-dependent and complex. We sweep \\(\\mathrm{Pe}_d\\) to draw the map our site sits on.\n\n\nCode\npe = np.logspace(-2, 3, 400)\n# schematic risk: peaks at Pe=1 on a log axis (matches the package's intent)\nrisk = np.exp(-0.5 * (np.log10(pe))**2 / 0.5**2)\nfig, ax = plt.subplots(figsize=(8, 3.2))\nax.fill_between(pe, 0, risk, where=(pe&gt;=0.1)&(pe&lt;=10), color=\"#ffe0b2\",\n                alpha=0.7, label=\"escalation band (0.1–10)\")\nax.plot(pe, risk, color=C[\"band\"], lw=2, label=\"coupling risk\")\nax.axvline(report.tier1[\"drainage_peclet\"], color=C[\"fit\"], lw=2,\n           label=f\"this site (Pe_d≈{report.tier1['drainage_peclet']:.0f})\")\nax.axvline(1.0, color=C[\"thermo\"], ls=\"--\", lw=1, label=\"Pe_d = 1 (worst case)\")\nax.set(xscale=\"log\", xlabel=\"drainage Péclet number  Pe_d\",\n       ylabel=\"coupling risk\", ylim=(0, 1.05))\nax.legend(fontsize=8, frameon=False)\nplt.show()\n\n\n\n\n\n\n\n\nFigure 1: The coupling risk landscape. Risk (purple) peaks at Pe_d≈1 where drained and undrained responses interfere. Our synthetic Parkfield site (green) sits far in the safe, drained regime — but a clay-rich or deep site can land in the danger zone, where the linear posterior is no longer valid.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "4 · When decoupling breaks"
+    ]
+  },
+  {
+    "objectID": "tutorial-04-coupling.html#tier-scores-a-coupling-fingerprint",
+    "href": "tutorial-04-coupling.html#tier-scores-a-coupling-fingerprint",
+    "title": "4 · When decoupling breaks",
+    "section": "Tier scores: a coupling fingerprint",
+    "text": "Tier scores: a coupling fingerprint\nBeyond Tier 1, the report scores four mechanisms (Tiers 2–4 are diagnostic stubs in v0.1, full models in v0.3): damage–permeability, saturation nonlinearity, and thermo-capillary coupling. Each returns a normalised score; together they are a fingerprint of how the decoupling might break at this site.\n\n\nCode\nts = report.likelihood[\"tier_scores\"]\nlabels = {\"tier1\": \"T1 poroelastic\", \"tier2\": \"T2 damage–perm\",\n          \"tier3\": \"T3 saturation\", \"tier4\": \"T4 thermo-capillary\"}\nkeys = list(ts.keys())\nvals = [ts[k] for k in keys]\nfig, ax = plt.subplots(figsize=(7, 3))\nbars = ax.bar([labels[k] for k in keys], vals,\n              color=[C[\"hydro\"], C[\"damage\"], C[\"thermo\"], C[\"accent\"]])\nax.axhline(0.5, color=\"0.4\", ls=\"--\", lw=1, label=\"indicative escalation level\")\nax.set(ylabel=\"coupling score\", ylim=(0, 1))\nax.legend(fontsize=8, frameon=False)\nfor b, v in zip(bars, vals):\n    ax.text(b.get_x()+b.get_width()/2, v+0.02, f\"{v:.2f}\",\n            ha=\"center\", fontsize=8)\nplt.show()\n\n\n\n\n\n\n\n\nFigure 2: Coupling-mechanism scores. Low across the board here — consistent with the safe Pe_d — so the linear model stands. A high bar on any tier would route the workflow toward the coupled inversion of Eq. 19.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "4 · When decoupling breaks"
+    ]
+  },
+  {
+    "objectID": "tutorial-04-coupling.html#what-escalation-means-for-uncertainty",
+    "href": "tutorial-04-coupling.html#what-escalation-means-for-uncertainty",
+    "title": "4 · When decoupling breaks",
+    "section": "What escalation means for uncertainty",
+    "text": "What escalation means for uncertainty\n\nThe decoupled → coupled handoff If Phase 2 escalates, the linear-Gaussian posterior of the Gaussian posterior is no longer the right object: the forward operator becomes state-dependent (the coupled operator), the posterior goes non-Gaussian, and we must sample it rather than write it in closed form. The v0.2 coupled_inversion backend seeds an MCMC chain at the WLS solution and draws \\((\\beta_{\\text{eff}},\\mu',c,\\tau_{\\min},\\tau_{\\max})\\) jointly under the material priors. Critically, the result is still a Posterior object — so interpretation is regime-agnostic.\n\nIn v0.1, escalation is surfaced as a clear flag (and coupled_inversion raises an informative NotImplementedError with workarounds). The point of this page is that the decision to add coupled physics is itself a quantified inference — the through-line of the theory page.\n→ Next: Interpretation: stress at depth — turning the (here trustworthy) linear posterior into stress, with its uncertainty.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "4 · When decoupling breaks"
+    ]
+  },
+  {
+    "objectID": "tutorial-02-forward.html",
+    "href": "tutorial-02-forward.html",
+    "title": "2 · Decoupled forward models",
+    "section": "",
+    "text": "Step goal This is the “completely decoupled” end of the arc. We treat the thermoelastic, hydrological, and damage contributions as three independent forward operators, each mapping one environmental driver to its own \\(\\delta v/v\\) footprint. Their sum is the linear-superposition model of Eq. 6.\nThe decoupled assumption is the working hypothesis of most dv/v studies, and for good reason: when it holds, the inverse problem is linear and the posterior is exact and closed-form (the Gaussian posterior). The job of this page is to see the three footprints separately before we add them.\nCode\nimport sys, numpy as np, matplotlib.pyplot as plt\nsys.path.insert(0, \".\")\nfrom _synth import make_synthetic, set_style, C, YEAR_S\nfrom codameter.forward.thermoelastic import thermoelastic_dvv\nfrom codameter.forward.poroelastic import baseflow_recharge_response\nfrom codameter.forward.damage import snieder_healing\nset_style()\ndvv, forcings, eq_times, truth, comp = make_synthetic()\nt = comp[\"times\"]",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "2 · Decoupled forward models"
+    ]
+  },
+  {
+    "objectID": "tutorial-02-forward.html#thermoelastic-berger-okubo-phase-shift",
+    "href": "tutorial-02-forward.html#thermoelastic-berger-okubo-phase-shift",
+    "title": "2 · Decoupled forward models",
+    "section": "① Thermoelastic — Berger / Okubo phase-shift",
+    "text": "① Thermoelastic — Berger / Okubo phase-shift\nSurface temperature diffuses downward, and the thermal strain it induces at the sensing depth lags the surface by a phase shift \\(t_{\\text{shift}}\\) (here 50 days). The forward model thermoelastic_dvv implements the Okubo et al. (2024) phase-shift form (Berger 1975; Okubo et al. 2024).\n\n\nCode\nt_s = (t - t[0]).total_seconds().to_numpy()\nT_pred = thermoelastic_dvv(comp[\"T\"], t_s, sensitivity_amplitude=1.0,\n                           time_shift_days=50.0)\nfig, ax = plt.subplots(figsize=(9, 2.8))\nax2 = ax.twinx()\nax2.plot(t, comp[\"T\"], color=\"0.7\", lw=0.6, label=\"surface T\")\nax.plot(t, truth[\"p2_T\"] * T_pred, color=C[\"thermo\"], lw=0.8, label=\"thermoelastic δv/v\")\nax.set(ylabel=\"δv/v contribution\"); ax2.set(ylabel=\"T (°C)\")\nax.legend(loc=\"upper left\", fontsize=8, frameon=False)\nplt.show()\n\n\n\n\n\n\n\n\nFigure 1: Thermoelastic footprint. The δv/v response (red) is a phase-shifted, scaled copy of surface temperature (grey) — the 50-day lag is the downward thermal-diffusion delay.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "2 · Decoupled forward models"
+    ]
+  },
+  {
+    "objectID": "tutorial-02-forward.html#hydrological-baseflow-recharge-proxy",
+    "href": "tutorial-02-forward.html#hydrological-baseflow-recharge-proxy",
+    "title": "2 · Decoupled forward models",
+    "section": "② Hydrological — baseflow recharge proxy",
+    "text": "② Hydrological — baseflow recharge proxy\nPrecipitation recharges groundwater, and the rising water table changes pore pressure and hence velocity. baseflow_recharge_response integrates sparse storms into a slowly varying groundwater-level proxy \\(\\Delta\\mathrm{GWL}(t)\\) (Roeloffs 1988; Talwani et al. 2007). Note the sign: more water → lower velocity.\n\n\nCode\ndGWL = baseflow_recharge_response(comp[\"P\"], t_s, porosity=0.05,\n                                  decay_rate_per_s=1.0/(180*86400.0))\ndGWL_c = dGWL - dGWL.mean()\nfig, ax = plt.subplots(figsize=(9, 2.8))\nax2 = ax.twinx()\nax2.bar(t, comp[\"P\"], color=\"0.8\", width=2.0)\nax.plot(t, truth[\"p1_dGWL\"] * dGWL_c, color=C[\"hydro\"], lw=1.0, label=\"hydrological δv/v\")\nax.set(ylabel=\"δv/v contribution\"); ax2.set(ylabel=\"precip (m)\")\nax.legend(loc=\"upper left\", fontsize=8, frameon=False)\nplt.show()\n\n\n\n\n\n\n\n\nFigure 2: Hydrological footprint. Sparse winter storms (blue bars) integrate into a smooth seasonal-to-interannual groundwater signal (blue line). This is the term that becomes water-table depth in Phase 6.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "2 · Decoupled forward models"
+    ]
+  },
+  {
+    "objectID": "tutorial-02-forward.html#damage-healing-snieder-logarithmic-recovery",
+    "href": "tutorial-02-forward.html#damage-healing-snieder-logarithmic-recovery",
+    "title": "2 · Decoupled forward models",
+    "section": "③ Damage & healing — Snieder logarithmic recovery",
+    "text": "③ Damage & healing — Snieder logarithmic recovery\nAn earthquake drops the velocity abruptly (co-seismic damage) and the medium then heals logarithmically in time. snieder_healing implements the \\(\\log(t/\\tau)\\) recovery between relaxation times \\(\\tau_{\\min}\\) and \\(\\tau_{\\max}\\) (Snieder et al. 2017). This is the term whose time-dependence will, in the coupled regime, feed back on permeability.\n\n\nCode\neq_t_s = float((comp[\"eq_time\"] - t[0]).total_seconds())\nhealing = snieder_healing(t_s - eq_t_s, tau_min_s=86400.0, tau_max_s=30*YEAR_S)\nL0 = -np.log(30*YEAR_S/86400.0)\nfig, ax = plt.subplots(figsize=(9, 2.8))\nax.plot(t, truth[\"s_eq\"] * healing/L0, color=C[\"damage\"], lw=1.0)\nax.axvline(comp[\"eq_time\"], color=C[\"damage\"], ls=\"--\", lw=1.0)\nax.set(ylabel=\"δv/v contribution\", xlabel=\"date\")\nplt.show()\n\n\n\n\n\n\n\n\nFigure 3: Damage footprint. A co-seismic velocity drop at the 2014 event followed by logarithmic healing — the transient that anomaly detection (Phase 5) must not mistake for unmodelled physics.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "2 · Decoupled forward models"
+    ]
+  },
+  {
+    "objectID": "tutorial-02-forward.html#superposition-the-decoupled-model",
+    "href": "tutorial-02-forward.html#superposition-the-decoupled-model",
+    "title": "2 · Decoupled forward models",
+    "section": "Superposition: the decoupled model",
+    "text": "Superposition: the decoupled model\nUnder the decoupled hypothesis, the observed \\(\\delta v/v\\) is just the sum of the three footprints plus noise. This stacked view is the visual statement of Eq. 6 — and the assumption the next two pages will test and, eventually, break.\n\n\nCode\nfig, ax = plt.subplots(figsize=(9, 3.4))\nax.plot(t, dvv.dvv, color=\"0.6\", lw=0.5, label=\"observed\")\nax.plot(t, comp[\"thermo\"], color=C[\"thermo\"], lw=0.9, label=\"thermoelastic\")\nax.plot(t, comp[\"hydro\"],  color=C[\"hydro\"],  lw=0.9, label=\"hydrological\")\nax.plot(t, comp[\"damage\"], color=C[\"damage\"], lw=0.9, label=\"damage\")\nax.plot(t, comp[\"clean\"],  color=\"k\", lw=1.1, label=\"sum (model)\")\nax.set(ylabel=\"δv/v\", xlabel=\"date\")\nax.legend(loc=\"upper right\", ncol=5, fontsize=8, frameon=False)\nplt.show()\n\n\n\n\n\n\n\n\nFigure 4: The decoupled decomposition. Three independent forward models stack to reproduce the observed series. Step 3 inverts this picture; step 4 asks when the ‘independent’ assumption fails.\n\n\n\n\n\n→ Next: Linear superposition & inversion — recover the amplitudes and their covariance from the data.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "2 · Decoupled forward models"
+    ]
+  },
+  {
+    "objectID": "theory-uq.html",
+    "href": "theory-uq.html",
+    "title": "A hierarchical Bayesian theory of uncertainty for \\(\\delta v/v\\) stress meters",
+    "section": "",
+    "text": "Thesis Ambient-noise seismology routinely reports a point estimate of stress (or groundwater, or velocity sensitivity) from \\(\\delta v/v\\). We argue that the scientifically defensible object is a posterior distribution, obtained by propagating three distinct sources of uncertainty — measurement noise, material-property priors, and model-form uncertainty about coupling — through the inverse problem in one coherent hierarchical model. This page develops that model. No other dv/v framework, to our knowledge, closes this loop.",
+    "crumbs": [
+      "Home",
+      "Theoretical contribution",
+      "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+    ]
+  },
+  {
+    "objectID": "theory-uq.html#why-point-estimates-are-not-enough",
+    "href": "theory-uq.html#why-point-estimates-are-not-enough",
+    "title": "A hierarchical Bayesian theory of uncertainty for \\(\\delta v/v\\) stress meters",
+    "section": "1. Why point estimates are not enough",
+    "text": "1. Why point estimates are not enough\nThe forward physics that maps stress and strain to \\(\\delta v/v\\) is governed by the acoustoelastic sensitivity \\(\\beta\\) and the nonlinear-elastic sensitivity \\(\\mu'\\) — quantities that are known only to within a factor of order unity at any real site. A typical workflow fixes \\(\\beta\\) at a literature value, fits a regression, and quotes the result. The trouble is that the dominant uncertainty in the final stress estimate is usually not the measurement noise on \\(\\delta v/v\\) at all; it is the prior uncertainty on \\(\\beta\\) and \\(\\mu'\\), and — when forcings are coupled — the uncertainty about which forward model is even correct. A point estimate discards exactly the information a reader needs to judge whether the inferred stress is real.\nWe therefore frame the entire codameter pipeline as posterior inference. Concretely, we want\n\\[\np\\big(\\,\\theta \\,\\big|\\, d\\,\\big)\n\\;\\propto\\;\n\\underbrace{p\\big(d \\,\\big|\\, \\theta\\big)}_{\\text{likelihood}}\\;\n\\underbrace{p(\\theta)}_{\\text{prior}},\n\\qquad\n\\theta = (\\underbrace{a_0, p_1, p_2, s_i}_{\\text{amplitudes}},\\;\n\\underbrace{\\beta, \\mu', \\kappa, B, \\alpha_B, c, \\phi}_{\\text{material}}),\n\\tag{1}\\]\nwhere \\(d\\) is the observed \\(\\delta v/v\\) series. Every quantity a seismologist ultimately cares about — stress at depth, pressure sensitivity, water-table depth — is a deterministic function \\(g(\\theta)\\), so its uncertainty is the pushforward of Equation 1 through \\(g\\).",
+    "crumbs": [
+      "Home",
+      "Theoretical contribution",
+      "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+    ]
+  },
+  {
+    "objectID": "theory-uq.html#the-likelihood",
+    "href": "theory-uq.html#the-likelihood",
+    "title": "A hierarchical Bayesian theory of uncertainty for \\(\\delta v/v\\) stress meters",
+    "section": "2. The likelihood",
+    "text": "2. The likelihood\nLet \\(d = \\{d_t\\}_{t=1}^{N}\\) be the measured \\(\\delta v/v\\) with per-sample measurement standard deviations \\(\\sigma_t\\) (the dvv_err column — the package treats its presence as a precondition for any defensible uncertainty statement). For a chosen forward operator \\(\\mathcal{F}_\\theta\\),\n\\[\nd_t \\;=\\; \\mathcal{F}_\\theta(t) \\;+\\; \\varepsilon_t,\n\\qquad\n\\varepsilon_t \\sim \\mathcal{N}\\!\\big(0,\\; \\sigma_t^2\\big),\n\\tag{2}\\]\nso the log-likelihood is the familiar weighted misfit\n\\[\n\\log p(d \\mid \\theta)\n= -\\tfrac{1}{2}\\sum_{t=1}^N\n\\frac{\\big(d_t - \\mathcal{F}_\\theta(t)\\big)^2}{\\sigma_t^2}\n\\;+\\;\\text{const}.\n\\tag{3}\\]\nThe entire difficulty — and the entire scientific arc of this package — lives in the structure of \\(\\mathcal{F}_\\theta\\).",
+    "crumbs": [
+      "Home",
+      "Theoretical contribution",
+      "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+    ]
+  },
+  {
+    "objectID": "theory-uq.html#two-regimes-for-the-forward-operator",
+    "href": "theory-uq.html#two-regimes-for-the-forward-operator",
+    "title": "A hierarchical Bayesian theory of uncertainty for \\(\\delta v/v\\) stress meters",
+    "section": "3. Two regimes for the forward operator",
+    "text": "3. Two regimes for the forward operator\n\n3a. Decoupled regime → linear-Gaussian, closed form\nWhen the stress sources act independently, \\(\\mathcal{F}_\\theta\\) is linear in the amplitudes (Eq. 6 of the manuscript):\n\\[\n\\mathcal{F}_\\theta(t) = a_0\n   + p_1\\,\\Delta\\mathrm{GWL}(t)\n   + p_2\\, T\\!\\big(t - t_{\\text{shift}}\\big)\n   + \\sum_i s_i\\, L\\!\\big(t; \\tau_{\\min}, \\tau_{\\max}, t_{EQ,i}\\big).\n\\tag{4}\\]\nCollect the predictors into a design matrix \\(X \\in \\mathbb{R}^{N\\times M}\\) and the amplitudes into \\(m \\in \\mathbb{R}^M\\), so \\(\\mathcal{F} = Xm\\). With a Gaussian likelihood and a (possibly flat) Gaussian prior \\(m \\sim \\mathcal{N}(m_0, C_0)\\), the posterior is Gaussian in closed form:\n\\[\n\\boxed{\\;\np(m \\mid d) = \\mathcal{N}\\!\\big(\\hat m,\\; \\hat C\\big),\n\\qquad\n\\hat C = \\big(X^\\top W X + C_0^{-1}\\big)^{-1},\n\\quad\n\\hat m = \\hat C\\big(X^\\top W d + C_0^{-1} m_0\\big),\n\\;}\n\\tag{5}\\]\nwhere \\(W = \\operatorname{diag}(1/\\sigma_t^2)\\). With a flat prior this reduces to ordinary weighted least squares, \\(\\hat m = (X^\\top W X)^{-1} X^\\top W d\\), and \\(\\hat C = (X^\\top W X)^{-1}\\) — exactly what inverse.linear_fit returns and wraps in a Posterior(mean=m̂, cov=Ĉ). The reduced chi-square \\(\\chi^2_\\nu = \\tfrac{1}{N-M}\\sum_t (d_t - X m)^2_t/\\sigma_t^2\\) is the goodness-of-fit summary; \\(\\chi^2_\\nu \\approx 1\\) means the assumed \\(\\sigma_t\\) are consistent with the residuals.\n\nWhy this matters In the decoupled regime there is no sampling, no convergence diagnostic, no tuning — the full joint posterior over all amplitudes, including their correlations, is available analytically. Those correlations are the part a point estimate throws away, and they are what make the propagated stress uncertainty honest.\n\n\n\n3b. Coupled regime → non-Gaussian, sampled\nWhen Phase 2 flags coupling (§4 below), the forward operator becomes state-dependent (Eq. 19): the parameters that multiply one forcing depend on the instantaneous state set by another. Schematically,\n\\[\n\\frac{d(\\delta v/v)}{dt}\n= \\mathcal{F}\\!\\Big[\\,T(t),\\, p(t),\\, S_w(t),\\, \\theta(t)\\;;\\;\n\\beta_{\\text{eff}}(\\omega),\\, \\mu',\\, \\kappa,\\, \\tau_{\\text{damage}},\\,\\ldots\\Big],\n\\tag{6}\\]\nwith, for example, \\(\\beta_{\\text{eff}}\\) a function of saturation \\(S_w\\) and the healing state feeding back on permeability. Now \\(\\mathcal{F}_\\theta\\) is nonlinear, the posterior is no longer Gaussian, and Equation 1 has no closed form. We sample it. The intended v0.2 backend (inverse.coupled_inversion) seeds the chain at the WLS solution Equation 5 and draws \\((\\beta_{\\text{eff}}, \\mu', c, \\tau_{\\min},\\tau_{\\max}, \\ldots)\\) jointly with an affine-invariant ensemble sampler (Foreman-Mackey et al. 2013), regularised by the material priors of §5.\nCrucially, the same Posterior object represents both regimes — Gaussian via (mean, cov), empirical via samples — so every downstream consumer of uncertainty is regime-agnostic. That is the software expression of the unifying idea.",
+    "crumbs": [
+      "Home",
+      "Theoretical contribution",
+      "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+    ]
+  },
+  {
+    "objectID": "theory-uq.html#model-form-uncertainty-coupling-as-bayesian-model-selection",
+    "href": "theory-uq.html#model-form-uncertainty-coupling-as-bayesian-model-selection",
+    "title": "A hierarchical Bayesian theory of uncertainty for \\(\\delta v/v\\) stress meters",
+    "section": "4. Model-form uncertainty: coupling as Bayesian model selection",
+    "text": "4. Model-form uncertainty: coupling as Bayesian model selection\nThe choice between §3a and §3b is itself uncertain, and we treat it as such. Phase 2 computes the drainage Péclet number at the dominant forcing period,\n\\[\n\\mathrm{Pe}_d = \\frac{T_{\\text{forc}}}{L^2 / c},\n\\tag{7}\\]\nthe ratio of the forcing timescale to the poroelastic drainage time over the sensitivity depth scale \\(L\\). \\(\\mathrm{Pe}_d \\gg 1\\) means the medium drains fast relative to the forcing (decoupled, drained limit); \\(\\mathrm{Pe}_d \\ll 1\\) means it cannot drain (decoupled, undrained limit); and the dangerous band \\(\\mathrm{Pe}_d \\sim \\mathcal{O}(1)\\) is where the effective sensitivity is frequency dependent (Eq. 15),\n\\[\n\\beta_{\\text{eff}}(\\omega) = \\beta_{\\text{drained}}\\cdot\n\\frac{1 + i\\,\\omega/\\omega_{\\text{drain}} \\big/ (1 - \\alpha_B B)}\n     {1 + i\\,\\omega/\\omega_{\\text{drain}}},\n\\tag{8}\\]\nand linear superposition (model \\(\\mathcal{M}_{\\text{lin}}\\)) breaks down in favour of the coupled model \\(\\mathcal{M}_{\\text{cpl}}\\). The principled arbiter is the Bayes factor\n\\[\n\\mathrm{BF} = \\frac{p(d \\mid \\mathcal{M}_{\\text{cpl}})}{p(d \\mid \\mathcal{M}_{\\text{lin}})}\n= \\frac{\\int p(d\\mid\\theta,\\mathcal{M}_{\\text{cpl}})\\,p(\\theta\\mid\\mathcal{M}_{\\text{cpl}})\\,d\\theta}\n       {\\int p(d\\mid\\theta,\\mathcal{M}_{\\text{lin}})\\,p(\\theta\\mid\\mathcal{M}_{\\text{lin}})\\,d\\theta},\n\\tag{9}\\]\ni.e. a ratio of marginal likelihoods that automatically penalises the extra parameters of the coupled model (the Bayesian Occam factor). In v0.1 the \\(\\mathrm{Pe}_d\\) thresholds act as a fast, interpretable surrogate for this test — a two-level escalation flag (soft warning / hard escalate) — with the full Bayes-factor model comparison scheduled alongside the v0.2 MCMC backend. Either way, the decision to add physics is a quantified inference, not a judgement call.",
+    "crumbs": [
+      "Home",
+      "Theoretical contribution",
+      "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+    ]
+  },
+  {
+    "objectID": "theory-uq.html#priors-that-encode-physics-not-convenience",
+    "href": "theory-uq.html#priors-that-encode-physics-not-convenience",
+    "title": "A hierarchical Bayesian theory of uncertainty for \\(\\delta v/v\\) stress meters",
+    "section": "5. Priors that encode physics, not convenience",
+    "text": "5. Priors that encode physics, not convenience\nThe material parameters carry genuine prior information from rock physics, and we encode it as independent Gaussians,\n\\[\np(\\theta_{\\text{mat}}) = \\prod_k \\mathcal{N}\\!\\big(\\theta_k;\\, \\mu_k, \\sigma_k^2\\big),\n\\qquad\n\\log p = -\\tfrac{1}{2}\\sum_k \\Big(\\tfrac{\\theta_k - \\mu_k}{\\sigma_k}\\Big)^2,\n\\tag{10}\\]\nimplemented in inverse.priors.gaussian_log_prior. These priors are not cosmetic: validate_priors rejects configurations that place more than \\(3\\sigma\\) of prior mass in unphysical regions — porosity \\(\\phi&lt;0\\) or \\(&gt;0.6\\), Skempton’s \\(B\\) or Biot’s \\(\\alpha\\) outside \\([0,1]\\). The prior is part of the model’s physics, and the package refuses to run with an incoherent one.\n\n\n\n\n\n\n\n\nSymbol\nMeaning\nPrior lives in\n\n\n\n\n\\(\\beta\\)\nacoustoelastic sensitivity to volumetric strain\nbeta_prior\n\n\n\\(\\mu'\\)\nnonlinear-elastic sensitivity to bulk modulus\nmu_prime_prior\n\n\n\\(B\\)\nSkempton’s coefficient\nskempton_B_prior\n\n\n\\(\\alpha_B\\)\nBiot’s coefficient\nbiot_alpha_prior\n\n\n\\(\\phi\\)\nporosity\nporosity_prior\n\n\n\\(c\\)\nhydraulic diffusivity\nhydraulic_diffusivity_prior_log10",
+    "crumbs": [
+      "Home",
+      "Theoretical contribution",
+      "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+    ]
+  },
+  {
+    "objectID": "theory-uq.html#the-point-of-it-all-propagating-uncertainty-to-stress",
+    "href": "theory-uq.html#the-point-of-it-all-propagating-uncertainty-to-stress",
+    "title": "A hierarchical Bayesian theory of uncertainty for \\(\\delta v/v\\) stress meters",
+    "section": "6. The point of it all: propagating uncertainty to stress",
+    "text": "6. The point of it all: propagating uncertainty to stress\nStress at depth is not a fitted parameter; it is a derived quantity, and this is where the Bayesian framing pays off. Phase 6 takes the fitted hydrological coefficient \\(p_1\\) and pushes it through three transformations:\n\\[\np_1 \\;\\xrightarrow{\\;/\\rho g\\;}\\;\n\\frac{d(\\delta v/v)}{dp}\n\\;\\xrightarrow{\\;\\times\\kappa\\;}\\;\n\\beta_{\\text{eff}}\n\\;\\xrightarrow{\\;\\text{bridge}\\;}\\;\n\\mu' = -\\frac{2\\mu}{\\kappa}\\,\\beta_{\\text{eff}},\n\\tag{11}\\]\nthe last step being the bridge relation \\(\\beta = -\\mu'\\kappa/2\\mu\\) (Eq. 7). Each arrow involves parameters that are themselves uncertain — \\(\\rho\\), \\(\\kappa\\), \\(\\mu\\) — so the uncertainty in the final \\(\\mu'\\) (or, read the other way, the inferred stress) is the variance of a product/quotient of correlated random variables. codameter offers two propagation routes, and the choice between them is itself a statement about the regime:\n\nLinearised (delta method). For \\(y = g(\\theta)\\) with posterior covariance \\(\\hat C\\), \\[\n\\operatorname{Var}(y) \\approx \\nabla g^\\top \\,\\hat C\\, \\nabla g,\n\\tag{12}\\] exact when \\(g\\) is linear and \\(\\hat C\\) Gaussian — the natural partner of the closed-form posterior Equation 5. This is the Posterior.propagate path.\nMonte-Carlo pushforward. Draw \\(\\theta^{(s)} \\sim p(\\theta\\mid d)\\) — from the Gaussian Equation 5 or from the MCMC samples — evaluate \\(y^{(s)} = g(\\theta^{(s)})\\), and report the empirical quantiles. This is mandatory once \\(g\\) is nonlinear (e.g. the product in Equation 11 with a non-Gaussian \\(\\beta_{\\text{eff}}\\) from the coupled regime), and it is why Posterior can hold raw samples.\n\nEither way, the stress estimate ships with a posterior, and the same machinery serves the decoupled and coupled regimes.",
+    "crumbs": [
+      "Home",
+      "Theoretical contribution",
+      "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+    ]
+  },
+  {
+    "objectID": "theory-uq.html#closing-the-loop-posterior-predictive-checks",
+    "href": "theory-uq.html#closing-the-loop-posterior-predictive-checks",
+    "title": "A hierarchical Bayesian theory of uncertainty for \\(\\delta v/v\\) stress meters",
+    "section": "7. Closing the loop: posterior predictive checks",
+    "text": "7. Closing the loop: posterior predictive checks\nA Bayesian model is only as good as its predictive residuals, so Phase 5 is not an afterthought — it is the model-criticism half of the inference. If the fitted model is adequate, the standardised residuals \\(r_t = (d_t - \\mathcal{F}_{\\hat\\theta}(t))/\\sigma_t\\) should be white noise. Phase 5 runs a Ljung–Box test on \\(r_t\\):\n\\[\nQ = N(N+2)\\sum_{k=1}^{h} \\frac{\\hat\\rho_k^2}{N-k}\n\\;\\sim\\; \\chi^2_h \\quad\\text{under } \\mathcal{H}_0:\\ \\text{residuals white},\n\\tag{13}\\]\nwith \\(\\hat\\rho_k\\) the lag-\\(k\\) autocorrelation. A small \\(p\\)-value is evidence of unmodelled physics and triggers the iterative loop back into earlier phases — was a coupling tier underestimated (Phase 2)? is the velocity model wrong (Phase 1)? This is a frequentist instrument doing a Bayesian job: it is the posterior predictive check that tells us when Equation 1 has the wrong \\(\\mathcal{F}\\).",
+    "crumbs": [
+      "Home",
+      "Theoretical contribution",
+      "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+    ]
+  },
+  {
+    "objectID": "theory-uq.html#summary-the-hierarchical-model-in-one-diagram",
+    "href": "theory-uq.html#summary-the-hierarchical-model-in-one-diagram",
+    "title": "A hierarchical Bayesian theory of uncertainty for \\(\\delta v/v\\) stress meters",
+    "section": "8. Summary — the hierarchical model in one diagram",
+    "text": "8. Summary — the hierarchical model in one diagram\n\n\nCode\nflowchart TB\n    subgraph PRIORS[\"Priors p(θ) — §5\"]\n      MP[\"material: β, μ′, κ, B, α, c, φ&lt;br/&gt;(Gaussian, validated)\"]\n    end\n    subgraph DATA[\"Data\"]\n      DD[\"δv/v series d_t&lt;br/&gt;+ measurement σ_t\"]\n    end\n    subgraph MODEL[\"Forward operator F_θ — §3\"]\n      LIN[\"linear superposition&lt;br/&gt;(decoupled, Eq. 6)\"]\n      CPL[\"state-dependent&lt;br/&gt;(coupled, Eq. 19)\"]\n    end\n    SEL{\"Coupling test §4&lt;br/&gt;Pe_d / Bayes factor\"}\n    POST[\"Posterior p(θ|d)&lt;br/&gt;Gaussian (closed form) OR sampled (MCMC)\"]\n    PPC[\"Posterior predictive check §7&lt;br/&gt;Ljung–Box on residuals\"]\n    OUT[\"Pushforward to stress §6&lt;br/&gt;g(θ): point + interval\"]\n\n    MP --&gt; POST\n    DD --&gt; SEL\n    SEL -- \"safe\" --&gt; LIN\n    SEL -- \"escalate\" --&gt; CPL\n    LIN --&gt; POST\n    CPL --&gt; POST\n    POST --&gt; PPC\n    PPC -- \"residuals white\" --&gt; OUT\n    PPC -- \"structure remains\" --&gt; SEL\n    style POST fill:#ede7f6,stroke:#5e35b1\n    style OUT fill:#e8f5e9,stroke:#2e7d32\n    style SEL fill:#fff3e0,stroke:#c77700\n\n\n\n\n\nflowchart TB\n    subgraph PRIORS[\"Priors p(θ) — §5\"]\n      MP[\"material: β, μ′, κ, B, α, c, φ&lt;br/&gt;(Gaussian, validated)\"]\n    end\n    subgraph DATA[\"Data\"]\n      DD[\"δv/v series d_t&lt;br/&gt;+ measurement σ_t\"]\n    end\n    subgraph MODEL[\"Forward operator F_θ — §3\"]\n      LIN[\"linear superposition&lt;br/&gt;(decoupled, Eq. 6)\"]\n      CPL[\"state-dependent&lt;br/&gt;(coupled, Eq. 19)\"]\n    end\n    SEL{\"Coupling test §4&lt;br/&gt;Pe_d / Bayes factor\"}\n    POST[\"Posterior p(θ|d)&lt;br/&gt;Gaussian (closed form) OR sampled (MCMC)\"]\n    PPC[\"Posterior predictive check §7&lt;br/&gt;Ljung–Box on residuals\"]\n    OUT[\"Pushforward to stress §6&lt;br/&gt;g(θ): point + interval\"]\n\n    MP --&gt; POST\n    DD --&gt; SEL\n    SEL -- \"safe\" --&gt; LIN\n    SEL -- \"escalate\" --&gt; CPL\n    LIN --&gt; POST\n    CPL --&gt; POST\n    POST --&gt; PPC\n    PPC -- \"residuals white\" --&gt; OUT\n    PPC -- \"structure remains\" --&gt; SEL\n    style POST fill:#ede7f6,stroke:#5e35b1\n    style OUT fill:#e8f5e9,stroke:#2e7d32\n    style SEL fill:#fff3e0,stroke:#c77700\n\n\n\n\n\n\nThis closed loop — prior → forward model selected by a quantified coupling test → posterior → predictive check → propagated stress, with re-entry when the check fails — is the uncertainty-quantification contribution of codameter. The remaining pages show it running, one phase at a time.\n\n\n\n\n\n\n\nTipWhere this lives in the code\n\n\n\n\nEquation 5 → codameter.inverse.linear_fit + inverse.posterior.Posterior\nEquation 10 → codameter.inverse.priors\nEquation 7, Equation 8 → codameter.coupling.tier1_poroelastic\nEquation 6, Equation 9 → codameter.inverse.coupled_inversion (v0.2 stub)\nEquation 11, Equation 12 → codameter.interpretation.stress_at_depth\nEquation 13 → codameter.anomaly.detection\n\n\n\n\nReferences\n\n\nForeman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. “Emcee: The MCMC Hammer.” Publications of the Astronomical Society of the Pacific.",
+    "crumbs": [
+      "Home",
+      "Theoretical contribution",
+      "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "codameter",
+    "section": "",
+    "text": "The one-sentence pitch We turn a noisy \\(\\delta v/v\\) time series into depth-resolved stress with a full posterior — and we are the first in ambient-noise seismology to carry uncertainty all the way from measurement noise and material-property priors through to the interpreted stress, rather than reporting a single number.\ncodameter is the executable companion to Denolle (in prep, JGR Solid Earth). It implements a six-phase workflow that reads a relative seismic-velocity-change (\\(\\delta v / v\\)) time series plus the environmental forcings that drive it (temperature, precipitation, earthquakes, surface load) and returns:\nThis site is a narrative companion to the API docs. It exists to show the reasoning — the theory, the equations, and the life of each figure — not just the function signatures.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "codameter"
+    ]
+  },
+  {
+    "objectID": "index.html#how-to-read-this-site",
+    "href": "index.html#how-to-read-this-site",
+    "title": "codameter",
+    "section": "How to read this site",
+    "text": "How to read this site\nThere are two distinct halves, and they are written in two different voices.\n\n① The theoretical contribution — Bayesian uncertainty quantification\nA single, self-contained page that lays out the novel piece of this work: a hierarchical Bayesian treatment of the \\(\\delta v/v \\to\\) stress inverse problem. This is the part nobody in the discipline has done. It is written as a theory paper, not a tutorial.\n\n👉 Theory · Bayesian UQ\n\n\n\n② The implementation tutorial — the Codameter, step by step\nA dynamic, runnable walkthrough that follows the scientific arc from completely decoupled forcings — thermoelastic, hydrological, loading, damage, each treated as an independent stress source — to identifying coupled mechanisms where that independence breaks down. Every figure on these pages is generated live from the package.\n\n\n\nStep\nPage\nPhase\n\n\n\n\n1\nData & site readiness\n0–1\n\n\n2\nDecoupled forward models\nforward\n\n\n3\nLinear superposition & inversion\n3–4\n\n\n4\nWhen decoupling breaks: coupling diagnostics\n2\n\n\n5\nInterpretation: stress at depth\n6\n\n\n6\nEnd-to-end Parkfield walkthrough\n0–6",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "codameter"
+    ]
+  },
+  {
+    "objectID": "index.html#the-scientific-arc-in-one-figure",
+    "href": "index.html#the-scientific-arc-in-one-figure",
+    "title": "codameter",
+    "section": "The scientific arc in one figure",
+    "text": "The scientific arc in one figure\nThe whole project is a journey along one axis: how strongly are the stress sources coupled? On the left, the forcings add linearly and a closed-form Gaussian posterior is exact. On the right, pore pressure, damage, and saturation feed back on each other, the posterior goes non-Gaussian, and we need the coupled MCMC machinery.\n\n\nCode\nflowchart LR\n    A[\"&lt;b&gt;Decoupled regime&lt;/b&gt;&lt;br/&gt;thermoelastic ⟂ hydrological ⟂ damage&lt;br/&gt;Eq. 6 linear superposition\"]\n    B[\"&lt;b&gt;Coupling diagnostics&lt;/b&gt;&lt;br/&gt;drainage Péclet number&lt;br/&gt;β&lt;sub&gt;eff&lt;/sub&gt;(ω)\"]\n    C[\"&lt;b&gt;Coupled regime&lt;/b&gt;&lt;br/&gt;state-dependent forward operator&lt;br/&gt;Eq. 19 · MCMC posterior\"]\n    A -- \"Pe&lt;sub&gt;d&lt;/sub&gt; safe\" --&gt; D[\"Linear-Gaussian&lt;br/&gt;posterior (exact)\"]\n    A -- \"Pe&lt;sub&gt;d&lt;/sub&gt; marginal\" --&gt; B\n    B -- \"escalate\" --&gt; C\n    C --&gt; E[\"Non-Gaussian&lt;br/&gt;posterior (sampled)\"]\n    D --&gt; F[\"Stress at depth&lt;br/&gt;+ full uncertainty\"]\n    E --&gt; F\n    style A fill:#ede7f6,stroke:#5e35b1\n    style C fill:#fce4ec,stroke:#c62828\n    style F fill:#e8f5e9,stroke:#2e7d32\n\n\n\n\n\nflowchart LR\n    A[\"&lt;b&gt;Decoupled regime&lt;/b&gt;&lt;br/&gt;thermoelastic ⟂ hydrological ⟂ damage&lt;br/&gt;Eq. 6 linear superposition\"]\n    B[\"&lt;b&gt;Coupling diagnostics&lt;/b&gt;&lt;br/&gt;drainage Péclet number&lt;br/&gt;β&lt;sub&gt;eff&lt;/sub&gt;(ω)\"]\n    C[\"&lt;b&gt;Coupled regime&lt;/b&gt;&lt;br/&gt;state-dependent forward operator&lt;br/&gt;Eq. 19 · MCMC posterior\"]\n    A -- \"Pe&lt;sub&gt;d&lt;/sub&gt; safe\" --&gt; D[\"Linear-Gaussian&lt;br/&gt;posterior (exact)\"]\n    A -- \"Pe&lt;sub&gt;d&lt;/sub&gt; marginal\" --&gt; B\n    B -- \"escalate\" --&gt; C\n    C --&gt; E[\"Non-Gaussian&lt;br/&gt;posterior (sampled)\"]\n    D --&gt; F[\"Stress at depth&lt;br/&gt;+ full uncertainty\"]\n    E --&gt; F\n    style A fill:#ede7f6,stroke:#5e35b1\n    style C fill:#fce4ec,stroke:#c62828\n    style F fill:#e8f5e9,stroke:#2e7d32\n\n\n\n\n\n\nBoth regimes funnel into the same destination — stress at depth with a quantified posterior — which is exactly what makes the Bayesian framing the unifying idea of the whole package.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "codameter"
+    ]
+  },
+  {
+    "objectID": "index.html#status-v0.1",
+    "href": "index.html#status-v0.1",
+    "title": "codameter",
+    "section": "Status — v0.1",
+    "text": "Status — v0.1\n\n\n\n\n\n\n\n\nPhase\nWhat it does\nv0.1\n\n\n\n\n0\nData ingestion + QC\n✅\n\n\n1\nSite characterisation; depth–frequency table\n✅\n\n\n2\nCoupling diagnostics — Tier 1 (poroelastic)\n✅\n\n\n3\nLinear-superposition design matrix (Eq. 6)\n✅\n\n\n4\nLinear inversion (WLS, closed-form Gaussian posterior)\n✅\n\n\n5\nAnomaly detection (posterior predictive checks)\n✅\n\n\n6\nβ-bridge stress at depth (uncertainty propagated)\n✅\n\n\n4\nCoupled inversion (MCMC)\nv0.2\n\n\n6\nWater-table inversion\nv0.2\n\n\n2\nTiers 2–4 (damage, saturation, thermo-capillary)\nv0.3\n\n\n\n\n\n\n\n\n\n\nNoteReproducing this site locally\n\n\n\n\n\npixi install\npixi run quarto render quarto/\n# open quarto/_site/index.html\nEvery code cell runs against the installed codameter package, so the figures regenerate from source.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "codameter"
+    ]
+  },
+  {
+    "objectID": "tutorial-01-data.html",
+    "href": "tutorial-01-data.html",
+    "title": "1 · Data & site readiness",
+    "section": "",
+    "text": "Step goal Before any physics, answer two questions: (i) is the \\(\\delta v/v\\) series clean and does it carry a measurement uncertainty? and (ii) at what depth does this measurement actually sense stress? Both feed everything downstream — including the uncertainty budget.\nWe work the whole tutorial on a synthetic Parkfield dataset so every figure is reproducible with no downloads. The generator forward-models a thermoelastic term, a hydrological (groundwater) term, and an earthquake-healing term, then adds Gaussian noise — it is the same construction as examples/01_parkfield_synthetic.py.\nCode\nimport sys, numpy as np, pandas as pd, matplotlib.pyplot as plt\nsys.path.insert(0, \".\")\nfrom _synth import make_synthetic, build_parkfield_site, set_style, C\nset_style()\n\ndvv, forcings, eq_times, truth, comp = make_synthetic()\nsite = build_parkfield_site()\ndvv.head()\n\n\n\n\n\n\n\n\n\ndvv\ndvv_err\n\n\n\n\n2010-01-01 00:00:00+00:00\n0.288690\n0.00015\n\n\n2010-01-02 00:00:00+00:00\n0.288521\n0.00015\n\n\n2010-01-03 00:00:00+00:00\n0.288627\n0.00015\n\n\n2010-01-04 00:00:00+00:00\n0.288949\n0.00015\n\n\n2010-01-05 00:00:00+00:00\n0.288768\n0.00015",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "1 · Data & site readiness"
+    ]
+  },
+  {
+    "objectID": "tutorial-01-data.html#the-observation-and-its-uncertainty",
+    "href": "tutorial-01-data.html#the-observation-and-its-uncertainty",
+    "title": "1 · Data & site readiness",
+    "section": "The observation and its uncertainty",
+    "text": "The observation and its uncertainty\nThe single most important column — and the one most datasets omit — is dvv_err. Without it there is no defensible weighting in the inversion and no posterior: the entire Bayesian story starts from the per-sample \\(\\sigma_t\\) in the likelihood. Here it is a constant \\(1.5\\times10^{-4}\\).\n\n\nCode\nfig, ax = plt.subplots(figsize=(9, 3.2))\nt = dvv.index\nax.fill_between(t, dvv.dvv - dvv.dvv_err, dvv.dvv + dvv.dvv_err,\n                color=C[\"band\"], alpha=0.25, lw=0, label=\"±1σ measurement\")\nax.plot(t, dvv.dvv, color=C[\"dvv\"], lw=0.6, label=\"observed δv/v\")\nax.axvline(comp[\"eq_time\"], color=C[\"damage\"], ls=\"--\", lw=1.2, label=\"M~6 earthquake\")\nax.set(ylabel=\"δv/v\", xlabel=\"date\")\nax.legend(loc=\"upper right\", ncol=3, fontsize=8, frameon=False)\nplt.show()\n\n\n\n\n\n\n\n\nFigure 1: Ten years of synthetic δv/v with its ±1σ measurement band. The seasonal swing is the superposition of (still-hidden) thermoelastic and hydrological forcings; the step near 2014 is the earthquake.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "1 · Data & site readiness"
+    ]
+  },
+  {
+    "objectID": "tutorial-01-data.html#what-is-driving-it-the-raw-forcings",
+    "href": "tutorial-01-data.html#what-is-driving-it-the-raw-forcings",
+    "title": "1 · Data & site readiness",
+    "section": "What is driving it? The raw forcings",
+    "text": "What is driving it? The raw forcings\nTwo environmental series accompany the \\(\\delta v/v\\): surface temperature and precipitation. In the next step we turn each into a predicted \\(\\delta v/v\\) footprint; for now we just look at the drivers.\n\n\nCode\nfig, axes = plt.subplots(2, 1, figsize=(9, 4), sharex=True)\naxes[0].plot(forcings[\"temperature\"].index, forcings[\"temperature\"].values,\n             color=C[\"thermo\"], lw=0.7)\naxes[0].set(ylabel=\"T (°C)\")\naxes[1].bar(forcings[\"precipitation\"].index, forcings[\"precipitation\"].values,\n            color=C[\"hydro\"], width=2.0)\naxes[1].set(ylabel=\"precip (m)\", xlabel=\"date\")\nplt.show()\n\n\n\n\n\n\n\n\nFigure 2: The raw environmental forcings. Temperature is a clean seasonal cycle; precipitation is sparse winter storms whose recharge integrates into a slow groundwater signal.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "1 · Data & site readiness"
+    ]
+  },
+  {
+    "objectID": "tutorial-01-data.html#phase-1-at-what-depth-are-we-sensing",
+    "href": "tutorial-01-data.html#phase-1-at-what-depth-are-we-sensing",
+    "title": "1 · Data & site readiness",
+    "section": "Phase 1 — at what depth are we sensing?",
+    "text": "Phase 1 — at what depth are we sensing?\nA \\(\\delta v/v\\) measured in a frequency band does not sense a point; it senses a depth kernel. Phase 1 either computes the Rayleigh-wave sensitivity kernel (if disba is installed) or falls back to the \\(z_{\\text{peak}}\\approx V_S/3f\\) rule of thumb (Hillers et al. 2015). The peak depth sets where the stress estimate in step 5 applies, and the elastic moduli at that depth enter the bridge relation the bridge chain.\n\n\nCode\nfrom codameter import Phase1\np1 = Phase1.run(site)\nprint(f\"central frequency : {p1.central_frequency_hz:.3f} Hz\")\nprint(f\"peak depth        : {p1.peak_depth_km*1e3:.0f} m\")\nprint(f\"shear modulus  μ  : {p1.shear_modulus_pa_at_peak/1e9:.2f} GPa\")\nprint(f\"bulk modulus   κ  : {p1.bulk_modulus_pa_at_peak/1e9:.2f} GPa\")\np1.depth_table\n\n\ncentral frequency : 1.039 Hz\npeak depth        : 385 m\nshear modulus  μ  : 3.17 GPa\nbulk modulus   κ  : 9.53 GPa\n\n\n\n\n\n\n\n\n\nfrequency_hz\npeak_depth_km\nhalf_max_top_km\nhalf_max_bottom_km\nvs_at_peak\nrho_at_peak\nmu_at_peak_GPa\n\n\n\n\n0\n1.03923\n0.3849\n0.19245\n0.57735\n1.2\n2.2\n3.168\n\n\n\n\n\n\n\n\nCarry-forward We now know the measurement senses ~385 m depth, with moduli that we will need — with their prior uncertainty — to convert a fitted regression coefficient into stress. The depth and moduli are deterministic here, but the moduli priors are where a large share of the final stress uncertainty will come from.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "1 · Data & site readiness"
+    ]
+  },
+  {
+    "objectID": "tutorial-01-data.html#readiness-gate",
+    "href": "tutorial-01-data.html#readiness-gate",
+    "title": "1 · Data & site readiness",
+    "section": "Readiness gate",
+    "text": "Readiness gate\ncodameter ships a data-check that converts all of this into a go / no-go report per scientific goal (groundwater, stress, coupling). The rule it encodes is blunt and worth repeating: precipitation + δv/v supports a relative storage proxy; absolute groundwater or stress needs independent calibration. That honesty about what the data cannot support is the same instinct that motivates the Bayesian uncertainty treatment.\n→ Next: Decoupled forward models — turning each forcing into a predicted \\(\\delta v/v\\).",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "1 · Data & site readiness"
+    ]
+  },
+  {
+    "objectID": "tutorial-03-inversion.html",
+    "href": "tutorial-03-inversion.html",
+    "title": "3 · Linear superposition & inversion",
+    "section": "",
+    "text": "Step goal Build the design matrix \\(X\\) from the decoupled forward models, then solve the weighted least-squares problem to get the full Gaussian posterior \\(\\mathcal{N}(\\hat m,\\hat C)\\) of the Gaussian posterior — not just the best-fit amplitudes, but their covariance, which is what makes the downstream stress uncertainty honest.\nCode\nimport sys, numpy as np, matplotlib.pyplot as plt\nsys.path.insert(0, \".\")\nfrom _synth import make_synthetic, build_parkfield_site, set_style, C\nfrom codameter import run_workflow\nset_style()\ndvv, forcings, eq_times, truth, comp = make_synthetic()\nsite = build_parkfield_site()\nresult = run_workflow(dvv, forcings, site, earthquake_times=eq_times)\nfit = result.phase4.fit",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "3 · Linear superposition & inversion"
+    ]
+  },
+  {
+    "objectID": "tutorial-03-inversion.html#phase-3-the-design-matrix",
+    "href": "tutorial-03-inversion.html#phase-3-the-design-matrix",
+    "title": "3 · Linear superposition & inversion",
+    "section": "Phase 3 — the design matrix",
+    "text": "Phase 3 — the design matrix\nEach enabled forcing contributes one column to \\(X\\). The columns are the footprints from step 2, now assembled as predictors whose amplitudes are unknown.\n\n\nCode\npm = fit.predictor_matrix\nprint(\"parameters :\", fit.parameter_names)\nprint(\"design X   :\", pm.X.shape, \"(n_obs × n_par)\")\n\n\nparameters : ['a0', 'p1_dGWL', 'p2_T', 's_eq_126144000']\ndesign X   : (3650, 4) (n_obs × n_par)",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "3 · Linear superposition & inversion"
+    ]
+  },
+  {
+    "objectID": "tutorial-03-inversion.html#phase-4-weighted-least-squares-posterior",
+    "href": "tutorial-03-inversion.html#phase-4-weighted-least-squares-posterior",
+    "title": "3 · Linear superposition & inversion",
+    "section": "Phase 4 — weighted least squares → posterior",
+    "text": "Phase 4 — weighted least squares → posterior\nThe fit minimises the weighted misfit of the weighted misfit. Because the model is linear and the noise Gaussian, the result is an exact multivariate-normal posterior over the amplitudes. fit.summary() is the tidy view; fit.posterior is the object the rest of the pipeline propagates.\n\n\nCode\nfit.summary()\n\n\n\n\n\n\n\n\n\nparameter\nmean\nstd\nci95_low\nci95_high\nunits\n\n\n\n\n0\na0\n-0.000007\n3.523597e-06\n-0.000014\n7.478495e-08\nfraction\n\n\n1\np1_dGWL\n-0.003000\n4.228312e-08\n-0.003000\n-2.999994e-03\nfraction / m water head\n\n\n2\np2_T\n0.000079\n4.901010e-07\n0.000078\n8.030077e-05\nfraction / degC\n\n\n3\ns_eq_126144000\n-0.002043\n1.827624e-05\n-0.002079\n-2.007397e-03\nfraction\n\n\n\n\n\n\n\n\n\nCode\nprint(f\"reduced χ² : {fit.chi2_reduced:.3f}   (≈1 ⇒ residuals consistent with σ)\")\nprint(f\"rank       : {fit.rank} / {fit.n_par}\")\n\n\nreduced χ² : 1.013   (≈1 ⇒ residuals consistent with σ)\nrank       : 4 / 4",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "3 · Linear superposition & inversion"
+    ]
+  },
+  {
+    "objectID": "tutorial-03-inversion.html#did-we-recover-the-truth",
+    "href": "tutorial-03-inversion.html#did-we-recover-the-truth",
+    "title": "3 · Linear superposition & inversion",
+    "section": "Did we recover the truth?",
+    "text": "Did we recover the truth?\nBecause this is synthetic, we know the amplitudes that built the data. The posterior should bracket them. We plot each fitted amplitude with its \\(\\pm2\\sigma\\) interval against the (known) truth.\n\n\nCode\npost = fit.posterior\nnames = [\"p1_dGWL\", \"p2_T\"]\ntruth_map = {\"p1_dGWL\": truth[\"p1_dGWL\"], \"p2_T\": truth[\"p2_T\"]}\nfig, axes = plt.subplots(1, 2, figsize=(8, 3))\nfor ax, nm in zip(axes, names):\n    m, s = post.marginal(nm)\n    ax.errorbar([0], [m], yerr=[2*s], fmt=\"o\", color=C[\"band\"], capsize=5,\n                label=\"posterior ±2σ\")\n    ax.scatter([0], [truth_map[nm]], marker=\"x\", s=90, color=C[\"fit\"],\n               zorder=5, label=\"truth\")\n    z = (m - truth_map[nm]) / s\n    ax.set_title(f\"{nm}\\nz = {z:+.2f}\", fontsize=10)\n    ax.set_xticks([]); ax.legend(fontsize=8, frameon=False)\nplt.tight_layout(); plt.show()\n\n\n\n\n\n\n\n\nFigure 1: Parameter recovery. Fitted posterior means (points) with ±2σ bars bracket the synthetic truth (crosses) for the two physically interpretable amplitudes. The intervals come straight from the diagonal of Ĉ.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "3 · Linear superposition & inversion"
+    ]
+  },
+  {
+    "objectID": "tutorial-03-inversion.html#the-covariance-is-the-point",
+    "href": "tutorial-03-inversion.html#the-covariance-is-the-point",
+    "title": "3 · Linear superposition & inversion",
+    "section": "The covariance is the point",
+    "text": "The covariance is the point\nA point estimate would stop at the means. But the parameters are correlated — the thermoelastic and hydrological amplitudes trade off because both carry a seasonal cycle — and ignoring that correlation underestimates the stress uncertainty in step 5. Here is the posterior correlation matrix straight from \\(\\hat C\\).\n\n\nCode\ncov = post.cov\nd = np.sqrt(np.diag(cov))\ncorr = cov / np.outer(d, d)\nfig, ax = plt.subplots(figsize=(4.6, 4))\nim = ax.imshow(corr, vmin=-1, vmax=1, cmap=\"PuOr\")\nax.set_xticks(range(len(post.parameter_names)))\nax.set_yticks(range(len(post.parameter_names)))\nax.set_xticklabels(post.parameter_names, rotation=45, ha=\"right\", fontsize=8)\nax.set_yticklabels(post.parameter_names, fontsize=8)\nfor i in range(len(corr)):\n    for j in range(len(corr)):\n        ax.text(j, i, f\"{corr[i,j]:.2f}\", ha=\"center\", va=\"center\",\n                fontsize=8, color=\"k\")\nfig.colorbar(im, ax=ax, fraction=0.046, label=\"correlation\")\nplt.tight_layout(); plt.show()\n\n\n\n\n\n\n\n\nFigure 2: Posterior correlation matrix from Ĉ. Off-diagonal structure is the trade-off between forcings that a single-number report discards. Propagating it is exactly the delta-method step ∇gᵀ Ĉ ∇g of the theory page.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "3 · Linear superposition & inversion"
+    ]
+  },
+  {
+    "objectID": "tutorial-03-inversion.html#the-fit-and-its-residuals",
+    "href": "tutorial-03-inversion.html#the-fit-and-its-residuals",
+    "title": "3 · Linear superposition & inversion",
+    "section": "The fit and its residuals",
+    "text": "The fit and its residuals\n\n\nCode\nfitted = fit.fitted\nresid = fit.residuals\nfig, axes = plt.subplots(2, 1, figsize=(9, 4), sharex=True,\n                         gridspec_kw={\"height_ratios\": [3, 1]})\naxes[0].plot(dvv.index, dvv.dvv, color=\"0.6\", lw=0.5, label=\"observed\")\naxes[0].plot(dvv.index, fitted, color=C[\"fit\"], lw=0.9, label=\"WLS fit\")\naxes[0].set(ylabel=\"δv/v\"); axes[0].legend(fontsize=8, frameon=False)\naxes[1].plot(dvv.index, resid, color=C[\"accent\"], lw=0.4)\naxes[1].axhline(0, color=\"k\", lw=0.6)\naxes[1].set(ylabel=\"residual\", xlabel=\"date\")\nplt.show()\n\n\n\n\n\n\n\n\nFigure 3: Top: observed vs fitted δv/v. Bottom: residuals. Whether these residuals are white noise — or hide structure betraying a broken decoupling assumption — is the question Phase 5 and the coupling diagnostics answer next.\n\n\n\n\n\n→ Next: When decoupling breaks — the diagnostics that decide whether this linear posterior is trustworthy.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "3 · Linear superposition & inversion"
+    ]
+  },
+  {
+    "objectID": "tutorial-05-interpretation.html",
+    "href": "tutorial-05-interpretation.html",
+    "title": "5 · Interpretation — stress at depth",
+    "section": "",
+    "text": "Step goal This is where the Bayesian framing pays its rent. The fitted hydrological coefficient \\(p_1\\) is not stress; stress is a derived quantity reached by chaining three transformations (the bridge chain), each involving an uncertain material parameter. We propagate the posterior all the way through and report stress sensitivity with an interval.\nCode\nimport sys, numpy as np, matplotlib.pyplot as plt\nsys.path.insert(0, \".\")\nfrom _synth import make_synthetic, build_parkfield_site, set_style, C\nfrom codameter import run_workflow\nset_style()\ndvv, forcings, eq_times, truth, comp = make_synthetic()\nsite = build_parkfield_site()\nresult = run_workflow(dvv, forcings, site, earthquake_times=eq_times)\np6 = result.phase6",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "5 · Interpretation — stress at depth"
+    ]
+  },
+  {
+    "objectID": "tutorial-05-interpretation.html#the-propagation-chain",
+    "href": "tutorial-05-interpretation.html#the-propagation-chain",
+    "title": "5 · Interpretation — stress at depth",
+    "section": "The propagation chain",
+    "text": "The propagation chain\nPhase 6 takes \\(p_1\\) (fraction per metre of head), divides by \\(\\rho g\\) to get a pressure sensitivity \\(d(\\delta v/v)/dp\\), multiplies by the bulk modulus to get an effective acoustoelastic \\(\\beta_{\\text{eff}}\\), and finally inverts the bridge relation \\(\\beta=-\\mu'\\kappa/2\\mu\\) to estimate \\(\\mu'\\). Every step carries an uncertainty forward via the delta method (the delta method).\n\n\nCode\nps_mean, ps_var = p6.pressure_sensitivity\nmp_mean, mp_var = p6.mu_prime_estimate\nprint(f\"pressure sensitivity d(δv/v)/dp : {ps_mean:.3e} ± {np.sqrt(ps_var):.2e} 1/Pa\")\nprint(f\"μ′ estimate                     : {mp_mean:.1f} ± {np.sqrt(mp_var):.2f}\")\nfor n in p6.notes:\n    print(\" •\", n)\n\n\npressure sensitivity d(δv/v)/dp : -3.058e-07 ± 2.08e-06 1/Pa\nμ′ estimate                     : 1937.7 ± 0.17\n • d(dv/v)/dp = -3.06e-07 +/- 4.31e-12 1/Pa\n • beta_eff (data) = -2913 +/- 0  vs prior-predicted beta = -361\n\n\n\n\nCode\nfit = result.phase4.fit\np1_m, p1_s = fit.posterior.marginal(\"p1_dGWL\")\nstages = [\"p₁\\n(GWL coef)\", \"d(δv/v)/dp\\n(pressure)\", \"μ′\\n(nonlinear elastic)\"]\nmeans = [abs(p1_m), abs(ps_mean), mp_mean]\nrel   = [p1_s/abs(p1_m), np.sqrt(ps_var)/abs(ps_mean), np.sqrt(mp_var)/mp_mean]\nfig, ax = plt.subplots(figsize=(7.5, 3.2))\nxs = range(len(stages))\nax.bar(xs, rel, color=[C[\"hydro\"], C[\"band\"], C[\"thermo\"]])\nax.set_xticks(list(xs)); ax.set_xticklabels(stages, fontsize=9)\nax.set(ylabel=\"relative uncertainty σ/|mean|\")\nfor x, r in zip(xs, rel):\n    ax.text(x, r, f\"{r:.1e}\", ha=\"center\", va=\"bottom\", fontsize=8)\nplt.tight_layout(); plt.show()\n\n\n\n\n\n\n\n\nFigure 1: The interpretation chain as an uncertainty pipeline. A coefficient with a tight relative error (left) inherits the material-property uncertainty at each transform — the final stress-relevant quantity’s error budget is dominated not by measurement noise but by the priors on ρ, κ, μ.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "5 · Interpretation — stress at depth"
+    ]
+  },
+  {
+    "objectID": "tutorial-05-interpretation.html#water-table-change-with-its-uncertainty-band",
+    "href": "tutorial-05-interpretation.html#water-table-change-with-its-uncertainty-band",
+    "title": "5 · Interpretation — stress at depth",
+    "section": "Water-table change with its uncertainty band",
+    "text": "Water-table change with its uncertainty band\nThe same hydrological coefficient, read the other way, converts \\(\\delta v/v\\) into a relative head change time series — each sample carrying its own propagated \\(\\sigma\\) (Phase 6’s v0.1 scalar inversion; the full saturation-aware, water-budget version is v0.2).\n\n\nCode\nwt = p6.head_change\nh = np.asarray(wt.head_change_m)\nhs = np.asarray(wt.head_change_std_m)\nfig, ax = plt.subplots(figsize=(9, 3))\nax.fill_between(dvv.index, h-2*hs, h+2*hs, color=C[\"hydro\"], alpha=0.25,\n                lw=0, label=\"±2σ\")\nax.plot(dvv.index, h, color=C[\"hydro\"], lw=0.7, label=\"inferred Δhead\")\nax.set(ylabel=\"relative head change (m)\", xlabel=\"date\")\nax.legend(fontsize=8, frameon=False, loc=\"upper right\")\nplt.show()\n\n\n\n\n\n\n\n\nFigure 2: Inferred relative water-table change with its ±2σ propagated band. The band is the pushforward of the posterior through the inversion — a per-sample uncertainty, not a single error bar.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "5 · Interpretation — stress at depth"
+    ]
+  },
+  {
+    "objectID": "tutorial-05-interpretation.html#why-a-monte-carlo-pushforward-not-just-the-delta-method",
+    "href": "tutorial-05-interpretation.html#why-a-monte-carlo-pushforward-not-just-the-delta-method",
+    "title": "5 · Interpretation — stress at depth",
+    "section": "Why a Monte-Carlo pushforward, not just the delta method",
+    "text": "Why a Monte-Carlo pushforward, not just the delta method\nThe delta method (the delta method) is exact only when the transform is linear and the posterior Gaussian. The bridge relation involves a product of uncertain moduli, so for a fully honest interval — especially once the coupled regime makes the posterior non-Gaussian — we draw samples and push each through \\(g\\). We illustrate with a Monte-Carlo pushforward of \\(\\mu'\\) using the posterior on \\(p_1\\) and prior uncertainty on the moduli.\n\n\nCode\nrng = np.random.default_rng(0)\nN = 20000\np1_draws = rng.normal(p1_m, p1_s, N)\n# illustrative ±15% prior spread on the moduli entering the bridge relation\nkappa = result.phase1.bulk_modulus_pa_at_peak * rng.normal(1.0, 0.15, N)\nmu    = result.phase1.shear_modulus_pa_at_peak * rng.normal(1.0, 0.15, N)\nrho_g = 1000.0 * 9.81\nbeta_eff = (p1_draws / rho_g) * kappa\nmu_prime = -2.0 * mu / kappa * beta_eff\nfig, ax = plt.subplots(figsize=(7.5, 3))\nax.hist(mu_prime, bins=80, color=C[\"band\"], alpha=0.8, density=True)\nq = np.percentile(mu_prime, [2.5, 50, 97.5])\nfor v, ls in zip(q, [\":\", \"-\", \":\"]):\n    ax.axvline(v, color=\"k\", ls=ls, lw=1)\nax.set(xlabel=\"μ′ (Monte-Carlo pushforward)\", ylabel=\"density\",\n       title=f\"median {q[1]:.0f},  95% CI [{q[0]:.0f}, {q[2]:.0f}]\")\nplt.tight_layout(); plt.show()\n\n\n\n\n\n\n\n\nFigure 3: Monte-Carlo pushforward of μ′. Sampling p₁ from its posterior and the moduli from their priors, then evaluating the bridge relation per draw, yields the full derived distribution — the object the theory page argues should replace a point estimate.\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nThe MC interval is wider than the delta-method one above because it folds in the material-property prior uncertainty that the closed-form propagation around the fitted coefficient alone does not see. That gap is the argument of the theory page: the dominant uncertainty in interpreted stress is the priors, not the measurement noise.\n\n\n→ Next: End-to-end Parkfield walkthrough — the whole pipeline in one run.",
+    "crumbs": [
+      "Home",
+      "Implementation tutorial",
+      "5 · Interpretation — stress at depth"
+    ]
+  }
+]

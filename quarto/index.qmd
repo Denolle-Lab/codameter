@@ -1,0 +1,124 @@
+---
+title: "codameter"
+subtitle: "Seismic velocity changes as **Bayesian** stress & strain meters"
+toc: false
+---
+
+::: {.keyidea}
+[The one-sentence pitch]{.k-title}
+We turn a noisy $\delta v/v$ time series into **depth-resolved stress with a
+full posterior** — and we are the first in ambient-noise seismology to carry
+uncertainty all the way from measurement noise and material-property priors
+through to the interpreted stress, rather than reporting a single number.
+:::
+
+`codameter` is the executable companion to **Denolle (in prep, *JGR Solid
+Earth*)**. It implements a six-phase workflow that reads a relative
+seismic-velocity-change ($\delta v / v$) time series plus the environmental
+forcings that drive it (temperature, precipitation, earthquakes, surface
+load) and returns:
+
+- depth-resolved **stress** estimates with *propagated* uncertainties,
+- **water-table / saturation** inversions (v0.2+),
+- **coupling-tier diagnostics** that flag when simple linear superposition
+  fails, and
+- **anomaly classifications** for residual signal the physics does not
+  explain.
+
+This site is a *narrative* companion to the API docs. It exists to show the
+**reasoning** — the theory, the equations, and the life of each figure — not
+just the function signatures.
+
+---
+
+## How to read this site
+
+There are two distinct halves, and they are written in two different voices.
+
+### ① The theoretical contribution — *Bayesian uncertainty quantification*
+
+A single, self-contained page that lays out the **novel** piece of this work:
+a hierarchical Bayesian treatment of the $\delta v/v \to$ stress inverse
+problem. This is the part nobody in the discipline has done. It is written as
+a theory paper, not a tutorial.
+
+> 👉 **[Theory · Bayesian UQ](theory-uq.qmd)**
+
+### ② The implementation tutorial — *the Codameter, step by step*
+
+A dynamic, runnable walkthrough that follows the scientific arc from
+**completely decoupled** forcings — thermoelastic, hydrological, loading,
+damage, each treated as an independent stress source — to **identifying
+coupled mechanisms** where that independence breaks down. Every figure on
+these pages is generated live from the package.
+
+| Step | Page | Phase |
+|---|---|---|
+| 1 | [Data & site readiness](tutorial-01-data.qmd) | <span class="phase-badge">0–1</span> |
+| 2 | [Decoupled forward models](tutorial-02-forward.qmd) | <span class="phase-badge">forward</span> |
+| 3 | [Linear superposition & inversion](tutorial-03-inversion.qmd) | <span class="phase-badge">3–4</span> |
+| 4 | [When decoupling breaks: coupling diagnostics](tutorial-04-coupling.qmd) | <span class="phase-badge">2</span> |
+| 5 | [Interpretation: stress at depth](tutorial-05-interpretation.qmd) | <span class="phase-badge">6</span> |
+| 6 | [End-to-end Parkfield walkthrough](tutorial-06-endtoend.qmd) | <span class="phase-badge">0–6</span> |
+
+---
+
+## The scientific arc in one figure
+
+The whole project is a journey along one axis: **how strongly are the stress
+sources coupled?** On the left, the forcings add linearly and a closed-form
+Gaussian posterior is exact. On the right, pore pressure, damage, and
+saturation feed back on each other, the posterior goes non-Gaussian, and we
+need the coupled MCMC machinery.
+
+```{mermaid}
+flowchart LR
+    A["<b>Decoupled regime</b><br/>thermoelastic ⟂ hydrological ⟂ damage<br/>Eq. 6 linear superposition"]
+    B["<b>Coupling diagnostics</b><br/>drainage Péclet number<br/>β<sub>eff</sub>(ω)"]
+    C["<b>Coupled regime</b><br/>state-dependent forward operator<br/>Eq. 19 · MCMC posterior"]
+    A -- "Pe<sub>d</sub> safe" --> D["Linear-Gaussian<br/>posterior (exact)"]
+    A -- "Pe<sub>d</sub> marginal" --> B
+    B -- "escalate" --> C
+    C --> E["Non-Gaussian<br/>posterior (sampled)"]
+    D --> F["Stress at depth<br/>+ full uncertainty"]
+    E --> F
+    style A fill:#ede7f6,stroke:#5e35b1
+    style C fill:#fce4ec,stroke:#c62828
+    style F fill:#e8f5e9,stroke:#2e7d32
+```
+
+Both regimes funnel into the same destination — **stress at depth with a
+quantified posterior** — which is exactly what makes the Bayesian framing the
+unifying idea of the whole package.
+
+---
+
+## Status — v0.1
+
+| Phase | What it does | v0.1 |
+|---|---|---|
+| 0 | Data ingestion + QC | <span class="pill-ok">✅</span> |
+| 1 | Site characterisation; depth–frequency table | <span class="pill-ok">✅</span> |
+| 2 | Coupling diagnostics — Tier 1 (poroelastic) | <span class="pill-ok">✅</span> |
+| 3 | Linear-superposition design matrix (Eq. 6) | <span class="pill-ok">✅</span> |
+| 4 | Linear inversion (WLS, closed-form Gaussian posterior) | <span class="pill-ok">✅</span> |
+| 5 | Anomaly detection (posterior predictive checks) | <span class="pill-ok">✅</span> |
+| 6 | β-bridge stress at depth (uncertainty propagated) | <span class="pill-ok">✅</span> |
+| 4 | Coupled inversion (MCMC) | <span class="pill-todo">v0.2</span> |
+| 6 | Water-table inversion | <span class="pill-todo">v0.2</span> |
+| 2 | Tiers 2–4 (damage, saturation, thermo-capillary) | <span class="pill-todo">v0.3</span> |
+
+---
+
+::: {.callout-note collapse="true"}
+## Reproducing this site locally
+
+```bash
+pixi install
+pixi run quarto render quarto/
+# open quarto/_site/index.html
+```
+
+Every code cell runs against the installed `codameter` package, so the
+figures regenerate from source.
+:::

@@ -1,0 +1,45 @@
+name: narrative-site
+
+# Publishes the pre-rendered Quarto narrative site (theory of Bayesian
+# uncertainty quantification + the step-by-step codameter tutorial) to the
+# gh-pages branch.
+#
+# The site is rendered locally (the executable tutorial cells need the full
+# pixi/codameter environment) and the rendered HTML in quarto/_site is
+# committed, so CI only has to push it. To regenerate after editing a .qmd:
+#
+#   pixi run quarto render quarto/
+#   git add quarto/ && git commit && git push
+#
+# This deploys to the same gh-pages branch the mkdocs API docs use; the two
+# are independent and the last push wins, so keep one source of truth for the
+# published site.
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "quarto/_site/**"
+      - ".github/workflows/quarto.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to push to gh-pages
+
+concurrency:
+  group: narrative-site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish quarto/_site to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./quarto/_site
+          publish_branch: gh-pages
+          force_orphan: true

@@ -1,0 +1,329 @@
+---
+title: "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+subtitle: "The theoretical contribution — written as theory, not tutorial"
+execute:
+  enabled: false
+bibliography: references.bib
+---
+
+::: {.keyidea}
+[Thesis]{.k-title}
+Ambient-noise seismology routinely reports a *point estimate* of stress (or
+groundwater, or velocity sensitivity) from $\delta v/v$. We argue that the
+scientifically defensible object is a **posterior distribution**, obtained by
+propagating three distinct sources of uncertainty — measurement noise,
+material-property priors, and *model-form* uncertainty about coupling —
+through the inverse problem in one coherent hierarchical model. This page
+develops that model. No other dv/v framework, to our knowledge, closes this
+loop.
+:::
+
+## 1. Why point estimates are not enough
+
+The forward physics that maps stress and strain to $\delta v/v$ is governed by
+the **acoustoelastic** sensitivity $\beta$ and the nonlinear-elastic
+sensitivity $\mu'$ — quantities that are known only to within a factor of
+order unity at any real site. A typical workflow fixes $\beta$ at a
+literature value, fits a regression, and quotes the result. The trouble is
+that the *dominant* uncertainty in the final stress estimate is usually **not**
+the measurement noise on $\delta v/v$ at all; it is the prior uncertainty on
+$\beta$ and $\mu'$, and — when forcings are coupled — the uncertainty about
+*which forward model is even correct*. A point estimate discards exactly the
+information a reader needs to judge whether the inferred stress is real.
+
+We therefore frame the entire `codameter` pipeline as **posterior inference**.
+Concretely, we want
+
+$$
+p\big(\,\theta \,\big|\, d\,\big)
+\;\propto\;
+\underbrace{p\big(d \,\big|\, \theta\big)}_{\text{likelihood}}\;
+\underbrace{p(\theta)}_{\text{prior}},
+\qquad
+\theta = (\underbrace{a_0, p_1, p_2, s_i}_{\text{amplitudes}},\;
+\underbrace{\beta, \mu', \kappa, B, \alpha_B, c, \phi}_{\text{material}}),
+$$ {#eq-bayes}
+
+where $d$ is the observed $\delta v/v$ series. Every quantity a seismologist
+ultimately cares about — stress at depth, pressure sensitivity, water-table
+depth — is a deterministic function $g(\theta)$, so its uncertainty is the
+**pushforward** of @eq-bayes through $g$.
+
+## 2. The likelihood
+
+Let $d = \{d_t\}_{t=1}^{N}$ be the measured $\delta v/v$ with per-sample
+measurement standard deviations $\sigma_t$ (the `dvv_err` column — the package
+treats its presence as a precondition for *any* defensible uncertainty
+statement). For a chosen forward operator $\mathcal{F}_\theta$,
+
+$$
+d_t \;=\; \mathcal{F}_\theta(t) \;+\; \varepsilon_t,
+\qquad
+\varepsilon_t \sim \mathcal{N}\!\big(0,\; \sigma_t^2\big),
+$$ {#eq-like}
+
+so the log-likelihood is the familiar weighted misfit
+
+$$
+\log p(d \mid \theta)
+= -\tfrac{1}{2}\sum_{t=1}^N
+\frac{\big(d_t - \mathcal{F}_\theta(t)\big)^2}{\sigma_t^2}
+\;+\;\text{const}.
+$$ {#eq-loglike}
+
+The entire difficulty — and the entire scientific arc of this package — lives
+in the structure of $\mathcal{F}_\theta$.
+
+## 3. Two regimes for the forward operator
+
+### 3a. Decoupled regime → linear-Gaussian, *closed form*
+
+When the stress sources act independently, $\mathcal{F}_\theta$ is **linear in
+the amplitudes** (Eq. 6 of the manuscript):
+
+$$
+\mathcal{F}_\theta(t) = a_0
+   + p_1\,\Delta\mathrm{GWL}(t)
+   + p_2\, T\!\big(t - t_{\text{shift}}\big)
+   + \sum_i s_i\, L\!\big(t; \tau_{\min}, \tau_{\max}, t_{EQ,i}\big).
+$$ {#eq-superpose}
+
+Collect the predictors into a design matrix $X \in \mathbb{R}^{N\times M}$ and
+the amplitudes into $m \in \mathbb{R}^M$, so $\mathcal{F} = Xm$. With a
+Gaussian likelihood and a (possibly flat) Gaussian prior
+$m \sim \mathcal{N}(m_0, C_0)$, the posterior is **Gaussian in closed form**:
+
+$$
+\boxed{\;
+p(m \mid d) = \mathcal{N}\!\big(\hat m,\; \hat C\big),
+\qquad
+\hat C = \big(X^\top W X + C_0^{-1}\big)^{-1},
+\quad
+\hat m = \hat C\big(X^\top W d + C_0^{-1} m_0\big),
+\;}
+$$ {#eq-gauss-post}
+
+where $W = \operatorname{diag}(1/\sigma_t^2)$. With a flat prior this reduces to
+ordinary weighted least squares, $\hat m = (X^\top W X)^{-1} X^\top W d$, and
+$\hat C = (X^\top W X)^{-1}$ — exactly what `inverse.linear_fit` returns and
+wraps in a `Posterior(mean=m̂, cov=Ĉ)`. The reduced chi-square
+$\chi^2_\nu = \tfrac{1}{N-M}\sum_t (d_t - X m)^2_t/\sigma_t^2$ is the
+goodness-of-fit summary; $\chi^2_\nu \approx 1$ means the assumed $\sigma_t$
+are consistent with the residuals.
+
+::: {.keyidea}
+[Why this matters]{.k-title}
+In the decoupled regime there is **no sampling, no convergence diagnostic, no
+tuning** — the full joint posterior over all amplitudes, including their
+*correlations*, is available analytically. Those correlations are the part a
+point estimate throws away, and they are what make the propagated stress
+uncertainty honest.
+:::
+
+### 3b. Coupled regime → non-Gaussian, *sampled*
+
+When Phase 2 flags coupling (§4 below), the forward operator becomes
+**state-dependent** (Eq. 19): the parameters that multiply one forcing depend
+on the instantaneous state set by another. Schematically,
+
+$$
+\frac{d(\delta v/v)}{dt}
+= \mathcal{F}\!\Big[\,T(t),\, p(t),\, S_w(t),\, \theta(t)\;;\;
+\beta_{\text{eff}}(\omega),\, \mu',\, \kappa,\, \tau_{\text{damage}},\,\ldots\Big],
+$$ {#eq-coupled}
+
+with, for example, $\beta_{\text{eff}}$ a function of saturation $S_w$ and the
+healing state feeding back on permeability. Now $\mathcal{F}_\theta$ is
+nonlinear, the posterior is **no longer Gaussian**, and @eq-bayes has no
+closed form. We sample it. The intended v0.2 backend (`inverse.coupled_inversion`)
+seeds the chain at the WLS solution @eq-gauss-post and draws
+$(\beta_{\text{eff}}, \mu', c, \tau_{\min},\tau_{\max}, \ldots)$ jointly with an
+affine-invariant ensemble sampler [@ForemanMackey2013], regularised by the
+material priors of §5.
+
+Crucially, **the same `Posterior` object** represents both regimes — Gaussian
+via `(mean, cov)`, empirical via `samples` — so *every downstream consumer of
+uncertainty is regime-agnostic*. That is the software expression of the
+unifying idea.
+
+## 4. Model-form uncertainty: coupling as Bayesian model selection
+
+The choice between §3a and §3b is itself uncertain, and we treat it as such.
+Phase 2 computes the **drainage Péclet number** at the dominant forcing period,
+
+$$
+\mathrm{Pe}_d = \frac{T_{\text{forc}}}{L^2 / c},
+$$ {#eq-peclet}
+
+the ratio of the forcing timescale to the poroelastic drainage time over the
+sensitivity depth scale $L$. $\mathrm{Pe}_d \gg 1$ means the medium drains
+fast relative to the forcing (decoupled, drained limit); $\mathrm{Pe}_d \ll 1$
+means it cannot drain (decoupled, undrained limit); and the dangerous band
+$\mathrm{Pe}_d \sim \mathcal{O}(1)$ is where the effective sensitivity is
+*frequency dependent* (Eq. 15),
+
+$$
+\beta_{\text{eff}}(\omega) = \beta_{\text{drained}}\cdot
+\frac{1 + i\,\omega/\omega_{\text{drain}} \big/ (1 - \alpha_B B)}
+     {1 + i\,\omega/\omega_{\text{drain}}},
+$$ {#eq-betaeff}
+
+and linear superposition (model $\mathcal{M}_{\text{lin}}$) breaks down in
+favour of the coupled model $\mathcal{M}_{\text{cpl}}$. The principled
+arbiter is the **Bayes factor**
+
+$$
+\mathrm{BF} = \frac{p(d \mid \mathcal{M}_{\text{cpl}})}{p(d \mid \mathcal{M}_{\text{lin}})}
+= \frac{\int p(d\mid\theta,\mathcal{M}_{\text{cpl}})\,p(\theta\mid\mathcal{M}_{\text{cpl}})\,d\theta}
+       {\int p(d\mid\theta,\mathcal{M}_{\text{lin}})\,p(\theta\mid\mathcal{M}_{\text{lin}})\,d\theta},
+$$ {#eq-bayesfactor}
+
+i.e. a ratio of *marginal* likelihoods that automatically penalises the extra
+parameters of the coupled model (the Bayesian Occam factor). In v0.1 the
+$\mathrm{Pe}_d$ thresholds act as a fast, interpretable surrogate for this
+test — a two-level escalation flag (soft warning / hard escalate) — with the
+full Bayes-factor model comparison scheduled alongside the v0.2 MCMC backend.
+Either way, **the decision to add physics is a quantified inference, not a
+judgement call.**
+
+## 5. Priors that encode physics, not convenience
+
+The material parameters carry genuine prior information from rock physics, and
+we encode it as independent Gaussians,
+
+$$
+p(\theta_{\text{mat}}) = \prod_k \mathcal{N}\!\big(\theta_k;\, \mu_k, \sigma_k^2\big),
+\qquad
+\log p = -\tfrac{1}{2}\sum_k \Big(\tfrac{\theta_k - \mu_k}{\sigma_k}\Big)^2,
+$$ {#eq-prior}
+
+implemented in `inverse.priors.gaussian_log_prior`. These priors are not
+cosmetic: `validate_priors` *rejects* configurations that place more than
+$3\sigma$ of prior mass in unphysical regions — porosity $\phi<0$ or $>0.6$,
+Skempton's $B$ or Biot's $\alpha$ outside $[0,1]$. The prior is part of the
+model's physics, and the package refuses to run with an incoherent one.
+
+| Symbol | Meaning | Prior lives in |
+|---|---|---|
+| $\beta$ | acoustoelastic sensitivity to volumetric strain | `beta_prior` |
+| $\mu'$ | nonlinear-elastic sensitivity to bulk modulus | `mu_prime_prior` |
+| $B$ | Skempton's coefficient | `skempton_B_prior` |
+| $\alpha_B$ | Biot's coefficient | `biot_alpha_prior` |
+| $\phi$ | porosity | `porosity_prior` |
+| $c$ | hydraulic diffusivity | `hydraulic_diffusivity_prior_log10` |
+
+## 6. The point of it all: propagating uncertainty to stress
+
+Stress at depth is **not** a fitted parameter; it is a *derived* quantity, and
+this is where the Bayesian framing pays off. Phase 6 takes the fitted
+hydrological coefficient $p_1$ and pushes it through three transformations:
+
+$$
+p_1 \;\xrightarrow{\;/\rho g\;}\;
+\frac{d(\delta v/v)}{dp}
+\;\xrightarrow{\;\times\kappa\;}\;
+\beta_{\text{eff}}
+\;\xrightarrow{\;\text{bridge}\;}\;
+\mu' = -\frac{2\mu}{\kappa}\,\beta_{\text{eff}},
+$$ {#eq-chain}
+
+the last step being the **bridge relation** $\beta = -\mu'\kappa/2\mu$ (Eq. 7).
+Each arrow involves parameters that are themselves uncertain — $\rho$, $\kappa$,
+$\mu$ — so the uncertainty in the final $\mu'$ (or, read the other way, the
+inferred stress) is the variance of a product/quotient of correlated random
+variables. `codameter` offers two propagation routes, and the choice between
+them is itself a statement about the regime:
+
+1. **Linearised (delta method).** For $y = g(\theta)$ with posterior covariance
+   $\hat C$,
+   $$
+   \operatorname{Var}(y) \approx \nabla g^\top \,\hat C\, \nabla g,
+   $$ {#eq-delta}
+   exact when $g$ is linear and $\hat C$ Gaussian — the natural partner of the
+   closed-form posterior @eq-gauss-post. This is the `Posterior.propagate`
+   path.
+
+2. **Monte-Carlo pushforward.** Draw
+   $\theta^{(s)} \sim p(\theta\mid d)$ — from the Gaussian @eq-gauss-post *or*
+   from the MCMC samples — evaluate $y^{(s)} = g(\theta^{(s)})$, and report the
+   empirical quantiles. This is mandatory once $g$ is nonlinear (e.g. the
+   product in @eq-chain with a non-Gaussian $\beta_{\text{eff}}$ from the
+   coupled regime), and it is why `Posterior` can hold raw samples.
+
+Either way, **the stress estimate ships with a posterior**, and the same
+machinery serves the decoupled and coupled regimes.
+
+## 7. Closing the loop: posterior predictive checks
+
+A Bayesian model is only as good as its predictive residuals, so Phase 5 is
+not an afterthought — it is the model-criticism half of the inference. If the
+fitted model is adequate, the standardised residuals
+$r_t = (d_t - \mathcal{F}_{\hat\theta}(t))/\sigma_t$ should be **white noise**.
+Phase 5 runs a Ljung–Box test on $r_t$:
+
+$$
+Q = N(N+2)\sum_{k=1}^{h} \frac{\hat\rho_k^2}{N-k}
+\;\sim\; \chi^2_h \quad\text{under } \mathcal{H}_0:\ \text{residuals white},
+$$ {#eq-ljungbox}
+
+with $\hat\rho_k$ the lag-$k$ autocorrelation. A small $p$-value is *evidence
+of unmodelled physics* and triggers the iterative loop back into earlier
+phases — was a coupling tier underestimated (Phase 2)? is the velocity model
+wrong (Phase 1)? This is a frequentist instrument doing a Bayesian job: it
+is the posterior predictive check that tells us when @eq-bayes has the wrong
+$\mathcal{F}$.
+
+## 8. Summary — the hierarchical model in one diagram
+
+```{mermaid}
+flowchart TB
+    subgraph PRIORS["Priors p(θ) — §5"]
+      MP["material: β, μ′, κ, B, α, c, φ<br/>(Gaussian, validated)"]
+    end
+    subgraph DATA["Data"]
+      DD["δv/v series d_t<br/>+ measurement σ_t"]
+    end
+    subgraph MODEL["Forward operator F_θ — §3"]
+      LIN["linear superposition<br/>(decoupled, Eq. 6)"]
+      CPL["state-dependent<br/>(coupled, Eq. 19)"]
+    end
+    SEL{"Coupling test §4<br/>Pe_d / Bayes factor"}
+    POST["Posterior p(θ|d)<br/>Gaussian (closed form) OR sampled (MCMC)"]
+    PPC["Posterior predictive check §7<br/>Ljung–Box on residuals"]
+    OUT["Pushforward to stress §6<br/>g(θ): point + interval"]
+
+    MP --> POST
+    DD --> SEL
+    SEL -- "safe" --> LIN
+    SEL -- "escalate" --> CPL
+    LIN --> POST
+    CPL --> POST
+    POST --> PPC
+    PPC -- "residuals white" --> OUT
+    PPC -- "structure remains" --> SEL
+    style POST fill:#ede7f6,stroke:#5e35b1
+    style OUT fill:#e8f5e9,stroke:#2e7d32
+    style SEL fill:#fff3e0,stroke:#c77700
+```
+
+This closed loop — prior → forward model selected by a quantified coupling
+test → posterior → predictive check → propagated stress, with re-entry when
+the check fails — is the uncertainty-quantification contribution of
+`codameter`. The remaining pages show it running, one phase at a time.
+
+---
+
+::: {.callout-tip}
+## Where this lives in the code
+- @eq-gauss-post → `codameter.inverse.linear_fit` + `inverse.posterior.Posterior`
+- @eq-prior → `codameter.inverse.priors`
+- @eq-peclet, @eq-betaeff → `codameter.coupling.tier1_poroelastic`
+- @eq-coupled, @eq-bayesfactor → `codameter.inverse.coupled_inversion` *(v0.2 stub)*
+- @eq-chain, @eq-delta → `codameter.interpretation.stress_at_depth`
+- @eq-ljungbox → `codameter.anomaly.detection`
+:::
+
+### References {.unnumbered}
+
+::: {#refs}
+:::
