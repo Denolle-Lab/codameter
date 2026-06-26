@@ -267,11 +267,94 @@ Estimated effort: ~1 focused session. Steps 1–2,4,6–8 are mechanical
    the poroelastic $\sigma'=\sigma-\alpha_B p$ form. (See §5.)
 4. ✅ **Fate of `theory-uq`:** **fold into page 3** and delete it. (See §4, §6.)
 
-1. ⏳ **STILL OPEN — depth × time cube:** invert a per-time snapshot for
-   $m(z,t)$, or fit time-domain forcing coefficients *per band* (reusing the
-   existing Phase 3/4 inversion) and then invert those band-coefficients over
-   depth? **Recommended default** (so the next session isn't blocked): the
-   latter — fit per-band forcing sensitivities in time (reuses existing
-   machinery), then push those + their covariance through `uq_depth` and
-   `uq_stress_depth`. This yields a depth profile of the *stress sensitivity*
-   with a full budget. Confirm with Marine before building page 3.
+1. ✅ **Depth × time cube — RESOLVED by the attribution requirement (Marine,
+   2026-06-26).** The community wants (a) the **state of (effective) stress at
+   depth** AND (b) **attribution to the forcing source**. Attribution *requires*
+   keeping the per-source, time-resolved decomposition, so the cube convention
+   is fixed: **fit forcing-resolved time-domain sensitivities per band (Phase
+   3/4), then invert each source's contribution over depth.** Time is retained
+   per source; depth comes from the multi-band inversion. See §10.
+
+---
+
+## 10. Attribution of (effective) stress at depth to forcing source
+
+**Community need (Marine, 2026-06-26):** beyond the *state* of (effective)
+stress at depth, quantify **which forcing drives it** — hydrological/poroelastic,
+thermoelastic, surface load, damage/co-seismic, tectonic residual — **with
+uncertainty**. This becomes **page 4** of the arc (issue #7).
+
+### The right statistical frame: optimal fingerprinting + variance decomposition
+This is the geophysical analogue of climate **detection & attribution / optimal
+fingerprinting** (Hasselmann 1993; Allen & Tett 1999). Each forcing's predicted
+stress pattern is a *fingerprint*; a generalized-least-squares regression scaled
+by the **measurement covariance $C_d$ this project already builds** gives the
+fingerprint amplitudes, their detection, and their uncertainty. The reorg's
+whole point — producing a real $C_d$ — is exactly what makes rigorous
+attribution possible. Three nested questions:
+
+**Q1 — Apportionment (how much of the stress is each source?).**
+Each forcing $k$ has a depth–time effective-stress contribution
+$\Delta\sigma'_k(z,t) = \mathcal{M}(z)\,[X_k(t)\,\theta_k]$, where $X_k$ is the
+Phase-3 design column for source $k$, $\theta_k$ its Phase-4 posterior amplitude,
+and $\mathcal{M}(z)$ the kernel→bridge→moduli map to effective stress. Then
+$$
+\operatorname{Var}_t[\Delta\sigma'(z,\cdot)]
+= \sum_k \operatorname{Var}_t[\Delta\sigma'_k]
++ \sum_{k\neq j}\operatorname{Cov}_t[\Delta\sigma'_k,\Delta\sigma'_j].
+$$
+- **Decoupled regime:** with near-orthogonal forcings the cross-terms are small
+  and the share $A_k(z)=\operatorname{Var}_t[\Delta\sigma'_k]/\operatorname{Var}_t[\Delta\sigma']$
+  is a clean "fraction of effective-stress variability at depth $z$ from source
+  $k$" (sums to ≈1). The cross-covariances themselves quantify **collinearity /
+  attribution ambiguity** (e.g. thermo vs hydro both seasonal) — report them.
+- **Coupled regime (Phase-2 escalation):** additive decomposition fails. Use
+  **Sobol variance-based sensitivity indices**: first-order $S_k$ (main effect)
+  and total-effect $S_{T_k}$ (with interactions). The gap $S_{T_k}-S_k$ is the
+  **coupling/interaction share** — stress that exists only because sources
+  interact (thermo-poroelastic, damage-permeability). This expresses the
+  coupling framework as an explicit attribution component.
+
+**Q2 — Detection (is the source even resolvable?).**
+Apportionment presumes the source is real. Detection is Bayesian model
+comparison: marginal-likelihood/Bayes-factor of the model with vs without source
+$k$ (reuses the Phase-2 coupling model-selection machinery). Report attribution
+for *detected* sources; for undetected ones, an upper bound on their share.
+
+**Q3 — Attribution uncertainty and its budget.**
+The shares $A_k(z)$ / Sobol indices are derived quantities. Sample the **joint
+posterior** — forcing amplitudes $\theta$ (Phase-4 posterior, incl. their
+cross-correlations), material properties ($\beta(z),\mu'(z)$, moduli, $\alpha_B$),
+and the measurement realization $C_d$ — recompute the shares per draw → a
+posterior on each share → credible interval ("62% ± 18% of the effective-stress
+variance at 200 m is poroelastic"). Then **decompose $\operatorname{Var}(A_k)$
+itself** (a second-level ANOVA/Sobol) into measurement ($C_d$) vs forcing-
+collinearity (Phase-4 posterior covariance) vs material-prior contributions — so
+the team knows whether a fuzzy attribution is *data-limited* or *model-limited*,
+i.e. what to measure next.
+
+### Implementation
+Existing hooks: `Phase3` `PredictorMatrix` (per-source design columns $X_k$);
+`Phase4` `LinearFitResult.posterior` (amplitude posterior + collinearity);
+`uq_depth` / `uq_stress_depth` (the $\mathcal{M}(z)$ map).
+New (page-4 module, e.g. `uq_attribution.py`):
+```python
+def attribute_effective_stress(
+    fit,                # Phase4 LinearFitResult (forcing posterior)
+    kernels,            # DepthKernels
+    material_zpriors,   # layered beta/mu'/moduli/alpha_B
+    *, coupled=False, n_mc=20000, rng=...,
+) -> AttributionResult:
+    # per-source Δσ'_k(z,t); shares A_k(z) (decoupled) or Sobol S_k,S_Tk (coupled);
+    # credible intervals via joint-posterior MC; detection flags (Bayes factor);
+    # Var(A_k) budget {measurement, collinearity, priors}.
+```
+**Deliverable figure:** a depth–source attribution chart — per depth, a stacked
+bar of $A_k(z)$ with credible-interval whiskers plus an explicit
+"coupling/interaction" slice. ("At 200 m: 60% poroelastic ±15%, 25%
+thermoelastic ±10%, 10% co-seismic, 5% coupling.")
+
+Tests: shares sum to ~1 with orthogonal synthetic forcings; collinear forcings
+inflate the cross-covariance and widen the share CIs; a source absent from the
+truth gets a near-zero share with an upper bound; coupled synthetic yields
+$S_{T_k}>S_k$.
