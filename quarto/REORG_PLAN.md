@@ -124,10 +124,12 @@ stress profiles** with a combined covariance.
   priors, optionally generated from the velocity model via a supplied
   $\beta,\mu'(V_P,V_S)$ mapping (lithology/Vs-scaling/lookup) — NOT a single
   scalar prior.
-- Headline output is **stress**, but the module must also extract
-  **effective stress** and **strain**. Effective stress is the
-  poroelastically-correct quantity ($\sigma' = \sigma - \alpha_B p$); reuse the
-  existing `MaterialProperties` Biot $\alpha_B$ and Skempton $B$ priors.
+- **Headline output is EFFECTIVE stress $\sigma'(z)$ and strain $\varepsilon(z)$**
+  (Marine, 2026-06-26). Effective stress is what $\delta v/v$ most directly
+  senses and is poroelastically clean. **Total stress
+  ($\sigma=\sigma'+\alpha_B p$) is a flagged OPTIONAL extension — deferred**: it
+  needs a separate pore-pressure term + a Biot $\alpha_B$ prior, so build it only
+  if asked. Headline pages and attribution use effective stress.
 
 Physics (per depth $z$):
 - Acoustoelastic (volumetric strain): $\varepsilon_{\rm vol}(z) =
@@ -136,19 +138,20 @@ Physics (per depth $z$):
 - Moduli from the (tomography) velocity model:
   $\mu(z)=\rho(z)V_S(z)^2$, $\kappa(z)=\rho(z)(V_P^2-\tfrac43 V_S^2)$ — from
   `VelocityProfile`.
-- **Effective stress:** $\Delta\sigma'(z) = \kappa(z)\,\varepsilon_{\rm vol}(z)$
+- **Effective stress (HEADLINE):** $\Delta\sigma'(z) = \kappa(z)\,\varepsilon_{\rm vol}(z)$
   (drained), the quantity $\delta v/v$ most directly senses.
-- **Total stress:** $\Delta\sigma(z) = \Delta\sigma'(z) + \alpha_B(z)\,\Delta p(z)$
+- **Total stress (OPTIONAL, deferred):** $\Delta\sigma(z) = \Delta\sigma'(z) + \alpha_B(z)\,\Delta p(z)$
   (Biot); needs a pore-pressure term (from the hydrological forcing / Phase 6).
+  Do not build unless asked.
 
 Proposed API:
 ```python
 @dataclass
 class StressDepthPosterior:
     depths_km
-    strain_mean, strain_cov
-    eff_stress_mean, eff_stress_cov      # effective stress σ'(z)
-    stress_mean, stress_cov              # total stress σ(z)
+    strain_mean, strain_cov              # HEADLINE
+    eff_stress_mean, eff_stress_cov      # HEADLINE — effective stress σ'(z)
+    stress_mean, stress_cov = None       # OPTIONAL/deferred — total stress σ(z)
 
 def moduli_profile(profile: VelocityProfile) -> dict   # mu(z), kappa(z), rho(z)
 
@@ -176,9 +179,9 @@ the stress uncertainty honest — this is the merge point of the two budgets.
 
 Tests to add (`tests/test_uq_stress_depth.py`): moduli from a known profile;
 layered β/μ′ generation; MC reproduces delta-method in the small-σ limit;
-effective-stress and total-stress covariances ⪰ the aleatoric-only covariance
-(priors add variance); total stress reduces to effective stress when
-$\alpha_B\to0$ or $\Delta p\to0$; shape guards.
+**effective-stress** covariance ⪰ the aleatoric-only covariance (priors add
+variance); shape guards. (Total-stress tests only if/when that optional path is
+built.)
 
 ---
 
@@ -262,9 +265,10 @@ Estimated effort: ~1 focused session. Steps 1–2,4,6–8 are mechanical
    **inferred from tomography (Vp, Vs)**. → `uq_stress_depth` takes per-layer
    priors, optionally generated from the velocity model via a
    $\beta,\mu'(V_P,V_S)$ mapping. (See §5.)
-3. ✅ **Output:** headline is **stress**, but also extract **effective stress**
-   and **strain**. → all three on the `StressDepthPosterior`; effective stress is
-   the poroelastic $\sigma'=\sigma-\alpha_B p$ form. (See §5.)
+3. ✅ **Output:** headline is **effective stress $\sigma'(z)$ and strain**
+   (Marine, 2026-06-26). Total stress $\sigma=\sigma'+\alpha_B p$ is an
+   **optional, deferred** extension (don't build unless asked). Attribution (§10)
+   runs on effective stress. (See §5.)
 4. ✅ **Fate of `theory-uq`:** **fold into page 3** and delete it. (See §4, §6.)
 
 1. ✅ **Depth × time cube — RESOLVED by the attribution requirement (Marine,
