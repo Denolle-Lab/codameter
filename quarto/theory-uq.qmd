@@ -71,6 +71,20 @@ $$
 \;+\;\text{const}.
 $$ {#eq-loglike}
 
+::: {.callout-warning}
+## A diagonal likelihood is an assumption, not a fact
+Writing the misfit as a sum of independent per-sample terms assumes the
+measurement covariance is **diagonal**, $C_d = \operatorname{diag}(\sigma_t^2)$.
+For $\delta v/v$ that is rarely true: overlapping stacks and a shared reference
+make the errors *correlated in time*, and the choice of processing method adds a
+spread no single $\sigma_t$ captures. The companion
+**[Measurement UQ page](theory-measurement-uq.qmd)** builds the full structured
+$C_d$; substituting it turns the sum above into the GLS misfit
+$-\tfrac12 (d-\mathcal{F}_\theta)^\top C_d^{-1} (d-\mathcal{F}_\theta)$ and
+everything below carries through with $W = C_d^{-1}$ in place of
+$\operatorname{diag}(1/\sigma_t^2)$.
+:::
+
 The entire difficulty — and the entire scientific arc of this package — lives
 in the structure of $\mathcal{F}_\theta$.
 

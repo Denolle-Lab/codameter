@@ -1,0 +1,339 @@
+---
+title: "The other uncertainty: measurement error in $\\delta v/v$"
+subtitle: "Aleatoric & methodological error conditioned on processing choices"
+jupyter: codameter-pixi
+bibliography: references.bib
+---
+
+::: {.keyidea}
+[Thesis]{.k-title}
+The [first theory page](theory-uq.qmd) quantifies the **epistemic** uncertainty
+of inferring stress *from* a $\delta v/v$ series — it takes the series and its
+`dvv_err` as given. But in our discipline the $\delta v/v$ *measurement itself*
+is the least reproducible step: it is the end of a long chain of processing
+choices (method, window, band, stacking, gating, **reference**), almost none of
+which are propagated. This page quantifies that **measurement** error. Its
+deliverable is not a scalar per epoch but a structured **measurement covariance**
+$C_d$ — the very object the inference likelihood assumes is diagonal. The two
+pages are two halves of one budget.
+:::
+
+```{python}
+#| label: setup
+import sys, numpy as np, matplotlib.pyplot as plt
+sys.path.insert(0, ".")
+from _synth import set_style, C
+set_style()
+from codameter.uq_measurement import (
+    weaver_stretching_error, processing_ensemble, temporal_error_covariance,
+    effective_sample_size, global_reference_inversion, single_reference_dvv)
+rng = np.random.default_rng(7)
+```
+
+## 1. The $\delta v/v$ measurement is a tree of choices
+
+A $\delta v/v$ value is not measured; it is *computed* from a stack of repeated
+coda waves through a pipeline. Each fork is a defensible choice, and different
+groups fork differently — so the same raw data yields different $\delta v/v(t)$.
+
+```{mermaid}
+flowchart LR
+    RAW["repeated coda<br/>(cross-correlations)"]
+    STACK{"stack?<br/>linear / PWS<br/>substack length"}
+    GATE{"gate?<br/>discard CC &lt; thresh"}
+    REF{"reference?<br/>fixed / trailing /<br/>all-to-all"}
+    METH{"estimator?<br/>stretching / MWCS /<br/>wavelet / DTW"}
+    WIN{"window?<br/>coda start, length,<br/>frequency band"}
+    DVV["δv/v(t)<br/>+ what error?"]
+    RAW --> STACK --> GATE --> REF --> METH --> WIN --> DVV
+    style DVV fill:#fce4ec,stroke:#c62828
+    style REF fill:#fff3e0,stroke:#c77700
+```
+
+We treat each fork as a source of measurement uncertainty and quantify three
+things a diagonal `dvv_err` cannot express: a **within-method floor**, a
+**methodological spread**, and the **temporal correlation** the choices induce.
+
+## 2. The within-method floor — coherence-limited precision
+
+For a *fixed* configuration there is an irreducible scatter set by the coda
+coherence. Weaver et al. (2011) and Clarke et al. (2011) give the standard
+error of a stretching/MWCS estimate over a coda window $[t_1,t_2]$ with mean
+correlation $CC$ at central frequency $f_c$:
+
+$$
+\sigma_{\delta v/v}^2 = \frac{1-CC^2}{2\,CC^2}\;
+\frac{6\sqrt{\pi/2}}{\omega_c^2\,(t_2^3 - t_1^3)},
+\qquad \omega_c = 2\pi f_c .
+$$ {#eq-weaver}
+
+This is `weaver_stretching_error`. It encodes the levers practitioners actually
+turn: higher coherence, a longer/later coda window, and higher frequency all
+shrink the error — and it is the *floor*, achieved only if every other choice
+were fixed and correct.
+
+```{python}
+#| label: fig-weaver
+#| fig-cap: "The coherence-limited δv/v error floor (Weaver/Clarke). Left: error explodes as coda coherence drops — the basis for CC-gating. Right: a longer/later coda window lowers the floor (∝ 1/√(t₂³−t₁³)), the reason late-coda windows are prized despite lower SNR."
+cc = np.linspace(0.6, 0.999, 200)
+fig, ax = plt.subplots(1, 2, figsize=(9, 3.2))
+for fc, col in [(0.5, C["hydro"]), (1.0, C["thermo"]), (2.0, C["damage"])]:
+    ax[0].plot(cc, weaver_stretching_error(cc, fc, 5, 30), color=col, label=f"{fc:g} Hz")
+ax[0].set(xlabel="coda correlation CC", ylabel=r"$\sigma_{\delta v/v}$",
+          yscale="log", title="vs coherence")
+ax[0].legend(fontsize=8, frameon=False, title="f$_c$")
+lengths = np.arange(5, 60, 1.0)
+for t1, col in [(2, C["hydro"]), (10, C["thermo"]), (20, C["damage"])]:
+    s = [weaver_stretching_error(0.95, 1.0, t1, t1+L) for L in lengths]
+    ax[1].plot(t1+lengths, s, color=col, label=f"start {t1}s")
+ax[1].set(xlabel="window end $t_2$ (s)", ylabel=r"$\sigma_{\delta v/v}$",
+          title="vs window (CC=0.95)")
+ax[1].legend(fontsize=8, frameon=False)
+plt.tight_layout(); plt.show()
+```
+
+## 3. The methodological spread — an ensemble over choices
+
+The floor assumes the configuration is *the* configuration. It is not. Run the
+same data through several defensible pipelines and you get an **ensemble** of
+$\delta v/v(t)$ curves whose spread is a genuine, usually dominant, uncertainty.
+We simulate that here: a common truth seen through stretching, MWCS, a wavelet
+estimator, and two window/band variants — each with its own bias and
+coherence-limited noise.
+
+```{python}
+#| label: ensemble
+n = 240
+t_days = np.arange(n, dtype=float)
+truth = 2e-3 * np.sin(2*np.pi*t_days/365.0) - 1e-3*(t_days/n)   # seasonal + trend
+
+# each configuration: (multiplicative bias, additive bias, CC, window, fc)
+configs = {
+    "stretching 5–30s 0.5–1Hz": (1.00,  0.0e-4, 0.97, (5, 30), 0.7),
+    "MWCS 5–30s 0.5–1Hz":       (0.93,  1.0e-4, 0.95, (5, 30), 0.7),
+    "wavelet 5–30s 0.5–1Hz":    (1.05, -0.8e-4, 0.96, (5, 30), 0.7),
+    "stretching 10–40s 1–2Hz":  (1.02,  0.4e-4, 0.93, (10, 40), 1.5),
+    "stretching 3–15s 1–2Hz":   (0.97, -0.5e-4, 0.90, (3, 15), 1.5),
+}
+members, within = {}, {}
+for name, (mb, ab, cc_, (t1, t2), fc) in configs.items():
+    sig = float(weaver_stretching_error(cc_, fc, t1, t2))
+    members[name] = mb*truth + ab + sig*rng.standard_normal(n)
+    within[name] = np.full(n, sig)
+
+ens = processing_ensemble(members, within)
+print(f"mean within-method floor : {ens.within_std.mean():.2e}")
+print(f"methodological spread     : {ens.methodological_std.mean():.2e}  "
+      f"({ens.methodological_std.mean()/ens.within_std.mean():.1f}× the floor)")
+print(f"total measurement error   : {ens.total_std.mean():.2e}")
+```
+
+```{python}
+#| label: fig-ensemble
+#| fig-cap: "The processing ensemble. Thin lines are individual pipelines; the band is the configuration-marginal mean ± the total measurement error (within-method floor combined with methodological spread by the law of total variance). The spread *between* methods dwarfs each method's own error bar — the reproducibility problem in one figure."
+fig, ax = plt.subplots(figsize=(9, 3.4))
+for name in ens.member_labels:
+    ax.plot(t_days, members[name], lw=0.7, alpha=0.7, label=name)
+ax.plot(t_days, truth, color="k", lw=1.6, label="truth", zorder=5)
+ax.fill_between(t_days, ens.mean-2*ens.total_std, ens.mean+2*ens.total_std,
+                color=C["band"], alpha=0.25, lw=0, label="ensemble mean ±2σ$_{tot}$")
+ax.set(xlabel="day", ylabel="δv/v")
+ax.legend(fontsize=7, frameon=False, ncol=2, loc="lower left")
+plt.show()
+```
+
+## 4. Temporal correlation and the common-mode reference
+
+The errors above are **not independent in time**. Overlapping stacks share
+waveform data, so neighbouring epochs are correlated; and any *single shared
+reference* injects an error that is identical for every epoch — a fully
+correlated **common-mode** term. The honest measurement covariance is
+
+$$
+C_d = D\,R\,D \;+\; \sigma_{\rm ref}^2\,\mathbf{1}\mathbf{1}^\top,
+\qquad D=\operatorname{diag}(\sigma_{\rm tot}),\;\;
+R_{ij}=e^{-|t_i-t_j|/L},
+$$ {#eq-cd}
+
+built by `temporal_error_covariance`. The off-diagonal structure matters
+enormously: it collapses the *effective* number of independent measurements.
+
+```{python}
+#| label: fig-cd
+#| fig-cap: "Left: the structured measurement covariance C_d — a banded temporal correlation (overlapping stacks, length L=14 d) plus a uniform common-mode floor from the shared reference. Right: the effective sample size for estimating a common level. The diagonal assumption returns the full count; the real correlation collapses it by more than an order of magnitude — and the collapse is dominated by the common-mode reference term, which (unlike random noise) does not average down. Reference choice, not sample count, sets the information."
+Cd = temporal_error_covariance(ens.total_std, t_days, corr_length_days=14.0,
+                               common_mode_sigma=1.5e-4)
+Cd_diag = np.diag(np.diag(Cd))
+fig, ax = plt.subplots(1, 2, figsize=(9, 3.4),
+                       gridspec_kw={"width_ratios": [1.2, 1]})
+im = ax[0].imshow(Cd, cmap="PuRd", origin="lower")
+ax[0].set(title="$C_d$ (measurement covariance)", xlabel="epoch", ylabel="epoch")
+fig.colorbar(im, ax=ax[0], fraction=0.046)
+neff_corr = effective_sample_size(Cd)
+neff_diag = effective_sample_size(Cd_diag)
+ax[1].bar(["diagonal\n(assumed)", "correlated\n$C_d$"], [neff_diag, neff_corr],
+          color=[C["fit"], C["thermo"]])
+ax[1].set(ylabel="effective sample size $N_{eff}$",
+          title=f"{n} epochs → {neff_corr:.0f} independent")
+for i, v in enumerate([neff_diag, neff_corr]):
+    ax[1].text(i, v, f"{v:.0f}", ha="center", va="bottom", fontsize=9)
+plt.tight_layout(); plt.show()
+```
+
+## 5. Reference choice, and the Brenguier (2014) all-to-all cure
+
+The most consequential — and least examined — fork is the **reference**.
+Referencing every epoch to one stack makes the reference's own noise a
+common-mode error and ties the whole series to an arbitrary datum. @Brenguier2014
+showed a way out: treat *every* window as a reference, measure the relative
+velocity change between **all pairs** of epochs, and invert the
+double-difference system
+
+$$
+\varepsilon_{ij} = m_i - m_j + \eta_{ij},
+\qquad \eta_{ij}\sim\mathcal N(0,\sigma_{ij}^2),
+$$ {#eq-dd}
+
+for a global, **reference-free** $m=\delta v/v(t)$ (`global_reference_inversion`).
+Its model covariance $(G^\top C_d^{-1} G)^{+}$ is temporally correlated *by
+construction* — the principled $C_d$ the reference choice implies.
+
+```{python}
+#| label: brenguier
+m_true = truth - truth.mean()          # the inversion resolves dv/v up to a datum
+# (a) single fixed reference at epoch 0: every epoch measured against one stack
+sig_ref = float(weaver_stretching_error(0.95, 0.7, 5, 30))
+rel0 = (m_true - m_true[0]) + sig_ref*rng.standard_normal(n)
+dvv_single, cov_single = single_reference_dvv(rel0, np.full(n, sig_ref), 0)
+
+# (b) all-to-all: relative measurement between every pair within a 30-epoch span
+ii, jj, dd, ss = [], [], [], []
+for i in range(n):
+    for j in range(i+1, min(i+30, n)):
+        cc_ij = 0.97 - 0.0025*(j-i)            # coherence decays with separation
+        sij = float(weaver_stretching_error(np.clip(cc_ij,0.6,0.999), 0.7, 5, 30))
+        ii.append(i); jj.append(j)
+        dd.append(m_true[i]-m_true[j] + sij*rng.standard_normal()); ss.append(sij)
+sol = global_reference_inversion(np.array(ii), np.array(jj),
+                                 np.array(dd), np.array(ss), n)
+print(f"all-to-all used {sol.n_pairs} pairs, weighted residual RMS {sol.residual_rms:.2f}")
+print(f"single-reference mean σ : {np.sqrt(np.diag(cov_single)).mean():.2e}")
+print(f"all-to-all mean σ       : {sol.sigma.mean():.2e}")
+```
+
+```{python}
+#| label: fig-brenguier
+#| fig-cap: "Reference choice changes both the estimate and its error. The single-reference series (blue) is pinned to epoch 0 and carries that epoch's noise as a common-mode band on everything. The Brenguier all-to-all solution (purple) is reference-free, tracks the truth, and is tighter because every pair constrains it — at the cost of a (correctly) temporally-correlated covariance."
+fig, ax = plt.subplots(figsize=(9, 3.4))
+ax.plot(t_days, m_true, color="k", lw=1.5, label="truth (datum-removed)", zorder=5)
+ax.fill_between(t_days, dvv_single-2*np.sqrt(np.diag(cov_single)),
+                dvv_single+2*np.sqrt(np.diag(cov_single)),
+                color=C["hydro"], alpha=0.2, lw=0)
+ax.plot(t_days, dvv_single, color=C["hydro"], lw=0.8, label="single reference (epoch 0)")
+ax.fill_between(t_days, sol.dvv-2*sol.sigma, sol.dvv+2*sol.sigma,
+                color=C["band"], alpha=0.3, lw=0)
+ax.plot(t_days, sol.dvv, color=C["band"], lw=1.0, label="Brenguier all-to-all")
+ax.set(xlabel="day", ylabel="δv/v (datum-removed)")
+ax.legend(fontsize=8, frameon=False, loc="upper right")
+plt.show()
+```
+
+## 6. Closing the loop: $C_d$ is what the inversion actually needs
+
+The [inference page](theory-uq.qmd) wrote the likelihood with
+$W=\operatorname{diag}(1/\sigma_t^2)$ — a **diagonal** $C_d$. That is the one
+assumption this page dismantles. Generalised least squares with the *full*
+measurement covariance,
+
+$$
+\hat C_m = \big(X^\top C_d^{-1} X\big)^{-1},
+\qquad
+\hat m = \hat C_m\, X^\top C_d^{-1}\, d,
+$$ {#eq-gls}
+
+gives the honest posterior. Ignoring the off-diagonals does not bias the
+estimate much, but it **overstates the precision** — exactly the failure that
+makes results look more reproducible than they are. We fit the seasonal
+amplitude of our ensemble-mean series both ways:
+
+```{python}
+#| label: gls
+# design: offset + annual sine/cosine + linear trend
+X = np.column_stack([np.ones(n), np.sin(2*np.pi*t_days/365),
+                     np.cos(2*np.pi*t_days/365), t_days/n])
+d = ens.mean
+
+def fit(cov):
+    Cinv = np.linalg.inv(cov)
+    Cm = np.linalg.inv(X.T @ Cinv @ X)
+    m = Cm @ X.T @ Cinv @ d
+    amp = np.hypot(m[1], m[2])
+    # delta-method error on the seasonal amplitude
+    g = np.array([0, m[1]/amp, m[2]/amp, 0])
+    return amp, float(np.sqrt(g @ Cm @ g))
+
+amp_d, se_d = fit(Cd_diag)   # diagonal C_d (the usual assumption)
+amp_f, se_f = fit(Cd)        # full structured C_d
+print(f"seasonal amplitude (diagonal C_d) : {amp_d:.2e} ± {se_d:.2e}")
+print(f"seasonal amplitude (full     C_d) : {amp_f:.2e} ± {se_f:.2e}")
+print(f"error-bar inflation from honesty  : {se_f/se_d:.1f}×")
+```
+
+::: {.callout-important}
+Accounting for the measurement correlation inflates the seasonal-amplitude error
+bar several-fold. That factor is not pessimism — it is the difference between a
+reported uncertainty and a *true* one. This is why the measurement budget must
+be carried into the inference, not assumed away.
+:::
+
+## 7. The full uncertainty budget
+
+```{mermaid}
+flowchart LR
+    subgraph MEAS["Measurement UQ — this page"]
+      W["within-method floor<br/>Weaver/Clarke"]
+      M["methodological spread<br/>processing ensemble"]
+      T["temporal + common-mode<br/>correlation"]
+      R["reference scheme<br/>all-to-all inversion"]
+    end
+    CD["structured C_d"]
+    subgraph INFER["Inference UQ — theory page"]
+      L["GLS likelihood<br/>p(d | θ)"]
+      P["posterior p(θ | d)"]
+      S["stress at depth<br/>+ interval"]
+    end
+    W --> CD
+    M --> CD
+    T --> CD
+    R --> CD
+    CD --> L --> P --> S
+    style CD fill:#fff3e0,stroke:#c77700
+    style S fill:#e8f5e9,stroke:#2e7d32
+```
+
+Measurement uncertainty produces the covariance $C_d$; inference uncertainty
+consumes it. Reported the old way — one method, one reference, a diagonal
+`dvv_err` — a $\delta v/v$ study quietly discards both the methodological spread
+and the temporal correlation, and over-reports its own confidence. Carrying
+$C_d$ through is what makes the stress posterior on the [inference page](theory-uq.qmd)
+defensible.
+
+---
+
+::: {.callout-tip}
+## Where this lives in the code
+- @eq-weaver → `codameter.uq_measurement.weaver_stretching_error`
+- §3 ensemble → `processing_ensemble` / `EnsembleResult`
+- @eq-cd → `temporal_error_covariance`, `effective_sample_size`
+- @eq-dd → `global_reference_inversion`, `single_reference_dvv`
+- @eq-gls → consumed by `codameter.inverse.linear_fit` (supply `C_d` for the weights)
+
+Complements the coda-window *design* scorer in
+`codameter.uq-measurement` (which quantity to measure) — this module is the
+*measurement error of* that quantity.
+:::
+
+### References {.unnumbered}
+
+::: {#refs}
+:::

@@ -22,6 +22,16 @@ from __future__ import annotations
 from ._version import __version__
 from .config import Site, load_site
 from .data.readiness import DataReadinessReport, GoalReadiness, assess_data_readiness
+from .uq_measurement import (
+    EnsembleResult,
+    GlobalReferenceSolution,
+    effective_sample_size,
+    global_reference_inversion,
+    processing_ensemble,
+    single_reference_dvv,
+    temporal_error_covariance,
+    weaver_stretching_error,
+)
 from .workflow import (
     Phase0,
     Phase1,
@@ -46,6 +56,15 @@ __all__ = [
     "assess_data_readiness",
     "DataReadinessReport",
     "GoalReadiness",
+    # Measurement (aleatoric) uncertainty of the dv/v observation
+    "weaver_stretching_error",
+    "processing_ensemble",
+    "EnsembleResult",
+    "temporal_error_covariance",
+    "effective_sample_size",
+    "global_reference_inversion",
+    "GlobalReferenceSolution",
+    "single_reference_dvv",
     # Phase objects
     "Phase0",
     "Phase1",

@@ -25,8 +25,12 @@ website:
     left:
       - text: "Home"
         file: index.qmd
-      - text: "Theory · Bayesian UQ"
-        file: theory-uq.qmd
+      - text: "Theory"
+        menu:
+          - text: "Inference UQ · Bayesian stress inversion"
+            file: theory-uq.qmd
+          - text: "Measurement UQ · error in δv/v"
+            file: theory-measurement-uq.qmd
       - text: "Tutorial"
         menu:
           - text: "1 · Data & site readiness"
@@ -54,9 +58,12 @@ website:
       - section: "Overview"
         contents:
           - index.qmd
-      - section: "Theoretical contribution"
+      - section: "Theoretical contributions"
         contents:
-          - theory-uq.qmd
+          - text: "Inference UQ (stress from δv/v)"
+            file: theory-uq.qmd
+          - text: "Measurement UQ (error in δv/v)"
+            file: theory-measurement-uq.qmd
       - section: "Implementation tutorial"
         contents:
           - tutorial-01-data.qmd

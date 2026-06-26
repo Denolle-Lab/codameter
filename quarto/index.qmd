@@ -35,14 +35,23 @@ just the function signatures.
 
 There are two distinct halves, and they are written in two different voices.
 
-### ① The theoretical contribution — *Bayesian uncertainty quantification*
+### ① The theoretical contributions — *two faces of uncertainty*
 
-A single, self-contained page that lays out the **novel** piece of this work:
-a hierarchical Bayesian treatment of the $\delta v/v \to$ stress inverse
-problem. This is the part nobody in the discipline has done. It is written as
-a theory paper, not a tutorial.
+Two self-contained pages lay out the **novel** pieces of this work — the parts
+nobody in the discipline has closed the loop on. They are written as theory, not
+tutorial:
 
-> 👉 **[Theory · Bayesian UQ](theory-uq.qmd)**
+- **[Inference UQ](theory-uq.qmd)** — a hierarchical Bayesian treatment of the
+  $\delta v/v \to$ stress inverse problem: how to carry measurement noise *and*
+  material-property priors through to a stress **posterior**.
+- **[Measurement UQ](theory-measurement-uq.qmd)** — the error in the
+  $\delta v/v$ *measurement itself*, conditioned on processing choices (method,
+  window, stacking, gating, and **reference** — including the Brenguier (2014)
+  all-to-all scheme). It produces the structured data covariance $C_d$ that the
+  inference page consumes.
+
+> 👉 Start with **[Inference UQ · Bayesian stress inversion](theory-uq.qmd)**,
+> then **[Measurement UQ · error in δv/v](theory-measurement-uq.qmd)**.
 
 ### ② The implementation tutorial — *the Codameter, step by step*
 
