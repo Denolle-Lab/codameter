@@ -31,6 +31,8 @@ website:
             file: theory-uq.qmd
           - text: "Measurement UQ · error in δv/v"
             file: theory-measurement-uq.qmd
+          - text: "Processing → depth · sampling & propagation"
+            file: theory-processing-depth.qmd
       - text: "Tutorial"
         menu:
           - text: "1 · Data & site readiness"
@@ -64,6 +66,8 @@ website:
             file: theory-uq.qmd
           - text: "Measurement UQ (error in δv/v)"
             file: theory-measurement-uq.qmd
+          - text: "Processing → depth (sampling & propagation)"
+            file: theory-processing-depth.qmd
       - section: "Implementation tutorial"
         contents:
           - tutorial-01-data.qmd

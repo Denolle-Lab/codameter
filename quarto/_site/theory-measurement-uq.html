@@ -86,7 +86,7 @@ div.csl-indent {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./tutorial-01-data.html" rel="next">
+<link href="./theory-processing-depth.html" rel="next">
 <link href="./theory-uq.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -363,6 +363,10 @@ window.Quarto = {
     <a class="dropdown-item" href="./theory-measurement-uq.html">
  <span class="dropdown-text">Measurement UQ · error in δv/v</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./theory-processing-depth.html">
+ <span class="dropdown-text">Processing → depth · sampling &amp; propagation</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -476,6 +480,12 @@ window.Quarto = {
   <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Measurement UQ (error in δv/v)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Processing → depth (sampling &amp; propagation)</span></a>
   </div>
 </li>
       </ul>
@@ -896,6 +906,19 @@ Important
 </div>
 <div class="callout-body-container callout-body">
 <p>Accounting for the measurement correlation inflates the seasonal-amplitude error bar several-fold. That factor is not pessimism — it is the difference between a reported uncertainty and a <em>true</em> one. This is why the measurement budget must be carried into the inference, not assumed away.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Where do the per-band <span class="math inline">\(\sigma\)</span> and the cross-band correlation come from?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This page took the within-method floor and the processing spread as given. The companion <strong><a href="./theory-processing-depth.html">Processing → depth page</a></strong> shows how to <em>generate</em> them: sample the window-rule choices (fixed, envelope-pick-to-flatten, moving) from a prior, marginalise them into one error per frequency band, and propagate those errors through the Rayleigh sensitivity kernels into a depth-resolved <span class="math inline">\(\delta V_S/V_S(z)\)</span> with an honest uncertainty envelope.</p>
 </div>
 </div>
 </section>
@@ -1468,8 +1491,8 @@ Brenguier, F., M. Campillo, T. Takeda, et al. 2014. <span>“Mapping Pressurized
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./tutorial-01-data.html" class="pagination-link" aria-label="1 · Data &amp; site readiness">
-        <span class="nav-page-text">1 · Data &amp; site readiness</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./theory-processing-depth.html" class="pagination-link" aria-label="Processing → depth (sampling &amp; propagation)">
+        <span class="nav-page-text">Processing → depth (sampling &amp; propagation)</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
@@ -1761,57 +1784,67 @@ Brenguier, F., M. Campillo, T. Takeda, et al. 2014. <span>“Mapping Pressurized
 <span id="cb14-304"><a href="#cb14-304" aria-hidden="true" tabindex="-1"></a>be carried into the inference, not assumed away.</span>
 <span id="cb14-305"><a href="#cb14-305" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb14-306"><a href="#cb14-306" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-307"><a href="#cb14-307" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. The full uncertainty budget</span></span>
-<span id="cb14-308"><a href="#cb14-308" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-311"><a href="#cb14-311" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
-<span id="cb14-312"><a href="#cb14-312" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
-<span id="cb14-313"><a href="#cb14-313" aria-hidden="true" tabindex="-1"></a>    subgraph MEAS[<span class="ot">"</span><span class="st">Measurement UQ — this page</span><span class="ot">"</span>]</span>
-<span id="cb14-314"><a href="#cb14-314" aria-hidden="true" tabindex="-1"></a>      W[<span class="ot">"</span><span class="st">within-method floor&lt;br/&gt;Weaver/Clarke</span><span class="ot">"</span>]</span>
-<span id="cb14-315"><a href="#cb14-315" aria-hidden="true" tabindex="-1"></a>      M[<span class="ot">"</span><span class="st">methodological spread&lt;br/&gt;processing ensemble</span><span class="ot">"</span>]</span>
-<span id="cb14-316"><a href="#cb14-316" aria-hidden="true" tabindex="-1"></a>      T[<span class="ot">"</span><span class="st">temporal + common-mode&lt;br/&gt;correlation</span><span class="ot">"</span>]</span>
-<span id="cb14-317"><a href="#cb14-317" aria-hidden="true" tabindex="-1"></a>      R[<span class="ot">"</span><span class="st">reference scheme&lt;br/&gt;all-to-all inversion</span><span class="ot">"</span>]</span>
-<span id="cb14-318"><a href="#cb14-318" aria-hidden="true" tabindex="-1"></a>    end</span>
-<span id="cb14-319"><a href="#cb14-319" aria-hidden="true" tabindex="-1"></a>    CD[<span class="ot">"</span><span class="st">structured C_d</span><span class="ot">"</span>]</span>
-<span id="cb14-320"><a href="#cb14-320" aria-hidden="true" tabindex="-1"></a>    subgraph INFER[<span class="ot">"</span><span class="st">Inference UQ — theory page</span><span class="ot">"</span>]</span>
-<span id="cb14-321"><a href="#cb14-321" aria-hidden="true" tabindex="-1"></a>      L[<span class="ot">"</span><span class="st">GLS likelihood&lt;br/&gt;p(d | θ)</span><span class="ot">"</span>]</span>
-<span id="cb14-322"><a href="#cb14-322" aria-hidden="true" tabindex="-1"></a>      P[<span class="ot">"</span><span class="st">posterior p(θ | d)</span><span class="ot">"</span>]</span>
-<span id="cb14-323"><a href="#cb14-323" aria-hidden="true" tabindex="-1"></a>      S[<span class="ot">"</span><span class="st">stress at depth&lt;br/&gt;+ interval</span><span class="ot">"</span>]</span>
-<span id="cb14-324"><a href="#cb14-324" aria-hidden="true" tabindex="-1"></a>    end</span>
-<span id="cb14-325"><a href="#cb14-325" aria-hidden="true" tabindex="-1"></a>    W --&gt; CD</span>
-<span id="cb14-326"><a href="#cb14-326" aria-hidden="true" tabindex="-1"></a>    M --&gt; CD</span>
-<span id="cb14-327"><a href="#cb14-327" aria-hidden="true" tabindex="-1"></a>    T --&gt; CD</span>
-<span id="cb14-328"><a href="#cb14-328" aria-hidden="true" tabindex="-1"></a>    R --&gt; CD</span>
-<span id="cb14-329"><a href="#cb14-329" aria-hidden="true" tabindex="-1"></a>    CD --&gt; L --&gt; P --&gt; S</span>
-<span id="cb14-330"><a href="#cb14-330" aria-hidden="true" tabindex="-1"></a>    style CD fill:<span class="co">#fff3e0,stroke:#c77700</span></span>
-<span id="cb14-331"><a href="#cb14-331" aria-hidden="true" tabindex="-1"></a>    style S fill:<span class="co">#e8f5e9,stroke:#2e7d32</span></span>
-<span id="cb14-332"><a href="#cb14-332" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-333"><a href="#cb14-333" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-334"><a href="#cb14-334" aria-hidden="true" tabindex="-1"></a>Measurement uncertainty produces the covariance $C_d$; inference uncertainty</span>
-<span id="cb14-335"><a href="#cb14-335" aria-hidden="true" tabindex="-1"></a>consumes it. Reported the old way — one method, one reference, a diagonal</span>
-<span id="cb14-336"><a href="#cb14-336" aria-hidden="true" tabindex="-1"></a><span class="in">`dvv_err`</span> — a $\delta v/v$ study quietly discards both the methodological spread</span>
-<span id="cb14-337"><a href="#cb14-337" aria-hidden="true" tabindex="-1"></a>and the temporal correlation, and over-reports its own confidence. Carrying</span>
-<span id="cb14-338"><a href="#cb14-338" aria-hidden="true" tabindex="-1"></a>$C_d$ through is what makes the stress posterior on the <span class="co">[</span><span class="ot">inference page</span><span class="co">](theory-uq.qmd)</span></span>
-<span id="cb14-339"><a href="#cb14-339" aria-hidden="true" tabindex="-1"></a>defensible.</span>
-<span id="cb14-340"><a href="#cb14-340" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-341"><a href="#cb14-341" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb14-342"><a href="#cb14-342" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-343"><a href="#cb14-343" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
-<span id="cb14-344"><a href="#cb14-344" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where this lives in the code</span></span>
-<span id="cb14-345"><a href="#cb14-345" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-weaver → <span class="in">`codameter.uq_measurement.weaver_stretching_error`</span></span>
-<span id="cb14-346"><a href="#cb14-346" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>§3 ensemble → <span class="in">`processing_ensemble`</span> / <span class="in">`EnsembleResult`</span></span>
-<span id="cb14-347"><a href="#cb14-347" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-cd → <span class="in">`temporal_error_covariance`</span>, <span class="in">`effective_sample_size`</span></span>
-<span id="cb14-348"><a href="#cb14-348" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-dd → <span class="in">`global_reference_inversion`</span>, <span class="in">`single_reference_dvv`</span></span>
-<span id="cb14-349"><a href="#cb14-349" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-gls → consumed by <span class="in">`codameter.inverse.linear_fit`</span> (supply <span class="in">`C_d`</span> for the weights)</span>
+<span id="cb14-307"><a href="#cb14-307" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb14-308"><a href="#cb14-308" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where do the per-band $\sigma$ and the cross-band correlation come from?</span></span>
+<span id="cb14-309"><a href="#cb14-309" aria-hidden="true" tabindex="-1"></a>This page took the within-method floor and the processing spread as given. The</span>
+<span id="cb14-310"><a href="#cb14-310" aria-hidden="true" tabindex="-1"></a>companion **[Processing → depth page](theory-processing-depth.qmd)** shows how to</span>
+<span id="cb14-311"><a href="#cb14-311" aria-hidden="true" tabindex="-1"></a>*generate* them: sample the window-rule choices (fixed, envelope-pick-to-flatten,</span>
+<span id="cb14-312"><a href="#cb14-312" aria-hidden="true" tabindex="-1"></a>moving) from a prior, marginalise them into one error per frequency band, and</span>
+<span id="cb14-313"><a href="#cb14-313" aria-hidden="true" tabindex="-1"></a>propagate those errors through the Rayleigh sensitivity kernels into a</span>
+<span id="cb14-314"><a href="#cb14-314" aria-hidden="true" tabindex="-1"></a>depth-resolved $\delta V_S/V_S(z)$ with an honest uncertainty envelope.</span>
+<span id="cb14-315"><a href="#cb14-315" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-316"><a href="#cb14-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-317"><a href="#cb14-317" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. The full uncertainty budget</span></span>
+<span id="cb14-318"><a href="#cb14-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-321"><a href="#cb14-321" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb14-322"><a href="#cb14-322" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
+<span id="cb14-323"><a href="#cb14-323" aria-hidden="true" tabindex="-1"></a>    subgraph MEAS[<span class="ot">"</span><span class="st">Measurement UQ — this page</span><span class="ot">"</span>]</span>
+<span id="cb14-324"><a href="#cb14-324" aria-hidden="true" tabindex="-1"></a>      W[<span class="ot">"</span><span class="st">within-method floor&lt;br/&gt;Weaver/Clarke</span><span class="ot">"</span>]</span>
+<span id="cb14-325"><a href="#cb14-325" aria-hidden="true" tabindex="-1"></a>      M[<span class="ot">"</span><span class="st">methodological spread&lt;br/&gt;processing ensemble</span><span class="ot">"</span>]</span>
+<span id="cb14-326"><a href="#cb14-326" aria-hidden="true" tabindex="-1"></a>      T[<span class="ot">"</span><span class="st">temporal + common-mode&lt;br/&gt;correlation</span><span class="ot">"</span>]</span>
+<span id="cb14-327"><a href="#cb14-327" aria-hidden="true" tabindex="-1"></a>      R[<span class="ot">"</span><span class="st">reference scheme&lt;br/&gt;all-to-all inversion</span><span class="ot">"</span>]</span>
+<span id="cb14-328"><a href="#cb14-328" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb14-329"><a href="#cb14-329" aria-hidden="true" tabindex="-1"></a>    CD[<span class="ot">"</span><span class="st">structured C_d</span><span class="ot">"</span>]</span>
+<span id="cb14-330"><a href="#cb14-330" aria-hidden="true" tabindex="-1"></a>    subgraph INFER[<span class="ot">"</span><span class="st">Inference UQ — theory page</span><span class="ot">"</span>]</span>
+<span id="cb14-331"><a href="#cb14-331" aria-hidden="true" tabindex="-1"></a>      L[<span class="ot">"</span><span class="st">GLS likelihood&lt;br/&gt;p(d | θ)</span><span class="ot">"</span>]</span>
+<span id="cb14-332"><a href="#cb14-332" aria-hidden="true" tabindex="-1"></a>      P[<span class="ot">"</span><span class="st">posterior p(θ | d)</span><span class="ot">"</span>]</span>
+<span id="cb14-333"><a href="#cb14-333" aria-hidden="true" tabindex="-1"></a>      S[<span class="ot">"</span><span class="st">stress at depth&lt;br/&gt;+ interval</span><span class="ot">"</span>]</span>
+<span id="cb14-334"><a href="#cb14-334" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb14-335"><a href="#cb14-335" aria-hidden="true" tabindex="-1"></a>    W --&gt; CD</span>
+<span id="cb14-336"><a href="#cb14-336" aria-hidden="true" tabindex="-1"></a>    M --&gt; CD</span>
+<span id="cb14-337"><a href="#cb14-337" aria-hidden="true" tabindex="-1"></a>    T --&gt; CD</span>
+<span id="cb14-338"><a href="#cb14-338" aria-hidden="true" tabindex="-1"></a>    R --&gt; CD</span>
+<span id="cb14-339"><a href="#cb14-339" aria-hidden="true" tabindex="-1"></a>    CD --&gt; L --&gt; P --&gt; S</span>
+<span id="cb14-340"><a href="#cb14-340" aria-hidden="true" tabindex="-1"></a>    style CD fill:<span class="co">#fff3e0,stroke:#c77700</span></span>
+<span id="cb14-341"><a href="#cb14-341" aria-hidden="true" tabindex="-1"></a>    style S fill:<span class="co">#e8f5e9,stroke:#2e7d32</span></span>
+<span id="cb14-342"><a href="#cb14-342" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-343"><a href="#cb14-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-344"><a href="#cb14-344" aria-hidden="true" tabindex="-1"></a>Measurement uncertainty produces the covariance $C_d$; inference uncertainty</span>
+<span id="cb14-345"><a href="#cb14-345" aria-hidden="true" tabindex="-1"></a>consumes it. Reported the old way — one method, one reference, a diagonal</span>
+<span id="cb14-346"><a href="#cb14-346" aria-hidden="true" tabindex="-1"></a><span class="in">`dvv_err`</span> — a $\delta v/v$ study quietly discards both the methodological spread</span>
+<span id="cb14-347"><a href="#cb14-347" aria-hidden="true" tabindex="-1"></a>and the temporal correlation, and over-reports its own confidence. Carrying</span>
+<span id="cb14-348"><a href="#cb14-348" aria-hidden="true" tabindex="-1"></a>$C_d$ through is what makes the stress posterior on the <span class="co">[</span><span class="ot">inference page</span><span class="co">](theory-uq.qmd)</span></span>
+<span id="cb14-349"><a href="#cb14-349" aria-hidden="true" tabindex="-1"></a>defensible.</span>
 <span id="cb14-350"><a href="#cb14-350" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-351"><a href="#cb14-351" aria-hidden="true" tabindex="-1"></a>Complements the coda-window *design* scorer in</span>
-<span id="cb14-352"><a href="#cb14-352" aria-hidden="true" tabindex="-1"></a><span class="in">`codameter.uq-measurement`</span> (which quantity to measure) — this module is the</span>
-<span id="cb14-353"><a href="#cb14-353" aria-hidden="true" tabindex="-1"></a>*measurement error of* that quantity.</span>
-<span id="cb14-354"><a href="#cb14-354" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-355"><a href="#cb14-355" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-356"><a href="#cb14-356" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
-<span id="cb14-357"><a href="#cb14-357" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-358"><a href="#cb14-358" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
-<span id="cb14-359"><a href="#cb14-359" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-351"><a href="#cb14-351" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb14-352"><a href="#cb14-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-353"><a href="#cb14-353" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
+<span id="cb14-354"><a href="#cb14-354" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where this lives in the code</span></span>
+<span id="cb14-355"><a href="#cb14-355" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-weaver → <span class="in">`codameter.uq_measurement.weaver_stretching_error`</span></span>
+<span id="cb14-356"><a href="#cb14-356" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>§3 ensemble → <span class="in">`processing_ensemble`</span> / <span class="in">`EnsembleResult`</span></span>
+<span id="cb14-357"><a href="#cb14-357" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-cd → <span class="in">`temporal_error_covariance`</span>, <span class="in">`effective_sample_size`</span></span>
+<span id="cb14-358"><a href="#cb14-358" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-dd → <span class="in">`global_reference_inversion`</span>, <span class="in">`single_reference_dvv`</span></span>
+<span id="cb14-359"><a href="#cb14-359" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-gls → consumed by <span class="in">`codameter.inverse.linear_fit`</span> (supply <span class="in">`C_d`</span> for the weights)</span>
+<span id="cb14-360"><a href="#cb14-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-361"><a href="#cb14-361" aria-hidden="true" tabindex="-1"></a>Complements the coda-window *design* scorer in</span>
+<span id="cb14-362"><a href="#cb14-362" aria-hidden="true" tabindex="-1"></a><span class="in">`codameter.uq-measurement`</span> (which quantity to measure) — this module is the</span>
+<span id="cb14-363"><a href="#cb14-363" aria-hidden="true" tabindex="-1"></a>*measurement error of* that quantity.</span>
+<span id="cb14-364"><a href="#cb14-364" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-365"><a href="#cb14-365" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-366"><a href="#cb14-366" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
+<span id="cb14-367"><a href="#cb14-367" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-368"><a href="#cb14-368" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb14-369"><a href="#cb14-369" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

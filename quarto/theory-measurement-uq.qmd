@@ -286,6 +286,16 @@ reported uncertainty and a *true* one. This is why the measurement budget must
 be carried into the inference, not assumed away.
 :::
 
+::: {.callout-note}
+## Where do the per-band $\sigma$ and the cross-band correlation come from?
+This page took the within-method floor and the processing spread as given. The
+companion **[Processing → depth page](theory-processing-depth.qmd)** shows how to
+*generate* them: sample the window-rule choices (fixed, envelope-pick-to-flatten,
+moving) from a prior, marginalise them into one error per frequency band, and
+propagate those errors through the Rayleigh sensitivity kernels into a
+depth-resolved $\delta V_S/V_S(z)$ with an honest uncertainty envelope.
+:::
+
 ## 7. The full uncertainty budget
 
 ```{mermaid}

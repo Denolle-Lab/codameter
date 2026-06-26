@@ -22,6 +22,12 @@ from __future__ import annotations
 from ._version import __version__
 from .config import Site, load_site
 from .data.readiness import DataReadinessReport, GoalReadiness, assess_data_readiness
+from .uq_depth import (
+    DepthKernels,
+    DepthProfilePosterior,
+    band_sensitivity_matrix,
+    invert_depth_profile,
+)
 from .uq_measurement import (
     EnsembleResult,
     GlobalReferenceSolution,
@@ -31,6 +37,12 @@ from .uq_measurement import (
     single_reference_dvv,
     temporal_error_covariance,
     weaver_stretching_error,
+)
+from .uq_processing import (
+    ProcessingChoice,
+    ProcessingPrior,
+    per_band_marginal_error,
+    sample_processing_choices,
 )
 from .workflow import (
     Phase0,
@@ -65,6 +77,16 @@ __all__ = [
     "global_reference_inversion",
     "GlobalReferenceSolution",
     "single_reference_dvv",
+    # Processing-choice (nuisance) uncertainty
+    "ProcessingPrior",
+    "ProcessingChoice",
+    "sample_processing_choices",
+    "per_band_marginal_error",
+    # Frequency -> depth propagation
+    "band_sensitivity_matrix",
+    "DepthKernels",
+    "invert_depth_profile",
+    "DepthProfilePosterior",
     # Phase objects
     "Phase0",
     "Phase1",
