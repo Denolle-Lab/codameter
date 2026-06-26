@@ -1,5 +1,5 @@
 ---
-title: "A hierarchical Bayesian theory of uncertainty for $\\delta v/v$ stress meters"
+title: "A hierarchical Bayesian theory of uncertainty for δv/v stress meters"
 subtitle: "The theoretical contribution — written as theory, not tutorial"
 execute:
   enabled: false

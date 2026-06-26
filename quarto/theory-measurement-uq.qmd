@@ -1,5 +1,5 @@
 ---
-title: "The other uncertainty: measurement error in $\\delta v/v$"
+title: "The other uncertainty: measurement error in δv/v"
 subtitle: "Aleatoric & methodological error conditioned on processing choices"
 jupyter: codameter-pixi
 bibliography: references.bib
