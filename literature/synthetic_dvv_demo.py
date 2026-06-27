@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Generate the synthetic dv/v "processing-choice" figures for the survey.
 
-Each figure imposes a *known* ground-truth dv/v(t) characteristic of one
-application, builds noisy daily CCFs (see :mod:`codameter.synthetic_demo`), and
-recovers dv/v under different processing choices — so every gap between the
-recovered curve and the black truth is an artefact of a decision, not of nature.
+Each of the seven figures imposes a *known* ground-truth dv/v(t), builds noisy
+daily CCFs (see :mod:`codameter.synthetic_demo`), and recovers dv/v under
+different processing choices — including deliberate deviations from best
+practice (wrong estimator, fixed window across bands, moving reference, clock
+error, seasonal late-coda noise) — so every gap between the recovered curve and
+the black truth is an artefact of a decision, not of nature.
 
 The figure builders live in :mod:`codameter.synthetic_demo` so this CLI and the
 Quarto narrative page (`quarto/survey-synthetic-demo.qmd`) share one source of

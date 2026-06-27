@@ -12,121 +12,84 @@ toc-depth: 2
 ::: {.keyidea}
 [The experiment]{.k-title}
 We synthesize a **reference coda** cross-correlation function (CCF), repeat it
-over three years while imposing a **known** ground-truth $\delta v/v(t)$ for each
-application, and add measurement noise. Then we *measure $\delta v/v$ back* under
-different processing choices. Because the truth is known, **every gap between the
-recovered curve and the black truth line is an artefact of a choice** — not of
-nature. This is the waveform-level companion to the
-[best-practice survey](survey-best-practices.qmd) and its
-[references](survey-references.qmd).
+over three years while imposing a **known** ground-truth $\delta v/v(t)$, and add
+measurement noise. Then we *measure $\delta v/v$ back* under different processing
+choices — and, deliberately, some **deviations from best practice**: the wrong
+estimator for the signal size, a coda window reused across frequency bands, a
+moving reference, a station clock error, seasonal noise in the late coda. Because
+the truth is known, **every gap is an artefact of a choice**, not of nature. This
+is the waveform-level companion to the [best-practice survey](survey-best-practices.qmd)
+and its [references](survey-references.qmd).
 :::
 
 The machinery lives in
 [`codameter.synthetic_demo`](https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/synthetic_demo.py):
-a band-limited, multiply-scattered coda with a decaying envelope
-(`make_coda`), a homogeneous velocity change applied by stretching the coda in
-lapse time (`impose_dvv`), daily noisy CCFs (`daily_ccfs`), and two estimators —
-**stretching** (grid-search the stretch that maximizes windowed correlation) and
-**MWCS** (delay from the cross-spectral phase per lapse sub-window, then the
-slope of $dt$ vs lapse). A noiseless self-check confirms the recovery returns the
-imposed value to $\sim\!10^{-6}$.
+a band-limited, multiply-scattered coda (`make_coda`, and a
+frequency-dependent-decay variant `make_freqdep_coda`), a homogeneous velocity
+change applied by stretching the coda (`impose_dvv`), daily noisy CCFs
+(`daily_ccfs`), artefact injectors (`add_clock_drift`,
+`add_seasonal_late_noise`), and the estimators below. A noiseless self-check
+confirms recovery to $\sim\!10^{-6}$.
 
 ```{python}
 #| code-fold: true
-#| code-summary: "Set up — imports and house style"
+#| code-summary: "Set up — imports, style, self-check, and the coda waveform"
 import numpy as np
+import matplotlib.pyplot as plt
 from codameter import synthetic_demo as sd
 
 sd.apply_style()
-
-# Confirm the measurement is unbiased on clean data before trusting it on noisy data.
 s = sd.Synth()
+
 truth = np.array([-0.003, 0.0, 0.004])
 cur = np.stack([sd.impose_dvv(s.ref, s.t, x) for x in truth])
 rec, cc = sd.measure_stretching(cur, s.ref, s.t, band=(0.3, 2.0), fs=s.fs, window=(8, 35))
-print("noiseless recovery error:", np.max(np.abs(rec - truth)))
-```
+print("noiseless recovery error:", float(np.max(np.abs(rec - truth))))
 
-The reference CCF and a single perturbed day make the mechanism concrete: a
-velocity drop dilates the coda to later lapse times.
-
-```{python}
-#| code-fold: true
-#| code-summary: "The reference coda and a perturbed copy"
-import matplotlib.pyplot as plt
-
-cur = sd.impose_dvv(s.ref, s.t, -0.02)  # exaggerated -2% for visibility
-fig, ax = plt.subplots(figsize=(8.2, 3.0))
+cur2 = sd.impose_dvv(s.ref, s.t, -0.02)  # exaggerated −2 % for visibility
+fig, ax = plt.subplots(figsize=(8.2, 2.6))
 m = (s.t >= 8) & (s.t <= 30)
 ax.plot(s.t[m], s.ref[m], color="0.2", lw=1.0, label="reference")
-ax.plot(s.t[m], cur[m], color=sd.C["landslide"], lw=1.0, label="after −2% dv/v")
-ax.set(xlabel="lapse time (s)", ylabel="amplitude",
-       title="A homogeneous velocity drop stretches the coda in lapse time")
-ax.legend(loc="upper right")
-fig.tight_layout()
+ax.plot(s.t[m], cur2[m], color=sd.C["landslide"], lw=1.0, label="after −2 % dv/v")
+ax.set(xlabel="lapse time (s)", ylabel="amp", title="A velocity drop stretches the coda")
+ax.legend(loc="upper right"); fig.tight_layout()
 ```
 
 ---
 
-## 1. Estimator choice (landslide): match the method to the size of the change
+## 1. Estimator choice — the NoisePy / Yuan et al. (2021) suite
 
-A pre-failure landslide rides a $\sim\!1\%$ rainfall-driven seasonal cycle and
-then drops by **several percent** before failure. For the small, stable seasonal
-part the two estimators **agree** — MWCS is built exactly for this regime, and
-here it tracks the truth as well as stretching. MWCS reads delays from the
-**cross-spectral phase**, though, which only lives on $(-\pi,\pi]$: once the
-late-lapse delay exceeds half a period the phase **wraps** and the estimate
-cycle-skips. So the divergence appears *only* at the large pre-failure drop,
-where stretching — matching the whole dilated coda at once — keeps following the
-signal. The lesson is not that one method is wrong, but that the **expected size
-of $\delta v/v$ should pick the estimator** (survey rule 4): MWCS for small,
-stable changes; stretching (or a wavelet/unwrapped method) when large transients
-are possible.
+NoisePy's `monitoring_methods` ships **seven** dv/v estimators —
+`stretching` (TS), `wcc_dvv` (windowed cross-correlation), `dtw_dvv` (dynamic
+time warping), `mwcs_dvv` (moving-window cross-spectrum), and three
+wavelet-domain methods `wxs_dvv`, `wts_dvv`, `wtdtw_dvv`. **Yuan et al. (2021)**
+benchmark all seven and find: **TS and DTW are accurate**, **WCC underestimates**
+by ~2 % (waveform distortion within its sliding windows), **MWCS is fair but
+tends to overestimate**, and the **wavelet methods stay accurate across
+frequencies**.
+
+Here we reproduce the three time-/frequency-domain estimators live (panel a:
+they agree on small, clean $\delta v/v$). The difference that matters in practice
+appears at **large** $\delta v/v$ (panel b): MWCS reads delays from the
+cross-spectral phase, which wraps at half a period, so it **cycle-skips** once
+the change is large — while stretching and WCC keep tracking. The lesson is to
+**match the estimator to the expected size of $\delta v/v$**, not that any method
+is wrong.
 
 ```{python}
 #| code-fold: true
-sd.fig_method();
+sd.fig_methods();
 ```
 
 ---
 
-## 2. Stacking length (earthquake): resolution vs noise
+## 2. Frequency band selects the depth — and the signal
 
-A coseismic **step** (here −0.22 %, partly healing) sits under a seasonal cycle.
-A 1-day CCF is noisy but captures the step's timing; a long trailing stack
-suppresses noise but **rounds off the step** and delays it — the resolution /
-precision trade-off behind reference-and-stacking choices (survey rule 7).
-
-```{python}
-#| code-fold: true
-sd.fig_stacking();
-```
-
----
-
-## 3. Reference choice (volcano): keep or erase the slow trend
-
-A slow pre-eruptive decline plus a sharp co-eruptive drop. A **fixed** reference
-recovers the full trend and drop; a **60-day moving** reference continuously
-re-baselines, so the slow decline — the very precursor of interest — is erased,
-and a spurious post-eruption overshoot appears (survey rule 7; the volcano
-"environmental correction" caution).
-
-```{python}
-#| code-fold: true
-sd.fig_reference();
-```
-
----
-
-## 4. Frequency band (groundwater): the band selects the depth
-
-Here the medium has **two layers** with different histories: a shallow layer with
-a strong seasonal cycle and a deep layer with a muted seasonal plus a multi-year
-drought trend. Each lives in a different part of the coda spectrum. Band the data
-high (1.5–6 Hz) and you recover the shallow seasonal signal; band it low
-(0.2–0.8 Hz) and you recover the deep drought trend. **The band is not a free
-knob — it chooses what you are measuring** (survey rule 6).
+Give the medium **two layers**: a shallow one with a strong seasonal cycle and a
+deep one with a multi-year drought trend, each living in a different part of the
+coda spectrum. Band high → you recover the shallow seasonal signal; band low →
+the deep trend. **The band is not a free knob — it chooses what you measure**
+(survey rule 6).
 
 ```{python}
 #| code-fold: true
@@ -135,14 +98,82 @@ sd.fig_frequency_depth();
 
 ---
 
-## 5. The garden of forking paths
+## 3. The coda window does not transfer across bands
 
-Finally, take one volcano dataset and run **27 individually defensible
-pipelines** (3 frequency bands × 3 coda windows × 3 stack lengths), all with a
-common pre-eruption reference. The median tracks the truth, but the
-10–90 % spread across pipelines fans out **most where it matters** — at the sharp
-co-eruptive drop. The honest object is therefore a *distribution* of $\delta v/v$
-over processing choices, which is precisely what
+A common deviation: pick one lapse window (say 20–40 s) and reuse it at every
+frequency. But the coda **decays faster at high frequency** ($A(t)\propto
+e^{-\pi f t/Q_c}$), so a window that is full of signal at low frequency is **pure
+noise** at high frequency (panel a). Measuring the high band in that fixed late
+window returns garbage; an earlier, SNR-matched window recovers the truth (panel
+b). The window must scale with the band — ideally set from the coda envelope / a
+fixed number of mean-free-times, not copied across bands.
+
+```{python}
+#| code-fold: true
+sd.fig_window_band();
+```
+
+---
+
+## 4. Stacking length — resolution vs noise
+
+A coseismic **step** under a seasonal cycle. A 1-day CCF is noisy but captures
+the step's timing; a long trailing stack suppresses noise but **rounds off and
+delays the step** — the resolution/precision trade-off behind stacking choices
+(survey rule 7).
+
+```{python}
+#| code-fold: true
+sd.fig_stacking();
+```
+
+---
+
+## 5. Reference strategy — total stack, moving, or joint inversion
+
+How you define the reference sets what survives. A **total-stack** reference is
+unbiased but noisy; a **moving** reference re-baselines continuously and so
+**erases slow trends** (the pre-eruptive decline vanishes); the **Brenguier et
+al. (2014) joint inversion** measures relative $\delta v/v$ between many short
+stacks and inverts ``x_i − x_j = m_{ij}`` with a smoothness penalty — robust to
+any single reference *and* trend-preserving.
+
+```{python}
+#| code-fold: true
+sd.fig_reference();
+```
+
+---
+
+## 6. Deviations that *manufacture* dv/v
+
+Not every wiggle is a velocity change. Two classic instrument/environment
+artefacts inject **spurious** $\delta v/v$:
+
+- **Station clock error** (panel a). A timing drift delays the whole CCF — a
+  *constant* lag, independent of lapse — so it appears with **opposite sign on
+  the causal and acausal branches**. A real velocity change moves both the same
+  way, so measuring the two branches separately is the diagnostic.
+- **Seasonal noise in the late coda** (panel b). A seasonally changing
+  noise-source distribution warps the low-SNR late coda, so a **late** window
+  reports a coherent spurious *seasonal* $\delta v/v$ many times the real signal,
+  while an **early**, higher-SNR window stays clean (the Zhan 2013 /
+  Daskalakis 2016 warning).
+
+```{python}
+#| code-fold: true
+sd.fig_artifacts();
+```
+
+---
+
+## 7. The garden of forking paths
+
+Finally, take one volcano dataset and run **27 individually defensible pipelines**
+(3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The
+median tracks the truth, but the 10–90 % spread across pipelines fans out **most
+where it matters** — at the sharp co-eruptive drop. The honest object is a
+*distribution* of $\delta v/v$ over processing choices, which is exactly what
 [`codameter.uq_processing`](https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/uq_processing.py)
 samples and marginalizes.
 
@@ -155,18 +186,22 @@ sd.fig_multiverse();
 
 ## Takeaways
 
-| Choice | Application here | Failure mode if chosen poorly |
+| Choice / deviation | Shown with | Consequence of deviating |
 | --- | --- | --- |
-| Estimator (stretching vs MWCS) | Landslide | MWCS suits small/stable dv/v; large transients need stretching |
-| Stack length | Earthquake | Long stack smears the coseismic step |
-| Reference scheme | Volcano | Moving reference erases the slow trend |
-| Frequency band | Groundwater | Band selects depth → a *different* signal |
-| All of the above | (multiverse) | Spread across pipelines ≈ size of the signal |
+| Estimator (TS / WCC / DTW / MWCS / wavelet) | Yuan 2021 suite | MWCS cycle-skips at large dv/v; WCC ~2 % low; pick for the signal size |
+| Frequency band | Groundwater 2-layer | Band selects depth → a *different* signal |
+| Coda window vs band | Frequency-dependent coda | A fixed late window is pure noise at high frequency |
+| Stack length | Earthquake step | Long stack smears and delays the step |
+| Reference scheme | Volcano | Moving reference erases the trend; joint inversion is robust |
+| Clock error | Stable medium | Spurious dv/v, opposite-sign on causal vs acausal branches |
+| Seasonal late-coda noise | Stable medium | Spurious *seasonal* dv/v from a late window |
+| All of the above | Multiverse | Spread across pipelines ≈ size of the signal |
 
 The constructive response is the survey's
 [cross-cutting rules](survey-best-practices.qmd#cross-cutting-methodology-rules):
-quantify the within-choice error (Weaver/Clarke), pick band and window for the
-target depth via lapse-time kernels, fix the reference deliberately, and — when
-in doubt — **sample the choices and report the marginal**.
+quantify the within-choice error, scale the band/window to the target depth, fix
+the reference deliberately, check the causal/acausal branches for timing errors,
+weight by SNR, and — when in doubt — **sample the choices and report the
+marginal**.
 
 *Reproduce locally:* `pixi run python literature/synthetic_dvv_demo.py`.

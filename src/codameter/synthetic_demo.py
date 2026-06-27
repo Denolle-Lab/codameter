@@ -140,7 +140,7 @@ def daily_ccfs(
     out = np.empty((ndays, nlag))
     for d in range(ndays):
         sig = np.zeros(nlag)
-        for comp, series in zip(components, dvv_series):
+        for comp, series in zip(components, dvv_series, strict=False):
             sig = sig + impose_dvv(comp, t, float(series[d]))
         if decorr > 0:
             fresh = bandpass(rng.standard_normal(nlag), fs, *gen_band)
@@ -156,8 +156,15 @@ def daily_ccfs(
 # ---------------------------------------------------------------------------
 # Measurement: stretching and MWCS-style delay fit
 # ---------------------------------------------------------------------------
-def _window_mask(t: np.ndarray, window: tuple[float, float]) -> np.ndarray:
-    return (np.abs(t) >= window[0]) & (np.abs(t) <= window[1])
+def _window_mask(
+    t: np.ndarray, window: tuple[float, float], branch: str = "both"
+) -> np.ndarray:
+    w0, w1 = window
+    if branch == "causal":
+        return (t >= w0) & (t <= w1)
+    if branch == "acausal":
+        return (t <= -w0) & (t >= -w1)
+    return (np.abs(t) >= w0) & (np.abs(t) <= w1)
 
 
 def _parabolic(y: np.ndarray, i: int) -> float:
@@ -177,18 +184,21 @@ def measure_stretching(
     band: tuple[float, float],
     fs: float,
     window: tuple[float, float],
+    branch: str = "both",
     eps_max: float = 0.06,
     n_eps: int = 161,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Stretching dv/v: grid-search the stretch maximizing windowed correlation.
 
-    ``ref`` is a single reference vector (fixed-reference scheme). Returns the
+    ``ref`` is a single reference vector (fixed-reference scheme). ``branch``
+    selects the causal, acausal, or both coda branches — measuring the two
+    branches separately is the standard clock-error diagnostic. Returns the
     per-day dv/v and the peak correlation coefficient.
     """
     cur_mat = np.atleast_2d(cur_mat)
     reff = bandpass(ref, fs, *band)
     es = np.linspace(-eps_max, eps_max, n_eps)
-    sel = _window_mask(t, window)
+    sel = _window_mask(t, window, branch)
     trials = np.stack([np.interp(t / (1.0 + e), t, reff)[sel] for e in es])
     trials = trials / (np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12)
     curf = bandpass(cur_mat, fs, *band)[:, sel]
@@ -284,6 +294,266 @@ def measure_mwcs(
         slope = np.polyfit(np.asarray(lapses), np.asarray(dts), 1)[0]
         out[d] = -slope  # dt/t = -dv/v
     return out
+
+
+def measure_wcc(
+    cur_mat: np.ndarray,
+    ref: np.ndarray,
+    t: np.ndarray,
+    *,
+    band: tuple[float, float],
+    fs: float,
+    window: tuple[float, float],
+    subwin_s: float = 6.0,
+    step_s: float = 3.0,
+) -> np.ndarray:
+    """WCC dv/v: time-domain windowed cross-correlation delay, slope of dt vs lapse.
+
+    The delay in each lapse sub-window is the cross-correlation peak (parabolic
+    refined). Because the waveform itself stretches *within* each window, the
+    peak underestimates the average shift — so WCC systematically
+    **underestimates** dv/v (≈2 % of the true value in Yuan et al. 2021). One of
+    the seven estimators in NoisePy's ``monitoring_methods`` (``wcc_dvv``).
+    """
+    cur_mat = np.atleast_2d(cur_mat)
+    reff = bandpass(ref, fs, *band)
+    curf = bandpass(cur_mat, fs, *band)
+    centers = np.arange(window[0] + subwin_s / 2, window[1] - subwin_s / 2, step_s)
+    half = int(round(subwin_s / 2 * fs))
+    taper = np.hanning(2 * half)
+    max_shift = half
+    idx = [int(np.argmin(np.abs(t - tc))) for tc in centers]
+    out = np.full(cur_mat.shape[0], np.nan)
+    for d in range(cur_mat.shape[0]):
+        lapses, dts = [], []
+        for j, i0 in enumerate(idx):
+            a = curf[d, i0 - half : i0 + half] * taper
+            b = reff[i0 - half : i0 + half] * taper
+            if a.size < 2 * half:
+                continue
+            xc = np.correlate(a - a.mean(), b - b.mean(), mode="full")
+            lags = np.arange(-(a.size - 1), a.size)
+            keep = np.abs(lags) <= max_shift
+            xc, lags = xc[keep], lags[keep]
+            k = int(np.argmax(xc))
+            dts.append((lags[k] + _parabolic(xc, k)) / fs)
+            lapses.append(centers[j])
+        if len(lapses) < 3:
+            continue
+        out[d] = np.polyfit(np.asarray(lapses), np.asarray(dts), 1)[0]
+    return out
+
+
+def _dtw_path(u: np.ndarray, v: np.ndarray, max_lag: int, max_step: int = 1) -> np.ndarray:
+    """Constrained dynamic time warping; returns the integer lag path l(i)."""
+    n = u.size
+    lags = np.arange(-max_lag, max_lag + 1)
+    err = np.full((n, lags.size), np.inf)
+    for li, lg in enumerate(lags):
+        j = np.arange(n) + lg
+        ok = (j >= 0) & (j < n)
+        err[ok, li] = (u[ok] - v[j[ok]]) ** 2
+    acc = err.copy()
+    for i in range(1, n):
+        prev = acc[i - 1]
+        for li in range(lags.size):
+            lo, hi = max(0, li - max_step), min(lags.size, li + max_step + 1)
+            acc[i, li] += prev[lo:hi].min()
+    path = np.empty(n, dtype=int)
+    li = int(np.argmin(acc[-1]))
+    path[-1] = li
+    for i in range(n - 2, -1, -1):
+        lo, hi = max(0, li - max_step), min(lags.size, li + max_step + 1)
+        li = lo + int(np.argmin(acc[i, lo:hi]))
+        path[i] = li
+    return lags[path]
+
+
+def measure_dtw(
+    cur_mat: np.ndarray,
+    ref: np.ndarray,
+    t: np.ndarray,
+    *,
+    band: tuple[float, float],
+    fs: float,
+    window: tuple[float, float],
+    max_lag_s: float = 1.0,
+) -> np.ndarray:
+    """DTW dv/v: warp the current trace onto the reference, slope of lag vs lapse.
+
+    Dynamic time warping recovers a full local time-shift path with a strain
+    constraint, so (like stretching) it tracks dv/v accurately even for large,
+    smoothly varying changes (Yuan et al. 2021). NoisePy ``dtw_dvv``.
+    """
+    cur_mat = np.atleast_2d(cur_mat)
+    reff = bandpass(ref, fs, *band)
+    curf = bandpass(cur_mat, fs, *band)
+    sel = (t >= window[0]) & (t <= window[1])  # causal branch only
+    tt = t[sel]
+    max_lag = int(round(max_lag_s * fs))
+    out = np.full(cur_mat.shape[0], np.nan)
+    for d in range(cur_mat.shape[0]):
+        lag = _dtw_path(curf[d, sel], reff[sel], max_lag) / fs
+        out[d] = -np.polyfit(tt, lag, 1)[0]
+    return out
+
+
+# The three time-/frequency-domain estimators reproduced live here. NoisePy's
+# monitoring_methods adds DTW (measure_dtw, below — accurate only for small
+# strains in this minimal form) and three wavelet-domain methods (WXS, WTS,
+# WTDTW); Yuan et al. (2021) benchmark all seven. See the narrative page.
+METHODS = {
+    "stretching (TS)": measure_stretching,
+    "WCC": measure_wcc,
+    "MWCS": measure_mwcs,
+}
+
+
+def measure(name: str, cur_mat, ref, t, **kw):
+    """Dispatch to a named estimator (stretching returns (dvv, cc); others dvv)."""
+    fn = METHODS[name]
+    out = fn(cur_mat, ref, t, **kw)
+    return out[0] if isinstance(out, tuple) else out
+
+
+# ---------------------------------------------------------------------------
+# Frequency-dependent coda (decay scales with frequency) and artifacts
+# ---------------------------------------------------------------------------
+def make_freqdep_coda(
+    *,
+    maxlag_s: float = 50.0,
+    fs: float = 50.0,
+    band: tuple[float, float] = (0.2, 8.0),
+    qc: float = 30.0,
+    n_sub: int = 12,
+    seed: int = 0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Coda whose decay rate scales with frequency: ``A(t) ∝ exp(-π f t / Qc)``.
+
+    High-frequency energy decays faster (shorter coda), so the *same* late lapse
+    window holds plenty of signal at low frequency but mostly noise at high
+    frequency — which is exactly why a fixed coda window must not be reused
+    across frequency bands.
+    """
+    rng = np.random.default_rng(seed)
+    nlag = int(round(maxlag_s * fs))
+    t = np.arange(-nlag, nlag + 1) / fs
+    centers = np.geomspace(band[0], band[1], n_sub)
+    coda = np.zeros_like(t)
+    for fc in centers:
+        sub = bandpass(rng.standard_normal(t.size), fs, fc / 1.2, fc * 1.2)
+        coda += sub * np.exp(-np.pi * fc * np.abs(t) / qc)
+    coda = 0.5 * (coda + coda[::-1])
+    coda /= np.sqrt(np.mean(coda**2))
+    return t, coda
+
+
+def add_clock_drift(
+    ccfs: np.ndarray, t: np.ndarray, *, drift_s_per_day: float, onset_day: int = 0
+) -> np.ndarray:
+    """Inject a station-timing (clock) error: a growing shift of the whole CCF.
+
+    A clock error delays the entire correlation by τ(day), moving the zero-lag
+    peak. Unlike a velocity change it is a *constant* lag (independent of lapse),
+    so it appears with opposite sign on the causal and acausal branches — the
+    diagnostic that separates it from a real dv/v.
+    """
+    out = np.empty_like(ccfs)
+    for d in range(ccfs.shape[0]):
+        tau = drift_s_per_day * max(0, d - onset_day)
+        out[d] = np.interp(t - tau, t, ccfs[d])
+    return out
+
+
+def add_seasonal_late_noise(
+    ccfs: np.ndarray,
+    t: np.ndarray,
+    days: np.ndarray,
+    *,
+    fs: float,
+    onset_s: float,
+    dvv_amp: float = 0.004,
+    jitter: float = 0.06,
+    band: tuple[float, float] = (0.2, 8.0),
+    seed: int = 9,
+) -> np.ndarray:
+    """Seasonal noise-source effect confined to the late coda (lapse > onset).
+
+    A seasonally changing noise-source distribution warps the *late* coda by a
+    small seasonal apparent stretch (plus some seasonal jitter), while the early
+    coda is unaffected. A late measurement window then reports a **coherent
+    spurious seasonal dv/v**; an earlier, higher-SNR window does not. This is the
+    waveform-level version of the Zhan (2013) / Daskalakis (2016) warning.
+    """
+    rng = np.random.default_rng(seed)
+    ramp = 1.0 / (1.0 + np.exp(-(np.abs(t) - onset_s)))  # 0 early → 1 in late coda
+    out = np.empty_like(ccfs)
+    rms = np.sqrt(np.mean(ccfs**2))
+    for d in range(ccfs.shape[0]):
+        season = np.sin(2 * np.pi * days[d] / YEAR_D)
+        warped = impose_dvv(ccfs[d], t, dvv_amp * season)
+        n = bandpass(rng.standard_normal(t.size), fs, *band) * ramp
+        n *= jitter * rms * abs(season) / (np.sqrt(np.mean(n**2)) + 1e-12)
+        out[d] = (1 - ramp) * ccfs[d] + ramp * warped + n
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Reference strategies — Brenguier et al. (2014) joint inversion
+# ---------------------------------------------------------------------------
+def measure_inversion(
+    ccfs: np.ndarray,
+    t: np.ndarray,
+    *,
+    band: tuple[float, float],
+    fs: float,
+    window: tuple[float, float],
+    block_days: int = 7,
+    max_lag_blocks: int = 10,
+    smooth: float = 5.0,
+) -> np.ndarray:
+    """Brenguier et al. (2014)-style joint inversion for a continuous dv/v series.
+
+    Instead of referencing every day to one stack, measure the *relative* dv/v
+    between many pairs of short (weekly) stacks and invert the over-determined
+    system ``x_i − x_j = m_ij`` (coherence-weighted, with a smoothness penalty)
+    for the per-block series ``x``. Using many references makes the result robust
+    to the choice of any single one, and — unlike a moving reference — it
+    preserves the long-term trend.
+    """
+    ndays = ccfs.shape[0]
+    edges = np.arange(0, ndays - block_days + 1, block_days)
+    centers = edges + block_days // 2
+    stacks = np.stack([ccfs[e : e + block_days].mean(axis=0) for e in edges])
+    m = stacks.shape[0]
+
+    rows, cols, vals, data, weights = [], [], [], [], []
+    eq = 0
+    for j in range(m):
+        dvv_j, cc_j = measure_stretching(stacks, stacks[j], t, band=band, fs=fs,
+                                         window=window, eps_max=0.03, n_eps=81)
+        for i in range(j + 1, min(m, j + max_lag_blocks + 1)):
+            rows += [eq, eq]
+            cols += [i, j]
+            vals += [1.0, -1.0]
+            data.append(dvv_j[i])
+            weights.append(max(cc_j[i], 0.0))
+            eq += 1
+    G = np.zeros((eq, m))
+    for r, c, v in zip(rows, cols, vals, strict=True):
+        G[r, c] = v
+    d = np.asarray(data)
+    w = np.sqrt(np.asarray(weights))
+    # Second-difference smoothing rows.
+    S = np.zeros((m - 2, m))
+    for k in range(m - 2):
+        S[k, k : k + 3] = [smooth, -2 * smooth, smooth]
+    # Anchor the mean to zero so the system is determined.
+    A = np.vstack([G * w[:, None], S, np.ones((1, m))])
+    b = np.concatenate([d * w, np.zeros(m - 2), [0.0]])
+    x, *_ = np.linalg.lstsq(A, b, rcond=None)
+    x -= x[: max(1, m // 20)].mean()  # baseline to the early period
+    return np.interp(np.arange(ndays), centers, x)
 
 
 # ---------------------------------------------------------------------------
@@ -404,36 +674,97 @@ def _trailing_stack(ccfs: np.ndarray, k: int) -> np.ndarray:
     return out
 
 
-def fig_method(seed: int = 11):
-    """Landslide: MWCS suits the small seasonal dv/v; stretching also follows the
-    large pre-failure drop, where the cross-spectral phase wraps."""
+def _envelope(x: np.ndarray, fs: float, smooth_s: float = 2.0) -> np.ndarray:
+    n = max(1, int(smooth_s * fs))
+    return np.convolve(np.abs(x), np.ones(n) / n, mode="same")
+
+
+_MCOL = {"stretching (TS)": C["alt"], "WCC": C["groundwater"], "MWCS": C["bad"]}
+
+
+def fig_methods(seed: int = 11):
+    """Estimator choice (NoisePy / Yuan et al. 2021): methods agree on small,
+    stable dv/v but diverge once it is large (MWCS phase-wraps / cycle-skips)."""
     import matplotlib.pyplot as plt
 
     s = Synth()
+    band, win = (0.5, 2.0), (8.0, 35.0)
+    # (a) clean recovery across a range of small dv/v.
+    trues = np.linspace(-0.005, 0.005, 11)
+    cur = np.stack([impose_dvv(s.ref, s.t, x) for x in trues])
+    recs = {m: measure(m, cur, s.ref, s.t, band=band, fs=s.fs, window=win) for m in METHODS}
+    # (b) a large, smoothly varying change (landslide pre-failure).
     days = _days(3.0)
     truth = landslide_truth(days)
     ccfs = daily_ccfs(s.t, [s.ref], [truth], fs=s.fs, snr=10.0, seed=seed)
-    band, window = (2.0, 6.0), (2.0, 10.0)
-    st, _ = measure_stretching(ccfs, s.ref, s.t, band=band, fs=s.fs, window=window)
-    mw = measure_mwcs(ccfs, s.ref, s.t, band=band, fs=s.fs, window=window,
-                      subwin_s=2.0, step_s=1.0)
-    fail = 2.4 - 120 / YEAR_D
-    fig, ax = plt.subplots(figsize=(8.2, 4.2))
-    ax.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="ground truth")
-    ax.plot(_yrs(days), st * PCT, color=C["landslide"], lw=1.0, alpha=0.9,
-            label="stretching")
-    ax.plot(_yrs(days), mw * PCT, color=C["bad"], lw=1.0, alpha=0.9,
-            label="MWCS (cross-spectral)")
-    ax.axvspan(fail, _yrs(days)[-1], color="0.85", alpha=0.4, lw=0)
-    ax.annotate("MWCS tracks the\n~1% seasonal here", xy=(1.0, 1.0),
-                xytext=(0.15, 2.0), fontsize=8.5, color="0.35")
-    ax.annotate("phase wraps once\nthe drop is large", xy=(2.55, -2.5),
-                xytext=(1.55, -3.6), fontsize=8.5, color=C["bad"],
-                arrowprops=dict(arrowstyle="->", color=C["bad"], lw=0.9))
-    ax.set(xlabel="time (years)", ylabel="dv/v (%)",
-           title="Landslide: MWCS fits small, stable dv/v; stretching is the safe "
-                 "choice once dv/v is large")
-    ax.legend(loc="lower left")
+    bandL, winL = (2.0, 6.0), (2.0, 10.0)
+    sub = dict(subwin_s=2.0, step_s=1.0)  # short window needs short sub-windows
+    recL = {
+        "stretching (TS)": measure_stretching(ccfs, s.ref, s.t, band=bandL, fs=s.fs, window=winL)[0],
+        "WCC": measure_wcc(ccfs, s.ref, s.t, band=bandL, fs=s.fs, window=winL, **sub),
+        "MWCS": measure_mwcs(ccfs, s.ref, s.t, band=bandL, fs=s.fs, window=winL, **sub),
+    }
+
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.6, 4.3))
+    axA.plot([-0.5, 0.5], [-0.5, 0.5], color="0.6", lw=1, ls="--", label="1:1 (truth)")
+    for m in METHODS:
+        axA.plot(trues * PCT, recs[m] * PCT, "o-", ms=4, color=_MCOL[m], label=m)
+    axA.set(xlabel="true dv/v (%)", ylabel="recovered dv/v (%)",
+            title="(a) clean, small dv/v — estimators agree")
+    axA.legend(loc="upper left", fontsize=8.5)
+    axB.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="truth")
+    for m in METHODS:
+        axB.plot(_yrs(days), recL[m] * PCT, color=_MCOL[m], lw=1.0, alpha=0.9, label=m)
+    axB.set(xlabel="time (years)", ylabel="dv/v (%)",
+            title="(b) large dv/v — only MWCS fails (phase wraps)")
+    axB.legend(loc="lower left", fontsize=8.5)
+    fig.suptitle("Estimator choice — NoisePy monitoring methods, benchmarked by "
+                 "Yuan et al. (2021)", fontweight="600")
+    fig.tight_layout()
+    return fig
+
+
+def fig_window_band(seed: int = 66):
+    """Coda window must scale with frequency band: a fixed late window is full of
+    signal at low frequency but pure noise at high frequency."""
+    import matplotlib.pyplot as plt
+
+    s = Synth()
+    tf, cf = make_freqdep_coda(fs=s.fs, seed=2)
+    days = _days(2.0)
+    truth = _seasonal(days, 0.0015, 60) - 0.0008 * days / days[-1]
+    ccfs = daily_ccfs(tf, [cf], [truth], fs=s.fs, snr=15.0, gen_band=(0.2, 8.0), seed=seed)
+    lowb, hib = (0.3, 0.8), (3.0, 6.0)
+    fixed_w, adapt_w = (20.0, 40.0), (3.0, 12.0)
+    hi_fixed, _ = measure_stretching(ccfs, cf, tf, band=hib, fs=s.fs, window=fixed_w)
+    hi_adapt, _ = measure_stretching(ccfs, cf, tf, band=hib, fs=s.fs, window=adapt_w)
+
+    env_lo = _envelope(bandpass(cf, s.fs, *lowb), s.fs)
+    env_hi = _envelope(bandpass(cf, s.fs, *hib), s.fs)
+    norm = env_lo.max()
+    floor = env_lo[(np.abs(tf) > 45)].mean() / norm  # late-lapse noise proxy
+
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.6, 4.3))
+    m = tf >= 0
+    axA.semilogy(tf[m], env_lo[m] / norm, color=C["alt"], lw=1.5, label="low band 0.3–0.8 Hz")
+    axA.semilogy(tf[m], env_hi[m] / norm, color=C["groundwater"], lw=1.5, label="high band 3–6 Hz")
+    axA.axhline(max(floor, 1e-3), color="0.5", ls=":", lw=1, label="noise floor")
+    axA.axvspan(*fixed_w, color=C["bad"], alpha=0.15, lw=0)
+    axA.axvspan(*adapt_w, color=C["groundwater"], alpha=0.12, lw=0)
+    axA.set(xlabel="lapse time (s)", ylabel="coda envelope (norm.)", ylim=(1e-3, 2),
+            title="(a) high-frequency coda decays first")
+    axA.legend(loc="upper right", fontsize=8.5)
+    axA.text(30, 1.1e-3, "fixed 20–40 s\n= noise here", color=C["bad"], fontsize=8)
+    axB.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="truth")
+    axB.plot(_yrs(days), hi_fixed * PCT, color=C["bad"], lw=1.0, alpha=0.9,
+             label="high band, fixed 20–40 s window")
+    axB.plot(_yrs(days), hi_adapt * PCT, color=C["groundwater"], lw=1.0, alpha=0.9,
+             label="high band, adapted 3–12 s window")
+    axB.set(xlabel="time (years)", ylabel="dv/v (%)",
+            title="(b) reusing the low-band window at high band → noise")
+    axB.legend(loc="lower left", fontsize=8.5)
+    fig.suptitle("Coda window does not transfer across frequency bands",
+                 fontweight="600")
     fig.tight_layout()
     return fig
 
@@ -464,30 +795,82 @@ def fig_stacking(seed: int = 22):
 
 
 def fig_reference(seed: int = 33):
-    """Volcano: a moving reference erases the slow trend a fixed one keeps."""
+    """Reference strategy: total-stack vs moving vs Brenguier (2014) inversion."""
     import matplotlib.pyplot as plt
 
     s = Synth()
     days = _days(3.0)
     truth = volcano_truth(days)
-    ccfs = daily_ccfs(s.t, [s.ref], [truth], fs=s.fs, snr=8.0, seed=seed)
+    ccfs = daily_ccfs(s.t, [s.ref], [truth], fs=s.fs, snr=6.0, seed=seed)
     band, window = (0.5, 2.0), (8.0, 40.0)
-    fixed_ref = ccfs[: int(0.8 * YEAR_D)].mean(axis=0)
-    rec_fixed, _ = measure_stretching(ccfs, fixed_ref, s.t, band=band, fs=s.fs,
+    total_ref = ccfs[: int(0.8 * YEAR_D)].mean(axis=0)
+    rec_total, _ = measure_stretching(ccfs, total_ref, s.t, band=band, fs=s.fs,
                                       window=window)
     rec_move = measure_stretching_moving(ccfs, s.t, band=band, fs=s.fs,
                                          window=window, ref_days=60)
-    fig, ax = plt.subplots(figsize=(8.2, 4.2))
+    rec_inv = measure_inversion(ccfs, s.t, band=band, fs=s.fs, window=window,
+                                block_days=10)
+    fig, ax = plt.subplots(figsize=(8.6, 4.4))
     ax.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="ground truth")
-    ax.plot(_yrs(days), rec_fixed * PCT, color=C["volcano"], lw=1.1,
-            label="fixed reference (keeps trend)")
+    ax.plot(_yrs(days), rec_total * PCT, color="0.6", lw=0.9, alpha=0.8,
+            label="total-stack reference (noisy)")
     ax.plot(_yrs(days), rec_move * PCT, color=C["bad"], lw=1.1,
             label="60-day moving reference (trend erased)")
+    ax.plot(_yrs(days), rec_inv * PCT, color=C["groundwater"], lw=1.6,
+            label="Brenguier 2014 inversion (robust, keeps trend)")
     ax.axvline(2.0, color="0.6", ls="--", lw=1)
     ax.set(xlabel="time (years)", ylabel="dv/v (%)",
-           title="Volcano: a moving reference removes the slow pre-eruptive "
-                 "decline a fixed reference preserves")
-    ax.legend(loc="lower left")
+           title="Reference strategy: moving reference erases the trend; the joint "
+                 "inversion is robust and keeps it")
+    ax.legend(loc="lower left", fontsize=8.5)
+    fig.tight_layout()
+    return fig
+
+
+def fig_artifacts(seed: int = 77):
+    """Two deviations that inject *spurious* dv/v: a station clock error and
+    seasonal noise contaminating the late coda."""
+    import matplotlib.pyplot as plt
+
+    s = Synth()
+    band = (0.5, 2.0)
+    # (a) Clock drift on an otherwise stable medium.
+    days = _days(2.0)
+    flat = _seasonal(days, 0.0003, 40)
+    ccfs = daily_ccfs(s.t, [s.ref], [flat], fs=s.fs, snr=12.0, seed=seed)
+    clk = add_clock_drift(ccfs, s.t, drift_s_per_day=0.0008)
+    win = (8.0, 35.0)
+    caus, _ = measure_stretching(clk, s.ref, s.t, band=band, fs=s.fs, window=win,
+                                 branch="causal")
+    acau, _ = measure_stretching(clk, s.ref, s.t, band=band, fs=s.fs, window=win,
+                                 branch="acausal")
+
+    # (b) Seasonal noise confined to the late coda.
+    days2 = _days(3.0)
+    truth2 = _seasonal(days2, 0.0003, 40)
+    base = daily_ccfs(s.t, [s.ref], [truth2], fs=s.fs, snr=14.0, seed=seed + 1)
+    noisy = add_seasonal_late_noise(base, s.t, days2, fs=s.fs, onset_s=25.0,
+                                    dvv_amp=0.004, seed=9)
+    early, _ = measure_stretching(noisy, s.ref, s.t, band=band, fs=s.fs, window=(8, 18))
+    late, _ = measure_stretching(noisy, s.ref, s.t, band=band, fs=s.fs, window=(28, 45))
+
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.6, 4.3))
+    axA.axhline(0, color=C["truth"], lw=2.0, label="truth (no change)")
+    axA.plot(_yrs(days), caus * PCT, color=C["volcano"], lw=1.1, label="causal branch")
+    axA.plot(_yrs(days), acau * PCT, color=C["landslide"], lw=1.1, label="acausal branch")
+    axA.set(xlabel="time (years)", ylabel="apparent dv/v (%)",
+            title="(a) clock drift: branches split with opposite sign")
+    axA.legend(loc="upper left", fontsize=8.5)
+    axB.plot(_yrs(days2), truth2 * PCT, color=C["truth"], lw=2.2, label="truth")
+    axB.plot(_yrs(days2), early * PCT, color=C["groundwater"], lw=1.0, alpha=0.9,
+             label="early 8–18 s window (clean)")
+    axB.plot(_yrs(days2), late * PCT, color=C["bad"], lw=1.0, alpha=0.9,
+             label="late 28–45 s window (contaminated)")
+    axB.set(xlabel="time (years)", ylabel="dv/v (%)",
+            title="(b) seasonal noise in the late coda → spurious cycle")
+    axB.legend(loc="lower left", fontsize=8.5)
+    fig.suptitle("Deviations that manufacture dv/v: clock error and "
+                 "late-coda noise", fontweight="600")
     fig.tight_layout()
     return fig
 
@@ -562,11 +945,13 @@ def fig_multiverse(seed: int = 55):
 
 
 FIGURES = {
-    "demo_1_method_landslide": fig_method,
-    "demo_2_stacking_earthquake": fig_stacking,
-    "demo_3_reference_volcano": fig_reference,
-    "demo_4_frequency_groundwater": fig_frequency_depth,
-    "demo_5_multiverse": fig_multiverse,
+    "demo_1_methods": fig_methods,
+    "demo_2_frequency_depth": fig_frequency_depth,
+    "demo_3_window_band": fig_window_band,
+    "demo_4_stacking": fig_stacking,
+    "demo_5_reference": fig_reference,
+    "demo_6_artifacts": fig_artifacts,
+    "demo_7_multiverse": fig_multiverse,
 }
 
 

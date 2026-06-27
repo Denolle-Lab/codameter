@@ -41,16 +41,20 @@ package at
 [`codameter.synthetic_demo`](../src/codameter/synthetic_demo.py) and is unit-
 tested in [`tests/test_synthetic_demo.py`](../tests/test_synthetic_demo.py).
 
-Run `pixi run python literature/synthetic_dvv_demo.py` → writes five figures to
-`literature/figs/`:
+Run `pixi run python literature/synthetic_dvv_demo.py` → writes seven figures to
+`literature/figs/`. Estimators follow NoisePy's `monitoring_methods` (TS, WCC,
+MWCS reproduced live; DTW + wavelet methods referenced) and the Yuan et al.
+(2021) benchmark; the focus is **deviations from best practice**:
 
-| Figure | Application | Choice illustrated |
+| Figure | Theme | Deviation / consequence |
 | --- | --- | --- |
-| `demo_1_method_landslide.png` | Landslide | Estimator: MWCS suits small/stable dv/v, stretching needed for large transients |
-| `demo_2_stacking_earthquake.png` | Earthquake | Stack length smears the coseismic step |
-| `demo_3_reference_volcano.png` | Volcano | Moving reference erases the slow pre-eruptive trend |
-| `demo_4_frequency_groundwater.png` | Groundwater | Frequency band selects depth → a different signal |
-| `demo_5_multiverse.png` | (volcano) | Spread across 27 defensible pipelines |
+| `demo_1_methods.png` | Estimator choice (NoisePy / Yuan 2021) | MWCS cycle-skips at large dv/v; methods agree when small |
+| `demo_2_frequency_depth.png` | Frequency band → depth | Band selects depth → a different signal |
+| `demo_3_window_band.png` | Coda window vs band | A fixed late window is pure noise at high frequency |
+| `demo_4_stacking.png` | Stacking length | Long stack smears/delays the coseismic step |
+| `demo_5_reference.png` | Reference strategy | Moving ref erases trend; Brenguier 2014 inversion is robust |
+| `demo_6_artifacts.png` | Clock error + late-coda noise | Spurious dv/v (branch-antisymmetric clock; spurious seasonal) |
+| `demo_7_multiverse.png` | 27 pipelines | Spread across choices ≈ size of the signal |
 
 ## How to extend it
 

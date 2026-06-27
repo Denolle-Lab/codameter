@@ -573,11 +573,13 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#estimator-choice-landslide-match-the-method-to-the-size-of-the-change" id="toc-estimator-choice-landslide-match-the-method-to-the-size-of-the-change" class="nav-link active" data-scroll-target="#estimator-choice-landslide-match-the-method-to-the-size-of-the-change">1. Estimator choice (landslide): match the method to the size of the change</a></li>
-  <li><a href="#stacking-length-earthquake-resolution-vs-noise" id="toc-stacking-length-earthquake-resolution-vs-noise" class="nav-link" data-scroll-target="#stacking-length-earthquake-resolution-vs-noise">2. Stacking length (earthquake): resolution vs noise</a></li>
-  <li><a href="#reference-choice-volcano-keep-or-erase-the-slow-trend" id="toc-reference-choice-volcano-keep-or-erase-the-slow-trend" class="nav-link" data-scroll-target="#reference-choice-volcano-keep-or-erase-the-slow-trend">3. Reference choice (volcano): keep or erase the slow trend</a></li>
-  <li><a href="#frequency-band-groundwater-the-band-selects-the-depth" id="toc-frequency-band-groundwater-the-band-selects-the-depth" class="nav-link" data-scroll-target="#frequency-band-groundwater-the-band-selects-the-depth">4. Frequency band (groundwater): the band selects the depth</a></li>
-  <li><a href="#the-garden-of-forking-paths" id="toc-the-garden-of-forking-paths" class="nav-link" data-scroll-target="#the-garden-of-forking-paths">5. The garden of forking paths</a></li>
+  <li><a href="#estimator-choice-the-noisepy-yuan-et-al.-2021-suite" id="toc-estimator-choice-the-noisepy-yuan-et-al.-2021-suite" class="nav-link active" data-scroll-target="#estimator-choice-the-noisepy-yuan-et-al.-2021-suite">1. Estimator choice — the NoisePy / Yuan et al.&nbsp;(2021) suite</a></li>
+  <li><a href="#frequency-band-selects-the-depth-and-the-signal" id="toc-frequency-band-selects-the-depth-and-the-signal" class="nav-link" data-scroll-target="#frequency-band-selects-the-depth-and-the-signal">2. Frequency band selects the depth — and the signal</a></li>
+  <li><a href="#the-coda-window-does-not-transfer-across-bands" id="toc-the-coda-window-does-not-transfer-across-bands" class="nav-link" data-scroll-target="#the-coda-window-does-not-transfer-across-bands">3. The coda window does not transfer across bands</a></li>
+  <li><a href="#stacking-length-resolution-vs-noise" id="toc-stacking-length-resolution-vs-noise" class="nav-link" data-scroll-target="#stacking-length-resolution-vs-noise">4. Stacking length — resolution vs noise</a></li>
+  <li><a href="#reference-strategy-total-stack-moving-or-joint-inversion" id="toc-reference-strategy-total-stack-moving-or-joint-inversion" class="nav-link" data-scroll-target="#reference-strategy-total-stack-moving-or-joint-inversion">5. Reference strategy — total stack, moving, or joint inversion</a></li>
+  <li><a href="#deviations-that-manufacture-dvv" id="toc-deviations-that-manufacture-dvv" class="nav-link" data-scroll-target="#deviations-that-manufacture-dvv">6. Deviations that <em>manufacture</em> dv/v</a></li>
+  <li><a href="#the-garden-of-forking-paths" id="toc-the-garden-of-forking-paths" class="nav-link" data-scroll-target="#the-garden-of-forking-paths">7. The garden of forking paths</a></li>
   <li><a href="#takeaways" id="toc-takeaways" class="nav-link" data-scroll-target="#takeaways">Takeaways</a></li>
   </ul>
 <div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/Denolle-Lab/codameter/edit/main/survey-synthetic-demo.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/Denolle-Lab/codameter/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
@@ -607,119 +609,152 @@ window.Quarto = {
 
 
 <div class="keyidea">
-<p><span class="k-title">The experiment</span> We synthesize a <strong>reference coda</strong> cross-correlation function (CCF), repeat it over three years while imposing a <strong>known</strong> ground-truth <span class="math inline">\(\delta v/v(t)\)</span> for each application, and add measurement noise. Then we <em>measure <span class="math inline">\(\delta v/v\)</span> back</em> under different processing choices. Because the truth is known, <strong>every gap between the recovered curve and the black truth line is an artefact of a choice</strong> — not of nature. This is the waveform-level companion to the <a href="./survey-best-practices.html">best-practice survey</a> and its <a href="./survey-references.html">references</a>.</p>
+<p><span class="k-title">The experiment</span> We synthesize a <strong>reference coda</strong> cross-correlation function (CCF), repeat it over three years while imposing a <strong>known</strong> ground-truth <span class="math inline">\(\delta v/v(t)\)</span>, and add measurement noise. Then we <em>measure <span class="math inline">\(\delta v/v\)</span> back</em> under different processing choices — and, deliberately, some <strong>deviations from best practice</strong>: the wrong estimator for the signal size, a coda window reused across frequency bands, a moving reference, a station clock error, seasonal noise in the late coda. Because the truth is known, <strong>every gap is an artefact of a choice</strong>, not of nature. This is the waveform-level companion to the <a href="./survey-best-practices.html">best-practice survey</a> and its <a href="./survey-references.html">references</a>.</p>
 </div>
-<p>The machinery lives in <a href="https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/synthetic_demo.py"><code>codameter.synthetic_demo</code></a>: a band-limited, multiply-scattered coda with a decaying envelope (<code>make_coda</code>), a homogeneous velocity change applied by stretching the coda in lapse time (<code>impose_dvv</code>), daily noisy CCFs (<code>daily_ccfs</code>), and two estimators — <strong>stretching</strong> (grid-search the stretch that maximizes windowed correlation) and <strong>MWCS</strong> (delay from the cross-spectral phase per lapse sub-window, then the slope of <span class="math inline">\(dt\)</span> vs lapse). A noiseless self-check confirms the recovery returns the imposed value to <span class="math inline">\(\sim\!10^{-6}\)</span>.</p>
-<div id="97b7d3b4" class="cell" data-execution_count="1">
+<p>The machinery lives in <a href="https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/synthetic_demo.py"><code>codameter.synthetic_demo</code></a>: a band-limited, multiply-scattered coda (<code>make_coda</code>, and a frequency-dependent-decay variant <code>make_freqdep_coda</code>), a homogeneous velocity change applied by stretching the coda (<code>impose_dvv</code>), daily noisy CCFs (<code>daily_ccfs</code>), artefact injectors (<code>add_clock_drift</code>, <code>add_seasonal_late_noise</code>), and the estimators below. A noiseless self-check confirms recovery to <span class="math inline">\(\sim\!10^{-6}\)</span>.</p>
+<div id="7f52f7a2" class="cell" data-execution_count="1">
 <details class="code-fold">
-<summary>Set up — imports and house style</summary>
+<summary>Set up — imports, style, self-check, and the coda waveform</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter <span class="im">import</span> synthetic_demo <span class="im">as</span> sd</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>sd.apply_style()</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Confirm the measurement is unbiased on clean data before trusting it on noisy data.</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> sd.Synth()</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter <span class="im">import</span> synthetic_demo <span class="im">as</span> sd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>sd.apply_style()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> sd.Synth()</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>truth <span class="op">=</span> np.array([<span class="op">-</span><span class="fl">0.003</span>, <span class="fl">0.0</span>, <span class="fl">0.004</span>])</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>cur <span class="op">=</span> np.stack([sd.impose_dvv(s.ref, s.t, x) <span class="cf">for</span> x <span class="kw">in</span> truth])</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>rec, cc <span class="op">=</span> sd.measure_stretching(cur, s.ref, s.t, band<span class="op">=</span>(<span class="fl">0.3</span>, <span class="fl">2.0</span>), fs<span class="op">=</span>s.fs, window<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">35</span>))</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"noiseless recovery error:"</span>, np.<span class="bu">max</span>(np.<span class="bu">abs</span>(rec <span class="op">-</span> truth)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"noiseless recovery error:"</span>, <span class="bu">float</span>(np.<span class="bu">max</span>(np.<span class="bu">abs</span>(rec <span class="op">-</span> truth))))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>cur2 <span class="op">=</span> sd.impose_dvv(s.ref, s.t, <span class="op">-</span><span class="fl">0.02</span>)  <span class="co"># exaggerated −2 % for visibility</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">8.2</span>, <span class="fl">2.6</span>))</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>m <span class="op">=</span> (s.t <span class="op">&gt;=</span> <span class="dv">8</span>) <span class="op">&amp;</span> (s.t <span class="op">&lt;=</span> <span class="dv">30</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>ax.plot(s.t[m], s.ref[m], color<span class="op">=</span><span class="st">"0.2"</span>, lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"reference"</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>ax.plot(s.t[m], cur2[m], color<span class="op">=</span>sd.C[<span class="st">"landslide"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"after −2 </span><span class="sc">% d</span><span class="st">v/v"</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"lapse time (s)"</span>, ylabel<span class="op">=</span><span class="st">"amp"</span>, title<span class="op">=</span><span class="st">"A velocity drop stretches the coda"</span>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>ax.legend(loc<span class="op">=</span><span class="st">"upper right"</span>)<span class="op">;</span> fig.tight_layout()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>noiseless recovery error: 4.121431046038432e-06</code></pre>
 </div>
-</div>
-<p>The reference CCF and a single perturbed day make the mechanism concrete: a velocity drop dilates the coda to later lapse times.</p>
-<div id="fe607f31" class="cell" data-execution_count="2">
-<details class="code-fold">
-<summary>The reference coda and a perturbed copy</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>cur <span class="op">=</span> sd.impose_dvv(s.ref, s.t, <span class="op">-</span><span class="fl">0.02</span>)  <span class="co"># exaggerated -2% for visibility</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">8.2</span>, <span class="fl">3.0</span>))</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>m <span class="op">=</span> (s.t <span class="op">&gt;=</span> <span class="dv">8</span>) <span class="op">&amp;</span> (s.t <span class="op">&lt;=</span> <span class="dv">30</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>ax.plot(s.t[m], s.ref[m], color<span class="op">=</span><span class="st">"0.2"</span>, lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"reference"</span>)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>ax.plot(s.t[m], cur[m], color<span class="op">=</span>sd.C[<span class="st">"landslide"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"after −2</span><span class="sc">% d</span><span class="st">v/v"</span>)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"lapse time (s)"</span>, ylabel<span class="op">=</span><span class="st">"amplitude"</span>,</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>       title<span class="op">=</span><span class="st">"A homogeneous velocity drop stretches the coda in lapse time"</span>)</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>ax.legend(loc<span class="op">=</span><span class="st">"upper right"</span>)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-3-output-1.png" width="1050" height="373" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-2-output-2.png" width="1050" height="321" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <hr>
-<section id="estimator-choice-landslide-match-the-method-to-the-size-of-the-change" class="level2">
-<h2 class="anchored" data-anchor-id="estimator-choice-landslide-match-the-method-to-the-size-of-the-change">1. Estimator choice (landslide): match the method to the size of the change</h2>
-<p>A pre-failure landslide rides a <span class="math inline">\(\sim\!1\%\)</span> rainfall-driven seasonal cycle and then drops by <strong>several percent</strong> before failure. For the small, stable seasonal part the two estimators <strong>agree</strong> — MWCS is built exactly for this regime, and here it tracks the truth as well as stretching. MWCS reads delays from the <strong>cross-spectral phase</strong>, though, which only lives on <span class="math inline">\((-\pi,\pi]\)</span>: once the late-lapse delay exceeds half a period the phase <strong>wraps</strong> and the estimate cycle-skips. So the divergence appears <em>only</em> at the large pre-failure drop, where stretching — matching the whole dilated coda at once — keeps following the signal. The lesson is not that one method is wrong, but that the <strong>expected size of <span class="math inline">\(\delta v/v\)</span> should pick the estimator</strong> (survey rule 4): MWCS for small, stable changes; stretching (or a wavelet/unwrapped method) when large transients are possible.</p>
-<div id="ee5178e5" class="cell" data-execution_count="3">
+<section id="estimator-choice-the-noisepy-yuan-et-al.-2021-suite" class="level2">
+<h2 class="anchored" data-anchor-id="estimator-choice-the-noisepy-yuan-et-al.-2021-suite">1. Estimator choice — the NoisePy / Yuan et al.&nbsp;(2021) suite</h2>
+<p>NoisePy’s <code>monitoring_methods</code> ships <strong>seven</strong> dv/v estimators — <code>stretching</code> (TS), <code>wcc_dvv</code> (windowed cross-correlation), <code>dtw_dvv</code> (dynamic time warping), <code>mwcs_dvv</code> (moving-window cross-spectrum), and three wavelet-domain methods <code>wxs_dvv</code>, <code>wts_dvv</code>, <code>wtdtw_dvv</code>. <strong>Yuan et al.&nbsp;(2021)</strong> benchmark all seven and find: <strong>TS and DTW are accurate</strong>, <strong>WCC underestimates</strong> by ~2 % (waveform distortion within its sliding windows), <strong>MWCS is fair but tends to overestimate</strong>, and the <strong>wavelet methods stay accurate across frequencies</strong>.</p>
+<p>Here we reproduce the three time-/frequency-domain estimators live (panel a: they agree on small, clean <span class="math inline">\(\delta v/v\)</span>). The difference that matters in practice appears at <strong>large</strong> <span class="math inline">\(\delta v/v\)</span> (panel b): MWCS reads delays from the cross-spectral phase, which wraps at half a period, so it <strong>cycle-skips</strong> once the change is large — while stretching and WCC keep tracking. The lesson is to <strong>match the estimator to the expected size of <span class="math inline">\(\delta v/v\)</span></strong>, not that any method is wrong.</p>
+<div id="236c5551" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sd.fig_method()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>sd.fig_methods()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-4-output-1.png" width="1147" height="529" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-3-output-1.png" width="1375" height="552" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <hr>
 </section>
-<section id="stacking-length-earthquake-resolution-vs-noise" class="level2">
-<h2 class="anchored" data-anchor-id="stacking-length-earthquake-resolution-vs-noise">2. Stacking length (earthquake): resolution vs noise</h2>
-<p>A coseismic <strong>step</strong> (here −0.22 %, partly healing) sits under a seasonal cycle. A 1-day CCF is noisy but captures the step’s timing; a long trailing stack suppresses noise but <strong>rounds off the step</strong> and delays it — the resolution / precision trade-off behind reference-and-stacking choices (survey rule 7).</p>
-<div id="d2700491" class="cell" data-execution_count="4">
+<section id="frequency-band-selects-the-depth-and-the-signal" class="level2">
+<h2 class="anchored" data-anchor-id="frequency-band-selects-the-depth-and-the-signal">2. Frequency band selects the depth — and the signal</h2>
+<p>Give the medium <strong>two layers</strong>: a shallow one with a strong seasonal cycle and a deep one with a multi-year drought trend, each living in a different part of the coda spectrum. Band high → you recover the shallow seasonal signal; band low → the deep trend. <strong>The band is not a free knob — it chooses what you measure</strong> (survey rule 6).</p>
+<div id="8fd80e26" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sd.fig_stacking()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sd.fig_frequency_depth()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-5-output-1.png" width="1118" height="529" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-4-output-1.png" width="1136" height="529" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <hr>
 </section>
-<section id="reference-choice-volcano-keep-or-erase-the-slow-trend" class="level2">
-<h2 class="anchored" data-anchor-id="reference-choice-volcano-keep-or-erase-the-slow-trend">3. Reference choice (volcano): keep or erase the slow trend</h2>
-<p>A slow pre-eruptive decline plus a sharp co-eruptive drop. A <strong>fixed</strong> reference recovers the full trend and drop; a <strong>60-day moving</strong> reference continuously re-baselines, so the slow decline — the very precursor of interest — is erased, and a spurious post-eruption overshoot appears (survey rule 7; the volcano “environmental correction” caution).</p>
-<div id="fd353635" class="cell" data-execution_count="5">
+<section id="the-coda-window-does-not-transfer-across-bands" class="level2">
+<h2 class="anchored" data-anchor-id="the-coda-window-does-not-transfer-across-bands">3. The coda window does not transfer across bands</h2>
+<p>A common deviation: pick one lapse window (say 20–40 s) and reuse it at every frequency. But the coda <strong>decays faster at high frequency</strong> (<span class="math inline">\(A(t)\propto
+e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency is <strong>pure noise</strong> at high frequency (panel a). Measuring the high band in that fixed late window returns garbage; an earlier, SNR-matched window recovers the truth (panel b). The window must scale with the band — ideally set from the coda envelope / a fixed number of mean-free-times, not copied across bands.</p>
+<div id="fce0bf0f" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sd.fig_reference()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sd.fig_window_band()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-6-output-1.png" width="1258" height="529" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-5-output-1.png" width="1419" height="552" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <hr>
 </section>
-<section id="frequency-band-groundwater-the-band-selects-the-depth" class="level2">
-<h2 class="anchored" data-anchor-id="frequency-band-groundwater-the-band-selects-the-depth">4. Frequency band (groundwater): the band selects the depth</h2>
-<p>Here the medium has <strong>two layers</strong> with different histories: a shallow layer with a strong seasonal cycle and a deep layer with a muted seasonal plus a multi-year drought trend. Each lives in a different part of the coda spectrum. Band the data high (1.5–6 Hz) and you recover the shallow seasonal signal; band it low (0.2–0.8 Hz) and you recover the deep drought trend. <strong>The band is not a free knob — it chooses what you are measuring</strong> (survey rule 6).</p>
-<div id="0e486532" class="cell" data-execution_count="6">
+<section id="stacking-length-resolution-vs-noise" class="level2">
+<h2 class="anchored" data-anchor-id="stacking-length-resolution-vs-noise">4. Stacking length — resolution vs noise</h2>
+<p>A coseismic <strong>step</strong> under a seasonal cycle. A 1-day CCF is noisy but captures the step’s timing; a long trailing stack suppresses noise but <strong>rounds off and delays the step</strong> — the resolution/precision trade-off behind stacking choices (survey rule 7).</p>
+<div id="35acbe08" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sd.fig_frequency_depth()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sd.fig_stacking()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-7-output-1.png" width="1136" height="529" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-6-output-1.png" width="1118" height="529" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="reference-strategy-total-stack-moving-or-joint-inversion" class="level2">
+<h2 class="anchored" data-anchor-id="reference-strategy-total-stack-moving-or-joint-inversion">5. Reference strategy — total stack, moving, or joint inversion</h2>
+<p>How you define the reference sets what survives. A <strong>total-stack</strong> reference is unbiased but noisy; a <strong>moving</strong> reference re-baselines continuously and so <strong>erases slow trends</strong> (the pre-eruptive decline vanishes); the <strong>Brenguier et al.&nbsp;(2014) joint inversion</strong> measures relative <span class="math inline">\(\delta v/v\)</span> between many short stacks and inverts <code>x_i − x_j = m_{ij}</code> with a smoothness penalty — robust to any single reference <em>and</em> trend-preserving.</p>
+<div id="5b925011" class="cell" data-execution_count="6">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sd.fig_reference()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="survey-synthetic-demo_files/figure-html/cell-7-output-1.png" width="1276" height="555" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="deviations-that-manufacture-dvv" class="level2">
+<h2 class="anchored" data-anchor-id="deviations-that-manufacture-dvv">6. Deviations that <em>manufacture</em> dv/v</h2>
+<p>Not every wiggle is a velocity change. Two classic instrument/environment artefacts inject <strong>spurious</strong> <span class="math inline">\(\delta v/v\)</span>:</p>
+<ul>
+<li><strong>Station clock error</strong> (panel a). A timing drift delays the whole CCF — a <em>constant</em> lag, independent of lapse — so it appears with <strong>opposite sign on the causal and acausal branches</strong>. A real velocity change moves both the same way, so measuring the two branches separately is the diagnostic.</li>
+<li><strong>Seasonal noise in the late coda</strong> (panel b). A seasonally changing noise-source distribution warps the low-SNR late coda, so a <strong>late</strong> window reports a coherent spurious <em>seasonal</em> <span class="math inline">\(\delta v/v\)</span> many times the real signal, while an <strong>early</strong>, higher-SNR window stays clean (the Zhan 2013 / Daskalakis 2016 warning).</li>
+</ul>
+<div id="372cce5e" class="cell" data-execution_count="7">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sd.fig_artifacts()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="survey-synthetic-demo_files/figure-html/cell-8-output-1.png" width="1402" height="552" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -727,17 +762,17 @@ window.Quarto = {
 <hr>
 </section>
 <section id="the-garden-of-forking-paths" class="level2">
-<h2 class="anchored" data-anchor-id="the-garden-of-forking-paths">5. The garden of forking paths</h2>
-<p>Finally, take one volcano dataset and run <strong>27 individually defensible pipelines</strong> (3 frequency bands × 3 coda windows × 3 stack lengths), all with a common pre-eruption reference. The median tracks the truth, but the 10–90 % spread across pipelines fans out <strong>most where it matters</strong> — at the sharp co-eruptive drop. The honest object is therefore a <em>distribution</em> of <span class="math inline">\(\delta v/v\)</span> over processing choices, which is precisely what <a href="https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/uq_processing.py"><code>codameter.uq_processing</code></a> samples and marginalizes.</p>
-<div id="adbf8e46" class="cell" data-execution_count="7">
+<h2 class="anchored" data-anchor-id="the-garden-of-forking-paths">7. The garden of forking paths</h2>
+<p>Finally, take one volcano dataset and run <strong>27 individually defensible pipelines</strong> (3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The median tracks the truth, but the 10–90 % spread across pipelines fans out <strong>most where it matters</strong> — at the sharp co-eruptive drop. The honest object is a <em>distribution</em> of <span class="math inline">\(\delta v/v\)</span> over processing choices, which is exactly what <a href="https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/uq_processing.py"><code>codameter.uq_processing</code></a> samples and marginalizes.</p>
+<div id="45e0aa85" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sd.fig_multiverse()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sd.fig_multiverse()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-8-output-1.png" width="1102" height="555" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-9-output-1.png" width="1102" height="555" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -754,40 +789,55 @@ window.Quarto = {
 </colgroup>
 <thead>
 <tr class="header">
-<th>Choice</th>
-<th>Application here</th>
-<th>Failure mode if chosen poorly</th>
+<th>Choice / deviation</th>
+<th>Shown with</th>
+<th>Consequence of deviating</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Estimator (stretching vs MWCS)</td>
-<td>Landslide</td>
-<td>MWCS suits small/stable dv/v; large transients need stretching</td>
+<td>Estimator (TS / WCC / DTW / MWCS / wavelet)</td>
+<td>Yuan 2021 suite</td>
+<td>MWCS cycle-skips at large dv/v; WCC ~2 % low; pick for the signal size</td>
+</tr>
+<tr class="even">
+<td>Frequency band</td>
+<td>Groundwater 2-layer</td>
+<td>Band selects depth → a <em>different</em> signal</td>
+</tr>
+<tr class="odd">
+<td>Coda window vs band</td>
+<td>Frequency-dependent coda</td>
+<td>A fixed late window is pure noise at high frequency</td>
 </tr>
 <tr class="even">
 <td>Stack length</td>
-<td>Earthquake</td>
-<td>Long stack smears the coseismic step</td>
+<td>Earthquake step</td>
+<td>Long stack smears and delays the step</td>
 </tr>
 <tr class="odd">
 <td>Reference scheme</td>
 <td>Volcano</td>
-<td>Moving reference erases the slow trend</td>
+<td>Moving reference erases the trend; joint inversion is robust</td>
 </tr>
 <tr class="even">
-<td>Frequency band</td>
-<td>Groundwater</td>
-<td>Band selects depth → a <em>different</em> signal</td>
+<td>Clock error</td>
+<td>Stable medium</td>
+<td>Spurious dv/v, opposite-sign on causal vs acausal branches</td>
 </tr>
 <tr class="odd">
+<td>Seasonal late-coda noise</td>
+<td>Stable medium</td>
+<td>Spurious <em>seasonal</em> dv/v from a late window</td>
+</tr>
+<tr class="even">
 <td>All of the above</td>
-<td>(multiverse)</td>
+<td>Multiverse</td>
 <td>Spread across pipelines ≈ size of the signal</td>
 </tr>
 </tbody>
 </table>
-<p>The constructive response is the survey’s <a href="./survey-best-practices.html#cross-cutting-methodology-rules">cross-cutting rules</a>: quantify the within-choice error (Weaver/Clarke), pick band and window for the target depth via lapse-time kernels, fix the reference deliberately, and — when in doubt — <strong>sample the choices and report the marginal</strong>.</p>
+<p>The constructive response is the survey’s <a href="./survey-best-practices.html#cross-cutting-methodology-rules">cross-cutting rules</a>: quantify the within-choice error, scale the band/window to the target depth, fix the reference deliberately, check the causal/acausal branches for timing errors, weight by SNR, and — when in doubt — <strong>sample the choices and report the marginal</strong>.</p>
 <p><em>Reproduce locally:</em> <code>pixi run python literature/synthetic_dvv_demo.py</code>.</p>
 
 
@@ -1277,178 +1327,213 @@ window.Quarto = {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "How processing choices move dv/v — a synthetic demonstration"</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Known truth in, choices applied, artefacts out"</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> codameter-pixi</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: false</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">  echo: true</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="an">toc:</span><span class="co"> true</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="an">toc-depth:</span><span class="co"> 2</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>::: {.keyidea}</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">The experiment</span><span class="co">]</span>{.k-title}</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>We synthesize a **reference coda** cross-correlation function (CCF), repeat it</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>over three years while imposing a **known** ground-truth $\delta v/v(t)$ for each</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>application, and add measurement noise. Then we *measure $\delta v/v$ back* under</span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>different processing choices. Because the truth is known, **every gap between the</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>recovered curve and the black truth line is an artefact of a choice** — not of</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>nature. This is the waveform-level companion to the</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">best-practice survey</span><span class="co">](survey-best-practices.qmd)</span> and its</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">references</span><span class="co">](survey-references.qmd)</span>.</span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>The machinery lives in</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`codameter.synthetic_demo`</span><span class="co">](https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/synthetic_demo.py)</span>:</span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>a band-limited, multiply-scattered coda with a decaying envelope</span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>(<span class="in">`make_coda`</span>), a homogeneous velocity change applied by stretching the coda in</span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>lapse time (<span class="in">`impose_dvv`</span>), daily noisy CCFs (<span class="in">`daily_ccfs`</span>), and two estimators —</span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>**stretching** (grid-search the stretch that maximizes windowed correlation) and</span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>**MWCS** (delay from the cross-spectral phase per lapse sub-window, then the</span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>slope of $dt$ vs lapse). A noiseless self-check confirms the recovery returns the</span>
-<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>imposed value to $\sim<span class="sc">\!</span>10^{-6}$.</span>
-<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "Set up — imports and house style"</span></span>
-<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter <span class="im">import</span> synthetic_demo <span class="im">as</span> sd</span>
-<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>sd.apply_style()</span>
-<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Confirm the measurement is unbiased on clean data before trusting it on noisy data.</span></span>
-<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> sd.Synth()</span>
-<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>truth <span class="op">=</span> np.array([<span class="op">-</span><span class="fl">0.003</span>, <span class="fl">0.0</span>, <span class="fl">0.004</span>])</span>
-<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>cur <span class="op">=</span> np.stack([sd.impose_dvv(s.ref, s.t, x) <span class="cf">for</span> x <span class="kw">in</span> truth])</span>
-<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>rec, cc <span class="op">=</span> sd.measure_stretching(cur, s.ref, s.t, band<span class="op">=</span>(<span class="fl">0.3</span>, <span class="fl">2.0</span>), fs<span class="op">=</span>s.fs, window<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">35</span>))</span>
-<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"noiseless recovery error:"</span>, np.<span class="bu">max</span>(np.<span class="bu">abs</span>(rec <span class="op">-</span> truth)))</span>
-<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a>The reference CCF and a single perturbed day make the mechanism concrete: a</span>
-<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a>velocity drop dilates the coda to later lapse times.</span>
-<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "The reference coda and a perturbed copy"</span></span>
-<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a>cur <span class="op">=</span> sd.impose_dvv(s.ref, s.t, <span class="op">-</span><span class="fl">0.02</span>)  <span class="co"># exaggerated -2% for visibility</span></span>
-<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">8.2</span>, <span class="fl">3.0</span>))</span>
-<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>m <span class="op">=</span> (s.t <span class="op">&gt;=</span> <span class="dv">8</span>) <span class="op">&amp;</span> (s.t <span class="op">&lt;=</span> <span class="dv">30</span>)</span>
-<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>ax.plot(s.t[m], s.ref[m], color<span class="op">=</span><span class="st">"0.2"</span>, lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"reference"</span>)</span>
-<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a>ax.plot(s.t[m], cur[m], color<span class="op">=</span>sd.C[<span class="st">"landslide"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"after −2</span><span class="sc">% d</span><span class="st">v/v"</span>)</span>
-<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"lapse time (s)"</span>, ylabel<span class="op">=</span><span class="st">"amplitude"</span>,</span>
-<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a>       title<span class="op">=</span><span class="st">"A homogeneous velocity drop stretches the coda in lapse time"</span>)</span>
-<span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a>ax.legend(loc<span class="op">=</span><span class="st">"upper right"</span>)</span>
-<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
-<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. Estimator choice (landslide): match the method to the size of the change</span></span>
-<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a>A pre-failure landslide rides a $\sim<span class="sc">\!</span>1\%$ rainfall-driven seasonal cycle and</span>
-<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a>then drops by **several percent** before failure. For the small, stable seasonal</span>
-<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a>part the two estimators **agree** — MWCS is built exactly for this regime, and</span>
-<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>here it tracks the truth as well as stretching. MWCS reads delays from the</span>
-<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a>**cross-spectral phase**, though, which only lives on $(-\pi,\pi]$: once the</span>
-<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a>late-lapse delay exceeds half a period the phase **wraps** and the estimate</span>
-<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a>cycle-skips. So the divergence appears *only* at the large pre-failure drop,</span>
-<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a>where stretching — matching the whole dilated coda at once — keeps following the</span>
-<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a>signal. The lesson is not that one method is wrong, but that the **expected size</span>
-<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a>of $\delta v/v$ should pick the estimator** (survey rule 4): MWCS for small,</span>
-<span id="cb9-87"><a href="#cb9-87" aria-hidden="true" tabindex="-1"></a>stable changes; stretching (or a wavelet/unwrapped method) when large transients</span>
-<span id="cb9-88"><a href="#cb9-88" aria-hidden="true" tabindex="-1"></a>are possible.</span>
-<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a>sd.fig_method()<span class="op">;</span></span>
-<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-99"><a href="#cb9-99" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2. Stacking length (earthquake): resolution vs noise</span></span>
-<span id="cb9-100"><a href="#cb9-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a>A coseismic **step** (here −0.22 %, partly healing) sits under a seasonal cycle.</span>
-<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a>A 1-day CCF is noisy but captures the step's timing; a long trailing stack</span>
-<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a>suppresses noise but **rounds off the step** and delays it — the resolution /</span>
-<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a>precision trade-off behind reference-and-stacking choices (survey rule 7).</span>
-<span id="cb9-105"><a href="#cb9-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-108"><a href="#cb9-108" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-109"><a href="#cb9-109" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a>sd.fig_stacking()<span class="op">;</span></span>
-<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. Reference choice (volcano): keep or erase the slow trend</span></span>
-<span id="cb9-116"><a href="#cb9-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-117"><a href="#cb9-117" aria-hidden="true" tabindex="-1"></a>A slow pre-eruptive decline plus a sharp co-eruptive drop. A **fixed** reference</span>
-<span id="cb9-118"><a href="#cb9-118" aria-hidden="true" tabindex="-1"></a>recovers the full trend and drop; a **60-day moving** reference continuously</span>
-<span id="cb9-119"><a href="#cb9-119" aria-hidden="true" tabindex="-1"></a>re-baselines, so the slow decline — the very precursor of interest — is erased,</span>
-<span id="cb9-120"><a href="#cb9-120" aria-hidden="true" tabindex="-1"></a>and a spurious post-eruption overshoot appears (survey rule 7; the volcano</span>
-<span id="cb9-121"><a href="#cb9-121" aria-hidden="true" tabindex="-1"></a>"environmental correction" caution).</span>
-<span id="cb9-122"><a href="#cb9-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-125"><a href="#cb9-125" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-126"><a href="#cb9-126" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb9-127"><a href="#cb9-127" aria-hidden="true" tabindex="-1"></a>sd.fig_reference()<span class="op">;</span></span>
-<span id="cb9-128"><a href="#cb9-128" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-129"><a href="#cb9-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-130"><a href="#cb9-130" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-131"><a href="#cb9-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-132"><a href="#cb9-132" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4. Frequency band (groundwater): the band selects the depth</span></span>
-<span id="cb9-133"><a href="#cb9-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-134"><a href="#cb9-134" aria-hidden="true" tabindex="-1"></a>Here the medium has **two layers** with different histories: a shallow layer with</span>
-<span id="cb9-135"><a href="#cb9-135" aria-hidden="true" tabindex="-1"></a>a strong seasonal cycle and a deep layer with a muted seasonal plus a multi-year</span>
-<span id="cb9-136"><a href="#cb9-136" aria-hidden="true" tabindex="-1"></a>drought trend. Each lives in a different part of the coda spectrum. Band the data</span>
-<span id="cb9-137"><a href="#cb9-137" aria-hidden="true" tabindex="-1"></a>high (1.5–6 Hz) and you recover the shallow seasonal signal; band it low</span>
-<span id="cb9-138"><a href="#cb9-138" aria-hidden="true" tabindex="-1"></a>(0.2–0.8 Hz) and you recover the deep drought trend. **The band is not a free</span>
-<span id="cb9-139"><a href="#cb9-139" aria-hidden="true" tabindex="-1"></a>knob — it chooses what you are measuring** (survey rule 6).</span>
-<span id="cb9-140"><a href="#cb9-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-143"><a href="#cb9-143" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-144"><a href="#cb9-144" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb9-145"><a href="#cb9-145" aria-hidden="true" tabindex="-1"></a>sd.fig_frequency_depth()<span class="op">;</span></span>
-<span id="cb9-146"><a href="#cb9-146" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-147"><a href="#cb9-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-148"><a href="#cb9-148" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-149"><a href="#cb9-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-150"><a href="#cb9-150" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5. The garden of forking paths</span></span>
-<span id="cb9-151"><a href="#cb9-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-152"><a href="#cb9-152" aria-hidden="true" tabindex="-1"></a>Finally, take one volcano dataset and run **27 individually defensible</span>
-<span id="cb9-153"><a href="#cb9-153" aria-hidden="true" tabindex="-1"></a>pipelines** (3 frequency bands × 3 coda windows × 3 stack lengths), all with a</span>
-<span id="cb9-154"><a href="#cb9-154" aria-hidden="true" tabindex="-1"></a>common pre-eruption reference. The median tracks the truth, but the</span>
-<span id="cb9-155"><a href="#cb9-155" aria-hidden="true" tabindex="-1"></a>10–90 % spread across pipelines fans out **most where it matters** — at the sharp</span>
-<span id="cb9-156"><a href="#cb9-156" aria-hidden="true" tabindex="-1"></a>co-eruptive drop. The honest object is therefore a *distribution* of $\delta v/v$</span>
-<span id="cb9-157"><a href="#cb9-157" aria-hidden="true" tabindex="-1"></a>over processing choices, which is precisely what</span>
-<span id="cb9-158"><a href="#cb9-158" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`codameter.uq_processing`</span><span class="co">](https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/uq_processing.py)</span></span>
-<span id="cb9-159"><a href="#cb9-159" aria-hidden="true" tabindex="-1"></a>samples and marginalizes.</span>
-<span id="cb9-160"><a href="#cb9-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-163"><a href="#cb9-163" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-164"><a href="#cb9-164" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb9-165"><a href="#cb9-165" aria-hidden="true" tabindex="-1"></a>sd.fig_multiverse()<span class="op">;</span></span>
-<span id="cb9-166"><a href="#cb9-166" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-167"><a href="#cb9-167" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-168"><a href="#cb9-168" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-169"><a href="#cb9-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-170"><a href="#cb9-170" aria-hidden="true" tabindex="-1"></a><span class="fu">## Takeaways</span></span>
-<span id="cb9-171"><a href="#cb9-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-172"><a href="#cb9-172" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Choice <span class="pp">|</span> Application here <span class="pp">|</span> Failure mode if chosen poorly <span class="pp">|</span></span>
-<span id="cb9-173"><a href="#cb9-173" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
-<span id="cb9-174"><a href="#cb9-174" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Estimator (stretching vs MWCS) <span class="pp">|</span> Landslide <span class="pp">|</span> MWCS suits small/stable dv/v; large transients need stretching <span class="pp">|</span></span>
-<span id="cb9-175"><a href="#cb9-175" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stack length <span class="pp">|</span> Earthquake <span class="pp">|</span> Long stack smears the coseismic step <span class="pp">|</span></span>
-<span id="cb9-176"><a href="#cb9-176" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Reference scheme <span class="pp">|</span> Volcano <span class="pp">|</span> Moving reference erases the slow trend <span class="pp">|</span></span>
-<span id="cb9-177"><a href="#cb9-177" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> Groundwater <span class="pp">|</span> Band selects depth → a *different* signal <span class="pp">|</span></span>
-<span id="cb9-178"><a href="#cb9-178" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> All of the above <span class="pp">|</span> (multiverse) <span class="pp">|</span> Spread across pipelines ≈ size of the signal <span class="pp">|</span></span>
-<span id="cb9-179"><a href="#cb9-179" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-180"><a href="#cb9-180" aria-hidden="true" tabindex="-1"></a>The constructive response is the survey's</span>
-<span id="cb9-181"><a href="#cb9-181" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">cross-cutting rules</span><span class="co">](survey-best-practices.qmd#cross-cutting-methodology-rules)</span>:</span>
-<span id="cb9-182"><a href="#cb9-182" aria-hidden="true" tabindex="-1"></a>quantify the within-choice error (Weaver/Clarke), pick band and window for the</span>
-<span id="cb9-183"><a href="#cb9-183" aria-hidden="true" tabindex="-1"></a>target depth via lapse-time kernels, fix the reference deliberately, and — when</span>
-<span id="cb9-184"><a href="#cb9-184" aria-hidden="true" tabindex="-1"></a>in doubt — **sample the choices and report the marginal**.</span>
-<span id="cb9-185"><a href="#cb9-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-186"><a href="#cb9-186" aria-hidden="true" tabindex="-1"></a>*Reproduce locally:* <span class="in">`pixi run python literature/synthetic_dvv_demo.py`</span>.</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "How processing choices move dv/v — a synthetic demonstration"</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Known truth in, choices applied, artefacts out"</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> codameter-pixi</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: false</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">  echo: true</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="an">toc:</span><span class="co"> true</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="an">toc-depth:</span><span class="co"> 2</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>::: {.keyidea}</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">The experiment</span><span class="co">]</span>{.k-title}</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>We synthesize a **reference coda** cross-correlation function (CCF), repeat it</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>over three years while imposing a **known** ground-truth $\delta v/v(t)$, and add</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>measurement noise. Then we *measure $\delta v/v$ back* under different processing</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>choices — and, deliberately, some **deviations from best practice**: the wrong</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>estimator for the signal size, a coda window reused across frequency bands, a</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>moving reference, a station clock error, seasonal noise in the late coda. Because</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>the truth is known, **every gap is an artefact of a choice**, not of nature. This</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>is the waveform-level companion to the <span class="co">[</span><span class="ot">best-practice survey</span><span class="co">](survey-best-practices.qmd)</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>and its <span class="co">[</span><span class="ot">references</span><span class="co">](survey-references.qmd)</span>.</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>The machinery lives in</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`codameter.synthetic_demo`</span><span class="co">](https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/synthetic_demo.py)</span>:</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>a band-limited, multiply-scattered coda (<span class="in">`make_coda`</span>, and a</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>frequency-dependent-decay variant <span class="in">`make_freqdep_coda`</span>), a homogeneous velocity</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>change applied by stretching the coda (<span class="in">`impose_dvv`</span>), daily noisy CCFs</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>(<span class="in">`daily_ccfs`</span>), artefact injectors (<span class="in">`add_clock_drift`</span>,</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a><span class="in">`add_seasonal_late_noise`</span>), and the estimators below. A noiseless self-check</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>confirms recovery to $\sim<span class="sc">\!</span>10^{-6}$.</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "Set up — imports, style, self-check, and the coda waveform"</span></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter <span class="im">import</span> synthetic_demo <span class="im">as</span> sd</span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>sd.apply_style()</span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> sd.Synth()</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>truth <span class="op">=</span> np.array([<span class="op">-</span><span class="fl">0.003</span>, <span class="fl">0.0</span>, <span class="fl">0.004</span>])</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>cur <span class="op">=</span> np.stack([sd.impose_dvv(s.ref, s.t, x) <span class="cf">for</span> x <span class="kw">in</span> truth])</span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>rec, cc <span class="op">=</span> sd.measure_stretching(cur, s.ref, s.t, band<span class="op">=</span>(<span class="fl">0.3</span>, <span class="fl">2.0</span>), fs<span class="op">=</span>s.fs, window<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">35</span>))</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"noiseless recovery error:"</span>, <span class="bu">float</span>(np.<span class="bu">max</span>(np.<span class="bu">abs</span>(rec <span class="op">-</span> truth))))</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>cur2 <span class="op">=</span> sd.impose_dvv(s.ref, s.t, <span class="op">-</span><span class="fl">0.02</span>)  <span class="co"># exaggerated −2 % for visibility</span></span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">8.2</span>, <span class="fl">2.6</span>))</span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>m <span class="op">=</span> (s.t <span class="op">&gt;=</span> <span class="dv">8</span>) <span class="op">&amp;</span> (s.t <span class="op">&lt;=</span> <span class="dv">30</span>)</span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>ax.plot(s.t[m], s.ref[m], color<span class="op">=</span><span class="st">"0.2"</span>, lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"reference"</span>)</span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>ax.plot(s.t[m], cur2[m], color<span class="op">=</span>sd.C[<span class="st">"landslide"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"after −2 </span><span class="sc">% d</span><span class="st">v/v"</span>)</span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"lapse time (s)"</span>, ylabel<span class="op">=</span><span class="st">"amp"</span>, title<span class="op">=</span><span class="st">"A velocity drop stretches the coda"</span>)</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>ax.legend(loc<span class="op">=</span><span class="st">"upper right"</span>)<span class="op">;</span> fig.tight_layout()</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. Estimator choice — the NoisePy / Yuan et al. (2021) suite</span></span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>NoisePy's <span class="in">`monitoring_methods`</span> ships **seven** dv/v estimators —</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a><span class="in">`stretching`</span> (TS), <span class="in">`wcc_dvv`</span> (windowed cross-correlation), <span class="in">`dtw_dvv`</span> (dynamic</span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>time warping), <span class="in">`mwcs_dvv`</span> (moving-window cross-spectrum), and three</span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>wavelet-domain methods <span class="in">`wxs_dvv`</span>, <span class="in">`wts_dvv`</span>, <span class="in">`wtdtw_dvv`</span>. **Yuan et al. (2021)**</span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>benchmark all seven and find: **TS and DTW are accurate**, **WCC underestimates**</span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>by ~2 % (waveform distortion within its sliding windows), **MWCS is fair but</span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>tends to overestimate**, and the **wavelet methods stay accurate across</span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>frequencies**.</span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>Here we reproduce the three time-/frequency-domain estimators live (panel a:</span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a>they agree on small, clean $\delta v/v$). The difference that matters in practice</span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>appears at **large** $\delta v/v$ (panel b): MWCS reads delays from the</span>
+<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a>cross-spectral phase, which wraps at half a period, so it **cycle-skips** once</span>
+<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a>the change is large — while stretching and WCC keep tracking. The lesson is to</span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a>**match the estimator to the expected size of $\delta v/v$**, not that any method</span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>is wrong.</span>
+<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a>sd.fig_methods()<span class="op">;</span></span>
+<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2. Frequency band selects the depth — and the signal</span></span>
+<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a>Give the medium **two layers**: a shallow one with a strong seasonal cycle and a</span>
+<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a>deep one with a multi-year drought trend, each living in a different part of the</span>
+<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>coda spectrum. Band high → you recover the shallow seasonal signal; band low →</span>
+<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a>the deep trend. **The band is not a free knob — it chooses what you measure**</span>
+<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a>(survey rule 6).</span>
+<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a>sd.fig_frequency_depth()<span class="op">;</span></span>
+<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. The coda window does not transfer across bands</span></span>
+<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>A common deviation: pick one lapse window (say 20–40 s) and reuse it at every</span>
+<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>frequency. But the coda **decays faster at high frequency** ($A(t)\propto</span>
+<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>e^{-\pi f t/Q_c}$), so a window that is full of signal at low frequency is **pure</span>
+<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a>noise** at high frequency (panel a). Measuring the high band in that fixed late</span>
+<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>window returns garbage; an earlier, SNR-matched window recovers the truth (panel</span>
+<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>b). The window must scale with the band — ideally set from the coda envelope / a</span>
+<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>fixed number of mean-free-times, not copied across bands.</span>
+<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a>sd.fig_window_band()<span class="op">;</span></span>
+<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4. Stacking length — resolution vs noise</span></span>
+<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>A coseismic **step** under a seasonal cycle. A 1-day CCF is noisy but captures</span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>the step's timing; a long trailing stack suppresses noise but **rounds off and</span>
+<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>delays the step** — the resolution/precision trade-off behind stacking choices</span>
+<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>(survey rule 7).</span>
+<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>sd.fig_stacking()<span class="op">;</span></span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5. Reference strategy — total stack, moving, or joint inversion</span></span>
+<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>How you define the reference sets what survives. A **total-stack** reference is</span>
+<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>unbiased but noisy; a **moving** reference re-baselines continuously and so</span>
+<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>**erases slow trends** (the pre-eruptive decline vanishes); the **Brenguier et</span>
+<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>al. (2014) joint inversion** measures relative $\delta v/v$ between many short</span>
+<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>stacks and inverts ``x_i − x_j = m_{ij}`` with a smoothness penalty — robust to</span>
+<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a>any single reference *and* trend-preserving.</span>
+<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a>sd.fig_reference()<span class="op">;</span></span>
+<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a><span class="fu">## 6. Deviations that *manufacture* dv/v</span></span>
+<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a>Not every wiggle is a velocity change. Two classic instrument/environment</span>
+<span id="cb10-163"><a href="#cb10-163" aria-hidden="true" tabindex="-1"></a>artefacts inject **spurious** $\delta v/v$:</span>
+<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Station clock error** (panel a). A timing drift delays the whole CCF — a</span>
+<span id="cb10-166"><a href="#cb10-166" aria-hidden="true" tabindex="-1"></a>  *constant* lag, independent of lapse — so it appears with **opposite sign on</span>
+<span id="cb10-167"><a href="#cb10-167" aria-hidden="true" tabindex="-1"></a>  the causal and acausal branches**. A real velocity change moves both the same</span>
+<span id="cb10-168"><a href="#cb10-168" aria-hidden="true" tabindex="-1"></a>  way, so measuring the two branches separately is the diagnostic.</span>
+<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Seasonal noise in the late coda** (panel b). A seasonally changing</span>
+<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a>  noise-source distribution warps the low-SNR late coda, so a **late** window</span>
+<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a>  reports a coherent spurious *seasonal* $\delta v/v$ many times the real signal,</span>
+<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a>  while an **early**, higher-SNR window stays clean (the Zhan 2013 /</span>
+<span id="cb10-173"><a href="#cb10-173" aria-hidden="true" tabindex="-1"></a>  Daskalakis 2016 warning).</span>
+<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a>sd.fig_artifacts()<span class="op">;</span></span>
+<span id="cb10-180"><a href="#cb10-180" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-181"><a href="#cb10-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-182"><a href="#cb10-182" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-184"><a href="#cb10-184" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. The garden of forking paths</span></span>
+<span id="cb10-185"><a href="#cb10-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-186"><a href="#cb10-186" aria-hidden="true" tabindex="-1"></a>Finally, take one volcano dataset and run **27 individually defensible pipelines**</span>
+<span id="cb10-187"><a href="#cb10-187" aria-hidden="true" tabindex="-1"></a>(3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The</span>
+<span id="cb10-188"><a href="#cb10-188" aria-hidden="true" tabindex="-1"></a>median tracks the truth, but the 10–90 % spread across pipelines fans out **most</span>
+<span id="cb10-189"><a href="#cb10-189" aria-hidden="true" tabindex="-1"></a>where it matters** — at the sharp co-eruptive drop. The honest object is a</span>
+<span id="cb10-190"><a href="#cb10-190" aria-hidden="true" tabindex="-1"></a>*distribution* of $\delta v/v$ over processing choices, which is exactly what</span>
+<span id="cb10-191"><a href="#cb10-191" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`codameter.uq_processing`</span><span class="co">](https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/uq_processing.py)</span></span>
+<span id="cb10-192"><a href="#cb10-192" aria-hidden="true" tabindex="-1"></a>samples and marginalizes.</span>
+<span id="cb10-193"><a href="#cb10-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-196"><a href="#cb10-196" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb10-197"><a href="#cb10-197" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb10-198"><a href="#cb10-198" aria-hidden="true" tabindex="-1"></a>sd.fig_multiverse()<span class="op">;</span></span>
+<span id="cb10-199"><a href="#cb10-199" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-200"><a href="#cb10-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-201"><a href="#cb10-201" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb10-202"><a href="#cb10-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-203"><a href="#cb10-203" aria-hidden="true" tabindex="-1"></a><span class="fu">## Takeaways</span></span>
+<span id="cb10-204"><a href="#cb10-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-205"><a href="#cb10-205" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Choice / deviation <span class="pp">|</span> Shown with <span class="pp">|</span> Consequence of deviating <span class="pp">|</span></span>
+<span id="cb10-206"><a href="#cb10-206" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
+<span id="cb10-207"><a href="#cb10-207" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Estimator (TS / WCC / DTW / MWCS / wavelet) <span class="pp">|</span> Yuan 2021 suite <span class="pp">|</span> MWCS cycle-skips at large dv/v; WCC ~2 % low; pick for the signal size <span class="pp">|</span></span>
+<span id="cb10-208"><a href="#cb10-208" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> Groundwater 2-layer <span class="pp">|</span> Band selects depth → a *different* signal <span class="pp">|</span></span>
+<span id="cb10-209"><a href="#cb10-209" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda window vs band <span class="pp">|</span> Frequency-dependent coda <span class="pp">|</span> A fixed late window is pure noise at high frequency <span class="pp">|</span></span>
+<span id="cb10-210"><a href="#cb10-210" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stack length <span class="pp">|</span> Earthquake step <span class="pp">|</span> Long stack smears and delays the step <span class="pp">|</span></span>
+<span id="cb10-211"><a href="#cb10-211" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Reference scheme <span class="pp">|</span> Volcano <span class="pp">|</span> Moving reference erases the trend; joint inversion is robust <span class="pp">|</span></span>
+<span id="cb10-212"><a href="#cb10-212" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Clock error <span class="pp">|</span> Stable medium <span class="pp">|</span> Spurious dv/v, opposite-sign on causal vs acausal branches <span class="pp">|</span></span>
+<span id="cb10-213"><a href="#cb10-213" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Seasonal late-coda noise <span class="pp">|</span> Stable medium <span class="pp">|</span> Spurious *seasonal* dv/v from a late window <span class="pp">|</span></span>
+<span id="cb10-214"><a href="#cb10-214" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> All of the above <span class="pp">|</span> Multiverse <span class="pp">|</span> Spread across pipelines ≈ size of the signal <span class="pp">|</span></span>
+<span id="cb10-215"><a href="#cb10-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-216"><a href="#cb10-216" aria-hidden="true" tabindex="-1"></a>The constructive response is the survey's</span>
+<span id="cb10-217"><a href="#cb10-217" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">cross-cutting rules</span><span class="co">](survey-best-practices.qmd#cross-cutting-methodology-rules)</span>:</span>
+<span id="cb10-218"><a href="#cb10-218" aria-hidden="true" tabindex="-1"></a>quantify the within-choice error, scale the band/window to the target depth, fix</span>
+<span id="cb10-219"><a href="#cb10-219" aria-hidden="true" tabindex="-1"></a>the reference deliberately, check the causal/acausal branches for timing errors,</span>
+<span id="cb10-220"><a href="#cb10-220" aria-hidden="true" tabindex="-1"></a>weight by SNR, and — when in doubt — **sample the choices and report the</span>
+<span id="cb10-221"><a href="#cb10-221" aria-hidden="true" tabindex="-1"></a>marginal**.</span>
+<span id="cb10-222"><a href="#cb10-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-223"><a href="#cb10-223" aria-hidden="true" tabindex="-1"></a>*Reproduce locally:* <span class="in">`pixi run python literature/synthetic_dvv_demo.py`</span>.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
