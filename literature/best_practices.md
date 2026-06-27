@@ -1,0 +1,141 @@
+# Best-practice rules for dv/v passive monitoring, by application
+
+Synthesis of the processing-parameter ranges and rules-of-thumb extracted from
+the literature scan (see [dvv_processing_parameters.md](dvv_processing_parameters.md)
+for the per-study table and [dvv_processing_parameters.csv](dvv_processing_parameters.csv)
+for the machine-readable data). Citations refer to rows in that table.
+
+---
+
+## Cross-cutting methodology rules
+
+These hold across all applications (sources: Snieder 2002; Sens-Schönfelder &
+Wegler 2006; Bensen 2007; Hadziioannou 2009/2011; Clarke 2011; Weaver 2011;
+Obermann 2013/2016; Zhan 2013; Lecocq 2014; Mikesell 2015; Stehly 2015;
+Daskalakis 2016; Wang 2017; Obermann & Hillers 2019; Jiang & Denolle 2020;
+Wang & Yao 2020; Yuan 2021).
+
+1. **Coda time shift equals −dv/v for a homogeneous change, and sensitivity grows
+   with lapse time** (`dt = −t·dv/v`). Later coda amplifies tiny velocity changes
+   — the physical basis for using coda over direct waves (Snieder 2002; Obermann 2013).
+2. **A fully reconstructed Green's function is NOT required — temporally stable
+   noise sources are.** Partial GF retrieval is acceptable provided the noise-source
+   distribution and correlation waveforms are stable in time (Hadziioannou 2009).
+3. **Use the canonical 4-phase preprocessing:** time-domain normalization (one-bit or
+   running-mean) + spectral whitening → correlate → stack → SNR-based QC
+   (Bensen 2007), as implemented in MSNoise (Lecocq 2014) and NoisePy (Jiang & Denolle 2020).
+4. **Stretching is more robust than MWCS/cross-spectral methods at low SNR and for
+   uniform changes; cross-spectral methods cycle-skip at large dv/v.** DTW and
+   wavelet methods help at low SNR / large perturbations (Mikesell 2015; Yuan 2021;
+   Mao 2020).
+5. **Quantify dv/v uncertainty explicitly:** coherence-weighted per-window phase errors
+   for MWCS (Clarke 2011); the analytic RMS formula based on coherence loss, bandwidth,
+   and coda-window length for stretching (Weaver 2011). SNR is a usable quality proxy.
+6. **Depth is set by frequency band and coda lapse time — not assumed.** Early coda /
+   higher frequency → shallow surface-wave sensitivity; later coda → deeper body-wave
+   sensitivity. Select band and window for the target depth using lapse-time-dependent
+   3-D kernels (Obermann 2013, 2016).
+7. **Reference-stack choice and stacking-window length bias the long-term trend and
+   seasonal amplitude.** Use a long, representative reference and a consistent stacking
+   scheme for cross-station comparability (Wang 2017).
+8. **Beware spurious dv/v from non-stationary noise.** Temporal changes in the
+   noise-source spectrum (Zhan 2013) and seasonal source fluctuations (Daskalakis 2016)
+   create apparent velocity changes; verify spectral stationarity, restrict to stable
+   bands, and normalize the CCFs.
+9. **Boost temporal resolution via denoising/clustering, not just longer stacks:**
+   curvelet denoising (Stehly 2015) and waveform clustering by noise-source condition
+   (Hadziioannou 2011) reach daily resolution from short stacks.
+10. **Cross-check with multiple estimators and reproducible, parameter-transparent
+    software** (MSNoise, NoisePy); each method has distinct failure modes (Obermann & Hillers 2019).
+
+---
+
+## Volcano
+
+| Parameter | Typical / recommended | Notes |
+| --- | --- | --- |
+| Frequency band | ~0.1–2 Hz (deep/edifice) up to 1–4 Hz, >5 Hz for coda | Multi-band stacking is the emerging standard for depth discrimination (Feng 2020; Donaldson 2019; Takano 2017). |
+| Coda / lapse window | ~5–120 s | Short (5–35 s) for near-field single-station; up to ~100–120 s for station pairs (min lag set by inter-station distance). |
+| dv/v method | Stretching (default); MWCS for error bars; wavelet for environmental separation | CWI of repeating earthquakes when noise unstable during crises (Hotovec-Ellis). |
+| Station config | Pairs/arrays where dense; single-station (cross-comp > autocorr) for sparse networks | Single-station survives when only one station remains during an eruption (De Plaen). |
+| Depth sensitivity | Shallow, upper ~0.3–3 km; occasionally mid-crustal magma (~3–10 km) | dv/v dominated by compliant, crack-rich shallow edifice. |
+
+**Key rule:** environmental (rainfall) correction is essential — hydrological dv/v is
+comparable in amplitude to the pre-eruptive signal (Rivet 2015).
+
+---
+
+## Earthquake / Fault
+
+| Parameter | Typical / recommended | Notes |
+| --- | --- | --- |
+| Frequency band | 0.1–2 Hz (crustal); 0.06–0.9 Hz for mid/deep crust; 4–12 Hz for shallow damage | Band selects the depth probed. |
+| Coda / lapse window | ~5–30 s (crustal noise); ~3 s for high-freq aftershock autocorrelations | Later coda → deeper/larger volume but lower SNR. |
+| dv/v method | Stretching (tolerates coseismic waveform change); MWCS / wavelet for frequency-resolved precision | Wavelet handles cycle-skipping at large dv/v (Mao 2020; Sheng 2022). |
+| Station config | Single-station autocorr for dense mapping; pairs/arrays for deep & slow-slip | Autocorr maximizes coverage; pairs give long-period sensitivity. |
+| Depth sensitivity | Coseismic damage shallow (top ~100 m–few km); deep change needs long-period / tiltmeters | Strong-motion softening saturates near surface (Rubinstein & Beroza; Nakata; Sawazaki). |
+
+**Key rule:** coseismic velocity reductions are dominantly a shallow (top ~100 m)
+nonlinear site effect — separate near-surface from genuine fault-zone change before
+interpreting (Rubinstein & Beroza 2005).
+
+---
+
+## Landslide
+
+| Parameter | Typical / recommended | Notes |
+| --- | --- | --- |
+| Frequency band | ~2–20 Hz (clayey precursors cluster 4–12 Hz) | Far higher than volcano/tectonic — shallow bodies. |
+| Coda / lapse window | ~0.05–2 s | Inter-sensor distances of tens of m; usable coda arrives within ~1–2 s. |
+| dv/v method | Stretching dominates; SPAC / MASW-interferometry for structure | MWCS comparatively rare. |
+| Station config | Short-distance pairs for a single failure plane; dense / borehole arrays for 4-D imaging & early warning | Liu 2025 (28 stn); Morimachi 2024 (SPAC); de Wit 2026 (borehole). |
+| Depth sensitivity | Very shallow, top few m to ~40 m | Failure surfaces and pore-pressure changes are near-surface. |
+
+**Differs from volcano/tectonic:** higher frequencies, shallower depth, sub-second coda,
+denser/closer geometry, larger dv/v (several % to ±10 %), and rainfall/freeze-thaw
+forcings with multi-day lags that must be removed before precursor detection.
+
+---
+
+## Groundwater / Hydrology
+
+| Parameter | Typical / recommended | Notes |
+| --- | --- | --- |
+| Frequency band | ~2–4 Hz (shallow aquifer); ~0.1–2 Hz multi-band for deep/depth-resolved | Lower frequency → greater depth. |
+| Coda / lapse window | ~2–8 s (single-station autocorr); ~15–100 s (coda-wave) | Low-coherence early lags discarded. |
+| dv/v method | Stretching (default); MWCS (Gräfenberg); multi-band coda inversion for depth | Mao 2022/2025; Fokker 2023. |
+| Station config | Single-station autocorr/cross-comp for cheap dense aquifer monitoring; arrays for depth/spatial resolution | — |
+| Depth sensitivity | Upper ~50–500 m (high-freq) to ~200–700 m (low-freq multi-band) | Enables explicit shallow-vs-deep-aquifer separation. |
+
+**Separating hydrologic from thermoelastic/tidal:** fit/remove a thermoelastic component
+(Tsai 2011 framework) and model the hydrologic part as drained-poroelastic precipitation /
+pore-pressure diffusion. Diagnostic = seasonal phase lag (thermoelastic lags temperature;
+hydrologic lags/anticorrelates with precipitation & groundwater level); multi-year trends →
+net groundwater storage change (Clements & Denolle 2018/2023; Wang 2017).
+
+---
+
+## Cryosphere (permafrost, glaciers, freeze-thaw)
+
+| Parameter | Typical / recommended | Notes |
+| --- | --- | --- |
+| Frequency band | ~1.5–30 Hz (active layer / rock glacier 4–14 Hz); lower for ice sheets | Targets shallow few meters. |
+| Coda / lapse window | ~0.3–0.8 s for shallow high-freq arrays | — |
+| dv/v method | Stretching; spectral-resonance/modal as complement | Guillemot 2021. |
+| Station config | Pairs; single-station autocorr at sparse permafrost/polar sites; dense arrays | Lindner 2021 (single 3-comp); Luo 2023 (polar autocorr). |
+| Depth sensitivity | ~0–10 m (active layer / firn) | Large seasonal swings (e.g. +3 % to −8 %, James 2019). |
+
+---
+
+## Geothermal / Reservoir / CO2 / mining
+
+| Parameter | Typical / recommended | Notes |
+| --- | --- | --- |
+| Frequency band | ~0.25–3.5 Hz (mining as low as 0.6–1.2 Hz) | Lower band for depth penetration to reservoir. |
+| Coda / lapse window | ~20 s coda windows for km-scale reservoirs | Tie window to depth-sensitivity (lapse-time) analysis. |
+| dv/v method | Stretching; MWCS for larger borehole arrays (Salton Sea) | — |
+| Station config | Pairs for reservoir localization; dense arrays for tailings dams / mine slopes | — |
+| Depth sensitivity | Hundreds of m to a few km; coda-wave kernels attribute location | Caveat: surface arrays at CO2 sites (Ketzin) sense the shallow subsurface, not the deep plume (Gassenmeier 2015). |
+
+**Key rule:** ambient noise can reveal aseismic reservoir response invisible to standard
+microseismic monitoring (Obermann 2015; Hillers 2015).

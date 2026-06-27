@@ -47,6 +47,12 @@ website:
             file: tutorial-05-interpretation.qmd
           - text: "6 · End-to-end Parkfield walkthrough"
             file: tutorial-06-endtoend.qmd
+      - text: "Survey"
+        menu:
+          - text: "Processing parameters & best practices"
+            file: survey-best-practices.qmd
+          - text: "References (full citations + DOIs)"
+            file: survey-references.qmd
     right:
       - icon: github
         href: https://github.com/Denolle-Lab/codameter
@@ -76,6 +82,12 @@ website:
           - tutorial-04-coupling.qmd
           - tutorial-05-interpretation.qmd
           - tutorial-06-endtoend.qmd
+      - section: "Literature survey"
+        contents:
+          - text: "Processing parameters & best practices"
+            file: survey-best-practices.qmd
+          - text: "References (full citations + DOIs)"
+            file: survey-references.qmd
 
   page-footer:
     left: "codameter · Denolle (in prep, *JGR Solid Earth*)"
