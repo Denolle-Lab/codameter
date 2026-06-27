@@ -23,10 +23,34 @@ window, stacking, dv/v method, station geometry, and depth sensitivity.
 | `build_table.py` | Regenerates the CSV + Markdown from `raw/`. Run `python literature/build_table.py`. |
 | `build_quarto_refs.py` | Enriches DOIs via Crossref (cached) and writes the Quarto references page `../quarto/survey-references.qmd`. |
 
-The survey is also published on the Quarto site as two pages:
+The survey is also published on the Quarto site as three pages:
 [`quarto/survey-best-practices.qmd`](../quarto/survey-best-practices.qmd) (the
-synthesis) and [`quarto/survey-references.qmd`](../quarto/survey-references.qmd)
-(full Crossref-enriched citations with DOI links).
+synthesis), [`quarto/survey-references.qmd`](../quarto/survey-references.qmd)
+(full Crossref-enriched citations with DOI links), and
+[`quarto/survey-synthetic-demo.qmd`](../quarto/survey-synthetic-demo.qmd) (the
+synthetic demonstration below).
+
+## Synthetic demonstration — how processing choices move dv/v
+
+`synthetic_dvv_demo.py` builds noisy synthetic CCFs that repeat over time with a
+**known** ground-truth dv/v(t) per application, then recovers dv/v under
+different processing choices — so every gap between the recovered curve and the
+truth is an artefact of a *choice*, not of nature. The core (CCF synthesis,
+stretching & MWCS estimators, truth generators, figure builders) lives in the
+package at
+[`codameter.synthetic_demo`](../src/codameter/synthetic_demo.py) and is unit-
+tested in [`tests/test_synthetic_demo.py`](../tests/test_synthetic_demo.py).
+
+Run `pixi run python literature/synthetic_dvv_demo.py` → writes five figures to
+`literature/figs/`:
+
+| Figure | Application | Choice illustrated |
+| --- | --- | --- |
+| `demo_1_method_landslide.png` | Landslide | Estimator: MWCS suits small/stable dv/v, stretching needed for large transients |
+| `demo_2_stacking_earthquake.png` | Earthquake | Stack length smears the coseismic step |
+| `demo_3_reference_volcano.png` | Volcano | Moving reference erases the slow pre-eruptive trend |
+| `demo_4_frequency_groundwater.png` | Groundwater | Frequency band selects depth → a different signal |
+| `demo_5_multiverse.png` | (volcano) | Spread across 27 defensible pipelines |
 
 ## How to extend it
 

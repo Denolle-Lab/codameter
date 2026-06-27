@@ -51,6 +51,8 @@ website:
         menu:
           - text: "Processing parameters & best practices"
             file: survey-best-practices.qmd
+          - text: "Synthetic demo: choices move dv/v"
+            file: survey-synthetic-demo.qmd
           - text: "References (full citations + DOIs)"
             file: survey-references.qmd
     right:
@@ -86,6 +88,8 @@ website:
         contents:
           - text: "Processing parameters & best practices"
             file: survey-best-practices.qmd
+          - text: "Synthetic demo: choices move dv/v"
+            file: survey-synthetic-demo.qmd
           - text: "References (full citations + DOIs)"
             file: survey-references.qmd
 
