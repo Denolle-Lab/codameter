@@ -42,13 +42,14 @@ package at
 tested in [`tests/test_synthetic_demo.py`](../tests/test_synthetic_demo.py).
 
 Run `pixi run python literature/synthetic_dvv_demo.py` → writes seven figures to
-`literature/figs/`. Estimators follow NoisePy's `monitoring_methods` (TS, WCC,
-MWCS reproduced live; DTW + wavelet methods referenced) and the Yuan et al.
-(2021) benchmark; the focus is **deviations from best practice**:
+`literature/figs/`. **All seven** NoisePy `monitoring_methods` estimators are
+reproduced live — TS, WCC, DTW, MWCS, and the wavelet-domain WCS, WTS, WTDTW
+(Morlet CWT, no external dependency) — and benchmarked as in Yuan et al. (2021).
+The focus is **deviations from best practice**:
 
 | Figure | Theme | Deviation / consequence |
 | --- | --- | --- |
-| `demo_1_methods.png` | Estimator choice (NoisePy / Yuan 2021) | MWCS cycle-skips at large dv/v; methods agree when small |
+| `demo_1_methods.png` | Estimator choice (7 NoisePy methods, Yuan 2021) | At large dv/v phase methods (MWCS, WCS) cycle-skip, warps (DTW, WTDTW) under-shoot; agree when small |
 | `demo_2_frequency_depth.png` | Frequency band → depth | Band selects depth → a different signal |
 | `demo_3_window_band.png` | Coda window vs band | A fixed late window is pure noise at high frequency |
 | `demo_4_stacking.png` | Stacking length | Long stack smears/delays the coseismic step |

@@ -17,9 +17,12 @@ measurement noise. Then we *measure $\delta v/v$ back* under different processin
 choices — and, deliberately, some **deviations from best practice**: the wrong
 estimator for the signal size, a coda window reused across frequency bands, a
 moving reference, a station clock error, seasonal noise in the late coda. Because
-the truth is known, **every gap is an artefact of a choice**, not of nature. This
-is the waveform-level companion to the [best-practice survey](survey-best-practices.qmd)
-and its [references](survey-references.qmd).
+the truth is known, **every gap is an artefact of a choice**, not of nature. The
+worry is reproducibility: these choices are usually **ad-hoc and undocumented**,
+yet they move the answer — so two groups analysing the same data can disagree for
+no physical reason. This is the waveform-level companion to the
+[best-practice survey](survey-best-practices.qmd) and its
+[references](survey-references.qmd).
 :::
 
 The machinery lives in
@@ -57,24 +60,29 @@ ax.legend(loc="upper right"); fig.tight_layout()
 
 ---
 
-## 1. Estimator choice — the NoisePy / Yuan et al. (2021) suite
+## 1. Estimator choice — the full NoisePy / Yuan et al. (2021) suite
 
-NoisePy's `monitoring_methods` ships **seven** dv/v estimators —
-`stretching` (TS), `wcc_dvv` (windowed cross-correlation), `dtw_dvv` (dynamic
-time warping), `mwcs_dvv` (moving-window cross-spectrum), and three
-wavelet-domain methods `wxs_dvv`, `wts_dvv`, `wtdtw_dvv`. **Yuan et al. (2021)**
-benchmark all seven and find: **TS and DTW are accurate**, **WCC underestimates**
-by ~2 % (waveform distortion within its sliding windows), **MWCS is fair but
-tends to overestimate**, and the **wavelet methods stay accurate across
-frequencies**.
+NoisePy's `monitoring_methods` ships **seven** dv/v estimators, and we reproduce
+**all seven live** here: `stretching` (TS), `wcc_dvv` (windowed
+cross-correlation), `dtw_dvv` (dynamic time warping), `mwcs_dvv` (moving-window
+cross-spectrum), and the wavelet-domain `wxs_dvv` (**WCS**, the popular wavelet
+cross-spectrum), `wts_dvv` (wavelet stretching), and `wtdtw_dvv` (wavelet DTW).
+**Yuan et al. (2021)** benchmark the suite numerically.
 
-Here we reproduce the three time-/frequency-domain estimators live (panel a:
-they agree on small, clean $\delta v/v$). The difference that matters in practice
-appears at **large** $\delta v/v$ (panel b): MWCS reads delays from the
-cross-spectral phase, which wraps at half a period, so it **cycle-skips** once
-the change is large — while stretching and WCC keep tracking. The lesson is to
-**match the estimator to the expected size of $\delta v/v$**, not that any method
-is wrong.
+On **small, clean** $\delta v/v$ they all sit on the 1:1 line (panel a) — so the
+*choice does not matter and the result is reproducible*. The choice bites at
+**large** $\delta v/v$ (panel b), where the methods split by **family**:
+
+- **Stretching family** (TS, WTS) — and WCC — match the whole dilated coda and
+  stay accurate;
+- **Phase methods** (MWCS, WCS) read delays from a phase that wraps at half a
+  period, so they **cycle-skip** and diverge wildly;
+- **Warping methods** (DTW, WTDTW) track but **under-shoot** the largest strains
+  (a discretized-warp bias).
+
+No method is simply "right"; the point is that an **ad-hoc estimator choice**
+silently changes the answer once the signal leaves the small-amplitude regime —
+exactly the kind of undocumented decision that erodes reproducibility.
 
 ```{python}
 #| code-fold: true
@@ -188,7 +196,7 @@ sd.fig_multiverse();
 
 | Choice / deviation | Shown with | Consequence of deviating |
 | --- | --- | --- |
-| Estimator (TS / WCC / DTW / MWCS / wavelet) | Yuan 2021 suite | MWCS cycle-skips at large dv/v; WCC ~2 % low; pick for the signal size |
+| Estimator — all 7 NoisePy methods | Yuan 2021 suite | At large dv/v: phase methods (MWCS, WCS) cycle-skip, warps (DTW, WTDTW) under-shoot; pick for the signal size |
 | Frequency band | Groundwater 2-layer | Band selects depth → a *different* signal |
 | Coda window vs band | Frequency-dependent coda | A fixed late window is pure noise at high frequency |
 | Stack length | Earthquake step | Long stack smears and delays the step |

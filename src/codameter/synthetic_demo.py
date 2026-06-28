@@ -7,9 +7,11 @@ illustration. It does what the survey papers do, in miniature:
    band-limited, multiply-scattered wavefield with a decaying coda envelope;
 2. **repeat it over time**, imposing a known ground-truth ``dv/v(t)`` by
    stretching the coda in lapse time, and adding measurement noise;
-3. **measure dv/v back** with the two dominant estimators (stretching and a
-   MWCS-style moving-window delay fit) under different processing choices —
-   coda window, reference scheme, stack length, and frequency band;
+3. **measure dv/v back** with the **seven NoisePy ``monitoring_methods``
+   estimators** — stretching (TS), WCC, DTW, MWCS, and the wavelet-domain WCS,
+   WTS and WTDTW (benchmarked by Yuan et al. 2021) — under different processing
+   choices: coda window, reference scheme, stack length, frequency band, and
+   deliberate deviations (clock error, seasonal late-coda noise);
 4. compare the recovered series to the truth, so the *bias and scatter created
    by the choice itself* is visible.
 
@@ -344,28 +346,33 @@ def measure_wcc(
     return out
 
 
-def _dtw_path(u: np.ndarray, v: np.ndarray, max_lag: int, max_step: int = 1) -> np.ndarray:
-    """Constrained dynamic time warping; returns the integer lag path l(i)."""
+def _dtw_path(u: np.ndarray, v: np.ndarray, max_lag: int, gamma: float = 0.3) -> np.ndarray:
+    """Strain-regularized dynamic time warping; returns the integer lag path l(i).
+
+    A quadratic penalty ``gamma`` on the change of lag between samples enforces a
+    smooth (low-strain) warp, so the path follows the coherent velocity change
+    instead of locking onto neighbouring oscillation cycles. ``O(n L^2)``.
+    """
     n = u.size
     lags = np.arange(-max_lag, max_lag + 1)
-    err = np.full((n, lags.size), np.inf)
+    nl = lags.size
+    err = np.full((n, nl), 1e6)
     for li, lg in enumerate(lags):
         j = np.arange(n) + lg
         ok = (j >= 0) & (j < n)
         err[ok, li] = (u[ok] - v[j[ok]]) ** 2
+    scale = np.median(err[err < 1e6]) + 1e-12
+    pen = gamma * scale * (lags[:, None] - lags[None, :]) ** 2  # [li, lj]
     acc = err.copy()
+    back = np.zeros((n, nl), dtype=int)
     for i in range(1, n):
-        prev = acc[i - 1]
-        for li in range(lags.size):
-            lo, hi = max(0, li - max_step), min(lags.size, li + max_step + 1)
-            acc[i, li] += prev[lo:hi].min()
+        total = acc[i - 1][None, :] + pen  # arrive at li (row) from lj (col)
+        back[i] = np.argmin(total, axis=1)
+        acc[i] += total[np.arange(nl), back[i]]
     path = np.empty(n, dtype=int)
-    li = int(np.argmin(acc[-1]))
-    path[-1] = li
+    path[-1] = int(np.argmin(acc[-1]))
     for i in range(n - 2, -1, -1):
-        lo, hi = max(0, li - max_step), min(lags.size, li + max_step + 1)
-        li = lo + int(np.argmin(acc[i, lo:hi]))
-        path[i] = li
+        path[i] = back[i + 1, path[i + 1]]
     return lags[path]
 
 
@@ -377,13 +384,13 @@ def measure_dtw(
     band: tuple[float, float],
     fs: float,
     window: tuple[float, float],
-    max_lag_s: float = 1.0,
+    max_lag_s: float = 0.8,
 ) -> np.ndarray:
     """DTW dv/v: warp the current trace onto the reference, slope of lag vs lapse.
 
-    Dynamic time warping recovers a full local time-shift path with a strain
-    constraint, so (like stretching) it tracks dv/v accurately even for large,
-    smoothly varying changes (Yuan et al. 2021). NoisePy ``dtw_dvv``.
+    The strain-regularized warp recovers a full local time-shift path, so (like
+    stretching) it tracks dv/v accurately even for large, smoothly varying
+    changes (Yuan et al. 2021). NoisePy ``dtw_dvv``.
     """
     cur_mat = np.atleast_2d(cur_mat)
     reff = bandpass(ref, fs, *band)
@@ -398,14 +405,158 @@ def measure_dtw(
     return out
 
 
-# The three time-/frequency-domain estimators reproduced live here. NoisePy's
-# monitoring_methods adds DTW (measure_dtw, below — accurate only for small
-# strains in this minimal form) and three wavelet-domain methods (WXS, WTS,
-# WTDTW); Yuan et al. (2021) benchmark all seven. See the narrative page.
+# ---------------------------------------------------------------------------
+# Wavelet-domain estimators (Morlet CWT): WCS / WXS, WTS, WTDTW
+# ---------------------------------------------------------------------------
+def _morlet_cwt(
+    x: np.ndarray, fs: float, freqs: np.ndarray, w0: float = 6.0
+) -> np.ndarray:
+    """Continuous wavelet transform with a Morlet wavelet (Torrence & Compo).
+
+    Returns the complex coefficients ``W[freq, time]``. Implemented by FFT
+    multiplication with the analytic Morlet spectrum at the scale for each
+    frequency, so it is fast and dependency-free.
+    """
+    n = x.size
+    dt = 1.0 / fs
+    xh = np.fft.fft(x)
+    omega = 2 * np.pi * np.fft.fftfreq(n, dt)
+    W = np.empty((freqs.size, n), dtype=complex)
+    for k, f in enumerate(freqs):
+        s = (w0 + np.sqrt(2 + w0**2)) / (4 * np.pi * f)  # scale ↔ frequency
+        norm = np.sqrt(2 * np.pi * s / dt) * np.pi ** (-0.25)
+        psi = norm * np.exp(-0.5 * (s * omega - w0) ** 2) * (omega > 0)
+        W[k] = np.fft.ifft(xh * psi)
+    return W
+
+
+def _cwt_setup(t, window, band, nfreq):
+    """Causal crop + frequency grid + in-window mask shared by wavelet methods."""
+    pad = 3.0
+    reg = (t >= 0) & (t <= window[1] + pad)
+    tt = t[reg]
+    freqs = np.geomspace(band[0], band[1], nfreq)
+    wsel = (tt >= window[0]) & (tt <= window[1])
+    return reg, tt, freqs, wsel
+
+
+def measure_wxs(
+    cur_mat: np.ndarray,
+    ref: np.ndarray,
+    t: np.ndarray,
+    *,
+    band: tuple[float, float],
+    fs: float,
+    window: tuple[float, float],
+    nfreq: int = 16,
+    w0: float = 6.0,
+) -> np.ndarray:
+    """WCS / WXS dv/v: wavelet cross-spectrum phase delay, power-weighted slope.
+
+    The cross-wavelet spectrum ``W_cur · conj(W_ref)`` gives a phase
+    ``φ(f, τ)``; the delay ``δt = φ / (2π f)`` should equal ``−τ · dv/v``. A
+    cross-power-weighted regression of ``δt`` on lapse ``τ`` over the
+    time-frequency window yields dv/v (Mao et al. 2020; NoisePy ``wxs_dvv``). As
+    a phase method it also wraps — and so cycle-skips — at large dv/v unless the
+    phase is unwrapped in 2-D first.
+    """
+    cur_mat = np.atleast_2d(cur_mat)
+    reg, tt, freqs, wsel = _cwt_setup(t, window, band, nfreq)
+    Wref = _morlet_cwt(ref[reg], fs, freqs, w0)
+    Tg = np.broadcast_to(tt, (freqs.size, tt.size))[:, wsel].ravel()
+    out = np.full(cur_mat.shape[0], np.nan)
+    for d in range(cur_mat.shape[0]):
+        Wcur = _morlet_cwt(cur_mat[d, reg], fs, freqs, w0)
+        Wxy = Wcur * np.conj(Wref)
+        dt = (np.angle(Wxy) / (2 * np.pi * freqs[:, None]))[:, wsel].ravel()
+        wgt = np.abs(Wxy)[:, wsel].ravel()
+        out[d] = -np.sum(wgt * Tg * dt) / (np.sum(wgt * Tg * Tg) + 1e-30)
+    return out
+
+
+def measure_wts(
+    cur_mat: np.ndarray,
+    ref: np.ndarray,
+    t: np.ndarray,
+    *,
+    band: tuple[float, float],
+    fs: float,
+    window: tuple[float, float],
+    nfreq: int = 12,
+    w0: float = 6.0,
+    eps_max: float = 0.06,
+    n_eps: int = 121,
+) -> np.ndarray:
+    """WTS dv/v: stretching applied per scale of the wavelet transform.
+
+    Each frequency row of the (real part of the) CWT is a narrow-band trace; the
+    stretch that best aligns current to reference is found per scale and pooled,
+    power-weighted (NoisePy ``wts_dvv``). Being a stretching variant it is robust
+    to large dv/v, like time-domain TS.
+    """
+    cur_mat = np.atleast_2d(cur_mat)
+    reg, tt, freqs, wsel = _cwt_setup(t, window, band, nfreq)
+    Wref = _morlet_cwt(ref[reg], fs, freqs, w0).real
+    es = np.linspace(-eps_max, eps_max, n_eps)
+    banks = []
+    for k in range(freqs.size):
+        trials = np.stack([np.interp(tt / (1.0 + e), tt, Wref[k])[wsel] for e in es])
+        trials /= np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12
+        banks.append(trials)
+    out = np.full(cur_mat.shape[0], np.nan)
+    for d in range(cur_mat.shape[0]):
+        Wcur = _morlet_cwt(cur_mat[d, reg], fs, freqs, w0).real
+        num = den = 0.0
+        for k in range(freqs.size):
+            seg = Wcur[k, wsel]
+            seg = seg / (np.linalg.norm(seg) + 1e-12)
+            cc = banks[k] @ seg
+            i = int(np.argmax(cc))
+            wgt = np.linalg.norm(Wcur[k, wsel])
+            num += wgt * (es[i] + _parabolic(cc, i) * (es[1] - es[0]))
+            den += wgt
+        out[d] = num / (den + 1e-30)
+    return out
+
+
+def measure_wtdtw(
+    cur_mat: np.ndarray,
+    ref: np.ndarray,
+    t: np.ndarray,
+    *,
+    band: tuple[float, float],
+    fs: float,
+    window: tuple[float, float],
+    max_lag_s: float = 0.8,
+) -> np.ndarray:
+    """WTDTW dv/v: DTW on the wavelet-reconstructed band (NoisePy ``wtdtw_dvv``).
+
+    The CWT is summed over the band to a wavelet-filtered trace, then the
+    strain-regularized DTW measures the warp — a wavelet-domain cousin of DTW,
+    likewise robust to large dv/v.
+    """
+    cur_mat = np.atleast_2d(cur_mat)
+    reg, tt, freqs, wsel = _cwt_setup(t, window, band, nfreq=12)
+    Wref = _morlet_cwt(ref[reg], fs, freqs, 6.0).real.sum(axis=0)
+    max_lag = int(round(max_lag_s * fs))
+    twin = tt[wsel]
+    out = np.full(cur_mat.shape[0], np.nan)
+    for d in range(cur_mat.shape[0]):
+        rec = _morlet_cwt(cur_mat[d, reg], fs, freqs, 6.0).real.sum(axis=0)
+        lag = _dtw_path(rec[wsel], Wref[wsel], max_lag) / fs
+        out[d] = -np.polyfit(twin, lag, 1)[0]
+    return out
+
+
+# All seven NoisePy monitoring estimators, reproduced live (Yuan et al. 2021).
 METHODS = {
     "stretching (TS)": measure_stretching,
     "WCC": measure_wcc,
+    "DTW": measure_dtw,
     "MWCS": measure_mwcs,
+    "WCS": measure_wxs,
+    "WTS": measure_wts,
+    "WTDTW": measure_wtdtw,
 }
 
 
@@ -679,12 +830,22 @@ def _envelope(x: np.ndarray, fs: float, smooth_s: float = 2.0) -> np.ndarray:
     return np.convolve(np.abs(x), np.ones(n) / n, mode="same")
 
 
-_MCOL = {"stretching (TS)": C["alt"], "WCC": C["groundwater"], "MWCS": C["bad"]}
+# One colour + line style per NoisePy estimator, grouped by family:
+# time-domain warp (solid), phase (dashed), wavelet (dash-dot).
+_MSTYLE = {
+    "stretching (TS)": (C["alt"], "-"),
+    "WCC": (C["groundwater"], "-"),
+    "DTW": (C["landslide"], "-"),
+    "MWCS": (C["bad"], "--"),
+    "WCS": (C["volcano"], "--"),
+    "WTS": ("#00897b", "-."),
+    "WTDTW": ("#8d6e63", "-."),
+}
 
 
 def fig_methods(seed: int = 11):
-    """Estimator choice (NoisePy / Yuan et al. 2021): methods agree on small,
-    stable dv/v but diverge once it is large (MWCS phase-wraps / cycle-skips)."""
+    """Estimator choice — all seven NoisePy monitoring estimators (Yuan et al.
+    2021): agreement on small dv/v, distinct failure modes when it is large."""
     import matplotlib.pyplot as plt
 
     s = Synth()
@@ -693,33 +854,38 @@ def fig_methods(seed: int = 11):
     trues = np.linspace(-0.005, 0.005, 11)
     cur = np.stack([impose_dvv(s.ref, s.t, x) for x in trues])
     recs = {m: measure(m, cur, s.ref, s.t, band=band, fs=s.fs, window=win) for m in METHODS}
-    # (b) a large, smoothly varying change (landslide pre-failure).
-    days = _days(3.0)
+    # (b) a large, smoothly varying change (landslide pre-failure); decimate days
+    # so the per-day DTW/WTDTW warps stay fast.
+    days = _days(3.0)[::3]
     truth = landslide_truth(days)
     ccfs = daily_ccfs(s.t, [s.ref], [truth], fs=s.fs, snr=10.0, seed=seed)
     bandL, winL = (2.0, 6.0), (2.0, 10.0)
     sub = dict(subwin_s=2.0, step_s=1.0)  # short window needs short sub-windows
-    recL = {
-        "stretching (TS)": measure_stretching(ccfs, s.ref, s.t, band=bandL, fs=s.fs, window=winL)[0],
-        "WCC": measure_wcc(ccfs, s.ref, s.t, band=bandL, fs=s.fs, window=winL, **sub),
-        "MWCS": measure_mwcs(ccfs, s.ref, s.t, band=bandL, fs=s.fs, window=winL, **sub),
-    }
+    recL = {}
+    for m in METHODS:
+        kw = dict(band=bandL, fs=s.fs, window=winL)
+        if m in ("WCC", "MWCS"):
+            kw.update(sub)
+        recL[m] = measure(m, ccfs, s.ref, s.t, **kw)
 
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.6, 4.3))
-    axA.plot([-0.5, 0.5], [-0.5, 0.5], color="0.6", lw=1, ls="--", label="1:1 (truth)")
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.8, 4.4))
+    axA.plot([-0.5, 0.5], [-0.5, 0.5], color="0.6", lw=1, ls=":", label="1:1 (truth)")
     for m in METHODS:
-        axA.plot(trues * PCT, recs[m] * PCT, "o-", ms=4, color=_MCOL[m], label=m)
+        col, ls = _MSTYLE[m]
+        axA.plot(trues * PCT, recs[m] * PCT, ls=ls, marker="o", ms=3, lw=1,
+                 color=col, label=m)
     axA.set(xlabel="true dv/v (%)", ylabel="recovered dv/v (%)",
-            title="(a) clean, small dv/v — estimators agree")
-    axA.legend(loc="upper left", fontsize=8.5)
-    axB.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="truth")
+            title="(a) clean, small dv/v — all estimators agree")
+    axA.legend(loc="upper left", fontsize=8, ncol=2)
+    axB.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.6, label="truth")
     for m in METHODS:
-        axB.plot(_yrs(days), recL[m] * PCT, color=_MCOL[m], lw=1.0, alpha=0.9, label=m)
+        col, ls = _MSTYLE[m]
+        axB.plot(_yrs(days), recL[m] * PCT, ls=ls, color=col, lw=1.0, alpha=0.9, label=m)
     axB.set(xlabel="time (years)", ylabel="dv/v (%)",
-            title="(b) large dv/v — only MWCS fails (phase wraps)")
-    axB.legend(loc="lower left", fontsize=8.5)
-    fig.suptitle("Estimator choice — NoisePy monitoring methods, benchmarked by "
-                 "Yuan et al. (2021)", fontweight="600")
+            title="(b) large dv/v — phase methods cycle-skip, warps under-shoot")
+    axB.legend(loc="lower left", fontsize=8, ncol=2)
+    fig.suptitle("Estimator choice — the seven NoisePy monitoring methods "
+                 "(Yuan et al. 2021)", fontweight="600")
     fig.tight_layout()
     return fig
 

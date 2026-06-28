@@ -112,6 +112,42 @@ def test_wcc_recovers_sign_and_magnitude(synth: Synth) -> None:
     assert abs(rec[0] - (-0.003)) < 6e-4
 
 
+def test_all_seven_methods_present_and_recover_small_dvv(synth: Synth) -> None:
+    """Every NoisePy estimator (incl. wavelet WCS/WTS/WTDTW) is live and works."""
+    assert set(METHODS) == {
+        "stretching (TS)", "WCC", "DTW", "MWCS", "WCS", "WTS", "WTDTW",
+    }
+    cur = impose_dvv(synth.ref, synth.t, -0.003)[None, :]
+    for name in METHODS:
+        rec = measure(name, cur, synth.ref, synth.t, band=(0.5, 2.0), fs=synth.fs,
+                      window=(8, 35))
+        assert abs(float(np.ravel(rec)[0]) - (-0.003)) < 1e-3, name
+
+
+def test_wavelet_cross_spectrum_recovers_small_dvv(synth: Synth) -> None:
+    from codameter.synthetic_demo import measure_wts, measure_wxs
+
+    cur = impose_dvv(synth.ref, synth.t, 0.002)[None, :]
+    kw = dict(band=(0.5, 2.0), fs=synth.fs, window=(8, 35))
+    assert abs(measure_wxs(cur, synth.ref, synth.t, **kw)[0] - 0.002) < 6e-4
+    assert abs(measure_wts(cur, synth.ref, synth.t, **kw)[0] - 0.002) < 6e-4
+
+
+def test_phase_methods_skip_but_stretching_family_robust_at_large_dvv(synth: Synth) -> None:
+    """At large dv/v the phase methods (MWCS, WCS) cycle-skip; the stretching
+    family (TS, WTS) stays accurate — the panel-(b) lesson."""
+    from codameter.synthetic_demo import measure_wts, measure_wxs
+
+    x = -0.04
+    cur = impose_dvv(synth.ref, synth.t, x)[None, :]
+    kw = dict(band=(0.5, 2.0), fs=synth.fs, window=(8, 35))
+    ts, _ = measure_stretching(cur, synth.ref, synth.t, **kw)
+    assert abs(ts[0] - x) < 1e-3
+    assert abs(measure_wts(cur, synth.ref, synth.t, **kw)[0] - x) < 3e-3
+    assert abs(measure_mwcs(cur, synth.ref, synth.t, **kw)[0] - x) > 1e-2
+    assert abs(measure_wxs(cur, synth.ref, synth.t, **kw)[0] - x) > 1e-2
+
+
 def test_freqdep_coda_decays_faster_at_high_frequency(synth: Synth) -> None:
     from codameter.synthetic_demo import bandpass
 
