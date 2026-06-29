@@ -15,8 +15,9 @@ We synthesize a **reference coda** cross-correlation function (CCF), repeat it
 over three years while imposing a **known** ground-truth $\delta v/v(t)$, and add
 measurement noise. Then we *measure $\delta v/v$ back* under different processing
 choices — and, deliberately, some **deviations from best practice**: the wrong
-estimator for the signal size, a coda window reused across frequency bands, a
-moving reference, a station clock error, seasonal noise in the late coda. Because
+estimator for the signal size, a different way to aggregate a pair's
+cross-components, a coda window reused across frequency bands, a moving
+reference, a station clock error, seasonal noise in the late coda. Because
 the truth is known, **every gap is an artefact of a choice**, not of nature. The
 worry is reproducibility: these choices are usually **ad-hoc and undocumented**,
 yet they move the answer — so two groups analysing the same data can disagree for
@@ -75,14 +76,16 @@ On **small, clean** $\delta v/v$ they all sit on the 1:1 line (panel a) — so t
 
 - **Stretching family** (TS, WTS) — and WCC — match the whole dilated coda and
   stay accurate;
-- **Phase methods** (MWCS, WCS) read delays from a phase that wraps at half a
-  period, so they **cycle-skip** and diverge wildly;
+- **Phase methods** read delays from a wrapped phase. **MWCS** wraps at half a
+  period and **cycle-skips**; **WCS** *would* too, but here it **unwraps the phase
+  in 2-D** (Mao et al. 2020) — so the very same family succeeds or fails purely on
+  the **unwrapping choice**;
 - **Warping methods** (DTW, WTDTW) track but **under-shoot** the largest strains
   (a discretized-warp bias).
 
-No method is simply "right"; the point is that an **ad-hoc estimator choice**
-silently changes the answer once the signal leaves the small-amplitude regime —
-exactly the kind of undocumented decision that erodes reproducibility.
+No method is simply "right"; the point is that an **ad-hoc estimator choice** —
+or even a sub-choice like whether to unwrap — silently changes the answer once
+the signal leaves the small-amplitude regime.
 
 ```{python}
 #| code-fold: true
@@ -91,7 +94,35 @@ sd.fig_methods();
 
 ---
 
-## 2. Frequency band selects the depth — and the signal
+## 2. Aggregating cross-components — the same data, three answers
+
+A single station pair carries several cross-component CCFs (ZZ, ZN, …), each a
+noisy view of the *same* $\delta v/v$. How you combine them is a workflow choice
+that is almost never reported, yet it changes both the value **and the
+uncertainty**:
+
+- **A — average the dv/v.** Peak-pick each component's stretching curve
+  $\mathrm{CC}(\varepsilon, t)$, then **average the per-component dv/v**. Its
+  uncertainty is the *ensemble spread* of the picks. *Unweighted*, a few poor
+  components drag the mean around; **CC-weighted**, they are suppressed.
+- **B — average the images.** Stack the $\mathrm{CC}(\varepsilon, t)$ images
+  across components **first**, then peak-pick once. Its uncertainty is the *width
+  of the averaged CC peak* — a different statistical object entirely.
+
+All three are defensible and appear in the literature (including NoisePy). On the
+same station pair they give visibly different time series — A-unweighted swings
+with the poor components while CC-weighted-A and image-stack-B track — and they
+propagate uncertainty along **incompatible pathways**, so two studies using
+different recipes are simply not comparable.
+
+```{python}
+#| code-fold: true
+sd.fig_aggregation();
+```
+
+---
+
+## 3. Frequency band selects the depth — and the signal
 
 Give the medium **two layers**: a shallow one with a strong seasonal cycle and a
 deep one with a multi-year drought trend, each living in a different part of the
@@ -106,7 +137,7 @@ sd.fig_frequency_depth();
 
 ---
 
-## 3. The coda window does not transfer across bands
+## 4. The coda window does not transfer across bands
 
 A common deviation: pick one lapse window (say 20–40 s) and reuse it at every
 frequency. But the coda **decays faster at high frequency** ($A(t)\propto
@@ -123,7 +154,7 @@ sd.fig_window_band();
 
 ---
 
-## 4. Stacking length — resolution vs noise
+## 5. Stacking length — resolution vs noise
 
 A coseismic **step** under a seasonal cycle. A 1-day CCF is noisy but captures
 the step's timing; a long trailing stack suppresses noise but **rounds off and
@@ -137,7 +168,7 @@ sd.fig_stacking();
 
 ---
 
-## 5. Reference strategy — total stack, moving, or joint inversion
+## 6. Reference strategy — total stack, moving, or joint inversion
 
 How you define the reference sets what survives. A **total-stack** reference is
 unbiased but noisy; a **moving** reference re-baselines continuously and so
@@ -153,7 +184,7 @@ sd.fig_reference();
 
 ---
 
-## 6. Deviations that *manufacture* dv/v
+## 7. Deviations that *manufacture* dv/v
 
 Not every wiggle is a velocity change. Two classic instrument/environment
 artefacts inject **spurious** $\delta v/v$:
@@ -175,7 +206,7 @@ sd.fig_artifacts();
 
 ---
 
-## 7. The garden of forking paths
+## 8. The garden of forking paths
 
 Finally, take one volcano dataset and run **27 individually defensible pipelines**
 (3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The
@@ -196,7 +227,8 @@ sd.fig_multiverse();
 
 | Choice / deviation | Shown with | Consequence of deviating |
 | --- | --- | --- |
-| Estimator — all 7 NoisePy methods | Yuan 2021 suite | At large dv/v: phase methods (MWCS, WCS) cycle-skip, warps (DTW, WTDTW) under-shoot; pick for the signal size |
+| Estimator — all 7 NoisePy methods | Yuan 2021 suite | At large dv/v: MWCS cycle-skips, 2-D-unwrapped WCS recovers, warps (DTW, WTDTW) under-shoot |
+| Cross-component aggregation | Station pair, 6 components | Avg-dv/v vs avg-CC-images, weighted vs not → different value *and* uncertainty |
 | Frequency band | Groundwater 2-layer | Band selects depth → a *different* signal |
 | Coda window vs band | Frequency-dependent coda | A fixed late window is pure noise at high frequency |
 | Stack length | Earthquake step | Long stack smears and delays the step |

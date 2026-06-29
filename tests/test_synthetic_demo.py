@@ -16,6 +16,7 @@ from codameter.synthetic_demo import (
     earthquake_truth,
     impose_dvv,
     landslide_truth,
+    make_coda,
     make_freqdep_coda,
     measure,
     measure_inversion,
@@ -133,19 +134,49 @@ def test_wavelet_cross_spectrum_recovers_small_dvv(synth: Synth) -> None:
     assert abs(measure_wts(cur, synth.ref, synth.t, **kw)[0] - 0.002) < 6e-4
 
 
-def test_phase_methods_skip_but_stretching_family_robust_at_large_dvv(synth: Synth) -> None:
-    """At large dv/v the phase methods (MWCS, WCS) cycle-skip; the stretching
-    family (TS, WTS) stays accurate — the panel-(b) lesson."""
+def test_large_dvv_failure_modes(synth: Synth) -> None:
+    """At large dv/v: stretching family robust, MWCS cycle-skips, and the
+    raw-phase WCS skips while 2-D-unwrapped WCS (Mao 2020) recovers it."""
     from codameter.synthetic_demo import measure_wts, measure_wxs
 
     x = -0.04
     cur = impose_dvv(synth.ref, synth.t, x)[None, :]
     kw = dict(band=(0.5, 2.0), fs=synth.fs, window=(8, 35))
     ts, _ = measure_stretching(cur, synth.ref, synth.t, **kw)
-    assert abs(ts[0] - x) < 1e-3
-    assert abs(measure_wts(cur, synth.ref, synth.t, **kw)[0] - x) < 3e-3
-    assert abs(measure_mwcs(cur, synth.ref, synth.t, **kw)[0] - x) > 1e-2
-    assert abs(measure_wxs(cur, synth.ref, synth.t, **kw)[0] - x) > 1e-2
+    assert abs(ts[0] - x) < 1e-3                                    # TS robust
+    assert abs(measure_wts(cur, synth.ref, synth.t, **kw)[0] - x) < 3e-3  # WTS robust
+    assert abs(measure_mwcs(cur, synth.ref, synth.t, **kw)[0] - x) > 1e-2  # MWCS skips
+    wrapped = measure_wxs(cur, synth.ref, synth.t, unwrap=False, **kw)[0]
+    unwrapped = measure_wxs(cur, synth.ref, synth.t, unwrap=True, **kw)[0]
+    assert abs(wrapped - x) > 1e-2                                  # raw phase skips
+    assert abs(unwrapped - x) < abs(wrapped - x) / 2               # unwrapping helps a lot
+
+
+def test_aggregation_image_average_beats_unweighted(synth: Synth) -> None:
+    """Averaging the CC(eps, t) images (B) — or CC-weighting the per-component
+    dv/v (A-weighted) — beats the unweighted dv/v average when some components
+    are poor: the same data, different recipes, different answers."""
+    from codameter.synthetic_demo import peak_dvv, stretching_cc
+
+    days = _days(2.0)
+    truth = _seasonal(days, 0.0012, 60)
+    band, win = (0.5, 2.0), (8.0, 35.0)
+    snrs = [14.0, 11.0, 9.0, 1.0, 0.8, 0.6]
+    images = []
+    for c, snr in enumerate(snrs):
+        _, refc = make_coda(maxlag_s=synth.maxlag_s, fs=synth.fs, seed=100 + c)
+        ccfs = daily_ccfs(synth.t, [refc], [truth], fs=synth.fs, snr=snr, seed=200 + c)
+        es, cc = stretching_cc(ccfs, refc, synth.t, band=band, fs=synth.fs, window=win)
+        images.append(cc)
+    images = np.array(images)
+    dvv_c, cc_c = zip(*[peak_dvv(es, im) for im in images], strict=True)
+    dvv_c, cc_c = np.array(dvv_c), np.clip(np.array(cc_c), 0, None)
+    a_unw = dvv_c.mean(axis=0)
+    a_wt = (cc_c * dvv_c).sum(axis=0) / cc_c.sum(axis=0)
+    b_img, _ = peak_dvv(es, images.mean(axis=0))
+    rmse = lambda a: np.sqrt(np.mean((a - truth) ** 2))  # noqa: E731
+    assert rmse(b_img) < rmse(a_unw)
+    assert rmse(a_wt) < rmse(a_unw)
 
 
 def test_freqdep_coda_decays_faster_at_high_frequency(synth: Synth) -> None:

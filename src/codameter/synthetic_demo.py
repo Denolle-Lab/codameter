@@ -178,6 +178,45 @@ def _parabolic(y: np.ndarray, i: int) -> float:
     return 0.0 if denom == 0 else 0.5 * (a - c) / denom
 
 
+def stretching_cc(
+    cur_mat: np.ndarray,
+    ref: np.ndarray,
+    t: np.ndarray,
+    *,
+    band: tuple[float, float],
+    fs: float,
+    window: tuple[float, float],
+    branch: str = "both",
+    eps_max: float = 0.06,
+    n_eps: int = 161,
+) -> tuple[np.ndarray, np.ndarray]:
+    """The full correlation-coefficient image ``CC(epsilon, time)``.
+
+    Returns ``(es, cc)`` where ``cc`` has shape ``[ndays, n_eps]`` — the object
+    that aggregation workflows either reduce to a per-trace peak *before*
+    averaging, or average *as images* before peak-picking (see
+    :func:`peak_dvv` and the aggregation demo).
+    """
+    cur_mat = np.atleast_2d(cur_mat)
+    reff = bandpass(ref, fs, *band)
+    es = np.linspace(-eps_max, eps_max, n_eps)
+    sel = _window_mask(t, window, branch)
+    trials = np.stack([np.interp(t / (1.0 + e), t, reff)[sel] for e in es])
+    trials = trials / (np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12)
+    curf = bandpass(cur_mat, fs, *band)[:, sel]
+    curf = curf / (np.linalg.norm(curf, axis=1, keepdims=True) + 1e-12)
+    return es, curf @ trials.T  # [ndays, n_eps]
+
+
+def peak_dvv(es: np.ndarray, cc: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Peak-pick a ``CC(epsilon, time)`` image → (dv/v per time, peak CC)."""
+    cc = np.atleast_2d(cc)
+    idx = np.argmax(cc, axis=1)
+    de = es[1] - es[0]
+    dvv = np.array([es[i] + _parabolic(cc[d], i) * de for d, i in enumerate(idx)])
+    return dvv, cc[np.arange(cc.shape[0]), idx]
+
+
 def measure_stretching(
     cur_mat: np.ndarray,
     ref: np.ndarray,
@@ -197,21 +236,9 @@ def measure_stretching(
     branches separately is the standard clock-error diagnostic. Returns the
     per-day dv/v and the peak correlation coefficient.
     """
-    cur_mat = np.atleast_2d(cur_mat)
-    reff = bandpass(ref, fs, *band)
-    es = np.linspace(-eps_max, eps_max, n_eps)
-    sel = _window_mask(t, window, branch)
-    trials = np.stack([np.interp(t / (1.0 + e), t, reff)[sel] for e in es])
-    trials = trials / (np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12)
-    curf = bandpass(cur_mat, fs, *band)[:, sel]
-    curf = curf / (np.linalg.norm(curf, axis=1, keepdims=True) + 1e-12)
-    cc = curf @ trials.T  # [ndays, n_eps]
-    idx = np.argmax(cc, axis=1)
-    de = es[1] - es[0]
-    dvv = np.array(
-        [es[i] + _parabolic(cc[d], i) * de for d, i in enumerate(idx)]
-    )
-    return dvv, cc[np.arange(cc.shape[0]), idx]
+    es, cc = stretching_cc(cur_mat, ref, t, band=band, fs=fs, window=window,
+                           branch=branch, eps_max=eps_max, n_eps=n_eps)
+    return peak_dvv(es, cc)
 
 
 def measure_stretching_moving(
@@ -448,17 +475,21 @@ def measure_wxs(
     band: tuple[float, float],
     fs: float,
     window: tuple[float, float],
-    nfreq: int = 16,
+    nfreq: int = 24,
     w0: float = 6.0,
+    unwrap: bool = True,
 ) -> np.ndarray:
     """WCS / WXS dv/v: wavelet cross-spectrum phase delay, power-weighted slope.
 
     The cross-wavelet spectrum ``W_cur · conj(W_ref)`` gives a phase
     ``φ(f, τ)``; the delay ``δt = φ / (2π f)`` should equal ``−τ · dv/v``. A
     cross-power-weighted regression of ``δt`` on lapse ``τ`` over the
-    time-frequency window yields dv/v (Mao et al. 2020; NoisePy ``wxs_dvv``). As
-    a phase method it also wraps — and so cycle-skips — at large dv/v unless the
-    phase is unwrapped in 2-D first.
+    time-frequency window yields dv/v (Mao et al. 2020; NoisePy ``wxs_dvv``).
+
+    With ``unwrap=True`` the phase is **unwrapped in 2-D** — first along lapse
+    (anchored at ``τ→0`` where ``δt→0``), then along frequency — so it resists
+    the cycle-skipping that the raw (wrapped) phase suffers at large dv/v
+    (Mao et al. 2020). Set ``unwrap=False`` to see the wrapped failure mode.
     """
     cur_mat = np.atleast_2d(cur_mat)
     reg, tt, freqs, wsel = _cwt_setup(t, window, band, nfreq)
@@ -468,7 +499,11 @@ def measure_wxs(
     for d in range(cur_mat.shape[0]):
         Wcur = _morlet_cwt(cur_mat[d, reg], fs, freqs, w0)
         Wxy = Wcur * np.conj(Wref)
-        dt = (np.angle(Wxy) / (2 * np.pi * freqs[:, None]))[:, wsel].ravel()
+        phase = np.angle(Wxy)  # [nfreq, ntime], wrapped to (-pi, pi]
+        if unwrap:
+            phase = np.unwrap(phase, axis=1)   # along lapse, anchored at tau→0
+            phase = np.unwrap(phase, axis=0)   # then along frequency
+        dt = (phase / (2 * np.pi * freqs[:, None]))[:, wsel].ravel()
         wgt = np.abs(Wxy)[:, wsel].ravel()
         out[d] = -np.sum(wgt * Tg * dt) / (np.sum(wgt * Tg * Tg) + 1e-30)
     return out
@@ -882,10 +917,79 @@ def fig_methods(seed: int = 11):
         col, ls = _MSTYLE[m]
         axB.plot(_yrs(days), recL[m] * PCT, ls=ls, color=col, lw=1.0, alpha=0.9, label=m)
     axB.set(xlabel="time (years)", ylabel="dv/v (%)",
-            title="(b) large dv/v — phase methods cycle-skip, warps under-shoot")
+            title="(b) large dv/v — MWCS cycle-skips; unwrapped WCS & TS track")
     axB.legend(loc="lower left", fontsize=8, ncol=2)
     fig.suptitle("Estimator choice — the seven NoisePy monitoring methods "
                  "(Yuan et al. 2021)", fontweight="600")
+    fig.tight_layout()
+    return fig
+
+
+def fig_aggregation(seed: int = 88):
+    """Cross-component aggregation for one station pair, two ways that propagate
+    uncertainty differently: peak-pick each component then average the dv/v, vs
+    average the CC(epsilon, t) images first then peak-pick once."""
+    import matplotlib.pyplot as plt
+
+    s = Synth()
+    days = _days(3.0)
+    # A modest-amplitude signal so the *workflow* differences are visible (they
+    # are set by noise, ~0.04 %, and would be dwarfed by a large dv/v).
+    truth = _seasonal(days, 0.0012, 60)
+    truth = truth - 0.0008 * (days >= int(1.5 * YEAR_D))
+    band, win = (0.5, 2.0), (8.0, 35.0)
+    snrs = [14.0, 11.0, 9.0, 1.0, 0.8, 0.6]  # three good, three poor components
+    images = []
+    for c, snr in enumerate(snrs):
+        _, refc = make_coda(maxlag_s=s.maxlag_s, fs=s.fs, seed=100 + c)
+        ccfs = daily_ccfs(s.t, [refc], [truth], fs=s.fs, snr=snr, seed=seed + c)
+        es, cc = stretching_cc(ccfs, refc, s.t, band=band, fs=s.fs, window=win)
+        images.append(cc)
+    images = np.array(images)                       # [ncomp, ndays, n_eps]
+    dvv_c, cc_c = zip(*[peak_dvv(es, im) for im in images], strict=True)
+    dvv_c, cc_c = np.array(dvv_c), np.clip(np.array(cc_c), 0, None)
+    # Approach A — peak per component, then average across components. Its
+    # uncertainty is the *ensemble spread* of the per-component picks (the grey
+    # lines), inflated by the poor components.
+    A_unw = dvv_c.mean(axis=0)
+    A_wt = (cc_c * dvv_c).sum(axis=0) / (cc_c.sum(axis=0) + 1e-12)
+    # Approach B — average the CC images, then peak-pick once. Its uncertainty is
+    # the *width of the averaged CC peak* (treating CC as a likelihood over eps),
+    # a different statistical object from A's ensemble spread.
+    mean_img = images.mean(axis=0)
+    B, _ = peak_dvv(es, mean_img)
+    w = np.clip(mean_img, 0, None)
+    mu = (w * es).sum(1) / w.sum(1)
+    sig_B = np.sqrt((w * (es - mu[:, None]) ** 2).sum(1) / w.sum(1))
+
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(11.0, 4.4))
+    for d in dvv_c:
+        axA.plot(_yrs(days), d * PCT, color="0.8", lw=0.4)
+    axA.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="truth")
+    axA.plot(_yrs(days), A_unw * PCT, color=C["bad"], lw=1.0, alpha=0.9,
+             label="A: avg dv/v (unweighted)")
+    axA.plot(_yrs(days), A_wt * PCT, color=C["landslide"], lw=1.0, alpha=0.9,
+             label="A: avg dv/v (CC-weighted)")
+    axA.plot(_yrs(days), B * PCT, color=C["groundwater"], lw=1.4,
+             label="B: avg CC images, then peak")
+    axA.fill_between(_yrs(days), (B - sig_B) * PCT, (B + sig_B) * PCT,
+                     color=C["groundwater"], alpha=0.18, lw=0,
+                     label="B uncertainty = CC-peak width")
+    axA.set(xlabel="time (years)", ylabel="dv/v (%)", ylim=(-0.4, 0.4),
+            title="(a) same pair, 3 defensible recipes → 3 answers")
+    axA.legend(loc="lower left", fontsize=8)
+    axA.text(0.05, 0.33, "unweighted average swings\nwith the poor components",
+             fontsize=8, color=C["bad"])
+    extent = [_yrs(days)[0], _yrs(days)[-1], es[0] * PCT, es[-1] * PCT]
+    axB.imshow(mean_img.T, aspect="auto", origin="lower", extent=extent,
+               cmap="magma", vmin=0)
+    axB.plot(_yrs(days), B * PCT, color="white", lw=0.8, label="peak of mean CC (B)")
+    axB.plot(_yrs(days), truth * PCT, color="cyan", lw=1.0, ls="--", label="truth")
+    axB.set(xlabel="time (years)", ylabel="dv/v candidate (%)", ylim=(-0.35, 0.3),
+            title="(b) the averaged CC(dv/v, t) image (Approach B)")
+    axB.legend(loc="upper right", fontsize=8)
+    fig.suptitle("Cross-component aggregation: an undocumented choice that makes "
+                 "studies incomparable", fontweight="600")
     fig.tight_layout()
     return fig
 
@@ -1112,12 +1216,13 @@ def fig_multiverse(seed: int = 55):
 
 FIGURES = {
     "demo_1_methods": fig_methods,
-    "demo_2_frequency_depth": fig_frequency_depth,
-    "demo_3_window_band": fig_window_band,
-    "demo_4_stacking": fig_stacking,
-    "demo_5_reference": fig_reference,
-    "demo_6_artifacts": fig_artifacts,
-    "demo_7_multiverse": fig_multiverse,
+    "demo_2_aggregation": fig_aggregation,
+    "demo_3_frequency_depth": fig_frequency_depth,
+    "demo_4_window_band": fig_window_band,
+    "demo_5_stacking": fig_stacking,
+    "demo_6_reference": fig_reference,
+    "demo_7_artifacts": fig_artifacts,
+    "demo_8_multiverse": fig_multiverse,
 }
 
 

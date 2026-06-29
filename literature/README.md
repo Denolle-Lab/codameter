@@ -41,21 +41,23 @@ package at
 [`codameter.synthetic_demo`](../src/codameter/synthetic_demo.py) and is unit-
 tested in [`tests/test_synthetic_demo.py`](../tests/test_synthetic_demo.py).
 
-Run `pixi run python literature/synthetic_dvv_demo.py` → writes seven figures to
+Run `pixi run python literature/synthetic_dvv_demo.py` → writes eight figures to
 `literature/figs/`. **All seven** NoisePy `monitoring_methods` estimators are
-reproduced live — TS, WCC, DTW, MWCS, and the wavelet-domain WCS, WTS, WTDTW
-(Morlet CWT, no external dependency) — and benchmarked as in Yuan et al. (2021).
-The focus is **deviations from best practice**:
+reproduced live — TS, WCC, DTW, MWCS, and the wavelet-domain WCS (with 2-D phase
+unwrapping, Mao 2020), WTS, WTDTW (Morlet CWT, no external dependency) — and
+benchmarked as in Yuan et al. (2021). The focus is **deviations from best
+practice** and the **undocumented choices** that break intercomparability:
 
 | Figure | Theme | Deviation / consequence |
 | --- | --- | --- |
-| `demo_1_methods.png` | Estimator choice (7 NoisePy methods, Yuan 2021) | At large dv/v phase methods (MWCS, WCS) cycle-skip, warps (DTW, WTDTW) under-shoot; agree when small |
-| `demo_2_frequency_depth.png` | Frequency band → depth | Band selects depth → a different signal |
-| `demo_3_window_band.png` | Coda window vs band | A fixed late window is pure noise at high frequency |
-| `demo_4_stacking.png` | Stacking length | Long stack smears/delays the coseismic step |
-| `demo_5_reference.png` | Reference strategy | Moving ref erases trend; Brenguier 2014 inversion is robust |
-| `demo_6_artifacts.png` | Clock error + late-coda noise | Spurious dv/v (branch-antisymmetric clock; spurious seasonal) |
-| `demo_7_multiverse.png` | 27 pipelines | Spread across choices ≈ size of the signal |
+| `demo_1_methods.png` | Estimator choice (7 NoisePy methods, Yuan 2021) | MWCS cycle-skips; 2-D-unwrapped WCS recovers; warps (DTW, WTDTW) under-shoot |
+| `demo_2_aggregation.png` | Cross-component aggregation | avg-dv/v vs avg-CC-images, weighted vs not → different value & uncertainty |
+| `demo_3_frequency_depth.png` | Frequency band → depth | Band selects depth → a different signal |
+| `demo_4_window_band.png` | Coda window vs band | A fixed late window is pure noise at high frequency |
+| `demo_5_stacking.png` | Stacking length | Long stack smears/delays the coseismic step |
+| `demo_6_reference.png` | Reference strategy | Moving ref erases trend; Brenguier 2014 inversion is robust |
+| `demo_7_artifacts.png` | Clock error + late-coda noise | Spurious dv/v (branch-antisymmetric clock; spurious seasonal) |
+| `demo_8_multiverse.png` | 27 pipelines | Spread across choices ≈ size of the signal |
 
 ## How to extend it
 
