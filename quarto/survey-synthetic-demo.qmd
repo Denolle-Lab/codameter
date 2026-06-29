@@ -122,7 +122,33 @@ sd.fig_aggregation();
 
 ---
 
-## 3. Frequency band selects the depth — and the signal
+## 3. Station-pair aggregation and the error bar you report
+
+Add the next layer up — many station pairs, each already a coherence-weighted
+average over its cross-components, combined into a **network** $\delta v/v(t)$.
+Now the choice is how to summarize the *uncertainty*, and three conventions all
+appear in the literature:
+
+- **CC-weighted standard error** — weight pairs by coherence, $\sigma =
+  \sigma_w/\sqrt{N_\mathrm{eff}}$;
+- **unweighted standard error** — $\sigma = \mathrm{std}/\sqrt{N}$;
+- **standard deviation** — report the between-pair *scatter*, not divided by
+  $\sqrt{N}$.
+
+On the same network the **means nearly coincide**, but the reported $1\sigma$
+spans a factor of $\sim\!\sqrt{N}$ (panel b). A velocity change that is "$3\sigma$
+significant" under the tight convention is "$1\sigma$, not significant" under the
+conservative one — from the *same data*. Error bars are not comparable across
+studies unless the aggregation and the SE-vs-SD convention are both stated.
+
+```{python}
+#| code-fold: true
+sd.fig_uncertainty();
+```
+
+---
+
+## 4. Frequency band selects the depth — and the signal
 
 Give the medium **two layers**: a shallow one with a strong seasonal cycle and a
 deep one with a multi-year drought trend, each living in a different part of the
@@ -137,7 +163,7 @@ sd.fig_frequency_depth();
 
 ---
 
-## 4. The coda window does not transfer across bands
+## 5. The coda window does not transfer across bands
 
 A common deviation: pick one lapse window (say 20–40 s) and reuse it at every
 frequency. But the coda **decays faster at high frequency** ($A(t)\propto
@@ -154,7 +180,7 @@ sd.fig_window_band();
 
 ---
 
-## 5. Stacking length — resolution vs noise
+## 6. Stacking length — resolution vs noise
 
 A coseismic **step** under a seasonal cycle. A 1-day CCF is noisy but captures
 the step's timing; a long trailing stack suppresses noise but **rounds off and
@@ -168,7 +194,7 @@ sd.fig_stacking();
 
 ---
 
-## 6. Reference strategy — total stack, moving, or joint inversion
+## 7. Reference strategy — total stack, moving, or joint inversion
 
 How you define the reference sets what survives. A **total-stack** reference is
 unbiased but noisy; a **moving** reference re-baselines continuously and so
@@ -184,7 +210,7 @@ sd.fig_reference();
 
 ---
 
-## 7. Deviations that *manufacture* dv/v
+## 8. Deviations that *manufacture* dv/v
 
 Not every wiggle is a velocity change. Two classic instrument/environment
 artefacts inject **spurious** $\delta v/v$:
@@ -206,7 +232,7 @@ sd.fig_artifacts();
 
 ---
 
-## 8. The garden of forking paths
+## 9. The garden of forking paths
 
 Finally, take one volcano dataset and run **27 individually defensible pipelines**
 (3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The
@@ -229,6 +255,7 @@ sd.fig_multiverse();
 | --- | --- | --- |
 | Estimator — all 7 NoisePy methods | Yuan 2021 suite | At large dv/v: MWCS cycle-skips, 2-D-unwrapped WCS recovers, warps (DTW, WTDTW) under-shoot |
 | Cross-component aggregation | Station pair, 6 components | Avg-dv/v vs avg-CC-images, weighted vs not → different value *and* uncertainty |
+| Station-pair aggregation & σ | 9-pair network | Same mean, but reported 1σ differs ~√N (SE vs SD, weighted vs not) |
 | Frequency band | Groundwater 2-layer | Band selects depth → a *different* signal |
 | Coda window vs band | Frequency-dependent coda | A fixed late window is pure noise at high frequency |
 | Stack length | Earthquake step | Long stack smears and delays the step |

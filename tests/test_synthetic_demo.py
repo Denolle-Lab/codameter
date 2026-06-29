@@ -179,6 +179,24 @@ def test_aggregation_image_average_beats_unweighted(synth: Synth) -> None:
     assert rmse(a_wt) < rmse(a_unw)
 
 
+def test_network_schemes_share_mean_but_differ_in_error_bar() -> None:
+    """Station-pair aggregation: schemes agree on the mean dv/v but report
+    error bars differing by ~sqrt(N) (SE vs SD), the uncertainty-pathway point."""
+    from codameter.synthetic_demo import network_dvv
+
+    days = _days(3.0)
+    truth = _seasonal(days, 0.0012, 60)
+    R = network_dvv(truth, n_pairs=9, seed=123)
+    keys = ["weighted_se", "unweighted_se", "unweighted_sd"]
+    # Means agree across schemes.
+    for k in keys:
+        assert np.median(np.abs(R[k]["dvv"] - truth)) < 1e-3, k
+    # But the reported 1-sigma differs by a large factor (SD ≫ SE).
+    se = np.median(R["weighted_se"]["sigma"])
+    sd = np.median(R["unweighted_sd"]["sigma"])
+    assert sd > 2.0 * se
+
+
 def test_freqdep_coda_decays_faster_at_high_frequency(synth: Synth) -> None:
     from codameter.synthetic_demo import bandpass
 

@@ -994,6 +994,107 @@ def fig_aggregation(seed: int = 88):
     return fig
 
 
+def network_dvv(
+    truth: np.ndarray,
+    *,
+    n_pairs: int = 9,
+    n_comp: int = 6,
+    band: tuple[float, float] = (0.5, 2.0),
+    window: tuple[float, float] = (8.0, 35.0),
+    seed: int = 123,
+) -> dict:
+    """Hierarchical network synthesis → per-scheme network dv/v(t) and σ(t).
+
+    Builds ``n_pairs`` station pairs (heterogeneous quality, with ±~15 % spatial
+    variability in the true dv/v), each a coherence-weighted average over
+    ``n_comp`` cross-components, then aggregates the pairs to a network series
+    under uncertainty conventions all common in the literature:
+
+    - ``"weighted_se"`` — coherence-weighted pair mean; σ = weighted standard
+      **error** with effective sample size ``(Σw)²/Σw²``;
+    - ``"unweighted_se"`` — equal-weight pair mean; σ = standard **error**
+      ``std/√N``;
+    - ``"unweighted_sd"`` — equal-weight pair mean; σ = standard **deviation**
+      (the between-pair scatter, *not* divided by √N).
+
+    The means nearly coincide; the σ's differ by ~√N purely from the SE-vs-SD
+    and weighting choices. Returns ``{"truth", "es", scheme: {"dvv","sigma"}}``.
+    """
+    s = Synth()
+    pair_snr = np.linspace(11.0, 2.5, n_pairs)          # some pairs poor
+    rng = np.random.default_rng(seed)
+    pair_scale = 1.0 + 0.15 * rng.standard_normal(n_pairs)  # spatial variability
+    pair_dvv, pair_w, es = [], [], None
+    for p in range(n_pairs):
+        pt = truth * pair_scale[p]
+        dvvc, ccc = [], []
+        for c in range(n_comp):
+            snr = pair_snr[p] * (0.7 + 0.6 * c / max(1, n_comp - 1))
+            _, refc = make_coda(maxlag_s=s.maxlag_s, fs=s.fs, seed=300 + p * 7 + c)
+            ccfs = daily_ccfs(s.t, [refc], [pt], fs=s.fs, snr=snr, seed=seed + p * 7 + c)
+            es, cc = stretching_cc(ccfs, refc, s.t, band=band, fs=s.fs, window=window)
+            d, pk = peak_dvv(es, cc)
+            dvvc.append(d)
+            ccc.append(np.clip(pk, 0, None))
+        dvvc, ccc = np.array(dvvc), np.array(ccc)
+        pair_dvv.append((ccc * dvvc).sum(0) / (ccc.sum(0) + 1e-12))  # A-weighted/pair
+        pair_w.append(ccc.mean(0))
+    pair_dvv, pair_w = np.array(pair_dvv), np.array(pair_w)
+
+    U = pair_dvv.mean(0)
+    sd = pair_dvv.std(0, ddof=1)
+    sw = pair_w.sum(0)
+    W = (pair_w * pair_dvv).sum(0) / sw
+    neff = sw**2 / (pair_w**2).sum(0)
+    W_se = np.sqrt((pair_w * (pair_dvv - W) ** 2).sum(0) / sw / neff)
+    return {
+        "truth": truth, "es": es,
+        "weighted_se": {"dvv": W, "sigma": W_se},
+        "unweighted_se": {"dvv": U, "sigma": sd / np.sqrt(n_pairs)},
+        "unweighted_sd": {"dvv": U, "sigma": sd},
+    }
+
+
+def fig_uncertainty(seed: int = 123):
+    """Station-pair aggregation: the recovered dv/v agrees across schemes, but the
+    *reported uncertainty* differs by ~√N — so the same network gives a
+    'significant' or 'not significant' change on an undocumented choice."""
+    import matplotlib.pyplot as plt
+
+    days = _days(3.0)
+    truth = _seasonal(days, 0.0012, 60) - 0.0008 * (days >= int(1.5 * YEAR_D))
+    R = network_dvv(truth, seed=seed)
+    schemes = [
+        ("weighted_se", C["landslide"], "CC-weighted, std. error"),
+        ("unweighted_se", C["groundwater"], "unweighted, std. error"),
+        ("unweighted_sd", C["bad"], "unweighted, std. deviation"),
+    ]
+    yr = _yrs(days)
+
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(11.0, 4.4))
+    axA.plot(yr, truth * PCT, color=C["truth"], lw=2.4, label="network truth")
+    for key, col, lab in schemes:
+        m, sg = R[key]["dvv"], R[key]["sigma"]
+        axA.fill_between(yr, (m - sg) * PCT, (m + sg) * PCT, color=col, alpha=0.18, lw=0)
+        axA.plot(yr, m * PCT, color=col, lw=1.0, alpha=0.9, label=lab)
+    axA.set(xlabel="time (years)", ylabel="dv/v (%)", ylim=(-0.35, 0.3),
+            title="(a) same network, ~same mean, different error bands")
+    axA.legend(loc="lower left", fontsize=8)
+    meds = {}
+    for key, col, lab in schemes:
+        sg = R[key]["sigma"] * PCT
+        axB.plot(yr, sg, color=col, lw=1.3, label=lab)
+        meds[key] = float(np.median(sg))
+    ratio = meds["unweighted_sd"] / meds["weighted_se"]
+    axB.set(xlabel="time (years)", ylabel="reported 1σ on dv/v (%)",
+            title=f"(b) the error bar itself is a choice (≈{ratio:.1f}× range)")
+    axB.legend(loc="upper left", fontsize=8)
+    fig.suptitle("Station-pair aggregation & uncertainty: incomparable error "
+                 "bars from one dataset", fontweight="600")
+    fig.tight_layout()
+    return fig
+
+
 def fig_window_band(seed: int = 66):
     """Coda window must scale with frequency band: a fixed late window is full of
     signal at low frequency but pure noise at high frequency."""
@@ -1217,12 +1318,13 @@ def fig_multiverse(seed: int = 55):
 FIGURES = {
     "demo_1_methods": fig_methods,
     "demo_2_aggregation": fig_aggregation,
-    "demo_3_frequency_depth": fig_frequency_depth,
-    "demo_4_window_band": fig_window_band,
-    "demo_5_stacking": fig_stacking,
-    "demo_6_reference": fig_reference,
-    "demo_7_artifacts": fig_artifacts,
-    "demo_8_multiverse": fig_multiverse,
+    "demo_3_uncertainty": fig_uncertainty,
+    "demo_4_frequency_depth": fig_frequency_depth,
+    "demo_5_window_band": fig_window_band,
+    "demo_6_stacking": fig_stacking,
+    "demo_7_reference": fig_reference,
+    "demo_8_artifacts": fig_artifacts,
+    "demo_9_multiverse": fig_multiverse,
 }
 
 

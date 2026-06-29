@@ -588,11 +588,23 @@
     ]
   },
   {
+    "objectID": "survey-synthetic-demo.html#station-pair-aggregation-and-the-error-bar-you-report",
+    "href": "survey-synthetic-demo.html#station-pair-aggregation-and-the-error-bar-you-report",
+    "title": "How processing choices move dv/v — a synthetic demonstration",
+    "section": "3. Station-pair aggregation and the error bar you report",
+    "text": "3. Station-pair aggregation and the error bar you report\nAdd the next layer up — many station pairs, each already a coherence-weighted average over its cross-components, combined into a network \\(\\delta v/v(t)\\). Now the choice is how to summarize the uncertainty, and three conventions all appear in the literature:\n\nCC-weighted standard error — weight pairs by coherence, \\(\\sigma =\n\\sigma_w/\\sqrt{N_\\mathrm{eff}}\\);\nunweighted standard error — \\(\\sigma = \\mathrm{std}/\\sqrt{N}\\);\nstandard deviation — report the between-pair scatter, not divided by \\(\\sqrt{N}\\).\n\nOn the same network the means nearly coincide, but the reported \\(1\\sigma\\) spans a factor of \\(\\sim\\!\\sqrt{N}\\) (panel b). A velocity change that is “\\(3\\sigma\\) significant” under the tight convention is “\\(1\\sigma\\), not significant” under the conservative one — from the same data. Error bars are not comparable across studies unless the aggregation and the SE-vs-SD convention are both stated.\n\n\nCode\nsd.fig_uncertainty();",
+    "crumbs": [
+      "Home",
+      "Literature survey",
+      "Synthetic demo: choices move dv/v"
+    ]
+  },
+  {
     "objectID": "survey-synthetic-demo.html#frequency-band-selects-the-depth-and-the-signal",
     "href": "survey-synthetic-demo.html#frequency-band-selects-the-depth-and-the-signal",
     "title": "How processing choices move dv/v — a synthetic demonstration",
-    "section": "3. Frequency band selects the depth — and the signal",
-    "text": "3. Frequency band selects the depth — and the signal\nGive the medium two layers: a shallow one with a strong seasonal cycle and a deep one with a multi-year drought trend, each living in a different part of the coda spectrum. Band high → you recover the shallow seasonal signal; band low → the deep trend. The band is not a free knob — it chooses what you measure (survey rule 6).\n\n\nCode\nsd.fig_frequency_depth();",
+    "section": "4. Frequency band selects the depth — and the signal",
+    "text": "4. Frequency band selects the depth — and the signal\nGive the medium two layers: a shallow one with a strong seasonal cycle and a deep one with a multi-year drought trend, each living in a different part of the coda spectrum. Band high → you recover the shallow seasonal signal; band low → the deep trend. The band is not a free knob — it chooses what you measure (survey rule 6).\n\n\nCode\nsd.fig_frequency_depth();",
     "crumbs": [
       "Home",
       "Literature survey",
@@ -603,8 +615,8 @@
     "objectID": "survey-synthetic-demo.html#the-coda-window-does-not-transfer-across-bands",
     "href": "survey-synthetic-demo.html#the-coda-window-does-not-transfer-across-bands",
     "title": "How processing choices move dv/v — a synthetic demonstration",
-    "section": "4. The coda window does not transfer across bands",
-    "text": "4. The coda window does not transfer across bands\nA common deviation: pick one lapse window (say 20–40 s) and reuse it at every frequency. But the coda decays faster at high frequency (\\(A(t)\\propto\ne^{-\\pi f t/Q_c}\\)), so a window that is full of signal at low frequency is pure noise at high frequency (panel a). Measuring the high band in that fixed late window returns garbage; an earlier, SNR-matched window recovers the truth (panel b). The window must scale with the band — ideally set from the coda envelope / a fixed number of mean-free-times, not copied across bands.\n\n\nCode\nsd.fig_window_band();",
+    "section": "5. The coda window does not transfer across bands",
+    "text": "5. The coda window does not transfer across bands\nA common deviation: pick one lapse window (say 20–40 s) and reuse it at every frequency. But the coda decays faster at high frequency (\\(A(t)\\propto\ne^{-\\pi f t/Q_c}\\)), so a window that is full of signal at low frequency is pure noise at high frequency (panel a). Measuring the high band in that fixed late window returns garbage; an earlier, SNR-matched window recovers the truth (panel b). The window must scale with the band — ideally set from the coda envelope / a fixed number of mean-free-times, not copied across bands.\n\n\nCode\nsd.fig_window_band();",
     "crumbs": [
       "Home",
       "Literature survey",
@@ -615,8 +627,8 @@
     "objectID": "survey-synthetic-demo.html#stacking-length-resolution-vs-noise",
     "href": "survey-synthetic-demo.html#stacking-length-resolution-vs-noise",
     "title": "How processing choices move dv/v — a synthetic demonstration",
-    "section": "5. Stacking length — resolution vs noise",
-    "text": "5. Stacking length — resolution vs noise\nA coseismic step under a seasonal cycle. A 1-day CCF is noisy but captures the step’s timing; a long trailing stack suppresses noise but rounds off and delays the step — the resolution/precision trade-off behind stacking choices (survey rule 7).\n\n\nCode\nsd.fig_stacking();",
+    "section": "6. Stacking length — resolution vs noise",
+    "text": "6. Stacking length — resolution vs noise\nA coseismic step under a seasonal cycle. A 1-day CCF is noisy but captures the step’s timing; a long trailing stack suppresses noise but rounds off and delays the step — the resolution/precision trade-off behind stacking choices (survey rule 7).\n\n\nCode\nsd.fig_stacking();",
     "crumbs": [
       "Home",
       "Literature survey",
@@ -627,8 +639,8 @@
     "objectID": "survey-synthetic-demo.html#reference-strategy-total-stack-moving-or-joint-inversion",
     "href": "survey-synthetic-demo.html#reference-strategy-total-stack-moving-or-joint-inversion",
     "title": "How processing choices move dv/v — a synthetic demonstration",
-    "section": "6. Reference strategy — total stack, moving, or joint inversion",
-    "text": "6. Reference strategy — total stack, moving, or joint inversion\nHow you define the reference sets what survives. A total-stack reference is unbiased but noisy; a moving reference re-baselines continuously and so erases slow trends (the pre-eruptive decline vanishes); the Brenguier et al. (2014) joint inversion measures relative \\(\\delta v/v\\) between many short stacks and inverts x_i − x_j = m_{ij} with a smoothness penalty — robust to any single reference and trend-preserving.\n\n\nCode\nsd.fig_reference();",
+    "section": "7. Reference strategy — total stack, moving, or joint inversion",
+    "text": "7. Reference strategy — total stack, moving, or joint inversion\nHow you define the reference sets what survives. A total-stack reference is unbiased but noisy; a moving reference re-baselines continuously and so erases slow trends (the pre-eruptive decline vanishes); the Brenguier et al. (2014) joint inversion measures relative \\(\\delta v/v\\) between many short stacks and inverts x_i − x_j = m_{ij} with a smoothness penalty — robust to any single reference and trend-preserving.\n\n\nCode\nsd.fig_reference();",
     "crumbs": [
       "Home",
       "Literature survey",
@@ -639,8 +651,8 @@
     "objectID": "survey-synthetic-demo.html#deviations-that-manufacture-dvv",
     "href": "survey-synthetic-demo.html#deviations-that-manufacture-dvv",
     "title": "How processing choices move dv/v — a synthetic demonstration",
-    "section": "7. Deviations that manufacture dv/v",
-    "text": "7. Deviations that manufacture dv/v\nNot every wiggle is a velocity change. Two classic instrument/environment artefacts inject spurious \\(\\delta v/v\\):\n\nStation clock error (panel a). A timing drift delays the whole CCF — a constant lag, independent of lapse — so it appears with opposite sign on the causal and acausal branches. A real velocity change moves both the same way, so measuring the two branches separately is the diagnostic.\nSeasonal noise in the late coda (panel b). A seasonally changing noise-source distribution warps the low-SNR late coda, so a late window reports a coherent spurious seasonal \\(\\delta v/v\\) many times the real signal, while an early, higher-SNR window stays clean (the Zhan 2013 / Daskalakis 2016 warning).\n\n\n\nCode\nsd.fig_artifacts();",
+    "section": "8. Deviations that manufacture dv/v",
+    "text": "8. Deviations that manufacture dv/v\nNot every wiggle is a velocity change. Two classic instrument/environment artefacts inject spurious \\(\\delta v/v\\):\n\nStation clock error (panel a). A timing drift delays the whole CCF — a constant lag, independent of lapse — so it appears with opposite sign on the causal and acausal branches. A real velocity change moves both the same way, so measuring the two branches separately is the diagnostic.\nSeasonal noise in the late coda (panel b). A seasonally changing noise-source distribution warps the low-SNR late coda, so a late window reports a coherent spurious seasonal \\(\\delta v/v\\) many times the real signal, while an early, higher-SNR window stays clean (the Zhan 2013 / Daskalakis 2016 warning).\n\n\n\nCode\nsd.fig_artifacts();",
     "crumbs": [
       "Home",
       "Literature survey",
@@ -651,8 +663,8 @@
     "objectID": "survey-synthetic-demo.html#the-garden-of-forking-paths",
     "href": "survey-synthetic-demo.html#the-garden-of-forking-paths",
     "title": "How processing choices move dv/v — a synthetic demonstration",
-    "section": "8. The garden of forking paths",
-    "text": "8. The garden of forking paths\nFinally, take one volcano dataset and run 27 individually defensible pipelines (3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The median tracks the truth, but the 10–90 % spread across pipelines fans out most where it matters — at the sharp co-eruptive drop. The honest object is a distribution of \\(\\delta v/v\\) over processing choices, which is exactly what codameter.uq_processing samples and marginalizes.\n\n\nCode\nsd.fig_multiverse();",
+    "section": "9. The garden of forking paths",
+    "text": "9. The garden of forking paths\nFinally, take one volcano dataset and run 27 individually defensible pipelines (3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The median tracks the truth, but the 10–90 % spread across pipelines fans out most where it matters — at the sharp co-eruptive drop. The honest object is a distribution of \\(\\delta v/v\\) over processing choices, which is exactly what codameter.uq_processing samples and marginalizes.\n\n\nCode\nsd.fig_multiverse();",
     "crumbs": [
       "Home",
       "Literature survey",
@@ -664,7 +676,7 @@
     "href": "survey-synthetic-demo.html#takeaways",
     "title": "How processing choices move dv/v — a synthetic demonstration",
     "section": "Takeaways",
-    "text": "Takeaways\n\n\n\n\n\n\n\n\nChoice / deviation\nShown with\nConsequence of deviating\n\n\n\n\nEstimator — all 7 NoisePy methods\nYuan 2021 suite\nAt large dv/v: MWCS cycle-skips, 2-D-unwrapped WCS recovers, warps (DTW, WTDTW) under-shoot\n\n\nCross-component aggregation\nStation pair, 6 components\nAvg-dv/v vs avg-CC-images, weighted vs not → different value and uncertainty\n\n\nFrequency band\nGroundwater 2-layer\nBand selects depth → a different signal\n\n\nCoda window vs band\nFrequency-dependent coda\nA fixed late window is pure noise at high frequency\n\n\nStack length\nEarthquake step\nLong stack smears and delays the step\n\n\nReference scheme\nVolcano\nMoving reference erases the trend; joint inversion is robust\n\n\nClock error\nStable medium\nSpurious dv/v, opposite-sign on causal vs acausal branches\n\n\nSeasonal late-coda noise\nStable medium\nSpurious seasonal dv/v from a late window\n\n\nAll of the above\nMultiverse\nSpread across pipelines ≈ size of the signal\n\n\n\nThe constructive response is the survey’s cross-cutting rules: quantify the within-choice error, scale the band/window to the target depth, fix the reference deliberately, check the causal/acausal branches for timing errors, weight by SNR, and — when in doubt — sample the choices and report the marginal.\nReproduce locally: pixi run python literature/synthetic_dvv_demo.py.",
+    "text": "Takeaways\n\n\n\n\n\n\n\n\nChoice / deviation\nShown with\nConsequence of deviating\n\n\n\n\nEstimator — all 7 NoisePy methods\nYuan 2021 suite\nAt large dv/v: MWCS cycle-skips, 2-D-unwrapped WCS recovers, warps (DTW, WTDTW) under-shoot\n\n\nCross-component aggregation\nStation pair, 6 components\nAvg-dv/v vs avg-CC-images, weighted vs not → different value and uncertainty\n\n\nStation-pair aggregation & σ\n9-pair network\nSame mean, but reported 1σ differs ~√N (SE vs SD, weighted vs not)\n\n\nFrequency band\nGroundwater 2-layer\nBand selects depth → a different signal\n\n\nCoda window vs band\nFrequency-dependent coda\nA fixed late window is pure noise at high frequency\n\n\nStack length\nEarthquake step\nLong stack smears and delays the step\n\n\nReference scheme\nVolcano\nMoving reference erases the trend; joint inversion is robust\n\n\nClock error\nStable medium\nSpurious dv/v, opposite-sign on causal vs acausal branches\n\n\nSeasonal late-coda noise\nStable medium\nSpurious seasonal dv/v from a late window\n\n\nAll of the above\nMultiverse\nSpread across pipelines ≈ size of the signal\n\n\n\nThe constructive response is the survey’s cross-cutting rules: quantify the within-choice error, scale the band/window to the target depth, fix the reference deliberately, check the causal/acausal branches for timing errors, weight by SNR, and — when in doubt — sample the choices and report the marginal.\nReproduce locally: pixi run python literature/synthetic_dvv_demo.py.",
     "crumbs": [
       "Home",
       "Literature survey",
