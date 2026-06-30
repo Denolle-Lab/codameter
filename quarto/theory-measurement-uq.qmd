@@ -328,6 +328,73 @@ and the temporal correlation, and over-reports its own confidence. Carrying
 $C_d$ through is what makes the stress posterior on the [inference page](theory-uq.qmd)
 defensible.
 
+## 8. The survey: how 103 studies report (or don't) their measurement error
+
+Everything above is theory. Does the literature *carry* a measurement
+uncertainty at all? We loaded the survey of **103 ambient-noise $\delta v/v$
+monitoring studies** (the same table that appears in the companion paper's
+appendix) and asked, per study, what the `uncertainty_treatment` column says.
+The headline: the choices this page warns about — estimator, band, coda window,
+reference scheme — are reported unevenly, and the *uncertainty definition* is the
+single most often missing item.
+
+```{python}
+#| label: survey-stats
+import pandas as pd
+surv = pd.read_csv("../literature/dvv_processing_parameters.csv").fillna("n/r")
+surv = surv.replace("", "n/r")
+
+def reports_uncertainty(s):
+    s = str(s).strip().lower()
+    return s not in ("n/r", "n/a", "none", "")
+
+n = len(surv)
+n_unc = surv["uncertainty_treatment"].map(reports_uncertainty).sum()
+print(f"studies surveyed                       : {n}")
+print(f"  report *some* uncertainty treatment  : {n_unc}  ({100*n_unc/n:.0f}%)")
+print(f"  do NOT (uncertainty = n/r)           : {n-n_unc}  ({100*(n-n_unc)/n:.0f}%)")
+print()
+print("estimator family used (dvv_method):")
+for meth, c in surv["dvv_method"].value_counts().items():
+    print(f"  {meth:<28s} {c:3d}")
+```
+
+About a quarter of the studies state *no* explicit measurement uncertainty at
+all, and among the ~three-quarters that do, the definitions are mutually
+incomparable (a within-measurement Weaver/Clarke floor, a between-pair standard
+error, a standard deviation, a bootstrap, or simply "SNR-based") — exactly the
+$\sqrt{N}$-and-more ambiguity of §4–6, so even the studies that report an error
+bar cannot be compared without reading how it was defined. The full per-study table follows; the **uncertainty-treatment** column is
+the one to read against this page.
+
+```{python}
+#| label: survey-table
+#| output: asis
+from html import escape
+cols = [("authors_year", "Study"), ("application", "Application"),
+        ("freq_band_hz", "Freq (Hz)"), ("coda_window_s", "Coda (s)"),
+        ("dvv_method", "Method"), ("stack_scheme", "Reference / stack"),
+        ("uncertainty_treatment", "Uncertainty treatment")]
+rows = []
+for _, r in surv.iterrows():
+    tds = []
+    for key, _ in cols:
+        v = str(r[key])
+        cls = ' class="nr"' if v.strip().lower() in ("n/r", "n/a") else ""
+        tds.append(f"<td{cls}>{escape(v)}</td>")
+    rows.append("<tr>" + "".join(tds) + "</tr>")
+head = "".join(f"<th>{escape(lbl)}</th>" for _, lbl in cols)
+print('<div class="survey-scroll">')
+print(f"<table><thead><tr>{head}</tr></thead><tbody>")
+print("\n".join(rows))
+print("</tbody></table></div>")
+```
+
+: Processing choices of the 103 surveyed $\delta v/v$ studies (scroll within the
+box). `n/r` (red) = not reported in the source. Sorted as in the survey CSV;
+full machine-readable version and DOIs live in the repository's `literature/`
+folder and on the [references page](survey-references.qmd).
+
 ---
 
 ::: {.callout-tip}

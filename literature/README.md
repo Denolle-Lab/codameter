@@ -59,6 +59,15 @@ practice** and the **undocumented choices** that break intercomparability:
 | `demo_7_reference.png` | Reference strategy | Moving ref erases trend; Brenguier 2014 inversion is robust |
 | `demo_8_artifacts.png` | Clock error + late-coda noise | Spurious dv/v (branch-antisymmetric clock; spurious seasonal) |
 | `demo_9_multiverse.png` | 27 pipelines | Spread across choices ≈ size of the signal |
+| `demo_10_deviations.png` | One-at-a-time best-vs-deviation | Each deviation ranked by RMS bias + drop distortion (`codameter.deviations`) |
+| `demo_11_multiverse.png` | Full factorial (108 pipelines) | Spread + first-order variance attribution: which choice controls dv/v |
+| `demo_12_bayes.png` | Bayesian processing-ensemble inversion | Posterior dv/v + time-dependent data covariance C_d (`codameter.uq_bayes`) |
+
+Figures `demo_1`–`demo_9` come from `synthetic_dvv_demo.py`; `demo_10`–`demo_11`
+from `python -m codameter.deviations` (the deviation ranking + ultimate
+multiverse); `demo_12` from `python -m codameter.uq_bayes` (the Bayesian
+measurement model — the *new* best practice that marginalises the processing
+choice into a single time-dependent covariance for downstream inversion).
 
 ## How to extend it
 

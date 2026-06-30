@@ -31,6 +31,8 @@ website:
             file: theory-uq.qmd
           - text: "Measurement UQ · error in δv/v"
             file: theory-measurement-uq.qmd
+          - text: "Bayesian measurement · marginalise the choice"
+            file: theory-bayesian-measurement.qmd
           - text: "Processing → depth · sampling & propagation"
             file: theory-processing-depth.qmd
       - text: "Tutorial"
@@ -74,6 +76,8 @@ website:
             file: theory-uq.qmd
           - text: "Measurement UQ (error in δv/v)"
             file: theory-measurement-uq.qmd
+          - text: "Bayesian measurement (marginalise the choice)"
+            file: theory-bayesian-measurement.qmd
           - text: "Processing → depth (sampling & propagation)"
             file: theory-processing-depth.qmd
       - section: "Implementation tutorial"

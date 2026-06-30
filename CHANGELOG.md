@@ -6,6 +6,29 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## Unreleased
 
+### Added
+
+- **`codameter.deviations`** — best-practice baseline plus a documented
+  deviation menu (estimator, band, coda window, stack, reference, gating). One
+  function ranks each deviation by the bias and drop-distortion it injects on a
+  truth-known synthetic (`oat_effects`); another runs the **full factorial
+  multiverse** of all choice combinations and attributes the outcome variance to
+  each axis with a first-order (Sobol/ANOVA) sensitivity index (`multiverse`).
+  Figures `demo_10_deviations.png`, `demo_11_multiverse.png`.
+- **`codameter.uq_bayes`** — a Bayesian hierarchical measurement model that
+  treats the processing choice as a nuisance parameter, runs an ensemble of
+  defensible pipelines, and marginalises the choice out with a conjugate Gibbs
+  sampler. Returns the posterior `δv/v(t)` and the **time-dependent data
+  covariance `C_d`** (within ⊕ methodological, temporal correlation, common-mode)
+  for downstream inversion. Figure `demo_12_bayes.png`; new Quarto page
+  `theory-bayesian-measurement.qmd`.
+- **`paper/manuscript.qmd`** — the GJI draft is now authored in Quarto Markdown;
+  `python paper/build.py` renders it to `manuscript.tex` + `manuscript.pdf` and
+  regenerates the 103-study appendix survey table (`build_survey.py`,
+  `appendix_table.tex`, `survey.bib`) so every surveyed study is cited.
+- The 103-study processing-parameter survey now also renders as a scrollable
+  table on the measurement-UQ Quarto page.
+
 ## 0.1.0 — 2026-04-29
 
 Initial release. Implements the v0.1 scope of the build plan.

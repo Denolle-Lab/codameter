@@ -86,7 +86,7 @@ div.csl-indent {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./theory-processing-depth.html" rel="next">
+<link href="./theory-bayesian-measurement.html" rel="next">
 <link href="./theory-uq.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -364,6 +364,10 @@ window.Quarto = {
  <span class="dropdown-text">Measurement UQ · error in δv/v</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="./theory-bayesian-measurement.html">
+ <span class="dropdown-text">Bayesian measurement · marginalise the choice</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
  <span class="dropdown-text">Processing → depth · sampling &amp; propagation</span></a>
   </li>  
@@ -503,6 +507,12 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./theory-bayesian-measurement.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bayesian measurement (marginalise the choice)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Processing → depth (sampling &amp; propagation)</span></a>
   </div>
@@ -601,7 +611,8 @@ window.Quarto = {
   <li><a href="#temporal-correlation-and-the-common-mode-reference" id="toc-temporal-correlation-and-the-common-mode-reference" class="nav-link" data-scroll-target="#temporal-correlation-and-the-common-mode-reference">4. Temporal correlation and the common-mode reference</a></li>
   <li><a href="#reference-choice-and-the-brenguier-2014-all-to-all-cure" id="toc-reference-choice-and-the-brenguier-2014-all-to-all-cure" class="nav-link" data-scroll-target="#reference-choice-and-the-brenguier-2014-all-to-all-cure">5. Reference choice, and the Brenguier (2014) all-to-all cure</a></li>
   <li><a href="#closing-the-loop-c_d-is-what-the-inversion-actually-needs" id="toc-closing-the-loop-c_d-is-what-the-inversion-actually-needs" class="nav-link" data-scroll-target="#closing-the-loop-c_d-is-what-the-inversion-actually-needs">6. Closing the loop: <span class="math inline">\(C_d\)</span> is what the inversion actually needs</a></li>
-  <li><a href="#the-full-uncertainty-budget" id="toc-the-full-uncertainty-budget" class="nav-link" data-scroll-target="#the-full-uncertainty-budget">7. The full uncertainty budget</a>
+  <li><a href="#the-full-uncertainty-budget" id="toc-the-full-uncertainty-budget" class="nav-link" data-scroll-target="#the-full-uncertainty-budget">7. The full uncertainty budget</a></li>
+  <li><a href="#the-survey-how-103-studies-report-or-dont-their-measurement-error" id="toc-the-survey-how-103-studies-report-or-dont-their-measurement-error" class="nav-link" data-scroll-target="#the-survey-how-103-studies-report-or-dont-their-measurement-error">8. The survey: how 103 studies report (or don’t) their measurement error</a>
   <ul class="collapse">
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul></li>
@@ -1027,6 +1038,2470 @@ Important
 </div>
 </div>
 <p>Measurement uncertainty produces the covariance <span class="math inline">\(C_d\)</span>; inference uncertainty consumes it. Reported the old way — one method, one reference, a diagonal <code>dvv_err</code> — a <span class="math inline">\(\delta v/v\)</span> study quietly discards both the methodological spread and the temporal correlation, and over-reports its own confidence. Carrying <span class="math inline">\(C_d\)</span> through is what makes the stress posterior on the <a href="./theory-uq.html">inference page</a> defensible.</p>
+</section>
+<section id="the-survey-how-103-studies-report-or-dont-their-measurement-error" class="level2">
+<h2 class="anchored" data-anchor-id="the-survey-how-103-studies-report-or-dont-their-measurement-error">8. The survey: how 103 studies report (or don’t) their measurement error</h2>
+<p>Everything above is theory. Does the literature <em>carry</em> a measurement uncertainty at all? We loaded the survey of <strong>103 ambient-noise <span class="math inline">\(\delta v/v\)</span> monitoring studies</strong> (the same table that appears in the companion paper’s appendix) and asked, per study, what the <code>uncertainty_treatment</code> column says. The headline: the choices this page warns about — estimator, band, coda window, reference scheme — are reported unevenly, and the <em>uncertainty definition</em> is the single most often missing item.</p>
+<div id="survey-stats" class="cell" data-execution_count="9">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>surv <span class="op">=</span> pd.read_csv(<span class="st">"../literature/dvv_processing_parameters.csv"</span>).fillna(<span class="st">"n/r"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>surv <span class="op">=</span> surv.replace(<span class="st">""</span>, <span class="st">"n/r"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> reports_uncertainty(s):</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> <span class="bu">str</span>(s).strip().lower()</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> s <span class="kw">not</span> <span class="kw">in</span> (<span class="st">"n/r"</span>, <span class="st">"n/a"</span>, <span class="st">"none"</span>, <span class="st">""</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="bu">len</span>(surv)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>n_unc <span class="op">=</span> surv[<span class="st">"uncertainty_treatment"</span>].<span class="bu">map</span>(reports_uncertainty).<span class="bu">sum</span>()</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"studies surveyed                       : </span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  report *some* uncertainty treatment  : </span><span class="sc">{</span>n_unc<span class="sc">}</span><span class="ss">  (</span><span class="sc">{</span><span class="dv">100</span><span class="op">*</span>n_unc<span class="op">/</span>n<span class="sc">:.0f}</span><span class="ss">%)"</span>)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  do NOT (uncertainty = n/r)           : </span><span class="sc">{</span>n<span class="op">-</span>n_unc<span class="sc">}</span><span class="ss">  (</span><span class="sc">{</span><span class="dv">100</span><span class="op">*</span>(n<span class="op">-</span>n_unc)<span class="op">/</span>n<span class="sc">:.0f}</span><span class="ss">%)"</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"estimator family used (dvv_method):"</span>)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> meth, c <span class="kw">in</span> surv[<span class="st">"dvv_method"</span>].value_counts().items():</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>meth<span class="sc">:&lt;28s}</span><span class="ss"> </span><span class="sc">{</span>c<span class="sc">:3d}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>studies surveyed                       : 103
+  report *some* uncertainty treatment  : 75  (73%)
+  do NOT (uncertainty = n/r)           : 28  (27%)
+
+estimator family used (dvv_method):
+  Stretching                    51
+  Other                         29
+  MWCS                          10
+  n/r                            9
+  Wavelet                        3
+  DTW                            1</code></pre>
+</div>
+</div>
+<p>About a quarter of the studies state <em>no</em> explicit measurement uncertainty at all, and among the ~three-quarters that do, the definitions are mutually incomparable (a within-measurement Weaver/Clarke floor, a between-pair standard error, a standard deviation, a bootstrap, or simply “SNR-based”) — exactly the <span class="math inline">\(\sqrt{N}\)</span>-and-more ambiguity of §4–6, so even the studies that report an error bar cannot be compared without reading how it was defined. The full per-study table follows; the <strong>uncertainty-treatment</strong> column is the one to read against this page.</p>
+<div id="survey-table" class="cell" data-execution_count="10">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> html <span class="im">import</span> escape</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>cols <span class="op">=</span> [(<span class="st">"authors_year"</span>, <span class="st">"Study"</span>), (<span class="st">"application"</span>, <span class="st">"Application"</span>),</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"freq_band_hz"</span>, <span class="st">"Freq (Hz)"</span>), (<span class="st">"coda_window_s"</span>, <span class="st">"Coda (s)"</span>),</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"dvv_method"</span>, <span class="st">"Method"</span>), (<span class="st">"stack_scheme"</span>, <span class="st">"Reference / stack"</span>),</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"uncertainty_treatment"</span>, <span class="st">"Uncertainty treatment"</span>)]</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _, r <span class="kw">in</span> surv.iterrows():</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    tds <span class="op">=</span> []</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, _ <span class="kw">in</span> cols:</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> <span class="bu">str</span>(r[key])</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>        cls <span class="op">=</span> <span class="st">' class="nr"'</span> <span class="cf">if</span> v.strip().lower() <span class="kw">in</span> (<span class="st">"n/r"</span>, <span class="st">"n/a"</span>) <span class="cf">else</span> <span class="st">""</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>        tds.append(<span class="ss">f"&lt;td</span><span class="sc">{</span>cls<span class="sc">}</span><span class="ss">&gt;</span><span class="sc">{</span>escape(v)<span class="sc">}</span><span class="ss">&lt;/td&gt;"</span>)</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    rows.append(<span class="st">"&lt;tr&gt;"</span> <span class="op">+</span> <span class="st">""</span>.join(tds) <span class="op">+</span> <span class="st">"&lt;/tr&gt;"</span>)</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>head <span class="op">=</span> <span class="st">""</span>.join(<span class="ss">f"&lt;th&gt;</span><span class="sc">{</span>escape(lbl)<span class="sc">}</span><span class="ss">&lt;/th&gt;"</span> <span class="cf">for</span> _, lbl <span class="kw">in</span> cols)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'&lt;div class="survey-scroll"&gt;'</span>)</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"&lt;table&gt;&lt;thead&gt;&lt;tr&gt;</span><span class="sc">{</span>head<span class="sc">}</span><span class="ss">&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;"</span>)</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(rows))</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="survey-scroll">
+<table>
+<thead>
+<tr>
+<th>
+Study
+</th>
+<th>
+Application
+</th>
+<th>
+Freq (Hz)
+</th>
+<th>
+Coda (s)
+</th>
+<th>
+Method
+</th>
+<th>
+Reference / stack
+</th>
+<th>
+Uncertainty treatment
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Brenguier et al., 2008
+</td>
+<td>
+Volcano
+</td>
+<td>
+0.5–2
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily stacks referenced to long-term stack
+</td>
+<td>
+Compared against ~0.05% measurement precision / noise floor
+</td>
+</tr>
+<tr>
+<td>
+Duputel et al., 2009
+</td>
+<td>
+Volcano
+</td>
+<td>
+0.1–1
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Quasi-real-time stacks vs reference
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Obermann et al., 2013
+</td>
+<td>
+Volcano
+</td>
+<td>
+&gt;0.5
+</td>
+<td>
+increasing lapse-time coda windows
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily stacks, referenced; coda at increasing lapse times
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Hotovec-Ellis et al., 2014
+</td>
+<td>
+Volcano
+</td>
+<td>
+&gt;5 (high-frequency repeating earthquakes)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Stack across several hundred repeating-earthquake families (multiplets)
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Hotovec-Ellis et al., 2015
+</td>
+<td>
+Volcano
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Combines repeating-earthquake CWI with ambient-noise interferometry
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Rivet et al., 2015
+</td>
+<td>
+Volcano
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily stacks vs reference; network-averaged dv/v
+</td>
+<td>
+dv/v corrected for rainfall pore-pressure to improve detectability of small drops
+</td>
+</tr>
+<tr>
+<td>
+De Plaen et al., 2016
+</td>
+<td>
+Volcano
+</td>
+<td>
+0.1–1.0 (drop visible); best SNR 0.5–1 and 1–2
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Donaldson et al., 2017
+</td>
+<td>
+Volcano
+</td>
+<td>
+0.33–1.0 (lava-lake tremor band)
+</td>
+<td>
+up to ~120 (min lag set by inter-station distance to tremor source)
+</td>
+<td>
+MWCS
+</td>
+<td>
+Daily NCFs stacked over 3-day moving window
+</td>
+<td>
+Reject pairs when MWCS regression error too large; accept if coherence high (&gt;~0.65)
+</td>
+</tr>
+<tr>
+<td>
+Takano et al., 2017
+</td>
+<td>
+Volcano
+</td>
+<td>
+0.5–1; 1–2; 2–4 (depth discrimination)
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Cross-correlations 2012–2015, multiple bands
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Lesage et al., 2018
+</td>
+<td>
+Volcano
+</td>
+<td>
+0.125–2
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily cross-correlations; 2013 stack as reference
+</td>
+<td>
+Pair averaging → &lt;0.05% noise floor; clock-sync errors identified and corrected
+</td>
+</tr>
+<tr>
+<td>
+De Plaen et al., 2019
+</td>
+<td>
+Volcano
+</td>
+<td>
+1–2
+</td>
+<td>
+5–35 (causal + acausal lags)
+</td>
+<td>
+MWCS
+</td>
+<td>
+Daily autocorrelations, 2-day linear stack
+</td>
+<td>
+Median errors ~0.03%/station; reject if dt error &gt;0.1 s and coherence &lt;0.6
+</td>
+</tr>
+<tr>
+<td>
+Donaldson et al., 2019
+</td>
+<td>
+Volcano
+</td>
+<td>
+multiple bands for depth discrimination (n/r exact)
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Olivier et al., 2019
+</td>
+<td>
+Volcano
+</td>
+<td>
+0.1–0.2 (secondary microseism); 0.3–1 (volcanic tremor)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+n/r (passive image interferometry, daily)
+</td>
+<td>
+Resolves &lt;0.1%; cross-checked vs GPS/tilt
+</td>
+</tr>
+<tr>
+<td>
+Yates et al., 2019
+</td>
+<td>
+Volcano
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Feng et al., 2020
+</td>
+<td>
+Volcano
+</td>
+<td>
+0.3–0.6; 0.6–0.9; 0.9–2.0
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Jan 2017–Jun 2018 NCFs
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Hotovec-Ellis et al., 2022
+</td>
+<td>
+Volcano
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Coda Wave Interferometry with Repeating Earthquakes (CWIRE), per-cluster pairs
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Köpfli et al., 2024
+</td>
+<td>
+Volcano
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Long-term NCF stacks; many dv/v series on a common grid
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Yates et al., 2024
+</td>
+<td>
+Volcano
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Wavelet
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Yukutake et al., 2025
+</td>
+<td>
+Volcano
+</td>
+<td>
+0.5–2.0
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Long-term interferometry stacks, 2003–2020
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Schaff &amp; Beroza 2004
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Repeating-earthquake doublets; delays vs pre-mainshock repeaters
+</td>
+<td>
+High-precision relative delay via waveform cross-correlation of near-identical repeaters
+</td>
+</tr>
+<tr>
+<td>
+Pacheco &amp; Snieder 2005
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+n/r (analytical kernel)
+</td>
+</tr>
+<tr>
+<td>
+Rubinstein &amp; Beroza 2005
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Repeating-earthquake travel-time delays before vs after mainshock
+</td>
+<td>
+Precise relative delay from near-identical repeating-earthquake waveforms
+</td>
+</tr>
+<tr>
+<td>
+Wegler &amp; Sens-Schönfelder 2007
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+2–50 (2 Hz high-pass; 100 Hz data)
+</td>
+<td>
+5–14
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily autocorrelations vs ~two-week pre-event reference; grid search (10000 trials, dv/v ±0.03)
+</td>
+<td>
+±0.1% fluctuation = inversion accuracy
+</td>
+</tr>
+<tr>
+<td>
+Brenguier, Campillo, Hadziioannou, Shapiro, Nadeau, Larose 2008
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+0.1–0.9
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+1550-day reference vs overlapping 5-day moving windows; 30-day time resolution
+</td>
+<td>
+Averaged over 78 receiver pairs plus 5-day segments
+</td>
+</tr>
+<tr>
+<td>
+Hadziioannou, Larose, Coutant, Roux, Campillo 2009
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+2.5e6 (2.5 MHz lab)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Noise-correlation stacking
+</td>
+<td>
+Demonstrates stability when background noise-source structure is stable
+</td>
+</tr>
+<tr>
+<td>
+Sawazaki, Sato, Nakahara, Nishimura 2009
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Coda deconvolution of surface vs 100-m borehole records
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Wegler, Nakahara, Sens-Schönfelder, Korn, Shiomi 2009
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily auto-/cross-correlations inverted daily for 2 months pre/post; pre-event reference
+</td>
+<td>
+Daily inversion fluctuations; consistency across 6 stations
+</td>
+</tr>
+<tr>
+<td>
+Chen, Froment, Liu, Campillo 2010
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Noise cross-correlation stacking; sub-array comparison (156 broadband stations)
+</td>
+<td>
+Pre-earthquake fluctuation (~0.02%) used as baseline/noise reference
+</td>
+</tr>
+<tr>
+<td>
+Nakata &amp; Snieder 2011
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+&gt;300 earthquakes (Jan 1–May 26 2011); borehole-to-surface deconvolution
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Rivet, Campillo, Shapiro, Cruz-Atienza, Radiguet, Cotte, Kostoglodov 2011
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+0.06–0.14 (periods 7–17 s)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+MWCS
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Hobiger, Wegler, Shiomi, Nakahara 2012
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+0.125–1.0 (three sub-bands)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily cross-correlations vs long-term reference Green's function
+</td>
+<td>
+Curves fit by model (coseismic drop + log postseismic recovery + seasonal)
+</td>
+</tr>
+<tr>
+<td>
+Minato, Tsuji, Ohmi, Matsuoka 2012
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Obermann, Planès, Larose, Sens-Schönfelder, Campillo 2013
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+central 20 (bandwidth ~12)
+</td>
+<td>
+1.8–6.6 (primary lapse ~3.6 s)
+</td>
+<td>
+Stretching
+</td>
+<td>
+Averaged over 10 random medium realizations per configuration
+</td>
+<td>
+S.d. over 10 realizations; mean-free-path uncertainty ~2–15%
+</td>
+</tr>
+<tr>
+<td>
+Brenguier, Campillo, Takeda, Aoki, Shapiro, Briand, Emoto, Miyake 2014
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+0.1–0.9
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+MWCS
+</td>
+<td>
+Daily cross-correlations; linear inversion/regularization for continuous time series
+</td>
+<td>
+Stress sensitivity ~0.001 MPa^-1 inferred; detailed dv/v uncertainty n/r
+</td>
+</tr>
+<tr>
+<td>
+Liu, Huang, Peng, Su 2014
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+0.25–0.5 (period 2–4 s most sensitive)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Noise cross-correlation stacking (Aug 2004 – Sep 2011)
+</td>
+<td>
+Pre-event period as baseline (no obvious precursor)
+</td>
+</tr>
+<tr>
+<td>
+Taira, Brenguier, Kong 2015
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+0.08–2.0
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+MWCS
+</td>
+<td>
+MSNoise cross-correlations; decimated to 20 Hz
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Gassenmeier, Sens-Schönfelder, Eulenfeld, Bartsch, Victor, Tilmann, Korn 2016
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+4–6 primary (also 1–3, 7–10)
+</td>
+<td>
+10–15 primary (also 5–10, 15–20)
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily autocorrelations; two-step iterative reference
+</td>
+<td>
+Error from correlation-coefficient threshold ±1 s.d.; healing-fit errors (amplitude ~21%, decay time ~34%)
+</td>
+</tr>
+<tr>
+<td>
+Hillers, Campillo, Brenguier, Moreau, Agnew, Ben-Zion 2019
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Average-waveform reference for stretching; MWCS also applied
+</td>
+<td>
+Cross-check between time-domain stretching and frequency-domain MWCS
+</td>
+</tr>
+<tr>
+<td>
+Wang, Campillo, Brenguier, Lecointre, Takeda, Hashima 2019
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+0.02–1.0 (period 1–50 s; short-period 1–7 s + tiltmeters 8–50 s)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Monthly velocity-change estimates
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Mao, Mordret, Campillo, Fang, van der Hilst 2020
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+frequency-dependent across band (time-frequency domain)
+</td>
+<td>
+full time-frequency domain
+</td>
+<td>
+Wavelet
+</td>
+<td>
+Noise cross-correlation stacking
+</td>
+<td>
+Wavelet-coherence thresholding and amplitude-based weighting
+</td>
+</tr>
+<tr>
+<td>
+Poli, Marguin, Wang, D'Agostino, Johnson 2020
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Boschelli, Zaccarelli, Faenza 2021
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Daily autocorrelation functions vs mean waveform
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Lu &amp; Ben-Zion 2021
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+8.0–12.0
+</td>
+<td>
+3 (moving windows, 1.5 s step)
+</td>
+<td>
+Other
+</td>
+<td>
+10-min stacks; adaptive Gaussian smoothing (20 min growing to 24 hr over 3 days)
+</td>
+<td>
+Standard deviations tracked; stabilized via smoothing
+</td>
+</tr>
+<tr>
+<td>
+Sheng, Mordret, Sager, Brenguier, Boué, Rousset, Vernon, Higueret, Ben-Zion 2022
+</td>
+<td>
+Earthquake/Fault
+</td>
+<td>
+&gt;1.0
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Wavelet
+</td>
+<td>
+Weekly stacked correlations with ~2-month smoothing
+</td>
+<td>
+Inverse travel-time uncertainties used as weights in misfit
+</td>
+</tr>
+<tr>
+<td>
+Mainsant, Larose, Brönnimann, Jongmans, Michoud, Jaboyedoff (2012)
+</td>
+<td>
+Landslide
+</td>
+<td>
+~4-10 (band of measured surface-wave dv/v; spectral analysis up to ~12)
+</td>
+<td>
+n/r (short inter-sensor distance, coda of daily correlograms)
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily noise correlograms (cross-correlation functions)
+</td>
+<td>
+Daily correlation-coefficient / waveform-coherence checks; qualitative
+</td>
+</tr>
+<tr>
+<td>
+Voisin, Garambois, Massey, Brossier (2016)
+</td>
+<td>
+Landslide
+</td>
+<td>
+~6-8 (annual dv/v pattern best resolved)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily/seasonal stacks vs reference
+</td>
+<td>
+Correlation-coefficient weighting; comparison with piezometer
+</td>
+</tr>
+<tr>
+<td>
+Harba, Pilecki (2017)
+</td>
+<td>
+Landslide
+</td>
+<td>
+High-frequency seismic noise (~5-20+, dispersion-curve range)
+</td>
+<td>
+n/r (interferometric Green's-function retrieval)
+</td>
+<td>
+Other
+</td>
+<td>
+Cross-correlation / interferometric stacks; dispersion inversion (neighbourhood algorithm)
+</td>
+<td>
+Dispersion-inversion misfit; comparison with MASW
+</td>
+</tr>
+<tr>
+<td>
+Bertello, Berti, Castellaro, Squarzoni (2018)
+</td>
+<td>
+Landslide
+</td>
+<td>
+n/r (surface-wave / MASW band, ~few-20)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Time-lapse interferometry + time-lapse active MASW
+</td>
+<td>
+Comparison passive vs active MASW; qualitative
+</td>
+</tr>
+<tr>
+<td>
+Bièvre, Franz, Larose, Carrière, Jongmans, Jaboyedoff (2018)
+</td>
+<td>
+Landslide
+</td>
+<td>
+~5-15 (surface-wave band; reported sensitivity to shallow layer &lt;=2 m)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily correlations, multi-year reference
+</td>
+<td>
+Correlation coefficient; seasonal-cycle modeling to separate from precursors
+</td>
+</tr>
+<tr>
+<td>
+Colombero, Baillet, Comina, Jongmans, Larose, Valentin, Vinciguerra (2018)
+</td>
+<td>
+Landslide
+</td>
+<td>
+2-20 (analysis); 2-4 strongest annual signal
+</td>
+<td>
+0.5-2 (and symmetric -2 to -0.5)
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily correlations, multi-year reference (2013-2016)
+</td>
+<td>
+Correlation coefficient (~0.9 at low freq) as reliability metric
+</td>
+</tr>
+<tr>
+<td>
+Bontemps, Lacroix, Larose, Jara, Taipe (2020)
+</td>
+<td>
+Landslide
+</td>
+<td>
+~1-10 (landslide-scale)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily stacks vs reference
+</td>
+<td>
+Confidence bands; gap-flagged periods; correlation with rainfall and seismicity
+</td>
+</tr>
+<tr>
+<td>
+Fiolleau, Jongmans, Bièvre, Chambon, Baillet, Vial (2020)
+</td>
+<td>
+Landslide
+</td>
+<td>
+1-12 (monitoring); dv/v in 2-4 and 8-10 bands; block resonance ~9-16
+</td>
+<td>
+0.05-1.5
+</td>
+<td>
+Stretching
+</td>
+<td>
+Hourly records, daily averaging vs reference
+</td>
+<td>
+Correlation-coefficient degradation tracked across bands; multi-parameter precursor timing
+</td>
+</tr>
+<tr>
+<td>
+Le Breton, Bontemps, Guillemot, Baillet, Larose (2021)
+</td>
+<td>
+Landslide
+</td>
+<td>
+~1-20 across studies (landslides typically higher than tectonic)
+</td>
+<td>
+Sub-second to a few s (short inter-station distances)
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily stacks vs long-term reference
+</td>
+<td>
+Reviews spurious fluctuations (noise-source, site-response, inter-sensor distance changes); recommends verification
+</td>
+</tr>
+<tr>
+<td>
+Fan et al.&nbsp;(2023)
+</td>
+<td>
+Landslide
+</td>
+<td>
+High-frequency (~5-20)
+</td>
+<td>
+Sub-second to a few s
+</td>
+<td>
+Stretching
+</td>
+<td>
+Short-window stacks for rapid detection
+</td>
+<td>
+Decorrelation/CC checks; rapid-detection confidence discussion
+</td>
+</tr>
+<tr>
+<td>
+Liu, Li, Liang, Zhang, Jiang, Huang (2025)
+</td>
+<td>
+Landslide
+</td>
+<td>
+5-25 (raw 1-30); 15 Hz top ~15 m, 5 Hz 15-40 m
+</td>
+<td>
+0.4-2.0
+</td>
+<td>
+Stretching
+</td>
+<td>
+20-min interval CCFs vs reference (SNR&gt;4 wave-packet selection)
+</td>
+<td>
+95% confidence interval (~0.05% uncertainty at 5 Hz)
+</td>
+</tr>
+<tr>
+<td>
+Whiteley, Chambers, Uhlemann et al.&nbsp;(2026)
+</td>
+<td>
+Landslide
+</td>
+<td>
+n/r (near-surface surface-wave / MASW band, ~5-30)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Time-lapse interferometry + MASW between recording periods
+</td>
+<td>
+Statistical distribution of surface-wave velocity measurements over time
+</td>
+</tr>
+<tr>
+<td>
+de Wit, Snieder (2026)
+</td>
+<td>
+Landslide
+</td>
+<td>
+n/r (high-frequency near-surface)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Time-lapse stacks vs reference
+</td>
+<td>
+Decorrelation/CC; comparison with radar surface deformation
+</td>
+</tr>
+<tr>
+<td>
+Sens-Schönfelder &amp; Wegler, 2006
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+0.5-10 (analysis &gt;0.5)
+</td>
+<td>
+2-4 and 6-8
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily autocorr vs yearly reference
+</td>
+<td>
+Correlation-coefficient maximization; ~0.1% accuracy quoted
+</td>
+</tr>
+<tr>
+<td>
+Tsai, 2011
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Analytic sensitivity / parameter study
+</td>
+</tr>
+<tr>
+<td>
+Hillers, Campillo &amp; Ma, 2014
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Lecocq, Longuevergne, Pedersen, Brenguier &amp; Stammler, 2017
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+0.1-0.8 (~7 s secondary microseism)
+</td>
+<td>
+20-100 lag; 12 s window, 2 s step (MWCS)
+</td>
+<td>
+MWCS
+</td>
+<td>
+Daily CCFs, 31-day rolling window
+</td>
+<td>
+Coherency-weighted least squares; MWCS errors; jackknife stability
+</td>
+</tr>
+<tr>
+<td>
+Nimiya, Ikeda &amp; Tsuji, 2017
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+0.1-0.9
+</td>
+<td>
+~100 (MWCS coda-onset to 60 s lapse)
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily CCFs from 30-min segments; 1-yr reference, 30-day moving stack
+</td>
+<td>
+Stretching vs MWCS cross-check; inter-station distance &lt;40 km
+</td>
+</tr>
+<tr>
+<td>
+Clements &amp; Denolle, 2018
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+2-4 (0.2-0.5 band discarded as too noisy)
+</td>
+<td>
+n/r (~1-3 consistent with 2-4 Hz)
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily stacks vs reference
+</td>
+<td>
+Stretching correlation-coefficient; comparison to GPS/well data
+</td>
+</tr>
+<tr>
+<td>
+Kim &amp; Lekic, 2019
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td>
+Multi-year (~20 yr) record; yearly-scale comparisons
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Andajani, Tsuji, Snieder &amp; Ikeda, 2020
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+~0.1-0.9 (low-frequency emphasized)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Band-pass separation of rainfall vs sea-level/atmospheric forcing; lag analysis
+</td>
+</tr>
+<tr>
+<td>
+Gaubert-Bastide, Garambois, et al., 2022
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+~2-4 (little energy &gt;10 Hz)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Hourly correlations over 19 days, two fill/drain cycles
+</td>
+<td>
+Correlation-coefficient QC; dense-array spatial consistency
+</td>
+</tr>
+<tr>
+<td>
+Illien, Andermann, Sens-Schönfelder, et al., 2022
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+~3-yr continuous time series
+</td>
+<td>
+Coupled seismo-hydrological model
+</td>
+</tr>
+<tr>
+<td>
+Mao, Lecointre, van der Hilst &amp; Campillo, 2022
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+0.2-2.0 (sub-bands 0.2-0.8, 0.4-1.6, 0.5-2.0)
+</td>
+<td>
+Early coda ~15-50
+</td>
+<td>
+Other
+</td>
+<td>
+Daily CCFs stacked over 20 days, 5-day step; pairs &lt;50 km
+</td>
+<td>
+Bayesian inversion; covariance from CC coefficients + smoothing matrix
+</td>
+</tr>
+<tr>
+<td>
+Clements &amp; Denolle, 2023
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+2-4
+</td>
+<td>
+n/r (~1-3 consistent with 2-4 Hz)
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily stacks across ~700 stations vs reference
+</td>
+<td>
+Stretching correlation-coefficient; drained-poroelastic rainwater-diffusion model
+</td>
+</tr>
+<tr>
+<td>
+Delouche, et al., 2023
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Linear precipitation model; correct dv/v for hydrologic contribution before tectonic interpretation
+</td>
+</tr>
+<tr>
+<td>
+Ermert, Cabrera, Sawade, et al., 2023
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+0.5-1, 1-2, 2-4, 4-8 (octave bands)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Clustered (GMM) autocorrelation stacks
+</td>
+<td>
+MCMC inversion; 16th-84th percentile; CC&gt;0.6 retained
+</td>
+</tr>
+<tr>
+<td>
+Fokker, Ruigrok, Hawkins &amp; Trampert, 2023
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+n/r (frequency-dependent surface-wave kernels)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Other
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Inversion of frequency-dependent dv/v to depth-resolved pore pressure
+</td>
+</tr>
+<tr>
+<td>
+Zhang et al., 2023
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Continuous 2013-2022 record
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Mao, Ellsworth, Zheng &amp; Beroza, 2025
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+~0.2-2.0 (multi-band, as Mao 2022)
+</td>
+<td>
+Early coda ~15-50
+</td>
+<td>
+Other
+</td>
+<td>
+Daily CCFs stacked, multi-day step; two-decade record
+</td>
+<td>
+Bayesian depth inversion (as Mao 2022)
+</td>
+</tr>
+<tr>
+<td>
+Mordret et al., 2016
+</td>
+<td>
+Cryosphere
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily cross-correlations over ~2-year record
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+James et al., 2019
+</td>
+<td>
+Cryosphere
+</td>
+<td>
+3-30 (multiple sub-bands)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily cross-correlations stacked; reference relative to Jan 2014
+</td>
+<td>
+Correlation-coefficient quality control; Bayesian tomography for spatial maps
+</td>
+</tr>
+<tr>
+<td>
+Guillemot et al., 2020
+</td>
+<td>
+Cryosphere
+</td>
+<td>
+1.5-14 (bands 4-8, 7-11, 10-14)
+</td>
+<td>
+0.3-0.8 (causal and acausal)
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily correlograms from hourly raw data
+</td>
+<td>
+Weaver et al.&nbsp;(2011) error formula
+</td>
+</tr>
+<tr>
+<td>
+Guillemot et al., 2021
+</td>
+<td>
+Cryosphere
+</td>
+<td>
+1-50 (resonance peaks &gt;10)
+</td>
+<td>
+n/r (spectral/PSD method, not coda)
+</td>
+<td>
+Other
+</td>
+<td>
+PSD-based; finite-element modal modeling
+</td>
+<td>
+Modal modeling comparison
+</td>
+</tr>
+<tr>
+<td>
+Lindner et al., 2021
+</td>
+<td>
+Cryosphere
+</td>
+<td>
+n/r (high-frequency local band)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+15-year continuous record; daily/seasonal stacks
+</td>
+<td>
+Comparison with meteorological/borehole records; correlation coefficient
+</td>
+</tr>
+<tr>
+<td>
+Luo et al., 2023
+</td>
+<td>
+Cryosphere
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily autocorrelations stacked
+</td>
+<td>
+Lag-time correlation with GRACE/mass data
+</td>
+</tr>
+<tr>
+<td>
+Gassenmeier et al., 2015
+</td>
+<td>
+Geothermal/Reservoir
+</td>
+<td>
+1.0-3.5 (detail 1.5-3)
+</td>
+<td>
+Windows after 300 m/s arrival (lapse-time dependent)
+</td>
+<td>
+Stretching
+</td>
+<td>
+1-hour segments cross-correlated, stacked to daily
+</td>
+<td>
+Weaver et al.&nbsp;(2011) errors; confidence intervals
+</td>
+</tr>
+<tr>
+<td>
+Hillers et al., 2015
+</td>
+<td>
+Geothermal/Reservoir
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Coda of noise correlations
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily noise correlations around 2006 stimulation
+</td>
+<td>
+Sensitivity-kernel imaging of velocity-change location
+</td>
+</tr>
+<tr>
+<td>
+Obermann et al., 2015
+</td>
+<td>
+Geothermal/Reservoir
+</td>
+<td>
+n/r (sub-Hz to few Hz local)
+</td>
+<td>
+Coda of noise cross-correlations (lapse-time dependent)
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily cross-correlations; reference stacks
+</td>
+<td>
+Sensitivity-kernel-based localization; noise-source checks
+</td>
+</tr>
+<tr>
+<td>
+Czarny et al., 2016
+</td>
+<td>
+Geothermal/Reservoir
+</td>
+<td>
+0.6-1.2
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Continuous cross-correlations over ~42 days
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Olivier et al., 2017
+</td>
+<td>
+Geothermal/Reservoir
+</td>
+<td>
+~5-15
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily cross-correlations across array
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Taira et al., 2018
+</td>
+<td>
+Geothermal/Reservoir
+</td>
+<td>
+0.25-8.0 (six bands)
+</td>
+<td>
+20 (coda windows -40 to -20 s and 20 to 40 s)
+</td>
+<td>
+MWCS
+</td>
+<td>
+Daily NCFs from 30-min segments; 5-day stacks
+</td>
+<td>
+Two-sigma std; correlation-coefficient threshold &gt;0.85
+</td>
+</tr>
+<tr>
+<td>
+Kristjánsdóttir et al., 2019
+</td>
+<td>
+Geothermal/Reservoir
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+Daily correlations (MSNoise workflow)
+</td>
+<td>
+Seasonal and noise-source effects discussed as caveats
+</td>
+</tr>
+<tr>
+<td>
+Snieder, Grêt, Douma &amp; Scales 2002
+</td>
+<td>
+Methodology
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+later coda (multiply scattered arrivals)
+</td>
+<td>
+Other
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+variance of time shift from cross-correlation; statistical theory of multiply scattered waves
+</td>
+</tr>
+<tr>
+<td>
+Bensen et al.&nbsp;2007
+</td>
+<td>
+Methodology
+</td>
+<td>
+whitening band stated (e.g.&nbsp;5 Hz-100 s periods)
+</td>
+<td>
+n/r (surface-wave window)
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+daily cross-correlation + temporal stacking
+</td>
+<td>
+SNR-based quality control; error analysis on dispersion measurements
+</td>
+</tr>
+<tr>
+<td>
+Clarke, Zaccarelli, Shapiro &amp; Brenguier 2011
+</td>
+<td>
+Methodology
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+moving windows in coda
+</td>
+<td>
+MWCS
+</td>
+<td>
+current stack vs reference, weighted linear regression dt vs t
+</td>
+<td>
+formal MWCS errors: coherence-weighted phase-delay errors per window; error inversely proportional to SNR; least-squares slope error on dt/t
+</td>
+</tr>
+<tr>
+<td>
+Hadziioannou, Larose, Baig, Roux &amp; Campillo 2011
+</td>
+<td>
+Methodology
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+coda of autocorrelations
+</td>
+<td>
+Stretching
+</td>
+<td>
+waveform clustering to enhance daily stacks
+</td>
+<td>
+clustering reduces noise-source variability; resolution improved from 30 days to 1 day
+</td>
+</tr>
+<tr>
+<td>
+Weaver, Hadziioannou, Larose &amp; Campillo 2011
+</td>
+<td>
+Methodology
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+coda window (analytical)
+</td>
+<td>
+Stretching
+</td>
+<td>
+reference vs current correlation
+</td>
+<td>
+analytic RMS error of stretching estimate as function of coherence/decorrelation, bandwidth and coda window; closed-form error formula
+</td>
+</tr>
+<tr>
+<td>
+Zhan, Tsai &amp; Clayton 2013
+</td>
+<td>
+Methodology
+</td>
+<td>
+sensitive to band choice
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+Stretching
+</td>
+<td>
+reference vs current
+</td>
+<td>
+identifies systematic (non-random) bias from non-stationary noise spectrum; recommends checking noise-source spectral stability
+</td>
+</tr>
+<tr>
+<td>
+Lecocq, Caudron &amp; Brenguier 2014
+</td>
+<td>
+Methodology
+</td>
+<td>
+user-defined (e.g.&nbsp;0.1-1 Hz)
+</td>
+<td>
+user-defined moving windows
+</td>
+<td>
+MWCS
+</td>
+<td>
+daily CCF + reference stack
+</td>
+<td>
+implements Clarke et al.&nbsp;2011 MWCS errors; reproducible parameter database
+</td>
+</tr>
+<tr>
+<td>
+Mikesell, Malcolm, Yang &amp; Haney 2015
+</td>
+<td>
+Methodology
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+full-trace local time shifts
+</td>
+<td>
+DTW
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+compares accuracy of WCC vs stretching vs DTW; DTW more robust at low SNR
+</td>
+</tr>
+<tr>
+<td>
+Stehly, Froment, Campillo, Liu &amp; Chen 2015
+</td>
+<td>
+Methodology
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+coda of daily correlations
+</td>
+<td>
+Stretching
+</td>
+<td>
+daily correlations curvelet-filtered before stacking
+</td>
+<td>
+curvelet denoising reduces dv/v uncertainty, enabling 1-day resolution
+</td>
+</tr>
+<tr>
+<td>
+Daskalakis, Evangelidis, Garnier, Melis, Papanicolaou &amp; Tsogka 2016
+</td>
+<td>
+Methodology
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+coda window
+</td>
+<td>
+Stretching
+</td>
+<td>
+normalized cross-correlation functions
+</td>
+<td>
+shows seasonal noise-source fluctuations create apparent dv/v; adequate CCF normalization removes this bias
+</td>
+</tr>
+<tr>
+<td>
+Obermann, Planès, Hadziioannou &amp; Campillo 2016
+</td>
+<td>
+Methodology
+</td>
+<td>
+frequency-dependent
+</td>
+<td>
+lapse-time dependent
+</td>
+<td>
+Other
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
+</td>
+</tr>
+<tr>
+<td>
+Wang, Brenguier, Campillo, Lecointre, Takeda &amp; Aoki 2017
+</td>
+<td>
+Methodology
+</td>
+<td>
+~0.1-0.9 Hz (multi-band)
+</td>
+<td>
+coda windows
+</td>
+<td>
+MWCS
+</td>
+<td>
+compares stacking schemes; long reference stack for seasonal trends
+</td>
+<td>
+demonstrates reference-stack and stacking-length choice control the apparent long-term trend and seasonal amplitude
+</td>
+</tr>
+<tr>
+<td>
+Obermann &amp; Hillers 2019
+</td>
+<td>
+Methodology
+</td>
+<td>
+scale-dependent
+</td>
+<td>
+lapse-time/depth dependent
+</td>
+<td>
+Other
+</td>
+<td>
+reference and moving-stack strategies reviewed
+</td>
+<td>
+synthesizes error sources: noise-source variability, processing choices, sensitivity kernels
+</td>
+</tr>
+<tr>
+<td>
+Jiang &amp; Denolle 2020
+</td>
+<td>
+Methodology
+</td>
+<td>
+user-defined
+</td>
+<td>
+user-defined
+</td>
+<td>
+Other
+</td>
+<td>
+linear/PWS/robust stacking; reference + moving stacks
+</td>
+<td>
+offers multiple dv/v estimators so users can cross-check; parallel/HDF5 reproducible pipeline
+</td>
+</tr>
+<tr>
+<td>
+Wang &amp; Yao 2020
+</td>
+<td>
+Methodology
+</td>
+<td>
+application-dependent
+</td>
+<td>
+application-dependent
+</td>
+<td>
+Other
+</td>
+<td>
+reference and stacking strategies reviewed
+</td>
+<td>
+reviews uncertainty/bias sources and method trade-offs
+</td>
+</tr>
+<tr>
+<td>
+Yuan, Bryan &amp; Denolle 2021
+</td>
+<td>
+Methodology
+</td>
+<td>
+multiple bands tested
+</td>
+<td>
+coda windows tested
+</td>
+<td>
+Other
+</td>
+<td class="nr">
+n/r
+</td>
+<td>
+quantifies accuracy/robustness of 7 estimators vs SNR, perturbation size, heterogeneity; wavelet methods handle cycle-skipping
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>: Processing choices of the 103 surveyed <span class="math inline">\(\delta v/v\)</span> studies (scroll within the box). <code>n/r</code> (red) = not reported in the source. Sorted as in the survey CSV; full machine-readable version and DOIs live in the repository’s <code>literature/</code> folder and on the <a href="./survey-references.html">references page</a>.</p>
 <hr>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1539,360 +4014,427 @@ Brenguier, F., M. Campillo, T. Takeda, et al. 2014. <span>“Mapping Pressurized
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./theory-processing-depth.html" class="pagination-link" aria-label="Processing → depth (sampling &amp; propagation)">
-        <span class="nav-page-text">Processing → depth (sampling &amp; propagation)</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./theory-bayesian-measurement.html" class="pagination-link" aria-label="Bayesian measurement (marginalise the choice)">
+        <span class="nav-page-text">Bayesian measurement (marginalise the choice)</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "The other uncertainty: measurement error in δv/v"</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Aleatoric &amp; methodological error conditioned on processing choices"</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> codameter-pixi</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>::: {.keyidea}</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Thesis</span><span class="co">]</span>{.k-title}</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>The <span class="co">[</span><span class="ot">first theory page</span><span class="co">](theory-uq.qmd)</span> quantifies the **epistemic** uncertainty</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>of inferring stress *from* a $\delta v/v$ series — it takes the series and its</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="in">`dvv_err`</span> as given. But in our discipline the $\delta v/v$ *measurement itself*</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>is the least reproducible step: it is the end of a long chain of processing</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>choices (method, window, band, stacking, gating, **reference**), almost none of</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>which are propagated. This page quantifies that **measurement** error. Its</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>deliverable is not a scalar per epoch but a structured **measurement covariance**</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>$C_d$ — the very object the inference likelihood assumes is diagonal. The two</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>pages are two halves of one budget.</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys, numpy <span class="im">as</span> np, matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, <span class="st">"."</span>)</span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> _synth <span class="im">import</span> set_style, C</span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>set_style()</span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.uq_measurement <span class="im">import</span> (</span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>    weaver_stretching_error, processing_ensemble, temporal_error_covariance,</span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>    effective_sample_size, global_reference_inversion, single_reference_dvv)</span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">7</span>)</span>
-<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. The $\delta v/v$ measurement is a tree of choices</span></span>
-<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>A $\delta v/v$ value is not measured; it is *computed* from a stack of repeated</span>
-<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>coda waves through a pipeline. Each fork is a defensible choice, and different</span>
-<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>groups fork differently — so the same raw data yields different $\delta v/v(t)$.</span>
-<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
-<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
-<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>    RAW[<span class="ot">"</span><span class="st">repeated coda&lt;br/&gt;(cross-correlations)</span><span class="ot">"</span>]</span>
-<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>    STACK{<span class="ot">"</span><span class="st">stack?&lt;br/&gt;linear / PWS&lt;br/&gt;substack length</span><span class="ot">"</span>}</span>
-<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>    GATE{<span class="ot">"</span><span class="st">gate?&lt;br/&gt;discard CC &amp;lt; thresh</span><span class="ot">"</span>}</span>
-<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>    REF{<span class="ot">"</span><span class="st">reference?&lt;br/&gt;fixed / trailing /&lt;br/&gt;all-to-all</span><span class="ot">"</span>}</span>
-<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>    METH{<span class="ot">"</span><span class="st">estimator?&lt;br/&gt;stretching / MWCS /&lt;br/&gt;wavelet / DTW</span><span class="ot">"</span>}</span>
-<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>    WIN{<span class="ot">"</span><span class="st">window?&lt;br/&gt;coda start, length,&lt;br/&gt;frequency band</span><span class="ot">"</span>}</span>
-<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>    DVV[<span class="ot">"</span><span class="st">δv/v(t)&lt;br/&gt;+ what error?</span><span class="ot">"</span>]</span>
-<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>    RAW --&gt; STACK --&gt; GATE --&gt; REF --&gt; METH --&gt; WIN --&gt; DVV</span>
-<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>    style DVV fill:<span class="co">#fce4ec,stroke:#c62828</span></span>
-<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>    style REF fill:<span class="co">#fff3e0,stroke:#c77700</span></span>
-<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>We treat each fork as a source of measurement uncertainty and quantify three</span>
-<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>things a diagonal <span class="in">`dvv_err`</span> cannot express: a **within-method floor**, a</span>
-<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>**methodological spread**, and the **temporal correlation** the choices induce.</span>
-<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2. The within-method floor — coherence-limited precision</span></span>
-<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>For a *fixed* configuration there is an irreducible scatter set by the coda</span>
-<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a>coherence. Weaver et al. (2011) and Clarke et al. (2011) give the standard</span>
-<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a>error of a stretching/MWCS estimate over a coda window $<span class="co">[</span><span class="ot">t_1,t_2</span><span class="co">]</span>$ with mean</span>
-<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a>correlation $CC$ at central frequency $f_c$:</span>
-<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a>\sigma_{\delta v/v}^2 = \frac{1-CC^2}{2\,CC^2}\;</span>
-<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a>\frac{6\sqrt{\pi/2}}{\omega_c^2\,(t_2^3 - t_1^3)},</span>
-<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a>\qquad \omega_c = 2\pi f_c .</span>
-<span id="cb14-72"><a href="#cb14-72" aria-hidden="true" tabindex="-1"></a>$$ {#eq-weaver}</span>
-<span id="cb14-73"><a href="#cb14-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-74"><a href="#cb14-74" aria-hidden="true" tabindex="-1"></a>This is <span class="in">`weaver_stretching_error`</span>. It encodes the levers practitioners actually</span>
-<span id="cb14-75"><a href="#cb14-75" aria-hidden="true" tabindex="-1"></a>turn: higher coherence, a longer/later coda window, and higher frequency all</span>
-<span id="cb14-76"><a href="#cb14-76" aria-hidden="true" tabindex="-1"></a>shrink the error — and it is the *floor*, achieved only if every other choice</span>
-<span id="cb14-77"><a href="#cb14-77" aria-hidden="true" tabindex="-1"></a>were fixed and correct.</span>
-<span id="cb14-78"><a href="#cb14-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-81"><a href="#cb14-81" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb14-82"><a href="#cb14-82" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-weaver</span></span>
-<span id="cb14-83"><a href="#cb14-83" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The coherence-limited δv/v error floor (Weaver/Clarke). Left: error explodes as coda coherence drops — the basis for CC-gating. Right: a longer/later coda window lowers the floor (∝ 1/√(t₂³−t₁³)), the reason late-coda windows are prized despite lower SNR."</span></span>
-<span id="cb14-84"><a href="#cb14-84" aria-hidden="true" tabindex="-1"></a>cc <span class="op">=</span> np.linspace(<span class="fl">0.6</span>, <span class="fl">0.999</span>, <span class="dv">200</span>)</span>
-<span id="cb14-85"><a href="#cb14-85" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.2</span>))</span>
-<span id="cb14-86"><a href="#cb14-86" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> fc, col <span class="kw">in</span> [(<span class="fl">0.5</span>, C[<span class="st">"hydro"</span>]), (<span class="fl">1.0</span>, C[<span class="st">"thermo"</span>]), (<span class="fl">2.0</span>, C[<span class="st">"damage"</span>])]:</span>
-<span id="cb14-87"><a href="#cb14-87" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(cc, weaver_stretching_error(cc, fc, <span class="dv">5</span>, <span class="dv">30</span>), color<span class="op">=</span>col, label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>fc<span class="sc">:g}</span><span class="ss"> Hz"</span>)</span>
-<span id="cb14-88"><a href="#cb14-88" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"coda correlation CC"</span>, ylabel<span class="op">=</span><span class="vs">r"</span><span class="dv">$\s</span><span class="vs">igma_{</span><span class="dv">\d</span><span class="vs">elta v/v}</span><span class="dv">$</span><span class="vs">"</span>,</span>
-<span id="cb14-89"><a href="#cb14-89" aria-hidden="true" tabindex="-1"></a>          yscale<span class="op">=</span><span class="st">"log"</span>, title<span class="op">=</span><span class="st">"vs coherence"</span>)</span>
-<span id="cb14-90"><a href="#cb14-90" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].legend(fontsize<span class="op">=</span><span class="dv">8</span>, frameon<span class="op">=</span><span class="va">False</span>, title<span class="op">=</span><span class="st">"f$_c$"</span>)</span>
-<span id="cb14-91"><a href="#cb14-91" aria-hidden="true" tabindex="-1"></a>lengths <span class="op">=</span> np.arange(<span class="dv">5</span>, <span class="dv">60</span>, <span class="fl">1.0</span>)</span>
-<span id="cb14-92"><a href="#cb14-92" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t1, col <span class="kw">in</span> [(<span class="dv">2</span>, C[<span class="st">"hydro"</span>]), (<span class="dv">10</span>, C[<span class="st">"thermo"</span>]), (<span class="dv">20</span>, C[<span class="st">"damage"</span>])]:</span>
-<span id="cb14-93"><a href="#cb14-93" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> [weaver_stretching_error(<span class="fl">0.95</span>, <span class="fl">1.0</span>, t1, t1<span class="op">+</span>L) <span class="cf">for</span> L <span class="kw">in</span> lengths]</span>
-<span id="cb14-94"><a href="#cb14-94" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].plot(t1<span class="op">+</span>lengths, s, color<span class="op">=</span>col, label<span class="op">=</span><span class="ss">f"start </span><span class="sc">{</span>t1<span class="sc">}</span><span class="ss">s"</span>)</span>
-<span id="cb14-95"><a href="#cb14-95" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"window end $t_2$ (s)"</span>, ylabel<span class="op">=</span><span class="vs">r"</span><span class="dv">$\s</span><span class="vs">igma_{</span><span class="dv">\d</span><span class="vs">elta v/v}</span><span class="dv">$</span><span class="vs">"</span>,</span>
-<span id="cb14-96"><a href="#cb14-96" aria-hidden="true" tabindex="-1"></a>          title<span class="op">=</span><span class="st">"vs window (CC=0.95)"</span>)</span>
-<span id="cb14-97"><a href="#cb14-97" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].legend(fontsize<span class="op">=</span><span class="dv">8</span>, frameon<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb14-98"><a href="#cb14-98" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
-<span id="cb14-99"><a href="#cb14-99" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-100"><a href="#cb14-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-101"><a href="#cb14-101" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. The methodological spread — an ensemble over choices</span></span>
-<span id="cb14-102"><a href="#cb14-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-103"><a href="#cb14-103" aria-hidden="true" tabindex="-1"></a>The floor assumes the configuration is *the* configuration. It is not. Run the</span>
-<span id="cb14-104"><a href="#cb14-104" aria-hidden="true" tabindex="-1"></a>same data through several defensible pipelines and you get an **ensemble** of</span>
-<span id="cb14-105"><a href="#cb14-105" aria-hidden="true" tabindex="-1"></a>$\delta v/v(t)$ curves whose spread is a genuine, usually dominant, uncertainty.</span>
-<span id="cb14-106"><a href="#cb14-106" aria-hidden="true" tabindex="-1"></a>We simulate that here: a common truth seen through stretching, MWCS, a wavelet</span>
-<span id="cb14-107"><a href="#cb14-107" aria-hidden="true" tabindex="-1"></a>estimator, and two window/band variants — each with its own bias and</span>
-<span id="cb14-108"><a href="#cb14-108" aria-hidden="true" tabindex="-1"></a>coherence-limited noise.</span>
-<span id="cb14-109"><a href="#cb14-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-112"><a href="#cb14-112" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb14-113"><a href="#cb14-113" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ensemble</span></span>
-<span id="cb14-114"><a href="#cb14-114" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">240</span></span>
-<span id="cb14-115"><a href="#cb14-115" aria-hidden="true" tabindex="-1"></a>t_days <span class="op">=</span> np.arange(n, dtype<span class="op">=</span><span class="bu">float</span>)</span>
-<span id="cb14-116"><a href="#cb14-116" aria-hidden="true" tabindex="-1"></a>truth <span class="op">=</span> <span class="fl">2e-3</span> <span class="op">*</span> np.sin(<span class="dv">2</span><span class="op">*</span>np.pi<span class="op">*</span>t_days<span class="op">/</span><span class="fl">365.0</span>) <span class="op">-</span> <span class="fl">1e-3</span><span class="op">*</span>(t_days<span class="op">/</span>n)   <span class="co"># seasonal + trend</span></span>
-<span id="cb14-117"><a href="#cb14-117" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-118"><a href="#cb14-118" aria-hidden="true" tabindex="-1"></a><span class="co"># each configuration: (multiplicative bias, additive bias, CC, window, fc)</span></span>
-<span id="cb14-119"><a href="#cb14-119" aria-hidden="true" tabindex="-1"></a>configs <span class="op">=</span> {</span>
-<span id="cb14-120"><a href="#cb14-120" aria-hidden="true" tabindex="-1"></a>    <span class="st">"stretching 5–30s 0.5–1Hz"</span>: (<span class="fl">1.00</span>,  <span class="fl">0.0e-4</span>, <span class="fl">0.97</span>, (<span class="dv">5</span>, <span class="dv">30</span>), <span class="fl">0.7</span>),</span>
-<span id="cb14-121"><a href="#cb14-121" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MWCS 5–30s 0.5–1Hz"</span>:       (<span class="fl">0.93</span>,  <span class="fl">1.0e-4</span>, <span class="fl">0.95</span>, (<span class="dv">5</span>, <span class="dv">30</span>), <span class="fl">0.7</span>),</span>
-<span id="cb14-122"><a href="#cb14-122" aria-hidden="true" tabindex="-1"></a>    <span class="st">"wavelet 5–30s 0.5–1Hz"</span>:    (<span class="fl">1.05</span>, <span class="op">-</span><span class="fl">0.8e-4</span>, <span class="fl">0.96</span>, (<span class="dv">5</span>, <span class="dv">30</span>), <span class="fl">0.7</span>),</span>
-<span id="cb14-123"><a href="#cb14-123" aria-hidden="true" tabindex="-1"></a>    <span class="st">"stretching 10–40s 1–2Hz"</span>:  (<span class="fl">1.02</span>,  <span class="fl">0.4e-4</span>, <span class="fl">0.93</span>, (<span class="dv">10</span>, <span class="dv">40</span>), <span class="fl">1.5</span>),</span>
-<span id="cb14-124"><a href="#cb14-124" aria-hidden="true" tabindex="-1"></a>    <span class="st">"stretching 3–15s 1–2Hz"</span>:   (<span class="fl">0.97</span>, <span class="op">-</span><span class="fl">0.5e-4</span>, <span class="fl">0.90</span>, (<span class="dv">3</span>, <span class="dv">15</span>), <span class="fl">1.5</span>),</span>
-<span id="cb14-125"><a href="#cb14-125" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb14-126"><a href="#cb14-126" aria-hidden="true" tabindex="-1"></a>members, within <span class="op">=</span> {}, {}</span>
-<span id="cb14-127"><a href="#cb14-127" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, (mb, ab, cc_, (t1, t2), fc) <span class="kw">in</span> configs.items():</span>
-<span id="cb14-128"><a href="#cb14-128" aria-hidden="true" tabindex="-1"></a>    sig <span class="op">=</span> <span class="bu">float</span>(weaver_stretching_error(cc_, fc, t1, t2))</span>
-<span id="cb14-129"><a href="#cb14-129" aria-hidden="true" tabindex="-1"></a>    members[name] <span class="op">=</span> mb<span class="op">*</span>truth <span class="op">+</span> ab <span class="op">+</span> sig<span class="op">*</span>rng.standard_normal(n)</span>
-<span id="cb14-130"><a href="#cb14-130" aria-hidden="true" tabindex="-1"></a>    within[name] <span class="op">=</span> np.full(n, sig)</span>
-<span id="cb14-131"><a href="#cb14-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-132"><a href="#cb14-132" aria-hidden="true" tabindex="-1"></a>ens <span class="op">=</span> processing_ensemble(members, within)</span>
-<span id="cb14-133"><a href="#cb14-133" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"mean within-method floor : </span><span class="sc">{</span>ens<span class="sc">.</span>within_std<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
-<span id="cb14-134"><a href="#cb14-134" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"methodological spread     : </span><span class="sc">{</span>ens<span class="sc">.</span>methodological_std<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">  "</span></span>
-<span id="cb14-135"><a href="#cb14-135" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(</span><span class="sc">{</span>ens<span class="sc">.</span>methodological_std<span class="sc">.</span>mean()<span class="op">/</span>ens<span class="sc">.</span>within_std<span class="sc">.</span>mean()<span class="sc">:.1f}</span><span class="ss">× the floor)"</span>)</span>
-<span id="cb14-136"><a href="#cb14-136" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"total measurement error   : </span><span class="sc">{</span>ens<span class="sc">.</span>total_std<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
-<span id="cb14-137"><a href="#cb14-137" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-138"><a href="#cb14-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-141"><a href="#cb14-141" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb14-142"><a href="#cb14-142" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-ensemble</span></span>
-<span id="cb14-143"><a href="#cb14-143" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The processing ensemble. Thin lines are individual pipelines; the band is the configuration-marginal mean ± the total measurement error (within-method floor combined with methodological spread by the law of total variance). The spread *between* methods dwarfs each method's own error bar — the reproducibility problem in one figure."</span></span>
-<span id="cb14-144"><a href="#cb14-144" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.4</span>))</span>
-<span id="cb14-145"><a href="#cb14-145" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name <span class="kw">in</span> ens.member_labels:</span>
-<span id="cb14-146"><a href="#cb14-146" aria-hidden="true" tabindex="-1"></a>    ax.plot(t_days, members[name], lw<span class="op">=</span><span class="fl">0.7</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, label<span class="op">=</span>name)</span>
-<span id="cb14-147"><a href="#cb14-147" aria-hidden="true" tabindex="-1"></a>ax.plot(t_days, truth, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.6</span>, label<span class="op">=</span><span class="st">"truth"</span>, zorder<span class="op">=</span><span class="dv">5</span>)</span>
-<span id="cb14-148"><a href="#cb14-148" aria-hidden="true" tabindex="-1"></a>ax.fill_between(t_days, ens.mean<span class="op">-</span><span class="dv">2</span><span class="op">*</span>ens.total_std, ens.mean<span class="op">+</span><span class="dv">2</span><span class="op">*</span>ens.total_std,</span>
-<span id="cb14-149"><a href="#cb14-149" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span>C[<span class="st">"band"</span>], alpha<span class="op">=</span><span class="fl">0.25</span>, lw<span class="op">=</span><span class="dv">0</span>, label<span class="op">=</span><span class="st">"ensemble mean ±2σ$_</span><span class="sc">{tot}</span><span class="st">$"</span>)</span>
-<span id="cb14-150"><a href="#cb14-150" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"day"</span>, ylabel<span class="op">=</span><span class="st">"δv/v"</span>)</span>
-<span id="cb14-151"><a href="#cb14-151" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">7</span>, frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">2</span>, loc<span class="op">=</span><span class="st">"lower left"</span>)</span>
-<span id="cb14-152"><a href="#cb14-152" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb14-153"><a href="#cb14-153" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-154"><a href="#cb14-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-155"><a href="#cb14-155" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4. Temporal correlation and the common-mode reference</span></span>
-<span id="cb14-156"><a href="#cb14-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-157"><a href="#cb14-157" aria-hidden="true" tabindex="-1"></a>The errors above are **not independent in time**. Overlapping stacks share</span>
-<span id="cb14-158"><a href="#cb14-158" aria-hidden="true" tabindex="-1"></a>waveform data, so neighbouring epochs are correlated; and any *single shared</span>
-<span id="cb14-159"><a href="#cb14-159" aria-hidden="true" tabindex="-1"></a>reference* injects an error that is identical for every epoch — a fully</span>
-<span id="cb14-160"><a href="#cb14-160" aria-hidden="true" tabindex="-1"></a>correlated **common-mode** term. The honest measurement covariance is</span>
-<span id="cb14-161"><a href="#cb14-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-162"><a href="#cb14-162" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb14-163"><a href="#cb14-163" aria-hidden="true" tabindex="-1"></a>C_d = D\,R\,D \;+\; \sigma_{\rm ref}^2\,\mathbf{1}\mathbf{1}^\top,</span>
-<span id="cb14-164"><a href="#cb14-164" aria-hidden="true" tabindex="-1"></a>\qquad D=\operatorname{diag}(\sigma_{\rm tot}),\;\;</span>
-<span id="cb14-165"><a href="#cb14-165" aria-hidden="true" tabindex="-1"></a>R_{ij}=e^{-|t_i-t_j|/L},</span>
-<span id="cb14-166"><a href="#cb14-166" aria-hidden="true" tabindex="-1"></a>$$ {#eq-cd}</span>
-<span id="cb14-167"><a href="#cb14-167" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-168"><a href="#cb14-168" aria-hidden="true" tabindex="-1"></a>built by <span class="in">`temporal_error_covariance`</span>. The off-diagonal structure matters</span>
-<span id="cb14-169"><a href="#cb14-169" aria-hidden="true" tabindex="-1"></a>enormously: it collapses the *effective* number of independent measurements.</span>
-<span id="cb14-170"><a href="#cb14-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-173"><a href="#cb14-173" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb14-174"><a href="#cb14-174" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-cd</span></span>
-<span id="cb14-175"><a href="#cb14-175" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Left: the structured measurement covariance C_d — a banded temporal correlation (overlapping stacks, length L=14 d) plus a uniform common-mode floor from the shared reference. Right: the effective sample size for estimating a common level. The diagonal assumption returns the full count; the real correlation collapses it by more than an order of magnitude — and the collapse is dominated by the common-mode reference term, which (unlike random noise) does not average down. Reference choice, not sample count, sets the information."</span></span>
-<span id="cb14-176"><a href="#cb14-176" aria-hidden="true" tabindex="-1"></a>Cd <span class="op">=</span> temporal_error_covariance(ens.total_std, t_days, corr_length_days<span class="op">=</span><span class="fl">14.0</span>,</span>
-<span id="cb14-177"><a href="#cb14-177" aria-hidden="true" tabindex="-1"></a>                               common_mode_sigma<span class="op">=</span><span class="fl">1.5e-4</span>)</span>
-<span id="cb14-178"><a href="#cb14-178" aria-hidden="true" tabindex="-1"></a>Cd_diag <span class="op">=</span> np.diag(np.diag(Cd))</span>
-<span id="cb14-179"><a href="#cb14-179" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.4</span>),</span>
-<span id="cb14-180"><a href="#cb14-180" aria-hidden="true" tabindex="-1"></a>                       gridspec_kw<span class="op">=</span>{<span class="st">"width_ratios"</span>: [<span class="fl">1.2</span>, <span class="dv">1</span>]})</span>
-<span id="cb14-181"><a href="#cb14-181" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax[<span class="dv">0</span>].imshow(Cd, cmap<span class="op">=</span><span class="st">"PuRd"</span>, origin<span class="op">=</span><span class="st">"lower"</span>)</span>
-<span id="cb14-182"><a href="#cb14-182" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(title<span class="op">=</span><span class="st">"$C_d$ (measurement covariance)"</span>, xlabel<span class="op">=</span><span class="st">"epoch"</span>, ylabel<span class="op">=</span><span class="st">"epoch"</span>)</span>
-<span id="cb14-183"><a href="#cb14-183" aria-hidden="true" tabindex="-1"></a>fig.colorbar(im, ax<span class="op">=</span>ax[<span class="dv">0</span>], fraction<span class="op">=</span><span class="fl">0.046</span>)</span>
-<span id="cb14-184"><a href="#cb14-184" aria-hidden="true" tabindex="-1"></a>neff_corr <span class="op">=</span> effective_sample_size(Cd)</span>
-<span id="cb14-185"><a href="#cb14-185" aria-hidden="true" tabindex="-1"></a>neff_diag <span class="op">=</span> effective_sample_size(Cd_diag)</span>
-<span id="cb14-186"><a href="#cb14-186" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar([<span class="st">"diagonal</span><span class="ch">\n</span><span class="st">(assumed)"</span>, <span class="st">"correlated</span><span class="ch">\n</span><span class="st">$C_d$"</span>], [neff_diag, neff_corr],</span>
-<span id="cb14-187"><a href="#cb14-187" aria-hidden="true" tabindex="-1"></a>          color<span class="op">=</span>[C[<span class="st">"fit"</span>], C[<span class="st">"thermo"</span>]])</span>
-<span id="cb14-188"><a href="#cb14-188" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(ylabel<span class="op">=</span><span class="st">"effective sample size $N_</span><span class="sc">{eff}</span><span class="st">$"</span>,</span>
-<span id="cb14-189"><a href="#cb14-189" aria-hidden="true" tabindex="-1"></a>          title<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss"> epochs → </span><span class="sc">{</span>neff_corr<span class="sc">:.0f}</span><span class="ss"> independent"</span>)</span>
-<span id="cb14-190"><a href="#cb14-190" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, v <span class="kw">in</span> <span class="bu">enumerate</span>([neff_diag, neff_corr]):</span>
-<span id="cb14-191"><a href="#cb14-191" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].text(i, v, <span class="ss">f"</span><span class="sc">{</span>v<span class="sc">:.0f}</span><span class="ss">"</span>, ha<span class="op">=</span><span class="st">"center"</span>, va<span class="op">=</span><span class="st">"bottom"</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
-<span id="cb14-192"><a href="#cb14-192" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
-<span id="cb14-193"><a href="#cb14-193" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-194"><a href="#cb14-194" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-195"><a href="#cb14-195" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5. Reference choice, and the Brenguier (2014) all-to-all cure</span></span>
-<span id="cb14-196"><a href="#cb14-196" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-197"><a href="#cb14-197" aria-hidden="true" tabindex="-1"></a>The most consequential — and least examined — fork is the **reference**.</span>
-<span id="cb14-198"><a href="#cb14-198" aria-hidden="true" tabindex="-1"></a>Referencing every epoch to one stack makes the reference's own noise a</span>
-<span id="cb14-199"><a href="#cb14-199" aria-hidden="true" tabindex="-1"></a>common-mode error and ties the whole series to an arbitrary datum. @Brenguier2014</span>
-<span id="cb14-200"><a href="#cb14-200" aria-hidden="true" tabindex="-1"></a>showed a way out: treat *every* window as a reference, measure the relative</span>
-<span id="cb14-201"><a href="#cb14-201" aria-hidden="true" tabindex="-1"></a>velocity change between **all pairs** of epochs, and invert the</span>
-<span id="cb14-202"><a href="#cb14-202" aria-hidden="true" tabindex="-1"></a>double-difference system</span>
-<span id="cb14-203"><a href="#cb14-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-204"><a href="#cb14-204" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb14-205"><a href="#cb14-205" aria-hidden="true" tabindex="-1"></a>\varepsilon_{ij} = m_i - m_j + \eta_{ij},</span>
-<span id="cb14-206"><a href="#cb14-206" aria-hidden="true" tabindex="-1"></a>\qquad \eta_{ij}\sim\mathcal N(0,\sigma_{ij}^2),</span>
-<span id="cb14-207"><a href="#cb14-207" aria-hidden="true" tabindex="-1"></a>$$ {#eq-dd}</span>
-<span id="cb14-208"><a href="#cb14-208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-209"><a href="#cb14-209" aria-hidden="true" tabindex="-1"></a>for a global, **reference-free** $m=\delta v/v(t)$ (<span class="in">`global_reference_inversion`</span>).</span>
-<span id="cb14-210"><a href="#cb14-210" aria-hidden="true" tabindex="-1"></a>Its model covariance $(G^\top C_d^{-1} G)^{+}$ is temporally correlated *by</span>
-<span id="cb14-211"><a href="#cb14-211" aria-hidden="true" tabindex="-1"></a>construction* — the principled $C_d$ the reference choice implies.</span>
-<span id="cb14-212"><a href="#cb14-212" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-215"><a href="#cb14-215" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb14-216"><a href="#cb14-216" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: brenguier</span></span>
-<span id="cb14-217"><a href="#cb14-217" aria-hidden="true" tabindex="-1"></a>m_true <span class="op">=</span> truth <span class="op">-</span> truth.mean()          <span class="co"># the inversion resolves dv/v up to a datum</span></span>
-<span id="cb14-218"><a href="#cb14-218" aria-hidden="true" tabindex="-1"></a><span class="co"># (a) single fixed reference at epoch 0: every epoch measured against one stack</span></span>
-<span id="cb14-219"><a href="#cb14-219" aria-hidden="true" tabindex="-1"></a>sig_ref <span class="op">=</span> <span class="bu">float</span>(weaver_stretching_error(<span class="fl">0.95</span>, <span class="fl">0.7</span>, <span class="dv">5</span>, <span class="dv">30</span>))</span>
-<span id="cb14-220"><a href="#cb14-220" aria-hidden="true" tabindex="-1"></a>rel0 <span class="op">=</span> (m_true <span class="op">-</span> m_true[<span class="dv">0</span>]) <span class="op">+</span> sig_ref<span class="op">*</span>rng.standard_normal(n)</span>
-<span id="cb14-221"><a href="#cb14-221" aria-hidden="true" tabindex="-1"></a>dvv_single, cov_single <span class="op">=</span> single_reference_dvv(rel0, np.full(n, sig_ref), <span class="dv">0</span>)</span>
-<span id="cb14-222"><a href="#cb14-222" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-223"><a href="#cb14-223" aria-hidden="true" tabindex="-1"></a><span class="co"># (b) all-to-all: relative measurement between every pair within a 30-epoch span</span></span>
-<span id="cb14-224"><a href="#cb14-224" aria-hidden="true" tabindex="-1"></a>ii, jj, dd, ss <span class="op">=</span> [], [], [], []</span>
-<span id="cb14-225"><a href="#cb14-225" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n):</span>
-<span id="cb14-226"><a href="#cb14-226" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i<span class="op">+</span><span class="dv">1</span>, <span class="bu">min</span>(i<span class="op">+</span><span class="dv">30</span>, n)):</span>
-<span id="cb14-227"><a href="#cb14-227" aria-hidden="true" tabindex="-1"></a>        cc_ij <span class="op">=</span> <span class="fl">0.97</span> <span class="op">-</span> <span class="fl">0.0025</span><span class="op">*</span>(j<span class="op">-</span>i)            <span class="co"># coherence decays with separation</span></span>
-<span id="cb14-228"><a href="#cb14-228" aria-hidden="true" tabindex="-1"></a>        sij <span class="op">=</span> <span class="bu">float</span>(weaver_stretching_error(np.clip(cc_ij,<span class="fl">0.6</span>,<span class="fl">0.999</span>), <span class="fl">0.7</span>, <span class="dv">5</span>, <span class="dv">30</span>))</span>
-<span id="cb14-229"><a href="#cb14-229" aria-hidden="true" tabindex="-1"></a>        ii.append(i)<span class="op">;</span> jj.append(j)</span>
-<span id="cb14-230"><a href="#cb14-230" aria-hidden="true" tabindex="-1"></a>        dd.append(m_true[i]<span class="op">-</span>m_true[j] <span class="op">+</span> sij<span class="op">*</span>rng.standard_normal())<span class="op">;</span> ss.append(sij)</span>
-<span id="cb14-231"><a href="#cb14-231" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> global_reference_inversion(np.array(ii), np.array(jj),</span>
-<span id="cb14-232"><a href="#cb14-232" aria-hidden="true" tabindex="-1"></a>                                 np.array(dd), np.array(ss), n)</span>
-<span id="cb14-233"><a href="#cb14-233" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"all-to-all used </span><span class="sc">{</span>sol<span class="sc">.</span>n_pairs<span class="sc">}</span><span class="ss"> pairs, weighted residual RMS </span><span class="sc">{</span>sol<span class="sc">.</span>residual_rms<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
-<span id="cb14-234"><a href="#cb14-234" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"single-reference mean σ : </span><span class="sc">{</span>np<span class="sc">.</span>sqrt(np.diag(cov_single))<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
-<span id="cb14-235"><a href="#cb14-235" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"all-to-all mean σ       : </span><span class="sc">{</span>sol<span class="sc">.</span>sigma<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
-<span id="cb14-236"><a href="#cb14-236" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-237"><a href="#cb14-237" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-240"><a href="#cb14-240" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb14-241"><a href="#cb14-241" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-brenguier</span></span>
-<span id="cb14-242"><a href="#cb14-242" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Reference choice changes both the estimate and its error. The single-reference series (blue) is pinned to epoch 0 and carries that epoch's noise as a common-mode band on everything. The Brenguier all-to-all solution (purple) is reference-free, tracks the truth, and is tighter because every pair constrains it — at the cost of a (correctly) temporally-correlated covariance."</span></span>
-<span id="cb14-243"><a href="#cb14-243" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.4</span>))</span>
-<span id="cb14-244"><a href="#cb14-244" aria-hidden="true" tabindex="-1"></a>ax.plot(t_days, m_true, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.5</span>, label<span class="op">=</span><span class="st">"truth (datum-removed)"</span>, zorder<span class="op">=</span><span class="dv">5</span>)</span>
-<span id="cb14-245"><a href="#cb14-245" aria-hidden="true" tabindex="-1"></a>ax.fill_between(t_days, dvv_single<span class="op">-</span><span class="dv">2</span><span class="op">*</span>np.sqrt(np.diag(cov_single)),</span>
-<span id="cb14-246"><a href="#cb14-246" aria-hidden="true" tabindex="-1"></a>                dvv_single<span class="op">+</span><span class="dv">2</span><span class="op">*</span>np.sqrt(np.diag(cov_single)),</span>
-<span id="cb14-247"><a href="#cb14-247" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span>C[<span class="st">"hydro"</span>], alpha<span class="op">=</span><span class="fl">0.2</span>, lw<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb14-248"><a href="#cb14-248" aria-hidden="true" tabindex="-1"></a>ax.plot(t_days, dvv_single, color<span class="op">=</span>C[<span class="st">"hydro"</span>], lw<span class="op">=</span><span class="fl">0.8</span>, label<span class="op">=</span><span class="st">"single reference (epoch 0)"</span>)</span>
-<span id="cb14-249"><a href="#cb14-249" aria-hidden="true" tabindex="-1"></a>ax.fill_between(t_days, sol.dvv<span class="op">-</span><span class="dv">2</span><span class="op">*</span>sol.sigma, sol.dvv<span class="op">+</span><span class="dv">2</span><span class="op">*</span>sol.sigma,</span>
-<span id="cb14-250"><a href="#cb14-250" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span>C[<span class="st">"band"</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, lw<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb14-251"><a href="#cb14-251" aria-hidden="true" tabindex="-1"></a>ax.plot(t_days, sol.dvv, color<span class="op">=</span>C[<span class="st">"band"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"Brenguier all-to-all"</span>)</span>
-<span id="cb14-252"><a href="#cb14-252" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"day"</span>, ylabel<span class="op">=</span><span class="st">"δv/v (datum-removed)"</span>)</span>
-<span id="cb14-253"><a href="#cb14-253" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>, frameon<span class="op">=</span><span class="va">False</span>, loc<span class="op">=</span><span class="st">"upper right"</span>)</span>
-<span id="cb14-254"><a href="#cb14-254" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb14-255"><a href="#cb14-255" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-256"><a href="#cb14-256" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-257"><a href="#cb14-257" aria-hidden="true" tabindex="-1"></a><span class="fu">## 6. Closing the loop: $C_d$ is what the inversion actually needs</span></span>
-<span id="cb14-258"><a href="#cb14-258" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-259"><a href="#cb14-259" aria-hidden="true" tabindex="-1"></a>The <span class="co">[</span><span class="ot">inference page</span><span class="co">](theory-uq.qmd)</span> wrote the likelihood with</span>
-<span id="cb14-260"><a href="#cb14-260" aria-hidden="true" tabindex="-1"></a>$W=\operatorname{diag}(1/\sigma_t^2)$ — a **diagonal** $C_d$. That is the one</span>
-<span id="cb14-261"><a href="#cb14-261" aria-hidden="true" tabindex="-1"></a>assumption this page dismantles. Generalised least squares with the *full*</span>
-<span id="cb14-262"><a href="#cb14-262" aria-hidden="true" tabindex="-1"></a>measurement covariance,</span>
-<span id="cb14-263"><a href="#cb14-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-264"><a href="#cb14-264" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb14-265"><a href="#cb14-265" aria-hidden="true" tabindex="-1"></a>\hat C_m = \big(X^\top C_d^{-1} X\big)^{-1},</span>
-<span id="cb14-266"><a href="#cb14-266" aria-hidden="true" tabindex="-1"></a>\qquad</span>
-<span id="cb14-267"><a href="#cb14-267" aria-hidden="true" tabindex="-1"></a>\hat m = \hat C_m\, X^\top C_d^{-1}\, d,</span>
-<span id="cb14-268"><a href="#cb14-268" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gls}</span>
-<span id="cb14-269"><a href="#cb14-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-270"><a href="#cb14-270" aria-hidden="true" tabindex="-1"></a>gives the honest posterior. Ignoring the off-diagonals does not bias the</span>
-<span id="cb14-271"><a href="#cb14-271" aria-hidden="true" tabindex="-1"></a>estimate much, but it **overstates the precision** — exactly the failure that</span>
-<span id="cb14-272"><a href="#cb14-272" aria-hidden="true" tabindex="-1"></a>makes results look more reproducible than they are. We fit the seasonal</span>
-<span id="cb14-273"><a href="#cb14-273" aria-hidden="true" tabindex="-1"></a>amplitude of our ensemble-mean series both ways:</span>
-<span id="cb14-274"><a href="#cb14-274" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-277"><a href="#cb14-277" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb14-278"><a href="#cb14-278" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: gls</span></span>
-<span id="cb14-279"><a href="#cb14-279" aria-hidden="true" tabindex="-1"></a><span class="co"># design: offset + annual sine/cosine + linear trend</span></span>
-<span id="cb14-280"><a href="#cb14-280" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> np.column_stack([np.ones(n), np.sin(<span class="dv">2</span><span class="op">*</span>np.pi<span class="op">*</span>t_days<span class="op">/</span><span class="dv">365</span>),</span>
-<span id="cb14-281"><a href="#cb14-281" aria-hidden="true" tabindex="-1"></a>                     np.cos(<span class="dv">2</span><span class="op">*</span>np.pi<span class="op">*</span>t_days<span class="op">/</span><span class="dv">365</span>), t_days<span class="op">/</span>n])</span>
-<span id="cb14-282"><a href="#cb14-282" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> ens.mean</span>
-<span id="cb14-283"><a href="#cb14-283" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-284"><a href="#cb14-284" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit(cov):</span>
-<span id="cb14-285"><a href="#cb14-285" aria-hidden="true" tabindex="-1"></a>    Cinv <span class="op">=</span> np.linalg.inv(cov)</span>
-<span id="cb14-286"><a href="#cb14-286" aria-hidden="true" tabindex="-1"></a>    Cm <span class="op">=</span> np.linalg.inv(X.T <span class="op">@</span> Cinv <span class="op">@</span> X)</span>
-<span id="cb14-287"><a href="#cb14-287" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> Cm <span class="op">@</span> X.T <span class="op">@</span> Cinv <span class="op">@</span> d</span>
-<span id="cb14-288"><a href="#cb14-288" aria-hidden="true" tabindex="-1"></a>    amp <span class="op">=</span> np.hypot(m[<span class="dv">1</span>], m[<span class="dv">2</span>])</span>
-<span id="cb14-289"><a href="#cb14-289" aria-hidden="true" tabindex="-1"></a>    <span class="co"># delta-method error on the seasonal amplitude</span></span>
-<span id="cb14-290"><a href="#cb14-290" aria-hidden="true" tabindex="-1"></a>    g <span class="op">=</span> np.array([<span class="dv">0</span>, m[<span class="dv">1</span>]<span class="op">/</span>amp, m[<span class="dv">2</span>]<span class="op">/</span>amp, <span class="dv">0</span>])</span>
-<span id="cb14-291"><a href="#cb14-291" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> amp, <span class="bu">float</span>(np.sqrt(g <span class="op">@</span> Cm <span class="op">@</span> g))</span>
-<span id="cb14-292"><a href="#cb14-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-293"><a href="#cb14-293" aria-hidden="true" tabindex="-1"></a>amp_d, se_d <span class="op">=</span> fit(Cd_diag)   <span class="co"># diagonal C_d (the usual assumption)</span></span>
-<span id="cb14-294"><a href="#cb14-294" aria-hidden="true" tabindex="-1"></a>amp_f, se_f <span class="op">=</span> fit(Cd)        <span class="co"># full structured C_d</span></span>
-<span id="cb14-295"><a href="#cb14-295" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"seasonal amplitude (diagonal C_d) : </span><span class="sc">{</span>amp_d<span class="sc">:.2e}</span><span class="ss"> ± </span><span class="sc">{</span>se_d<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
-<span id="cb14-296"><a href="#cb14-296" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"seasonal amplitude (full     C_d) : </span><span class="sc">{</span>amp_f<span class="sc">:.2e}</span><span class="ss"> ± </span><span class="sc">{</span>se_f<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
-<span id="cb14-297"><a href="#cb14-297" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"error-bar inflation from honesty  : </span><span class="sc">{</span>se_f<span class="op">/</span>se_d<span class="sc">:.1f}</span><span class="ss">×"</span>)</span>
-<span id="cb14-298"><a href="#cb14-298" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-299"><a href="#cb14-299" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-300"><a href="#cb14-300" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
-<span id="cb14-301"><a href="#cb14-301" aria-hidden="true" tabindex="-1"></a>Accounting for the measurement correlation inflates the seasonal-amplitude error</span>
-<span id="cb14-302"><a href="#cb14-302" aria-hidden="true" tabindex="-1"></a>bar several-fold. That factor is not pessimism — it is the difference between a</span>
-<span id="cb14-303"><a href="#cb14-303" aria-hidden="true" tabindex="-1"></a>reported uncertainty and a *true* one. This is why the measurement budget must</span>
-<span id="cb14-304"><a href="#cb14-304" aria-hidden="true" tabindex="-1"></a>be carried into the inference, not assumed away.</span>
-<span id="cb14-305"><a href="#cb14-305" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-306"><a href="#cb14-306" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-307"><a href="#cb14-307" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb14-308"><a href="#cb14-308" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where do the per-band $\sigma$ and the cross-band correlation come from?</span></span>
-<span id="cb14-309"><a href="#cb14-309" aria-hidden="true" tabindex="-1"></a>This page took the within-method floor and the processing spread as given. The</span>
-<span id="cb14-310"><a href="#cb14-310" aria-hidden="true" tabindex="-1"></a>companion **[Processing → depth page](theory-processing-depth.qmd)** shows how to</span>
-<span id="cb14-311"><a href="#cb14-311" aria-hidden="true" tabindex="-1"></a>*generate* them: sample the window-rule choices (fixed, envelope-pick-to-flatten,</span>
-<span id="cb14-312"><a href="#cb14-312" aria-hidden="true" tabindex="-1"></a>moving) from a prior, marginalise them into one error per frequency band, and</span>
-<span id="cb14-313"><a href="#cb14-313" aria-hidden="true" tabindex="-1"></a>propagate those errors through the Rayleigh sensitivity kernels into a</span>
-<span id="cb14-314"><a href="#cb14-314" aria-hidden="true" tabindex="-1"></a>depth-resolved $\delta V_S/V_S(z)$ with an honest uncertainty envelope.</span>
-<span id="cb14-315"><a href="#cb14-315" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-316"><a href="#cb14-316" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-317"><a href="#cb14-317" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. The full uncertainty budget</span></span>
-<span id="cb14-318"><a href="#cb14-318" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-321"><a href="#cb14-321" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
-<span id="cb14-322"><a href="#cb14-322" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
-<span id="cb14-323"><a href="#cb14-323" aria-hidden="true" tabindex="-1"></a>    subgraph MEAS[<span class="ot">"</span><span class="st">Measurement UQ — this page</span><span class="ot">"</span>]</span>
-<span id="cb14-324"><a href="#cb14-324" aria-hidden="true" tabindex="-1"></a>      W[<span class="ot">"</span><span class="st">within-method floor&lt;br/&gt;Weaver/Clarke</span><span class="ot">"</span>]</span>
-<span id="cb14-325"><a href="#cb14-325" aria-hidden="true" tabindex="-1"></a>      M[<span class="ot">"</span><span class="st">methodological spread&lt;br/&gt;processing ensemble</span><span class="ot">"</span>]</span>
-<span id="cb14-326"><a href="#cb14-326" aria-hidden="true" tabindex="-1"></a>      T[<span class="ot">"</span><span class="st">temporal + common-mode&lt;br/&gt;correlation</span><span class="ot">"</span>]</span>
-<span id="cb14-327"><a href="#cb14-327" aria-hidden="true" tabindex="-1"></a>      R[<span class="ot">"</span><span class="st">reference scheme&lt;br/&gt;all-to-all inversion</span><span class="ot">"</span>]</span>
-<span id="cb14-328"><a href="#cb14-328" aria-hidden="true" tabindex="-1"></a>    end</span>
-<span id="cb14-329"><a href="#cb14-329" aria-hidden="true" tabindex="-1"></a>    CD[<span class="ot">"</span><span class="st">structured C_d</span><span class="ot">"</span>]</span>
-<span id="cb14-330"><a href="#cb14-330" aria-hidden="true" tabindex="-1"></a>    subgraph INFER[<span class="ot">"</span><span class="st">Inference UQ — theory page</span><span class="ot">"</span>]</span>
-<span id="cb14-331"><a href="#cb14-331" aria-hidden="true" tabindex="-1"></a>      L[<span class="ot">"</span><span class="st">GLS likelihood&lt;br/&gt;p(d | θ)</span><span class="ot">"</span>]</span>
-<span id="cb14-332"><a href="#cb14-332" aria-hidden="true" tabindex="-1"></a>      P[<span class="ot">"</span><span class="st">posterior p(θ | d)</span><span class="ot">"</span>]</span>
-<span id="cb14-333"><a href="#cb14-333" aria-hidden="true" tabindex="-1"></a>      S[<span class="ot">"</span><span class="st">stress at depth&lt;br/&gt;+ interval</span><span class="ot">"</span>]</span>
-<span id="cb14-334"><a href="#cb14-334" aria-hidden="true" tabindex="-1"></a>    end</span>
-<span id="cb14-335"><a href="#cb14-335" aria-hidden="true" tabindex="-1"></a>    W --&gt; CD</span>
-<span id="cb14-336"><a href="#cb14-336" aria-hidden="true" tabindex="-1"></a>    M --&gt; CD</span>
-<span id="cb14-337"><a href="#cb14-337" aria-hidden="true" tabindex="-1"></a>    T --&gt; CD</span>
-<span id="cb14-338"><a href="#cb14-338" aria-hidden="true" tabindex="-1"></a>    R --&gt; CD</span>
-<span id="cb14-339"><a href="#cb14-339" aria-hidden="true" tabindex="-1"></a>    CD --&gt; L --&gt; P --&gt; S</span>
-<span id="cb14-340"><a href="#cb14-340" aria-hidden="true" tabindex="-1"></a>    style CD fill:<span class="co">#fff3e0,stroke:#c77700</span></span>
-<span id="cb14-341"><a href="#cb14-341" aria-hidden="true" tabindex="-1"></a>    style S fill:<span class="co">#e8f5e9,stroke:#2e7d32</span></span>
-<span id="cb14-342"><a href="#cb14-342" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-343"><a href="#cb14-343" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-344"><a href="#cb14-344" aria-hidden="true" tabindex="-1"></a>Measurement uncertainty produces the covariance $C_d$; inference uncertainty</span>
-<span id="cb14-345"><a href="#cb14-345" aria-hidden="true" tabindex="-1"></a>consumes it. Reported the old way — one method, one reference, a diagonal</span>
-<span id="cb14-346"><a href="#cb14-346" aria-hidden="true" tabindex="-1"></a><span class="in">`dvv_err`</span> — a $\delta v/v$ study quietly discards both the methodological spread</span>
-<span id="cb14-347"><a href="#cb14-347" aria-hidden="true" tabindex="-1"></a>and the temporal correlation, and over-reports its own confidence. Carrying</span>
-<span id="cb14-348"><a href="#cb14-348" aria-hidden="true" tabindex="-1"></a>$C_d$ through is what makes the stress posterior on the <span class="co">[</span><span class="ot">inference page</span><span class="co">](theory-uq.qmd)</span></span>
-<span id="cb14-349"><a href="#cb14-349" aria-hidden="true" tabindex="-1"></a>defensible.</span>
-<span id="cb14-350"><a href="#cb14-350" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-351"><a href="#cb14-351" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb14-352"><a href="#cb14-352" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-353"><a href="#cb14-353" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
-<span id="cb14-354"><a href="#cb14-354" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where this lives in the code</span></span>
-<span id="cb14-355"><a href="#cb14-355" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-weaver → <span class="in">`codameter.uq_measurement.weaver_stretching_error`</span></span>
-<span id="cb14-356"><a href="#cb14-356" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>§3 ensemble → <span class="in">`processing_ensemble`</span> / <span class="in">`EnsembleResult`</span></span>
-<span id="cb14-357"><a href="#cb14-357" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-cd → <span class="in">`temporal_error_covariance`</span>, <span class="in">`effective_sample_size`</span></span>
-<span id="cb14-358"><a href="#cb14-358" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-dd → <span class="in">`global_reference_inversion`</span>, <span class="in">`single_reference_dvv`</span></span>
-<span id="cb14-359"><a href="#cb14-359" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-gls → consumed by <span class="in">`codameter.inverse.linear_fit`</span> (supply <span class="in">`C_d`</span> for the weights)</span>
-<span id="cb14-360"><a href="#cb14-360" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-361"><a href="#cb14-361" aria-hidden="true" tabindex="-1"></a>Complements the coda-window *design* scorer in</span>
-<span id="cb14-362"><a href="#cb14-362" aria-hidden="true" tabindex="-1"></a><span class="in">`codameter.uq-measurement`</span> (which quantity to measure) — this module is the</span>
-<span id="cb14-363"><a href="#cb14-363" aria-hidden="true" tabindex="-1"></a>*measurement error of* that quantity.</span>
-<span id="cb14-364"><a href="#cb14-364" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-365"><a href="#cb14-365" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-366"><a href="#cb14-366" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
-<span id="cb14-367"><a href="#cb14-367" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-368"><a href="#cb14-368" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
-<span id="cb14-369"><a href="#cb14-369" aria-hidden="true" tabindex="-1"></a>:::</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "The other uncertainty: measurement error in δv/v"</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Aleatoric &amp; methodological error conditioned on processing choices"</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> codameter-pixi</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>::: {.keyidea}</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Thesis</span><span class="co">]</span>{.k-title}</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>The <span class="co">[</span><span class="ot">first theory page</span><span class="co">](theory-uq.qmd)</span> quantifies the **epistemic** uncertainty</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>of inferring stress *from* a $\delta v/v$ series — it takes the series and its</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="in">`dvv_err`</span> as given. But in our discipline the $\delta v/v$ *measurement itself*</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>is the least reproducible step: it is the end of a long chain of processing</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>choices (method, window, band, stacking, gating, **reference**), almost none of</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>which are propagated. This page quantifies that **measurement** error. Its</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>deliverable is not a scalar per epoch but a structured **measurement covariance**</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>$C_d$ — the very object the inference likelihood assumes is diagonal. The two</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>pages are two halves of one budget.</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys, numpy <span class="im">as</span> np, matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, <span class="st">"."</span>)</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> _synth <span class="im">import</span> set_style, C</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>set_style()</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.uq_measurement <span class="im">import</span> (</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>    weaver_stretching_error, processing_ensemble, temporal_error_covariance,</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a>    effective_sample_size, global_reference_inversion, single_reference_dvv)</span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">7</span>)</span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. The $\delta v/v$ measurement is a tree of choices</span></span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a>A $\delta v/v$ value is not measured; it is *computed* from a stack of repeated</span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>coda waves through a pipeline. Each fork is a defensible choice, and different</span>
+<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>groups fork differently — so the same raw data yields different $\delta v/v(t)$.</span>
+<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
+<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a>    RAW[<span class="ot">"</span><span class="st">repeated coda&lt;br/&gt;(cross-correlations)</span><span class="ot">"</span>]</span>
+<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a>    STACK{<span class="ot">"</span><span class="st">stack?&lt;br/&gt;linear / PWS&lt;br/&gt;substack length</span><span class="ot">"</span>}</span>
+<span id="cb17-47"><a href="#cb17-47" aria-hidden="true" tabindex="-1"></a>    GATE{<span class="ot">"</span><span class="st">gate?&lt;br/&gt;discard CC &amp;lt; thresh</span><span class="ot">"</span>}</span>
+<span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a>    REF{<span class="ot">"</span><span class="st">reference?&lt;br/&gt;fixed / trailing /&lt;br/&gt;all-to-all</span><span class="ot">"</span>}</span>
+<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a>    METH{<span class="ot">"</span><span class="st">estimator?&lt;br/&gt;stretching / MWCS /&lt;br/&gt;wavelet / DTW</span><span class="ot">"</span>}</span>
+<span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a>    WIN{<span class="ot">"</span><span class="st">window?&lt;br/&gt;coda start, length,&lt;br/&gt;frequency band</span><span class="ot">"</span>}</span>
+<span id="cb17-51"><a href="#cb17-51" aria-hidden="true" tabindex="-1"></a>    DVV[<span class="ot">"</span><span class="st">δv/v(t)&lt;br/&gt;+ what error?</span><span class="ot">"</span>]</span>
+<span id="cb17-52"><a href="#cb17-52" aria-hidden="true" tabindex="-1"></a>    RAW --&gt; STACK --&gt; GATE --&gt; REF --&gt; METH --&gt; WIN --&gt; DVV</span>
+<span id="cb17-53"><a href="#cb17-53" aria-hidden="true" tabindex="-1"></a>    style DVV fill:<span class="co">#fce4ec,stroke:#c62828</span></span>
+<span id="cb17-54"><a href="#cb17-54" aria-hidden="true" tabindex="-1"></a>    style REF fill:<span class="co">#fff3e0,stroke:#c77700</span></span>
+<span id="cb17-55"><a href="#cb17-55" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-56"><a href="#cb17-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-57"><a href="#cb17-57" aria-hidden="true" tabindex="-1"></a>We treat each fork as a source of measurement uncertainty and quantify three</span>
+<span id="cb17-58"><a href="#cb17-58" aria-hidden="true" tabindex="-1"></a>things a diagonal <span class="in">`dvv_err`</span> cannot express: a **within-method floor**, a</span>
+<span id="cb17-59"><a href="#cb17-59" aria-hidden="true" tabindex="-1"></a>**methodological spread**, and the **temporal correlation** the choices induce.</span>
+<span id="cb17-60"><a href="#cb17-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-61"><a href="#cb17-61" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2. The within-method floor — coherence-limited precision</span></span>
+<span id="cb17-62"><a href="#cb17-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-63"><a href="#cb17-63" aria-hidden="true" tabindex="-1"></a>For a *fixed* configuration there is an irreducible scatter set by the coda</span>
+<span id="cb17-64"><a href="#cb17-64" aria-hidden="true" tabindex="-1"></a>coherence. Weaver et al. (2011) and Clarke et al. (2011) give the standard</span>
+<span id="cb17-65"><a href="#cb17-65" aria-hidden="true" tabindex="-1"></a>error of a stretching/MWCS estimate over a coda window $<span class="co">[</span><span class="ot">t_1,t_2</span><span class="co">]</span>$ with mean</span>
+<span id="cb17-66"><a href="#cb17-66" aria-hidden="true" tabindex="-1"></a>correlation $CC$ at central frequency $f_c$:</span>
+<span id="cb17-67"><a href="#cb17-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-68"><a href="#cb17-68" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb17-69"><a href="#cb17-69" aria-hidden="true" tabindex="-1"></a>\sigma_{\delta v/v}^2 = \frac{1-CC^2}{2\,CC^2}\;</span>
+<span id="cb17-70"><a href="#cb17-70" aria-hidden="true" tabindex="-1"></a>\frac{6\sqrt{\pi/2}}{\omega_c^2\,(t_2^3 - t_1^3)},</span>
+<span id="cb17-71"><a href="#cb17-71" aria-hidden="true" tabindex="-1"></a>\qquad \omega_c = 2\pi f_c .</span>
+<span id="cb17-72"><a href="#cb17-72" aria-hidden="true" tabindex="-1"></a>$$ {#eq-weaver}</span>
+<span id="cb17-73"><a href="#cb17-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-74"><a href="#cb17-74" aria-hidden="true" tabindex="-1"></a>This is <span class="in">`weaver_stretching_error`</span>. It encodes the levers practitioners actually</span>
+<span id="cb17-75"><a href="#cb17-75" aria-hidden="true" tabindex="-1"></a>turn: higher coherence, a longer/later coda window, and higher frequency all</span>
+<span id="cb17-76"><a href="#cb17-76" aria-hidden="true" tabindex="-1"></a>shrink the error — and it is the *floor*, achieved only if every other choice</span>
+<span id="cb17-77"><a href="#cb17-77" aria-hidden="true" tabindex="-1"></a>were fixed and correct.</span>
+<span id="cb17-78"><a href="#cb17-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-81"><a href="#cb17-81" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb17-82"><a href="#cb17-82" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-weaver</span></span>
+<span id="cb17-83"><a href="#cb17-83" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The coherence-limited δv/v error floor (Weaver/Clarke). Left: error explodes as coda coherence drops — the basis for CC-gating. Right: a longer/later coda window lowers the floor (∝ 1/√(t₂³−t₁³)), the reason late-coda windows are prized despite lower SNR."</span></span>
+<span id="cb17-84"><a href="#cb17-84" aria-hidden="true" tabindex="-1"></a>cc <span class="op">=</span> np.linspace(<span class="fl">0.6</span>, <span class="fl">0.999</span>, <span class="dv">200</span>)</span>
+<span id="cb17-85"><a href="#cb17-85" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.2</span>))</span>
+<span id="cb17-86"><a href="#cb17-86" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> fc, col <span class="kw">in</span> [(<span class="fl">0.5</span>, C[<span class="st">"hydro"</span>]), (<span class="fl">1.0</span>, C[<span class="st">"thermo"</span>]), (<span class="fl">2.0</span>, C[<span class="st">"damage"</span>])]:</span>
+<span id="cb17-87"><a href="#cb17-87" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].plot(cc, weaver_stretching_error(cc, fc, <span class="dv">5</span>, <span class="dv">30</span>), color<span class="op">=</span>col, label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>fc<span class="sc">:g}</span><span class="ss"> Hz"</span>)</span>
+<span id="cb17-88"><a href="#cb17-88" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"coda correlation CC"</span>, ylabel<span class="op">=</span><span class="vs">r"</span><span class="dv">$\s</span><span class="vs">igma_{</span><span class="dv">\d</span><span class="vs">elta v/v}</span><span class="dv">$</span><span class="vs">"</span>,</span>
+<span id="cb17-89"><a href="#cb17-89" aria-hidden="true" tabindex="-1"></a>          yscale<span class="op">=</span><span class="st">"log"</span>, title<span class="op">=</span><span class="st">"vs coherence"</span>)</span>
+<span id="cb17-90"><a href="#cb17-90" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].legend(fontsize<span class="op">=</span><span class="dv">8</span>, frameon<span class="op">=</span><span class="va">False</span>, title<span class="op">=</span><span class="st">"f$_c$"</span>)</span>
+<span id="cb17-91"><a href="#cb17-91" aria-hidden="true" tabindex="-1"></a>lengths <span class="op">=</span> np.arange(<span class="dv">5</span>, <span class="dv">60</span>, <span class="fl">1.0</span>)</span>
+<span id="cb17-92"><a href="#cb17-92" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t1, col <span class="kw">in</span> [(<span class="dv">2</span>, C[<span class="st">"hydro"</span>]), (<span class="dv">10</span>, C[<span class="st">"thermo"</span>]), (<span class="dv">20</span>, C[<span class="st">"damage"</span>])]:</span>
+<span id="cb17-93"><a href="#cb17-93" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> [weaver_stretching_error(<span class="fl">0.95</span>, <span class="fl">1.0</span>, t1, t1<span class="op">+</span>L) <span class="cf">for</span> L <span class="kw">in</span> lengths]</span>
+<span id="cb17-94"><a href="#cb17-94" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].plot(t1<span class="op">+</span>lengths, s, color<span class="op">=</span>col, label<span class="op">=</span><span class="ss">f"start </span><span class="sc">{</span>t1<span class="sc">}</span><span class="ss">s"</span>)</span>
+<span id="cb17-95"><a href="#cb17-95" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"window end $t_2$ (s)"</span>, ylabel<span class="op">=</span><span class="vs">r"</span><span class="dv">$\s</span><span class="vs">igma_{</span><span class="dv">\d</span><span class="vs">elta v/v}</span><span class="dv">$</span><span class="vs">"</span>,</span>
+<span id="cb17-96"><a href="#cb17-96" aria-hidden="true" tabindex="-1"></a>          title<span class="op">=</span><span class="st">"vs window (CC=0.95)"</span>)</span>
+<span id="cb17-97"><a href="#cb17-97" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].legend(fontsize<span class="op">=</span><span class="dv">8</span>, frameon<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb17-98"><a href="#cb17-98" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb17-99"><a href="#cb17-99" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-100"><a href="#cb17-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-101"><a href="#cb17-101" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. The methodological spread — an ensemble over choices</span></span>
+<span id="cb17-102"><a href="#cb17-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-103"><a href="#cb17-103" aria-hidden="true" tabindex="-1"></a>The floor assumes the configuration is *the* configuration. It is not. Run the</span>
+<span id="cb17-104"><a href="#cb17-104" aria-hidden="true" tabindex="-1"></a>same data through several defensible pipelines and you get an **ensemble** of</span>
+<span id="cb17-105"><a href="#cb17-105" aria-hidden="true" tabindex="-1"></a>$\delta v/v(t)$ curves whose spread is a genuine, usually dominant, uncertainty.</span>
+<span id="cb17-106"><a href="#cb17-106" aria-hidden="true" tabindex="-1"></a>We simulate that here: a common truth seen through stretching, MWCS, a wavelet</span>
+<span id="cb17-107"><a href="#cb17-107" aria-hidden="true" tabindex="-1"></a>estimator, and two window/band variants — each with its own bias and</span>
+<span id="cb17-108"><a href="#cb17-108" aria-hidden="true" tabindex="-1"></a>coherence-limited noise.</span>
+<span id="cb17-109"><a href="#cb17-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-112"><a href="#cb17-112" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb17-113"><a href="#cb17-113" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ensemble</span></span>
+<span id="cb17-114"><a href="#cb17-114" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">240</span></span>
+<span id="cb17-115"><a href="#cb17-115" aria-hidden="true" tabindex="-1"></a>t_days <span class="op">=</span> np.arange(n, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb17-116"><a href="#cb17-116" aria-hidden="true" tabindex="-1"></a>truth <span class="op">=</span> <span class="fl">2e-3</span> <span class="op">*</span> np.sin(<span class="dv">2</span><span class="op">*</span>np.pi<span class="op">*</span>t_days<span class="op">/</span><span class="fl">365.0</span>) <span class="op">-</span> <span class="fl">1e-3</span><span class="op">*</span>(t_days<span class="op">/</span>n)   <span class="co"># seasonal + trend</span></span>
+<span id="cb17-117"><a href="#cb17-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-118"><a href="#cb17-118" aria-hidden="true" tabindex="-1"></a><span class="co"># each configuration: (multiplicative bias, additive bias, CC, window, fc)</span></span>
+<span id="cb17-119"><a href="#cb17-119" aria-hidden="true" tabindex="-1"></a>configs <span class="op">=</span> {</span>
+<span id="cb17-120"><a href="#cb17-120" aria-hidden="true" tabindex="-1"></a>    <span class="st">"stretching 5–30s 0.5–1Hz"</span>: (<span class="fl">1.00</span>,  <span class="fl">0.0e-4</span>, <span class="fl">0.97</span>, (<span class="dv">5</span>, <span class="dv">30</span>), <span class="fl">0.7</span>),</span>
+<span id="cb17-121"><a href="#cb17-121" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MWCS 5–30s 0.5–1Hz"</span>:       (<span class="fl">0.93</span>,  <span class="fl">1.0e-4</span>, <span class="fl">0.95</span>, (<span class="dv">5</span>, <span class="dv">30</span>), <span class="fl">0.7</span>),</span>
+<span id="cb17-122"><a href="#cb17-122" aria-hidden="true" tabindex="-1"></a>    <span class="st">"wavelet 5–30s 0.5–1Hz"</span>:    (<span class="fl">1.05</span>, <span class="op">-</span><span class="fl">0.8e-4</span>, <span class="fl">0.96</span>, (<span class="dv">5</span>, <span class="dv">30</span>), <span class="fl">0.7</span>),</span>
+<span id="cb17-123"><a href="#cb17-123" aria-hidden="true" tabindex="-1"></a>    <span class="st">"stretching 10–40s 1–2Hz"</span>:  (<span class="fl">1.02</span>,  <span class="fl">0.4e-4</span>, <span class="fl">0.93</span>, (<span class="dv">10</span>, <span class="dv">40</span>), <span class="fl">1.5</span>),</span>
+<span id="cb17-124"><a href="#cb17-124" aria-hidden="true" tabindex="-1"></a>    <span class="st">"stretching 3–15s 1–2Hz"</span>:   (<span class="fl">0.97</span>, <span class="op">-</span><span class="fl">0.5e-4</span>, <span class="fl">0.90</span>, (<span class="dv">3</span>, <span class="dv">15</span>), <span class="fl">1.5</span>),</span>
+<span id="cb17-125"><a href="#cb17-125" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-126"><a href="#cb17-126" aria-hidden="true" tabindex="-1"></a>members, within <span class="op">=</span> {}, {}</span>
+<span id="cb17-127"><a href="#cb17-127" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, (mb, ab, cc_, (t1, t2), fc) <span class="kw">in</span> configs.items():</span>
+<span id="cb17-128"><a href="#cb17-128" aria-hidden="true" tabindex="-1"></a>    sig <span class="op">=</span> <span class="bu">float</span>(weaver_stretching_error(cc_, fc, t1, t2))</span>
+<span id="cb17-129"><a href="#cb17-129" aria-hidden="true" tabindex="-1"></a>    members[name] <span class="op">=</span> mb<span class="op">*</span>truth <span class="op">+</span> ab <span class="op">+</span> sig<span class="op">*</span>rng.standard_normal(n)</span>
+<span id="cb17-130"><a href="#cb17-130" aria-hidden="true" tabindex="-1"></a>    within[name] <span class="op">=</span> np.full(n, sig)</span>
+<span id="cb17-131"><a href="#cb17-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-132"><a href="#cb17-132" aria-hidden="true" tabindex="-1"></a>ens <span class="op">=</span> processing_ensemble(members, within)</span>
+<span id="cb17-133"><a href="#cb17-133" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"mean within-method floor : </span><span class="sc">{</span>ens<span class="sc">.</span>within_std<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
+<span id="cb17-134"><a href="#cb17-134" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"methodological spread     : </span><span class="sc">{</span>ens<span class="sc">.</span>methodological_std<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">  "</span></span>
+<span id="cb17-135"><a href="#cb17-135" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(</span><span class="sc">{</span>ens<span class="sc">.</span>methodological_std<span class="sc">.</span>mean()<span class="op">/</span>ens<span class="sc">.</span>within_std<span class="sc">.</span>mean()<span class="sc">:.1f}</span><span class="ss">× the floor)"</span>)</span>
+<span id="cb17-136"><a href="#cb17-136" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"total measurement error   : </span><span class="sc">{</span>ens<span class="sc">.</span>total_std<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
+<span id="cb17-137"><a href="#cb17-137" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-138"><a href="#cb17-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-141"><a href="#cb17-141" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb17-142"><a href="#cb17-142" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-ensemble</span></span>
+<span id="cb17-143"><a href="#cb17-143" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The processing ensemble. Thin lines are individual pipelines; the band is the configuration-marginal mean ± the total measurement error (within-method floor combined with methodological spread by the law of total variance). The spread *between* methods dwarfs each method's own error bar — the reproducibility problem in one figure."</span></span>
+<span id="cb17-144"><a href="#cb17-144" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.4</span>))</span>
+<span id="cb17-145"><a href="#cb17-145" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name <span class="kw">in</span> ens.member_labels:</span>
+<span id="cb17-146"><a href="#cb17-146" aria-hidden="true" tabindex="-1"></a>    ax.plot(t_days, members[name], lw<span class="op">=</span><span class="fl">0.7</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, label<span class="op">=</span>name)</span>
+<span id="cb17-147"><a href="#cb17-147" aria-hidden="true" tabindex="-1"></a>ax.plot(t_days, truth, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.6</span>, label<span class="op">=</span><span class="st">"truth"</span>, zorder<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb17-148"><a href="#cb17-148" aria-hidden="true" tabindex="-1"></a>ax.fill_between(t_days, ens.mean<span class="op">-</span><span class="dv">2</span><span class="op">*</span>ens.total_std, ens.mean<span class="op">+</span><span class="dv">2</span><span class="op">*</span>ens.total_std,</span>
+<span id="cb17-149"><a href="#cb17-149" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span>C[<span class="st">"band"</span>], alpha<span class="op">=</span><span class="fl">0.25</span>, lw<span class="op">=</span><span class="dv">0</span>, label<span class="op">=</span><span class="st">"ensemble mean ±2σ$_</span><span class="sc">{tot}</span><span class="st">$"</span>)</span>
+<span id="cb17-150"><a href="#cb17-150" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"day"</span>, ylabel<span class="op">=</span><span class="st">"δv/v"</span>)</span>
+<span id="cb17-151"><a href="#cb17-151" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">7</span>, frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">2</span>, loc<span class="op">=</span><span class="st">"lower left"</span>)</span>
+<span id="cb17-152"><a href="#cb17-152" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb17-153"><a href="#cb17-153" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-154"><a href="#cb17-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-155"><a href="#cb17-155" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4. Temporal correlation and the common-mode reference</span></span>
+<span id="cb17-156"><a href="#cb17-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-157"><a href="#cb17-157" aria-hidden="true" tabindex="-1"></a>The errors above are **not independent in time**. Overlapping stacks share</span>
+<span id="cb17-158"><a href="#cb17-158" aria-hidden="true" tabindex="-1"></a>waveform data, so neighbouring epochs are correlated; and any *single shared</span>
+<span id="cb17-159"><a href="#cb17-159" aria-hidden="true" tabindex="-1"></a>reference* injects an error that is identical for every epoch — a fully</span>
+<span id="cb17-160"><a href="#cb17-160" aria-hidden="true" tabindex="-1"></a>correlated **common-mode** term. The honest measurement covariance is</span>
+<span id="cb17-161"><a href="#cb17-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-162"><a href="#cb17-162" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb17-163"><a href="#cb17-163" aria-hidden="true" tabindex="-1"></a>C_d = D\,R\,D \;+\; \sigma_{\rm ref}^2\,\mathbf{1}\mathbf{1}^\top,</span>
+<span id="cb17-164"><a href="#cb17-164" aria-hidden="true" tabindex="-1"></a>\qquad D=\operatorname{diag}(\sigma_{\rm tot}),\;\;</span>
+<span id="cb17-165"><a href="#cb17-165" aria-hidden="true" tabindex="-1"></a>R_{ij}=e^{-|t_i-t_j|/L},</span>
+<span id="cb17-166"><a href="#cb17-166" aria-hidden="true" tabindex="-1"></a>$$ {#eq-cd}</span>
+<span id="cb17-167"><a href="#cb17-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-168"><a href="#cb17-168" aria-hidden="true" tabindex="-1"></a>built by <span class="in">`temporal_error_covariance`</span>. The off-diagonal structure matters</span>
+<span id="cb17-169"><a href="#cb17-169" aria-hidden="true" tabindex="-1"></a>enormously: it collapses the *effective* number of independent measurements.</span>
+<span id="cb17-170"><a href="#cb17-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-173"><a href="#cb17-173" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb17-174"><a href="#cb17-174" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-cd</span></span>
+<span id="cb17-175"><a href="#cb17-175" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Left: the structured measurement covariance C_d — a banded temporal correlation (overlapping stacks, length L=14 d) plus a uniform common-mode floor from the shared reference. Right: the effective sample size for estimating a common level. The diagonal assumption returns the full count; the real correlation collapses it by more than an order of magnitude — and the collapse is dominated by the common-mode reference term, which (unlike random noise) does not average down. Reference choice, not sample count, sets the information."</span></span>
+<span id="cb17-176"><a href="#cb17-176" aria-hidden="true" tabindex="-1"></a>Cd <span class="op">=</span> temporal_error_covariance(ens.total_std, t_days, corr_length_days<span class="op">=</span><span class="fl">14.0</span>,</span>
+<span id="cb17-177"><a href="#cb17-177" aria-hidden="true" tabindex="-1"></a>                               common_mode_sigma<span class="op">=</span><span class="fl">1.5e-4</span>)</span>
+<span id="cb17-178"><a href="#cb17-178" aria-hidden="true" tabindex="-1"></a>Cd_diag <span class="op">=</span> np.diag(np.diag(Cd))</span>
+<span id="cb17-179"><a href="#cb17-179" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.4</span>),</span>
+<span id="cb17-180"><a href="#cb17-180" aria-hidden="true" tabindex="-1"></a>                       gridspec_kw<span class="op">=</span>{<span class="st">"width_ratios"</span>: [<span class="fl">1.2</span>, <span class="dv">1</span>]})</span>
+<span id="cb17-181"><a href="#cb17-181" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax[<span class="dv">0</span>].imshow(Cd, cmap<span class="op">=</span><span class="st">"PuRd"</span>, origin<span class="op">=</span><span class="st">"lower"</span>)</span>
+<span id="cb17-182"><a href="#cb17-182" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(title<span class="op">=</span><span class="st">"$C_d$ (measurement covariance)"</span>, xlabel<span class="op">=</span><span class="st">"epoch"</span>, ylabel<span class="op">=</span><span class="st">"epoch"</span>)</span>
+<span id="cb17-183"><a href="#cb17-183" aria-hidden="true" tabindex="-1"></a>fig.colorbar(im, ax<span class="op">=</span>ax[<span class="dv">0</span>], fraction<span class="op">=</span><span class="fl">0.046</span>)</span>
+<span id="cb17-184"><a href="#cb17-184" aria-hidden="true" tabindex="-1"></a>neff_corr <span class="op">=</span> effective_sample_size(Cd)</span>
+<span id="cb17-185"><a href="#cb17-185" aria-hidden="true" tabindex="-1"></a>neff_diag <span class="op">=</span> effective_sample_size(Cd_diag)</span>
+<span id="cb17-186"><a href="#cb17-186" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar([<span class="st">"diagonal</span><span class="ch">\n</span><span class="st">(assumed)"</span>, <span class="st">"correlated</span><span class="ch">\n</span><span class="st">$C_d$"</span>], [neff_diag, neff_corr],</span>
+<span id="cb17-187"><a href="#cb17-187" aria-hidden="true" tabindex="-1"></a>          color<span class="op">=</span>[C[<span class="st">"fit"</span>], C[<span class="st">"thermo"</span>]])</span>
+<span id="cb17-188"><a href="#cb17-188" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(ylabel<span class="op">=</span><span class="st">"effective sample size $N_</span><span class="sc">{eff}</span><span class="st">$"</span>,</span>
+<span id="cb17-189"><a href="#cb17-189" aria-hidden="true" tabindex="-1"></a>          title<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss"> epochs → </span><span class="sc">{</span>neff_corr<span class="sc">:.0f}</span><span class="ss"> independent"</span>)</span>
+<span id="cb17-190"><a href="#cb17-190" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, v <span class="kw">in</span> <span class="bu">enumerate</span>([neff_diag, neff_corr]):</span>
+<span id="cb17-191"><a href="#cb17-191" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">1</span>].text(i, v, <span class="ss">f"</span><span class="sc">{</span>v<span class="sc">:.0f}</span><span class="ss">"</span>, ha<span class="op">=</span><span class="st">"center"</span>, va<span class="op">=</span><span class="st">"bottom"</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb17-192"><a href="#cb17-192" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb17-193"><a href="#cb17-193" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-194"><a href="#cb17-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-195"><a href="#cb17-195" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5. Reference choice, and the Brenguier (2014) all-to-all cure</span></span>
+<span id="cb17-196"><a href="#cb17-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-197"><a href="#cb17-197" aria-hidden="true" tabindex="-1"></a>The most consequential — and least examined — fork is the **reference**.</span>
+<span id="cb17-198"><a href="#cb17-198" aria-hidden="true" tabindex="-1"></a>Referencing every epoch to one stack makes the reference's own noise a</span>
+<span id="cb17-199"><a href="#cb17-199" aria-hidden="true" tabindex="-1"></a>common-mode error and ties the whole series to an arbitrary datum. @Brenguier2014</span>
+<span id="cb17-200"><a href="#cb17-200" aria-hidden="true" tabindex="-1"></a>showed a way out: treat *every* window as a reference, measure the relative</span>
+<span id="cb17-201"><a href="#cb17-201" aria-hidden="true" tabindex="-1"></a>velocity change between **all pairs** of epochs, and invert the</span>
+<span id="cb17-202"><a href="#cb17-202" aria-hidden="true" tabindex="-1"></a>double-difference system</span>
+<span id="cb17-203"><a href="#cb17-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-204"><a href="#cb17-204" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb17-205"><a href="#cb17-205" aria-hidden="true" tabindex="-1"></a>\varepsilon_{ij} = m_i - m_j + \eta_{ij},</span>
+<span id="cb17-206"><a href="#cb17-206" aria-hidden="true" tabindex="-1"></a>\qquad \eta_{ij}\sim\mathcal N(0,\sigma_{ij}^2),</span>
+<span id="cb17-207"><a href="#cb17-207" aria-hidden="true" tabindex="-1"></a>$$ {#eq-dd}</span>
+<span id="cb17-208"><a href="#cb17-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-209"><a href="#cb17-209" aria-hidden="true" tabindex="-1"></a>for a global, **reference-free** $m=\delta v/v(t)$ (<span class="in">`global_reference_inversion`</span>).</span>
+<span id="cb17-210"><a href="#cb17-210" aria-hidden="true" tabindex="-1"></a>Its model covariance $(G^\top C_d^{-1} G)^{+}$ is temporally correlated *by</span>
+<span id="cb17-211"><a href="#cb17-211" aria-hidden="true" tabindex="-1"></a>construction* — the principled $C_d$ the reference choice implies.</span>
+<span id="cb17-212"><a href="#cb17-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-215"><a href="#cb17-215" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb17-216"><a href="#cb17-216" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: brenguier</span></span>
+<span id="cb17-217"><a href="#cb17-217" aria-hidden="true" tabindex="-1"></a>m_true <span class="op">=</span> truth <span class="op">-</span> truth.mean()          <span class="co"># the inversion resolves dv/v up to a datum</span></span>
+<span id="cb17-218"><a href="#cb17-218" aria-hidden="true" tabindex="-1"></a><span class="co"># (a) single fixed reference at epoch 0: every epoch measured against one stack</span></span>
+<span id="cb17-219"><a href="#cb17-219" aria-hidden="true" tabindex="-1"></a>sig_ref <span class="op">=</span> <span class="bu">float</span>(weaver_stretching_error(<span class="fl">0.95</span>, <span class="fl">0.7</span>, <span class="dv">5</span>, <span class="dv">30</span>))</span>
+<span id="cb17-220"><a href="#cb17-220" aria-hidden="true" tabindex="-1"></a>rel0 <span class="op">=</span> (m_true <span class="op">-</span> m_true[<span class="dv">0</span>]) <span class="op">+</span> sig_ref<span class="op">*</span>rng.standard_normal(n)</span>
+<span id="cb17-221"><a href="#cb17-221" aria-hidden="true" tabindex="-1"></a>dvv_single, cov_single <span class="op">=</span> single_reference_dvv(rel0, np.full(n, sig_ref), <span class="dv">0</span>)</span>
+<span id="cb17-222"><a href="#cb17-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-223"><a href="#cb17-223" aria-hidden="true" tabindex="-1"></a><span class="co"># (b) all-to-all: relative measurement between every pair within a 30-epoch span</span></span>
+<span id="cb17-224"><a href="#cb17-224" aria-hidden="true" tabindex="-1"></a>ii, jj, dd, ss <span class="op">=</span> [], [], [], []</span>
+<span id="cb17-225"><a href="#cb17-225" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n):</span>
+<span id="cb17-226"><a href="#cb17-226" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i<span class="op">+</span><span class="dv">1</span>, <span class="bu">min</span>(i<span class="op">+</span><span class="dv">30</span>, n)):</span>
+<span id="cb17-227"><a href="#cb17-227" aria-hidden="true" tabindex="-1"></a>        cc_ij <span class="op">=</span> <span class="fl">0.97</span> <span class="op">-</span> <span class="fl">0.0025</span><span class="op">*</span>(j<span class="op">-</span>i)            <span class="co"># coherence decays with separation</span></span>
+<span id="cb17-228"><a href="#cb17-228" aria-hidden="true" tabindex="-1"></a>        sij <span class="op">=</span> <span class="bu">float</span>(weaver_stretching_error(np.clip(cc_ij,<span class="fl">0.6</span>,<span class="fl">0.999</span>), <span class="fl">0.7</span>, <span class="dv">5</span>, <span class="dv">30</span>))</span>
+<span id="cb17-229"><a href="#cb17-229" aria-hidden="true" tabindex="-1"></a>        ii.append(i)<span class="op">;</span> jj.append(j)</span>
+<span id="cb17-230"><a href="#cb17-230" aria-hidden="true" tabindex="-1"></a>        dd.append(m_true[i]<span class="op">-</span>m_true[j] <span class="op">+</span> sij<span class="op">*</span>rng.standard_normal())<span class="op">;</span> ss.append(sij)</span>
+<span id="cb17-231"><a href="#cb17-231" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> global_reference_inversion(np.array(ii), np.array(jj),</span>
+<span id="cb17-232"><a href="#cb17-232" aria-hidden="true" tabindex="-1"></a>                                 np.array(dd), np.array(ss), n)</span>
+<span id="cb17-233"><a href="#cb17-233" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"all-to-all used </span><span class="sc">{</span>sol<span class="sc">.</span>n_pairs<span class="sc">}</span><span class="ss"> pairs, weighted residual RMS </span><span class="sc">{</span>sol<span class="sc">.</span>residual_rms<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb17-234"><a href="#cb17-234" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"single-reference mean σ : </span><span class="sc">{</span>np<span class="sc">.</span>sqrt(np.diag(cov_single))<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
+<span id="cb17-235"><a href="#cb17-235" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"all-to-all mean σ       : </span><span class="sc">{</span>sol<span class="sc">.</span>sigma<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
+<span id="cb17-236"><a href="#cb17-236" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-237"><a href="#cb17-237" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-240"><a href="#cb17-240" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb17-241"><a href="#cb17-241" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-brenguier</span></span>
+<span id="cb17-242"><a href="#cb17-242" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Reference choice changes both the estimate and its error. The single-reference series (blue) is pinned to epoch 0 and carries that epoch's noise as a common-mode band on everything. The Brenguier all-to-all solution (purple) is reference-free, tracks the truth, and is tighter because every pair constrains it — at the cost of a (correctly) temporally-correlated covariance."</span></span>
+<span id="cb17-243"><a href="#cb17-243" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.4</span>))</span>
+<span id="cb17-244"><a href="#cb17-244" aria-hidden="true" tabindex="-1"></a>ax.plot(t_days, m_true, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.5</span>, label<span class="op">=</span><span class="st">"truth (datum-removed)"</span>, zorder<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb17-245"><a href="#cb17-245" aria-hidden="true" tabindex="-1"></a>ax.fill_between(t_days, dvv_single<span class="op">-</span><span class="dv">2</span><span class="op">*</span>np.sqrt(np.diag(cov_single)),</span>
+<span id="cb17-246"><a href="#cb17-246" aria-hidden="true" tabindex="-1"></a>                dvv_single<span class="op">+</span><span class="dv">2</span><span class="op">*</span>np.sqrt(np.diag(cov_single)),</span>
+<span id="cb17-247"><a href="#cb17-247" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span>C[<span class="st">"hydro"</span>], alpha<span class="op">=</span><span class="fl">0.2</span>, lw<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb17-248"><a href="#cb17-248" aria-hidden="true" tabindex="-1"></a>ax.plot(t_days, dvv_single, color<span class="op">=</span>C[<span class="st">"hydro"</span>], lw<span class="op">=</span><span class="fl">0.8</span>, label<span class="op">=</span><span class="st">"single reference (epoch 0)"</span>)</span>
+<span id="cb17-249"><a href="#cb17-249" aria-hidden="true" tabindex="-1"></a>ax.fill_between(t_days, sol.dvv<span class="op">-</span><span class="dv">2</span><span class="op">*</span>sol.sigma, sol.dvv<span class="op">+</span><span class="dv">2</span><span class="op">*</span>sol.sigma,</span>
+<span id="cb17-250"><a href="#cb17-250" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span>C[<span class="st">"band"</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, lw<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb17-251"><a href="#cb17-251" aria-hidden="true" tabindex="-1"></a>ax.plot(t_days, sol.dvv, color<span class="op">=</span>C[<span class="st">"band"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"Brenguier all-to-all"</span>)</span>
+<span id="cb17-252"><a href="#cb17-252" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"day"</span>, ylabel<span class="op">=</span><span class="st">"δv/v (datum-removed)"</span>)</span>
+<span id="cb17-253"><a href="#cb17-253" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>, frameon<span class="op">=</span><span class="va">False</span>, loc<span class="op">=</span><span class="st">"upper right"</span>)</span>
+<span id="cb17-254"><a href="#cb17-254" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb17-255"><a href="#cb17-255" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-256"><a href="#cb17-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-257"><a href="#cb17-257" aria-hidden="true" tabindex="-1"></a><span class="fu">## 6. Closing the loop: $C_d$ is what the inversion actually needs</span></span>
+<span id="cb17-258"><a href="#cb17-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-259"><a href="#cb17-259" aria-hidden="true" tabindex="-1"></a>The <span class="co">[</span><span class="ot">inference page</span><span class="co">](theory-uq.qmd)</span> wrote the likelihood with</span>
+<span id="cb17-260"><a href="#cb17-260" aria-hidden="true" tabindex="-1"></a>$W=\operatorname{diag}(1/\sigma_t^2)$ — a **diagonal** $C_d$. That is the one</span>
+<span id="cb17-261"><a href="#cb17-261" aria-hidden="true" tabindex="-1"></a>assumption this page dismantles. Generalised least squares with the *full*</span>
+<span id="cb17-262"><a href="#cb17-262" aria-hidden="true" tabindex="-1"></a>measurement covariance,</span>
+<span id="cb17-263"><a href="#cb17-263" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-264"><a href="#cb17-264" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb17-265"><a href="#cb17-265" aria-hidden="true" tabindex="-1"></a>\hat C_m = \big(X^\top C_d^{-1} X\big)^{-1},</span>
+<span id="cb17-266"><a href="#cb17-266" aria-hidden="true" tabindex="-1"></a>\qquad</span>
+<span id="cb17-267"><a href="#cb17-267" aria-hidden="true" tabindex="-1"></a>\hat m = \hat C_m\, X^\top C_d^{-1}\, d,</span>
+<span id="cb17-268"><a href="#cb17-268" aria-hidden="true" tabindex="-1"></a>$$ {#eq-gls}</span>
+<span id="cb17-269"><a href="#cb17-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-270"><a href="#cb17-270" aria-hidden="true" tabindex="-1"></a>gives the honest posterior. Ignoring the off-diagonals does not bias the</span>
+<span id="cb17-271"><a href="#cb17-271" aria-hidden="true" tabindex="-1"></a>estimate much, but it **overstates the precision** — exactly the failure that</span>
+<span id="cb17-272"><a href="#cb17-272" aria-hidden="true" tabindex="-1"></a>makes results look more reproducible than they are. We fit the seasonal</span>
+<span id="cb17-273"><a href="#cb17-273" aria-hidden="true" tabindex="-1"></a>amplitude of our ensemble-mean series both ways:</span>
+<span id="cb17-274"><a href="#cb17-274" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-277"><a href="#cb17-277" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb17-278"><a href="#cb17-278" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: gls</span></span>
+<span id="cb17-279"><a href="#cb17-279" aria-hidden="true" tabindex="-1"></a><span class="co"># design: offset + annual sine/cosine + linear trend</span></span>
+<span id="cb17-280"><a href="#cb17-280" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> np.column_stack([np.ones(n), np.sin(<span class="dv">2</span><span class="op">*</span>np.pi<span class="op">*</span>t_days<span class="op">/</span><span class="dv">365</span>),</span>
+<span id="cb17-281"><a href="#cb17-281" aria-hidden="true" tabindex="-1"></a>                     np.cos(<span class="dv">2</span><span class="op">*</span>np.pi<span class="op">*</span>t_days<span class="op">/</span><span class="dv">365</span>), t_days<span class="op">/</span>n])</span>
+<span id="cb17-282"><a href="#cb17-282" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> ens.mean</span>
+<span id="cb17-283"><a href="#cb17-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-284"><a href="#cb17-284" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit(cov):</span>
+<span id="cb17-285"><a href="#cb17-285" aria-hidden="true" tabindex="-1"></a>    Cinv <span class="op">=</span> np.linalg.inv(cov)</span>
+<span id="cb17-286"><a href="#cb17-286" aria-hidden="true" tabindex="-1"></a>    Cm <span class="op">=</span> np.linalg.inv(X.T <span class="op">@</span> Cinv <span class="op">@</span> X)</span>
+<span id="cb17-287"><a href="#cb17-287" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> Cm <span class="op">@</span> X.T <span class="op">@</span> Cinv <span class="op">@</span> d</span>
+<span id="cb17-288"><a href="#cb17-288" aria-hidden="true" tabindex="-1"></a>    amp <span class="op">=</span> np.hypot(m[<span class="dv">1</span>], m[<span class="dv">2</span>])</span>
+<span id="cb17-289"><a href="#cb17-289" aria-hidden="true" tabindex="-1"></a>    <span class="co"># delta-method error on the seasonal amplitude</span></span>
+<span id="cb17-290"><a href="#cb17-290" aria-hidden="true" tabindex="-1"></a>    g <span class="op">=</span> np.array([<span class="dv">0</span>, m[<span class="dv">1</span>]<span class="op">/</span>amp, m[<span class="dv">2</span>]<span class="op">/</span>amp, <span class="dv">0</span>])</span>
+<span id="cb17-291"><a href="#cb17-291" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> amp, <span class="bu">float</span>(np.sqrt(g <span class="op">@</span> Cm <span class="op">@</span> g))</span>
+<span id="cb17-292"><a href="#cb17-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-293"><a href="#cb17-293" aria-hidden="true" tabindex="-1"></a>amp_d, se_d <span class="op">=</span> fit(Cd_diag)   <span class="co"># diagonal C_d (the usual assumption)</span></span>
+<span id="cb17-294"><a href="#cb17-294" aria-hidden="true" tabindex="-1"></a>amp_f, se_f <span class="op">=</span> fit(Cd)        <span class="co"># full structured C_d</span></span>
+<span id="cb17-295"><a href="#cb17-295" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"seasonal amplitude (diagonal C_d) : </span><span class="sc">{</span>amp_d<span class="sc">:.2e}</span><span class="ss"> ± </span><span class="sc">{</span>se_d<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
+<span id="cb17-296"><a href="#cb17-296" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"seasonal amplitude (full     C_d) : </span><span class="sc">{</span>amp_f<span class="sc">:.2e}</span><span class="ss"> ± </span><span class="sc">{</span>se_f<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
+<span id="cb17-297"><a href="#cb17-297" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"error-bar inflation from honesty  : </span><span class="sc">{</span>se_f<span class="op">/</span>se_d<span class="sc">:.1f}</span><span class="ss">×"</span>)</span>
+<span id="cb17-298"><a href="#cb17-298" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-299"><a href="#cb17-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-300"><a href="#cb17-300" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
+<span id="cb17-301"><a href="#cb17-301" aria-hidden="true" tabindex="-1"></a>Accounting for the measurement correlation inflates the seasonal-amplitude error</span>
+<span id="cb17-302"><a href="#cb17-302" aria-hidden="true" tabindex="-1"></a>bar several-fold. That factor is not pessimism — it is the difference between a</span>
+<span id="cb17-303"><a href="#cb17-303" aria-hidden="true" tabindex="-1"></a>reported uncertainty and a *true* one. This is why the measurement budget must</span>
+<span id="cb17-304"><a href="#cb17-304" aria-hidden="true" tabindex="-1"></a>be carried into the inference, not assumed away.</span>
+<span id="cb17-305"><a href="#cb17-305" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-306"><a href="#cb17-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-307"><a href="#cb17-307" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb17-308"><a href="#cb17-308" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where do the per-band $\sigma$ and the cross-band correlation come from?</span></span>
+<span id="cb17-309"><a href="#cb17-309" aria-hidden="true" tabindex="-1"></a>This page took the within-method floor and the processing spread as given. The</span>
+<span id="cb17-310"><a href="#cb17-310" aria-hidden="true" tabindex="-1"></a>companion **[Processing → depth page](theory-processing-depth.qmd)** shows how to</span>
+<span id="cb17-311"><a href="#cb17-311" aria-hidden="true" tabindex="-1"></a>*generate* them: sample the window-rule choices (fixed, envelope-pick-to-flatten,</span>
+<span id="cb17-312"><a href="#cb17-312" aria-hidden="true" tabindex="-1"></a>moving) from a prior, marginalise them into one error per frequency band, and</span>
+<span id="cb17-313"><a href="#cb17-313" aria-hidden="true" tabindex="-1"></a>propagate those errors through the Rayleigh sensitivity kernels into a</span>
+<span id="cb17-314"><a href="#cb17-314" aria-hidden="true" tabindex="-1"></a>depth-resolved $\delta V_S/V_S(z)$ with an honest uncertainty envelope.</span>
+<span id="cb17-315"><a href="#cb17-315" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-316"><a href="#cb17-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-317"><a href="#cb17-317" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. The full uncertainty budget</span></span>
+<span id="cb17-318"><a href="#cb17-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-321"><a href="#cb17-321" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb17-322"><a href="#cb17-322" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
+<span id="cb17-323"><a href="#cb17-323" aria-hidden="true" tabindex="-1"></a>    subgraph MEAS[<span class="ot">"</span><span class="st">Measurement UQ — this page</span><span class="ot">"</span>]</span>
+<span id="cb17-324"><a href="#cb17-324" aria-hidden="true" tabindex="-1"></a>      W[<span class="ot">"</span><span class="st">within-method floor&lt;br/&gt;Weaver/Clarke</span><span class="ot">"</span>]</span>
+<span id="cb17-325"><a href="#cb17-325" aria-hidden="true" tabindex="-1"></a>      M[<span class="ot">"</span><span class="st">methodological spread&lt;br/&gt;processing ensemble</span><span class="ot">"</span>]</span>
+<span id="cb17-326"><a href="#cb17-326" aria-hidden="true" tabindex="-1"></a>      T[<span class="ot">"</span><span class="st">temporal + common-mode&lt;br/&gt;correlation</span><span class="ot">"</span>]</span>
+<span id="cb17-327"><a href="#cb17-327" aria-hidden="true" tabindex="-1"></a>      R[<span class="ot">"</span><span class="st">reference scheme&lt;br/&gt;all-to-all inversion</span><span class="ot">"</span>]</span>
+<span id="cb17-328"><a href="#cb17-328" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb17-329"><a href="#cb17-329" aria-hidden="true" tabindex="-1"></a>    CD[<span class="ot">"</span><span class="st">structured C_d</span><span class="ot">"</span>]</span>
+<span id="cb17-330"><a href="#cb17-330" aria-hidden="true" tabindex="-1"></a>    subgraph INFER[<span class="ot">"</span><span class="st">Inference UQ — theory page</span><span class="ot">"</span>]</span>
+<span id="cb17-331"><a href="#cb17-331" aria-hidden="true" tabindex="-1"></a>      L[<span class="ot">"</span><span class="st">GLS likelihood&lt;br/&gt;p(d | θ)</span><span class="ot">"</span>]</span>
+<span id="cb17-332"><a href="#cb17-332" aria-hidden="true" tabindex="-1"></a>      P[<span class="ot">"</span><span class="st">posterior p(θ | d)</span><span class="ot">"</span>]</span>
+<span id="cb17-333"><a href="#cb17-333" aria-hidden="true" tabindex="-1"></a>      S[<span class="ot">"</span><span class="st">stress at depth&lt;br/&gt;+ interval</span><span class="ot">"</span>]</span>
+<span id="cb17-334"><a href="#cb17-334" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb17-335"><a href="#cb17-335" aria-hidden="true" tabindex="-1"></a>    W --&gt; CD</span>
+<span id="cb17-336"><a href="#cb17-336" aria-hidden="true" tabindex="-1"></a>    M --&gt; CD</span>
+<span id="cb17-337"><a href="#cb17-337" aria-hidden="true" tabindex="-1"></a>    T --&gt; CD</span>
+<span id="cb17-338"><a href="#cb17-338" aria-hidden="true" tabindex="-1"></a>    R --&gt; CD</span>
+<span id="cb17-339"><a href="#cb17-339" aria-hidden="true" tabindex="-1"></a>    CD --&gt; L --&gt; P --&gt; S</span>
+<span id="cb17-340"><a href="#cb17-340" aria-hidden="true" tabindex="-1"></a>    style CD fill:<span class="co">#fff3e0,stroke:#c77700</span></span>
+<span id="cb17-341"><a href="#cb17-341" aria-hidden="true" tabindex="-1"></a>    style S fill:<span class="co">#e8f5e9,stroke:#2e7d32</span></span>
+<span id="cb17-342"><a href="#cb17-342" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-343"><a href="#cb17-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-344"><a href="#cb17-344" aria-hidden="true" tabindex="-1"></a>Measurement uncertainty produces the covariance $C_d$; inference uncertainty</span>
+<span id="cb17-345"><a href="#cb17-345" aria-hidden="true" tabindex="-1"></a>consumes it. Reported the old way — one method, one reference, a diagonal</span>
+<span id="cb17-346"><a href="#cb17-346" aria-hidden="true" tabindex="-1"></a><span class="in">`dvv_err`</span> — a $\delta v/v$ study quietly discards both the methodological spread</span>
+<span id="cb17-347"><a href="#cb17-347" aria-hidden="true" tabindex="-1"></a>and the temporal correlation, and over-reports its own confidence. Carrying</span>
+<span id="cb17-348"><a href="#cb17-348" aria-hidden="true" tabindex="-1"></a>$C_d$ through is what makes the stress posterior on the <span class="co">[</span><span class="ot">inference page</span><span class="co">](theory-uq.qmd)</span></span>
+<span id="cb17-349"><a href="#cb17-349" aria-hidden="true" tabindex="-1"></a>defensible.</span>
+<span id="cb17-350"><a href="#cb17-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-351"><a href="#cb17-351" aria-hidden="true" tabindex="-1"></a><span class="fu">## 8. The survey: how 103 studies report (or don't) their measurement error</span></span>
+<span id="cb17-352"><a href="#cb17-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-353"><a href="#cb17-353" aria-hidden="true" tabindex="-1"></a>Everything above is theory. Does the literature *carry* a measurement</span>
+<span id="cb17-354"><a href="#cb17-354" aria-hidden="true" tabindex="-1"></a>uncertainty at all? We loaded the survey of **103 ambient-noise $\delta v/v$</span>
+<span id="cb17-355"><a href="#cb17-355" aria-hidden="true" tabindex="-1"></a>monitoring studies** (the same table that appears in the companion paper's</span>
+<span id="cb17-356"><a href="#cb17-356" aria-hidden="true" tabindex="-1"></a>appendix) and asked, per study, what the <span class="in">`uncertainty_treatment`</span> column says.</span>
+<span id="cb17-357"><a href="#cb17-357" aria-hidden="true" tabindex="-1"></a>The headline: the choices this page warns about — estimator, band, coda window,</span>
+<span id="cb17-358"><a href="#cb17-358" aria-hidden="true" tabindex="-1"></a>reference scheme — are reported unevenly, and the *uncertainty definition* is the</span>
+<span id="cb17-359"><a href="#cb17-359" aria-hidden="true" tabindex="-1"></a>single most often missing item.</span>
+<span id="cb17-360"><a href="#cb17-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-363"><a href="#cb17-363" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb17-364"><a href="#cb17-364" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: survey-stats</span></span>
+<span id="cb17-365"><a href="#cb17-365" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb17-366"><a href="#cb17-366" aria-hidden="true" tabindex="-1"></a>surv <span class="op">=</span> pd.read_csv(<span class="st">"../literature/dvv_processing_parameters.csv"</span>).fillna(<span class="st">"n/r"</span>)</span>
+<span id="cb17-367"><a href="#cb17-367" aria-hidden="true" tabindex="-1"></a>surv <span class="op">=</span> surv.replace(<span class="st">""</span>, <span class="st">"n/r"</span>)</span>
+<span id="cb17-368"><a href="#cb17-368" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-369"><a href="#cb17-369" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> reports_uncertainty(s):</span>
+<span id="cb17-370"><a href="#cb17-370" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> <span class="bu">str</span>(s).strip().lower()</span>
+<span id="cb17-371"><a href="#cb17-371" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> s <span class="kw">not</span> <span class="kw">in</span> (<span class="st">"n/r"</span>, <span class="st">"n/a"</span>, <span class="st">"none"</span>, <span class="st">""</span>)</span>
+<span id="cb17-372"><a href="#cb17-372" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-373"><a href="#cb17-373" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="bu">len</span>(surv)</span>
+<span id="cb17-374"><a href="#cb17-374" aria-hidden="true" tabindex="-1"></a>n_unc <span class="op">=</span> surv[<span class="st">"uncertainty_treatment"</span>].<span class="bu">map</span>(reports_uncertainty).<span class="bu">sum</span>()</span>
+<span id="cb17-375"><a href="#cb17-375" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"studies surveyed                       : </span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb17-376"><a href="#cb17-376" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  report *some* uncertainty treatment  : </span><span class="sc">{</span>n_unc<span class="sc">}</span><span class="ss">  (</span><span class="sc">{</span><span class="dv">100</span><span class="op">*</span>n_unc<span class="op">/</span>n<span class="sc">:.0f}</span><span class="ss">%)"</span>)</span>
+<span id="cb17-377"><a href="#cb17-377" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  do NOT (uncertainty = n/r)           : </span><span class="sc">{</span>n<span class="op">-</span>n_unc<span class="sc">}</span><span class="ss">  (</span><span class="sc">{</span><span class="dv">100</span><span class="op">*</span>(n<span class="op">-</span>n_unc)<span class="op">/</span>n<span class="sc">:.0f}</span><span class="ss">%)"</span>)</span>
+<span id="cb17-378"><a href="#cb17-378" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb17-379"><a href="#cb17-379" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"estimator family used (dvv_method):"</span>)</span>
+<span id="cb17-380"><a href="#cb17-380" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> meth, c <span class="kw">in</span> surv[<span class="st">"dvv_method"</span>].value_counts().items():</span>
+<span id="cb17-381"><a href="#cb17-381" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>meth<span class="sc">:&lt;28s}</span><span class="ss"> </span><span class="sc">{</span>c<span class="sc">:3d}</span><span class="ss">"</span>)</span>
+<span id="cb17-382"><a href="#cb17-382" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-383"><a href="#cb17-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-384"><a href="#cb17-384" aria-hidden="true" tabindex="-1"></a>About a quarter of the studies state *no* explicit measurement uncertainty at</span>
+<span id="cb17-385"><a href="#cb17-385" aria-hidden="true" tabindex="-1"></a>all, and among the ~three-quarters that do, the definitions are mutually</span>
+<span id="cb17-386"><a href="#cb17-386" aria-hidden="true" tabindex="-1"></a>incomparable (a within-measurement Weaver/Clarke floor, a between-pair standard</span>
+<span id="cb17-387"><a href="#cb17-387" aria-hidden="true" tabindex="-1"></a>error, a standard deviation, a bootstrap, or simply "SNR-based") — exactly the</span>
+<span id="cb17-388"><a href="#cb17-388" aria-hidden="true" tabindex="-1"></a>$\sqrt{N}$-and-more ambiguity of §4–6, so even the studies that report an error</span>
+<span id="cb17-389"><a href="#cb17-389" aria-hidden="true" tabindex="-1"></a>bar cannot be compared without reading how it was defined. The full per-study table follows; the **uncertainty-treatment** column is</span>
+<span id="cb17-390"><a href="#cb17-390" aria-hidden="true" tabindex="-1"></a>the one to read against this page.</span>
+<span id="cb17-391"><a href="#cb17-391" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-394"><a href="#cb17-394" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb17-395"><a href="#cb17-395" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: survey-table</span></span>
+<span id="cb17-396"><a href="#cb17-396" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
+<span id="cb17-397"><a href="#cb17-397" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> html <span class="im">import</span> escape</span>
+<span id="cb17-398"><a href="#cb17-398" aria-hidden="true" tabindex="-1"></a>cols <span class="op">=</span> [(<span class="st">"authors_year"</span>, <span class="st">"Study"</span>), (<span class="st">"application"</span>, <span class="st">"Application"</span>),</span>
+<span id="cb17-399"><a href="#cb17-399" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"freq_band_hz"</span>, <span class="st">"Freq (Hz)"</span>), (<span class="st">"coda_window_s"</span>, <span class="st">"Coda (s)"</span>),</span>
+<span id="cb17-400"><a href="#cb17-400" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"dvv_method"</span>, <span class="st">"Method"</span>), (<span class="st">"stack_scheme"</span>, <span class="st">"Reference / stack"</span>),</span>
+<span id="cb17-401"><a href="#cb17-401" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"uncertainty_treatment"</span>, <span class="st">"Uncertainty treatment"</span>)]</span>
+<span id="cb17-402"><a href="#cb17-402" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
+<span id="cb17-403"><a href="#cb17-403" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _, r <span class="kw">in</span> surv.iterrows():</span>
+<span id="cb17-404"><a href="#cb17-404" aria-hidden="true" tabindex="-1"></a>    tds <span class="op">=</span> []</span>
+<span id="cb17-405"><a href="#cb17-405" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, _ <span class="kw">in</span> cols:</span>
+<span id="cb17-406"><a href="#cb17-406" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> <span class="bu">str</span>(r[key])</span>
+<span id="cb17-407"><a href="#cb17-407" aria-hidden="true" tabindex="-1"></a>        cls <span class="op">=</span> <span class="st">' class="nr"'</span> <span class="cf">if</span> v.strip().lower() <span class="kw">in</span> (<span class="st">"n/r"</span>, <span class="st">"n/a"</span>) <span class="cf">else</span> <span class="st">""</span></span>
+<span id="cb17-408"><a href="#cb17-408" aria-hidden="true" tabindex="-1"></a>        tds.append(<span class="ss">f"&lt;td</span><span class="sc">{</span>cls<span class="sc">}</span><span class="ss">&gt;</span><span class="sc">{</span>escape(v)<span class="sc">}</span><span class="ss">&lt;/td&gt;"</span>)</span>
+<span id="cb17-409"><a href="#cb17-409" aria-hidden="true" tabindex="-1"></a>    rows.append(<span class="st">"&lt;tr&gt;"</span> <span class="op">+</span> <span class="st">""</span>.join(tds) <span class="op">+</span> <span class="st">"&lt;/tr&gt;"</span>)</span>
+<span id="cb17-410"><a href="#cb17-410" aria-hidden="true" tabindex="-1"></a>head <span class="op">=</span> <span class="st">""</span>.join(<span class="ss">f"&lt;th&gt;</span><span class="sc">{</span>escape(lbl)<span class="sc">}</span><span class="ss">&lt;/th&gt;"</span> <span class="cf">for</span> _, lbl <span class="kw">in</span> cols)</span>
+<span id="cb17-411"><a href="#cb17-411" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'&lt;div class="survey-scroll"&gt;'</span>)</span>
+<span id="cb17-412"><a href="#cb17-412" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"&lt;table&gt;&lt;thead&gt;&lt;tr&gt;</span><span class="sc">{</span>head<span class="sc">}</span><span class="ss">&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;"</span>)</span>
+<span id="cb17-413"><a href="#cb17-413" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(rows))</span>
+<span id="cb17-414"><a href="#cb17-414" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;"</span>)</span>
+<span id="cb17-415"><a href="#cb17-415" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-416"><a href="#cb17-416" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-417"><a href="#cb17-417" aria-hidden="true" tabindex="-1"></a>: Processing choices of the 103 surveyed $\delta v/v$ studies (scroll within the</span>
+<span id="cb17-418"><a href="#cb17-418" aria-hidden="true" tabindex="-1"></a>box). <span class="in">`n/r`</span> (red) = not reported in the source. Sorted as in the survey CSV;</span>
+<span id="cb17-419"><a href="#cb17-419" aria-hidden="true" tabindex="-1"></a>full machine-readable version and DOIs live in the repository's <span class="in">`literature/`</span></span>
+<span id="cb17-420"><a href="#cb17-420" aria-hidden="true" tabindex="-1"></a>folder and on the <span class="co">[</span><span class="ot">references page</span><span class="co">](survey-references.qmd)</span>.</span>
+<span id="cb17-421"><a href="#cb17-421" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-422"><a href="#cb17-422" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb17-423"><a href="#cb17-423" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-424"><a href="#cb17-424" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
+<span id="cb17-425"><a href="#cb17-425" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where this lives in the code</span></span>
+<span id="cb17-426"><a href="#cb17-426" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-weaver → <span class="in">`codameter.uq_measurement.weaver_stretching_error`</span></span>
+<span id="cb17-427"><a href="#cb17-427" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>§3 ensemble → <span class="in">`processing_ensemble`</span> / <span class="in">`EnsembleResult`</span></span>
+<span id="cb17-428"><a href="#cb17-428" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-cd → <span class="in">`temporal_error_covariance`</span>, <span class="in">`effective_sample_size`</span></span>
+<span id="cb17-429"><a href="#cb17-429" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-dd → <span class="in">`global_reference_inversion`</span>, <span class="in">`single_reference_dvv`</span></span>
+<span id="cb17-430"><a href="#cb17-430" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-gls → consumed by <span class="in">`codameter.inverse.linear_fit`</span> (supply <span class="in">`C_d`</span> for the weights)</span>
+<span id="cb17-431"><a href="#cb17-431" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-432"><a href="#cb17-432" aria-hidden="true" tabindex="-1"></a>Complements the coda-window *design* scorer in</span>
+<span id="cb17-433"><a href="#cb17-433" aria-hidden="true" tabindex="-1"></a><span class="in">`codameter.uq-measurement`</span> (which quantity to measure) — this module is the</span>
+<span id="cb17-434"><a href="#cb17-434" aria-hidden="true" tabindex="-1"></a>*measurement error of* that quantity.</span>
+<span id="cb17-435"><a href="#cb17-435" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-436"><a href="#cb17-436" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-437"><a href="#cb17-437" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
+<span id="cb17-438"><a href="#cb17-438" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-439"><a href="#cb17-439" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb17-440"><a href="#cb17-440" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

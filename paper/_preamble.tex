@@ -1,0 +1,22 @@
+% Extra LaTeX loaded into the Quarto-rendered manuscript (paper/manuscript.qmd).
+% Quarto already provides geometry, graphicx, amsmath, hyperref, xcolor, longtable
+% and booktabs; here we add only what the manuscript needs on top of that.
+\usepackage{siunitx}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{booktabs}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+% Let floats pack densely so the in-text tables land near their reference and do
+% not collide with the bibliography; the big survey table is a longtable (flows).
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.72}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+% Figures live in the survey's figure directory.
+\graphicspath{{../literature/figs/}{figs/}}
+
+\providecommand{\dvv}{\ensuremath{\delta v/v}}

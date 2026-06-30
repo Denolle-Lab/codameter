@@ -33,3 +33,33 @@
 
 /* Make equation blocks breathe */
 .math.display { margin: 1.1rem 0; }
+
+/* Scrollable survey table (theory-measurement-uq page) */
+.survey-scroll {
+  max-height: 560px;
+  overflow: auto;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  margin: 1rem 0;
+}
+.survey-scroll table {
+  font-size: 0.74rem;
+  border-collapse: collapse;
+  width: 100%;
+}
+.survey-scroll th {
+  position: sticky;
+  top: 0;
+  background: #5e35b1;
+  color: #fff;
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  z-index: 1;
+}
+.survey-scroll td {
+  padding: 0.3rem 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  vertical-align: top;
+}
+.survey-scroll tr:nth-child(even) td { background: rgba(94, 53, 177, 0.04); }
+.survey-scroll td.nr { color: #b00020; font-style: italic; }
