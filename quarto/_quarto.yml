@@ -27,14 +27,16 @@ website:
         file: index.qmd
       - text: "Theory"
         menu:
-          - text: "Inference UQ · Bayesian stress inversion"
-            file: theory-uq.qmd
-          - text: "Measurement UQ · error in δv/v"
+          - text: "1 · Measurement · error in δv/v"
             file: theory-measurement-uq.qmd
-          - text: "Bayesian measurement · marginalise the choice"
+          - text: "1 · Measurement · marginalise the choice"
             file: theory-bayesian-measurement.qmd
-          - text: "Processing → depth · sampling & propagation"
+          - text: "2 · Depth · kernels → δVs/Vs & δρ/ρ"
             file: theory-processing-depth.qmd
+          - text: "3 · Stress & attribution"
+            file: uncertainty-3-stress.qmd
+          - text: "Companion · inference UQ (stress inversion)"
+            file: theory-uq.qmd
       - text: "Tutorial"
         menu:
           - text: "1 · Data & site readiness"
@@ -70,16 +72,18 @@ website:
       - section: "Overview"
         contents:
           - index.qmd
-      - section: "Theoretical contributions"
+      - section: "The uncertainty arc"
         contents:
-          - text: "Inference UQ (stress from δv/v)"
-            file: theory-uq.qmd
-          - text: "Measurement UQ (error in δv/v)"
+          - text: "1 · Measurement — error in δv/v"
             file: theory-measurement-uq.qmd
-          - text: "Bayesian measurement (marginalise the choice)"
+          - text: "1 · Measurement — marginalise the choice"
             file: theory-bayesian-measurement.qmd
-          - text: "Processing → depth (sampling & propagation)"
+          - text: "2 · Depth — kernels → δVs/Vs & δρ/ρ"
             file: theory-processing-depth.qmd
+          - text: "3 · Stress & attribution"
+            file: uncertainty-3-stress.qmd
+          - text: "Companion — inference UQ (stress inversion)"
+            file: theory-uq.qmd
       - section: "Implementation tutorial"
         contents:
           - tutorial-01-data.qmd

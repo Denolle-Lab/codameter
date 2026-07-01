@@ -1,5 +1,5 @@
 ---
-title: "From processing choices to depth: sampling & propagating measurement error"
+title: "Sampling and propagating measurement error to depth"
 subtitle: "Window rules as Bayesian nuisance parameters, carried into a depth inversion"
 jupyter: codameter-pixi
 bibliography: references.bib
@@ -7,16 +7,38 @@ bibliography: references.bib
 
 ::: {.keyidea}
 [Thesis]{.k-title}
-We have the within-method **floor** and the **temporal correlation**
-([Measurement UQ](theory-measurement-uq.qmd)). This page closes the last two
-gaps the team raised: *(i)* how to **sample** the uncertainty in the processing
-*choices themselves* — window length, coda start, and especially the **rule**
-that defines the window (fixed, envelope-pick-to-flattening, moving) — by
-treating them as Bayesian **nuisance parameters** and marginalising them; and
-*(ii)* how to make **one error per frequency band** and propagate those errors
-through a sensitivity **kernel** into a **depth profile** with an honest
-uncertainty envelope.
+This is **step 2 of the uncertainty arc**. We have the within-method **floor**
+and the **temporal correlation** from
+[step 1 · measurement](theory-measurement-uq.qmd). This page closes the last two
+gaps: *(i)* how to **sample** the uncertainty in the processing *choices
+themselves* — window length, coda start, and especially the **rule** that defines
+the window (fixed, envelope-pick-to-flattening, moving) — by treating them as
+Bayesian **nuisance parameters** and marginalising them; and *(ii)* how to make
+**one error per frequency band** and propagate those errors through a sensitivity
+**kernel** into a **depth profile** of $\delta V_S/V_S(z)$ with an honest
+uncertainty envelope — the covariance [step 3 · stress](uncertainty-3-stress.qmd)
+consumes.
 :::
+
+### Where the field stands
+
+The field has converged on one physical rule for depth — *depth is set by the
+frequency band and the coda lapse time, not assumed* (Obermann et al. 2013, 2016)
+— and, increasingly, on multi-band measurement to resolve it (Takano et al. 2017;
+Feng et al. 2020; Mao et al. 2022). The step from per-band $\delta v/v$ to a depth
+profile is where reporting thins out: many studies read one band as one depth,
+only a few invert several bands against sensitivity kernels, and the measurement
+error is rarely propagated into the depth estimate. Because the depth *is* the
+claim — the change is in the aquifer, not the soil (Rubinstein & Beroza 2005) — a
+depth reached without its uncertainty cannot support it.
+
+| Choice | Best practice | Common deviation | Consequence |
+|---|---|---|---|
+| Depth assignment | Invert several bands against sensitivity kernels | Read one band as one depth | No depth resolution or error |
+| Band selection | Bands where the kernels resolve (no half-space leak, coherent coda) | Convenience band | Kernel leaks; unstable inversion |
+| Measurement error | Propagate the per-band $C_d$ into the profile | Plot a profile with no covariance | Overconfident depth attribution |
+| Saturation | Separate $\delta V_S/V_S$ and $\delta\rho/\rho$ with a petrophysical model | Assume a pure $\delta V_S/V_S$ change | Biased velocity change and stress in hydrological / cryospheric targets |
+| Velocity model | State the reference $V_P,V_S(z)$ and its uncertainty | Fixed, unstated model | Hidden systematic in the kernels and moduli |
 
 ```{python}
 #| label: setup
@@ -32,7 +54,7 @@ from codameter.kernels import make_fine_model
 rng = np.random.default_rng(11)
 ```
 
-## 1. The window *rule* is the deep choice — and it is frequency-dependent
+## 1. The window *rule* is the deep, frequency-dependent choice
 
 Different groups do not just pick different numbers; they pick different
 *algorithms* for where the coda window goes. Three dominate:
@@ -66,7 +88,7 @@ plt.title("envelope-flatten window length vs frequency")
 plt.legend(fontsize=8, frameon=False); plt.show()
 ```
 
-## 2. Sampling the choices: a Bayesian "multiverse"
+## 2. Sampling the choices as a Bayesian "multiverse"
 
 To be Bayesian about the choice, we put a prior $p(c)$ over the whole
 configuration $c=(\text{rule}, t_1, L, f, \dots)$ and **sample** it — a Monte
@@ -265,6 +287,33 @@ a depth profile whose uncertainty *finally* reflects what was actually unknown:
 the measurement noise, **and** the freedom in how the measurement was made. This
 is the depth-domain counterpart of the data covariance $C_d$ that the
 [inference page](theory-uq.qmd) consumes.
+
+## Partial saturation: $\delta V_S/V_S$ is not the whole story
+
+The inversion above assumes the change it recovers is a shear-velocity change
+alone. In partially saturated ground it is not. Filling or draining pore space
+changes both the shear modulus and the bulk density, so for the shear-dominated
+coda the observed change mixes the two,
+
+$$
+\frac{\delta v}{v} \;\approx\; \tfrac12\frac{\delta\mu}{\mu} \;-\; \tfrac12\frac{\delta\rho}{\rho},
+$$
+
+and velocity alone cannot separate them. A petrophysical model — Gassmann fluid
+substitution for the modulus and a porosity–saturation relation for the density
+(Gassmann 1951; Mavko et al. 2009) — is what breaks the degeneracy, at the price
+of its own prior uncertainty on porosity, fluid modulus, and the saturation path.
+Hydrological and cryospheric targets, where saturation swings are large
+(Clements & Denolle 2018; James et al. 2019), are exactly where ignoring the
+density term biases the inferred velocity change and, downstream, the stress.
+
+The planned extension carries $\delta\rho/\rho$ as a **second inverted field**
+with its own kernel and reports how much of the surface $\delta v/v$ each field
+explains, propagating the saturation and porosity prior into the split. This is
+tracked as open development — a `codameter` Gassmann / partial-saturation module
+and its synthetic demo (see the repository issues) — and it is the depth-step
+input the [stress page](uncertainty-3-stress.qmd) needs before effective stress
+can be trusted in unsaturated ground.
 
 ---
 

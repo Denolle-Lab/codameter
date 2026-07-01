@@ -35,25 +35,34 @@ just the function signatures.
 
 There are two distinct halves, and they are written in two different voices.
 
-### ① The theoretical contributions — *two faces of uncertainty*
+### ① The uncertainty arc in three steps
 
-Two self-contained pages lay out the **novel** pieces of this work — the parts
-nobody in the discipline has closed the loop on. They are written as theory, not
-tutorial:
+The theory pages lay out the **novel** contribution: a forward chain that carries
+uncertainty from the raw measurement to stress at depth. Each step consumes the
+previous step's covariance.
 
-- **[Inference UQ](theory-uq.qmd)** — a hierarchical Bayesian treatment of the
-  $\delta v/v \to$ stress inverse problem: how to carry measurement noise *and*
-  material-property priors through to a stress **posterior**.
-- **[Measurement UQ](theory-measurement-uq.qmd)** — the error in the
-  $\delta v/v$ *measurement itself*, conditioned on processing choices (method,
-  window, stacking, gating, and **reference** — including the Brenguier (2014)
-  all-to-all scheme). It produces the structured data covariance $C_d$ that the
-  inference page consumes.
+- **1 · Measurement** — the error in the $\delta v/v$ *measurement itself*,
+  conditioned on processing choices (method, window, stacking, gating, and the
+  **reference**, including the Brenguier (2014) all-to-all scheme). It produces
+  the structured data covariance $C_d$. See
+  [error in δv/v](theory-measurement-uq.qmd) and
+  [marginalise the choice](theory-bayesian-measurement.qmd).
+- **2 · Depth** — invert the per-band $C_d$ through sensitivity kernels for a
+  profile of shear-velocity change $\delta V_S/V_S(z)$ and, in partially
+  saturated ground, a density change $\delta\rho/\rho(z)$ that needs a
+  petrophysical model to separate. See
+  [kernels → δVs/Vs & δρ/ρ](theory-processing-depth.qmd).
+- **3 · Stress & attribution** — push the depth posterior through layered
+  petrophysical priors to effective stress and strain, and attribute the change
+  at depth to its forcing with uncertainty. See
+  [stress & attribution](uncertainty-3-stress.qmd); the companion
+  [inference UQ](theory-uq.qmd) page holds the Bayesian stress-inversion machinery.
 
-> 👉 Start with **[Inference UQ · Bayesian stress inversion](theory-uq.qmd)**,
-> then **[Measurement UQ · error in δv/v](theory-measurement-uq.qmd)**.
+> 👉 Read them in order: **[1 · Measurement](theory-measurement-uq.qmd)** →
+> **[2 · Depth](theory-processing-depth.qmd)** →
+> **[3 · Stress & attribution](uncertainty-3-stress.qmd)**.
 
-### ② The implementation tutorial — *the Codameter, step by step*
+### ② The implementation tutorial
 
 A dynamic, runnable walkthrough that follows the scientific arc from
 **completely decoupled** forcings — thermoelastic, hydrological, loading,
@@ -74,7 +83,7 @@ these pages is generated live from the package.
 
 ## The scientific arc in one figure
 
-The whole project is a journey along one axis: **how strongly are the stress
+The whole project runs along one axis: **how strongly are the stress
 sources coupled?** On the left, the forcings add linearly and a closed-form
 Gaussian posterior is exact. On the right, pore pressure, damage, and
 saturation feed back on each other, the posterior goes non-Gaussian, and we

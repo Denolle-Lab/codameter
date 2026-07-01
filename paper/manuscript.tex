@@ -177,7 +177,7 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \hypersetup{
-  pdftitle={Processing choices{,} not physics: the reproducibility cost of ad-hoc decisions in ambient-noise seismic velocity-change monitoring},
+  pdftitle={The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring},
   pdfauthor={M. A. Denolle; {[}co-authors TBD{]}},
   colorlinks=true,
   linkcolor={blue},
@@ -187,8 +187,8 @@
   pdfcreator={LaTeX via pandoc}}
 
 
-\title{Processing choices, not physics: the reproducibility cost of
-ad-hoc decisions in ambient-noise seismic velocity-change monitoring}
+\title{The reproducibility cost of ad-hoc processing choices in
+ambient-noise seismic velocity-change monitoring}
 \author{M. A. Denolle \and {[}co-authors TBD{]}}
 \date{2026-07-01}
 \begin{document}
@@ -222,7 +222,14 @@ downstream stress or depth inversion actually needs. We argue that these
 undocumented choices, not the physics, are the leading obstacle to
 intercomparing δv/v studies, and we release an open, executable
 framework (codameter) that makes every choice explicit and its effect
-reproducible.
+reproducible. The measurement covariance is the first link in a longer
+chain, so we close by setting out --- as a roadmap grounded in the
+monitoring literature --- how it propagates through frequency-dependent
+sensitivity kernels to a depth profile of shear-velocity change (and, in
+partially saturated ground, a density change that a petrophysical model
+must separate), and onward to effective stress, strain, and an
+uncertainty-aware attribution of the change at depth to the forcing that
+drives it.
 \end{abstract}
 
 
@@ -271,6 +278,23 @@ Appendix\textasciitilde{}\ref{app:survey} catalogues the processing
 choices of the 103 monitoring studies we surveyed
 (Table\textasciitilde{}\ref{tab:survey}); the breadth of that table is
 the empirical case that no convention is shared.
+
+The measurement is only the first step. A \dvv~series is a depth- and
+wavefield-integrated quantity: turning it into an Earth property means
+inverting frequency-dependent sensitivity kernels for a depth profile of
+shear-velocity change, and turning \emph{that} into stress means passing
+it through a petrophysical model. Each step consumes the previous step's
+covariance, so an honest error at the end depends on an honest \(C_d\)
+at the start. The first two-thirds of this paper quantify and model that
+measurement covariance
+(Sections\textasciitilde{}\ref{sec:results}--\ref{sec:bayes}). The final
+third then lays out, as a roadmap grounded in the monitoring literature
+rather than in new synthetics, how \(C_d\) propagates to a depth profile
+(Section\textasciitilde{}\ref{sec:depth}) and to effective stress,
+strain, and their attribution at depth
+(Section\textasciitilde{}\ref{sec:stress}) --- the inference the
+community ultimately wants, and the reason the measurement covariance is
+worth getting right.
 
 \section{A controlled synthetic framework}\label{sec:methods}
 
@@ -362,7 +386,23 @@ Clock / timing & causal vs acausal branch handling & A clock error fabricates
 
 rx\} \textbackslash end\{table\}
 
-\section{Results}\label{sec:results}
+\section{Measurement: how the choices move the velocity change and its
+error}\label{sec:results}
+
+The literature agrees on the ingredients of a good \dvv~measurement ---
+a stretching-family estimator for robustness at low SNR and large change
+\citep{Yuan2021, Mikesell2015}, a coherence-based error model
+\citep{Clarke2011, Weaver2011}, a long stable reference
+\citep{Wang2017}, and cross-checking against a second estimator
+\citep{Obermann2019} --- and yet no two studies report the same set, and
+the uncertainty convention is the least standardized of all
+(Appendix\textasciitilde{}\ref{app:survey}). The results below take each
+ingredient in turn and measure, against a known truth, how far a
+defensible deviation moves the recovered value \emph{and its stated
+error}. The object the exercise produces is a covariance, and everything
+downstream in the arc
+(Sections\textasciitilde{}\ref{sec:depth}--\ref{sec:stress}) consumes
+it.
 
 \subsection{Estimator family}\label{sec:methods-fig}
 
@@ -475,8 +515,8 @@ delaying a coseismic step (Fig.\textasciitilde{}\ref{fig:params}d).
   \label{fig:params}
 \end{figure}
 
-\subsection{\texorpdfstring{Choices that manufacture \dvv, and the
-multiverse}{Choices that manufacture , and the multiverse}}\label{sec:artifacts}
+\subsection{\texorpdfstring{Choices that manufacture
+\texorpdfstring{\dvv}{dv/v}}{Choices that manufacture }}\label{sec:artifacts}
 
 Some choices do not merely bias the result --- they fabricate signal. A
 station clock error delays the whole correlation by a lapse-independent
@@ -504,8 +544,7 @@ Section\textasciitilde{}\ref{sec:multiverse} by running the full
 synthetic dataset and ranking each by the bias and the error-bar change
 it induces.
 
-\section{The multiverse: best practice versus
-deviation}\label{sec:multiverse}
+\section{The multiverse of processing choices}\label{sec:multiverse}
 
 The figures so far each isolate one choice. We now ask the cumulative
 question directly. Starting from a single \textbf{best-practice
@@ -522,8 +561,8 @@ phase estimator that cycle-skips is catastrophic, a moving reference and
 a bare MWCS each inflate the error roughly an order of magnitude, an
 over-long stack and a late low-SNR window distort the co-eruptive drop,
 while the frequency band (which mostly sets precision here) and the
-gating are second-order. The Brenguier joint inversion is essentially as
-good as the fixed reference and preserves the trend.
+gating are second-order. The Brenguier joint inversion is nearly as good
+as the fixed reference and preserves the trend.
 
 \begin{figure}[htbp]
   \centering
@@ -564,6 +603,46 @@ processing choices.
   dominate; the sub-unity sum signals strong interactions.}
   \label{fig:multiverse}
 \end{figure}
+
+Table\textasciitilde{}\ref{tab:bp-measure} distils this into the
+measurement-step best practice and the documented deviation for each
+choice, with the consequence the synthetic makes concrete. The baseline
+and deviation menus are the ones our survey extracts from the literature
+(the cross-cutting rules of \citeauthor{Snieder2002}
+\citetext{\citeyear{Snieder2002}; \citealp{Clarke2011}; \citealp{Weaver2011}; \citealp{Brenguier2014}; \citealp{Wang2017}; \citealp{Obermann2019}})
+and that \texttt{codameter.deviations} runs.
+
+\begin{table}[htbp]
+\footnotesize
+\caption{Measurement step: best practice versus the common deviation, with the
+consequence for the recovered \dvv\ and its stated uncertainty. Rows are the axes
+swept in Fig.~\ref{fig:multiverse}; the baseline and deviation menus follow the
+literature survey (Appendix~\ref{app:survey}).}
+\label{tab:bp-measure}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.5cm} L L L@{}}
+\toprule
+\textbf{Choice} & \textbf{Best practice} & \textbf{Common deviation} &
+\textbf{Consequence} \\
+\midrule
+Estimator & Stretching family (TS/WTS/WCC), robust at low SNR and large \dvv &
+Bare MWCS / wrapped phase without 2-D unwrapping & Cycle-skips at large \dvv;
+error inflated $\sim\!10\times$ or catastrophic \\
+Frequency band & Band matched to the target depth & Off-target or single wide
+band & Mixes depths; here mostly sets precision \\
+Coda window & Coda well past the direct arrival, scaled with the band & Fixed
+late window reused across bands & Measures noise at high $f$; bias and inflated
+$\sigma$ \\
+Stack length & Short enough to resolve the transient ($\sim$10\,d) & Over-long
+stack ($\sim$45\,d) & Smears and delays a step; distorts the recovered drop \\
+Reference & Long fixed stack or joint inversion [@Brenguier2014] & Moving /
+trailing reference & Erases slow trends \\
+Coherence gating & Discard low-coherence epochs & No gating & Keeps corrupted
+epochs; changes the effective $N$ \\
+Uncertainty definition & State it: within-measurement / SE / SD & Left unstated &
+Factor $\sqrt{N}$ ambiguity in significance (Fig.~\ref{fig:uncertainty}) \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \section{A Bayesian measurement model and its data
 covariance}\label{sec:bayes}
@@ -625,6 +704,180 @@ averaged series, is what must be propagated.
   \label{fig:bayes}
 \end{figure}
 
+\section{Depth: propagating the measurement covariance through
+sensitivity kernels}\label{sec:depth}
+
+The rest of the paper is a framework, not new synthetics: it sets out
+how the covariance of Section\textasciitilde{}\ref{sec:bayes} propagates
+down the inference chain, and grounds each step in what the monitoring
+literature does and does not yet do. The executable stages are under
+development in the open codameter package
+(Section\textasciitilde{}\ref{sec:discussion}).
+
+The field has converged on one physical rule for depth --- \emph{depth
+is set by the frequency band and the coda lapse time, it is not assumed}
+\citep{Obermann2013, Obermann2016} --- and, increasingly, on multi-band
+measurement as the way to resolve it
+\citep{Takano2017, Feng2020, Mao2022}. The step from a set of per-band
+\dvv~series to a depth profile is where reporting thins out: many
+studies read a single band as a single depth, only a few invert several
+bands against surface-wave sensitivity kernels, and the propagation of
+the measurement error into the depth estimate is rarely shown. This
+matters because the depth is the claim --- the change is in the aquifer
+and not the soil, the softening is a shallow site response and not slip
+on the fault at depth \citep{Rubinstein2005} --- and a depth reached
+without its uncertainty cannot support it.
+
+A \dvv~measured in band \(b\) is not a point sample but a weighted
+integral over depth, \begin{equation}
+\Big(\tfrac{\delta v}{v}\Big)_b = \int_0^\infty K_b(z)\,\frac{\delta V_S}{V_S}(z)\,\mathrm{d}z \;+\; \varepsilon_b,
+\label{eq:kernel}
+\end{equation} where \(K_b(z)\) is the (Rayleigh-wave) depth-sensitivity
+kernel for band \(b\) and \(\varepsilon_b\) carries that band's
+measurement covariance from Section\textasciitilde{}\ref{sec:bayes}.
+Stacking bands gives a linear system
+\(\mathbf{d}=\mathbf{G}\,\mathbf{m}+\boldsymbol\varepsilon\) with
+\(\mathbf{G}_{bz}=K_b(z)\) and data covariance \(C_d\); the Bayesian
+solution under a smoothness prior returns a depth profile
+\(\delta V_S/V_S(z)\) together with its posterior covariance \(C_m(z)\)
+(implemented in \texttt{codameter.uq\_depth}). The bands must sit where
+the kernels resolve: too low and the kernel leaks into the half-space,
+too high and the coda is incoherent
+(Section\textasciitilde{}\ref{sec:params}). The width of \(C_m(z)\) ---
+not the profile alone --- is the deliverable, and it inherits the
+temporal correlation and common-mode structure of \(C_d\).
+
+One assumption is usually left implicit: that a \dvv~change is a
+shear-velocity change alone. In partially saturated ground it is not.
+Filling or draining pore space changes both the shear modulus and the
+bulk density, so for the shear-dominated coda the observed change mixes
+the two, \begin{equation}
+\frac{\delta v}{v} \;\approx\; \tfrac12\frac{\delta\mu}{\mu} \;-\; \tfrac12\frac{\delta\rho}{\rho},
+\label{eq:density}
+\end{equation} and velocity alone cannot separate them. A petrophysical
+model --- Gassmann fluid substitution for the modulus and a
+porosity--saturation relation for the density
+\citep{Gassmann1951, Mavko2009} --- is what breaks the degeneracy, at
+the price of its own prior uncertainty on porosity, fluid modulus, and
+the saturation path. Hydrological and cryospheric targets, where
+saturation swings are large \citep{Clements2018, James2019}, are exactly
+where ignoring the density term biases the inferred velocity change and,
+downstream, the stress. The framework carries \(\delta\rho/\rho\) as a
+second inverted field with its own kernel and reports how much of the
+surface \dvv~each explains; the executable version is a documented
+extension (Section\textasciitilde{}\ref{sec:discussion}).
+
+\begin{table}[htbp]
+\footnotesize
+\caption{Depth step: best practice versus the common deviation in going from
+per-band \dvv\ to a depth profile, and the consequence for the interpretation.}
+\label{tab:bp-depth}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm} L L L@{}}
+\toprule
+\textbf{Choice} & \textbf{Best practice} & \textbf{Common deviation} &
+\textbf{Consequence} \\
+\midrule
+Depth assignment & Invert several bands against sensitivity kernels &
+Read one band as one depth & No depth resolution and no depth error \\
+Band selection & Bands where the kernels resolve (no half-space leak, coherent
+coda) & Convenience band & Kernel leaks; unstable inversion \\
+Measurement error & Propagate the per-band $C_d$ into the profile & Plot a profile
+with no covariance & Overconfident depth attribution \\
+Saturation & Separate $\delta V_S/V_S$ and $\delta\rho/\rho$ with a petrophysical
+model in partly saturated ground & Assume a pure $\delta V_S/V_S$ change & Biased
+velocity change and stress in hydrological and cryospheric targets \\
+Velocity model & State the reference $V_P,V_S(z)$ and its uncertainty & Fixed,
+unstated model & Hidden systematic in the kernels and the moduli \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Stress: from velocity change to effective stress, strain, and
+attribution}\label{sec:stress}
+
+The reason to want \(\delta V_S/V_S(z)\) is almost never the velocity
+itself; it is the stress, strain, or pore-pressure change that drives it
+and --- increasingly --- \emph{which} forcing is responsible. Here the
+literature is more fragmented than converged. Volcano and fault studies
+often read the velocity change qualitatively (a pre-eruptive
+pressurization, a coseismic damage); hydrological studies fit an
+explicit poroelastic or thermoelastic model and separate the two by
+their seasonal phase lag \citep{Tsai2011, Clements2018, Wang2017}; and a
+growing set quantifies stress sensitivity through an acoustoelastic
+coefficient \citep{Brenguier2008, Nakata2011}. What is missing almost
+everywhere is the \emph{uncertainty} on that final number and an honest
+apportionment of it among the competing forcings. Because the material
+properties entering the conversion are poorly known, the stress
+uncertainty is dominated by \emph{epistemic} prior uncertainty rather
+than by the measurement --- so a stress value reported without it is the
+least trustworthy number in the chain, and the one most often quoted as
+a result.
+
+Effective stress follows from strain through the elastic moduli, and
+strain follows from the velocity change through the acoustoelastic
+(bridge) relation \(\beta(z)=-\mu'(z)\,\kappa(z)/2\mu(z)\) (Denolle, in
+prep.), with \(\mu(z)=\rho
+V_S^2\) and \(\kappa(z)=\rho\,(V_P^2-\tfrac43 V_S^2)\) read from a
+velocity model. Per depth, the volumetric strain is
+\(\varepsilon_{\rm vol}(z)=(\delta
+V_S/V_S)(z)/\beta(z)\) and the effective-stress change is
+\(\Delta\sigma'(z)=\kappa(z)\,\varepsilon_{\rm vol}(z)\); total stress
+adds a poroelastic term \(\alpha_B(z)\,\Delta p(z)\) and is carried as
+an optional extension, since effective stress is what \dvv~most directly
+senses. The coefficients \(\beta(z),\mu'(z)\) are layered and weakly
+constrained --- sometimes inferred from a tomographic \(V_P,V_S\) model
+--- so they enter as \emph{per-layer priors}, and the honest stress
+covariance is the Monte-Carlo pushforward of the depth posterior
+\(C_m(z)\) \emph{through} those priors. This is the step where the
+aleatoric measurement chain and the epistemic material priors merge;
+taking either alone understates the stress uncertainty.
+
+Beyond the state of stress, the community wants attribution: how much of
+the change at depth \(z\) is poroelastic, thermoelastic, load, damage,
+or tectonic, and with what confidence. The natural frame is the
+geophysical analogue of climate detection-and-attribution --- optimal
+fingerprinting scaled by the very measurement covariance \(C_d\) this
+paper builds. Each forcing \(k\) predicts a depth--time effective-stress
+fingerprint; a generalized-least-squares regression weighted by \(C_d\)
+gives its amplitude, a variance decomposition gives its share \(A_k(z)\)
+of the stress variability at each depth, and the cross-covariances say
+how ambiguous the attribution is when two forcings are collinear
+(thermoelastic and hydrologic are both seasonal). When forcings couple,
+the additive decomposition gives way to Sobol variance indices whose
+interaction term \emph{is} the coupling contribution. Sampling the joint
+posterior --- forcing amplitudes, material priors, and the measurement
+realization --- turns each share into a credible interval and,
+decomposed once more, says whether a fuzzy attribution is data-limited
+or model-limited, which is to say what to measure next.
+
+\begin{table}[htbp]
+\footnotesize
+\caption{Stress step: best practice versus the common deviation in converting a
+depth profile of velocity change to stress and attributing it, with the
+consequence for the reported result.}
+\label{tab:bp-stress}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm} L L L@{}}
+\toprule
+\textbf{Choice} & \textbf{Best practice} & \textbf{Common deviation} &
+\textbf{Consequence} \\
+\midrule
+Stress conversion & Acoustoelastic bridge with layered $\beta(z),\mu'(z)$ priors &
+Single scalar coefficient, no prior & Understated (epistemic) stress error \\
+Uncertainty budget & Merge the aleatoric depth covariance with the epistemic
+material priors & Report the measurement error only & Stress error too small by
+its dominant term \\
+Stress measure & Report effective stress (poroelastically clean); flag any
+total-stress assumptions & Conflate effective and total stress &
+Non-comparable, ambiguous stress \\
+Forcing separation & Physical diagnostic (seasonal phase lag, branch asymmetry,
+coupling test) & Attribute by eye & Mis-attribution when forcings are collinear \\
+Attribution uncertainty & Credible intervals plus a data- versus model-limited
+split & A single point attribution & No sense of confidence, nor of what to
+measure next \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 \section{Discussion}\label{sec:discussion}
 
 The experiments above share one message: for ambient-noise \dvv, the
@@ -633,13 +886,13 @@ frequently the \emph{processing choice}, not the data. This is
 uncomfortable but actionable. We suggest three responses.
 
 \textbf{Report the choices.} At minimum, a \dvv~study should state the
-estimator and its key parameters, the frequency band(s) and coda
-window(s) and how the window was set relative to the band, the reference
-scheme, the stacking, the cross-component and station-pair aggregation
-\emph{and weighting}, and --- critically --- the exact definition of the
-quoted uncertainty (within-measurement error, between-component/pair
-standard error, or standard deviation). Our results show that the last
-item alone can change a stated \(1\sigma\) by \(\sqrt{N}\).
+estimator and its parameters, the frequency band(s) and coda window(s)
+and how the window was set relative to the band, the reference scheme,
+the stacking, the cross-component and station-pair aggregation \emph{and
+weighting}, and --- critically --- the exact definition of the quoted
+uncertainty (within-measurement error, between-component/pair standard
+error, or standard deviation). Our results show that the last item alone
+can change a stated \(1\sigma\) by \(\sqrt{N}\).
 Table\textasciitilde{}\ref{tab:checklist} collects this into a minimal
 reporting checklist, and Appendix\textasciitilde{}\ref{app:survey} shows
 how unevenly these items are reported across the literature today.
@@ -695,6 +948,21 @@ record turns an undocumented choice into a versioned, inspectable one,
 and lets a reader re-run a study's pipeline on the truth-known synthetic
 to see its bias before trusting it on data.
 
+\textbf{Propagate the covariance, do not truncate it.} The measurement
+covariance is not the end of the analysis but its first input.
+Sections\textasciitilde{}\ref{sec:depth}
+and\textasciitilde{}\ref{sec:stress} set out the rest of the chain:
+invert the per-band \(C_d\) through sensitivity kernels for a depth
+profile and its covariance, separate the shear-velocity and density
+contributions where the ground is partially saturated, and push the
+depth posterior through layered petrophysical priors to effective
+stress, strain, and an uncertainty-aware attribution to the driving
+forcing. At each step the honest error bar depends on the one before it,
+which is why a defensible stress or attribution at depth begins with a
+defensible \(C_d\). Building and testing those propagation stages on
+truth-known synthetics is the natural continuation of this work, and is
+under way in the open codameter framework.
+
 \section{Conclusions}\label{sec:conclusions}
 
 Ambient-noise \dvv~monitoring rests on a chain of processing choices
@@ -706,7 +974,13 @@ enough to flip the significance of a result --- all without touching the
 data. The remedy is not a single mandated pipeline but transparency:
 report every choice, sample the ones the physics does not fix, carry the
 resulting measurement covariance into the inference, and release the
-pipeline as executable code. We offer codameter as one such record.
+pipeline as executable code. The same discipline extends down the
+inference chain: the measurement covariance is the input a depth
+inversion consumes, that depth profile the input a stress conversion
+consumes, and only a pipeline that carries the covariance to the end can
+attach an honest uncertainty --- and an honest attribution --- to a
+change at depth. We offer codameter as one such record, and as the
+framework in which the depth and stress stages are being built.
 
 \appendix
 

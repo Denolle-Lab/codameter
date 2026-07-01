@@ -86,8 +86,8 @@ div.csl-indent {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./theory-measurement-uq.html" rel="next">
-<link href="./index.html" rel="prev">
+<link href="./tutorial-01-data.html" rel="next">
+<link href="./uncertainty-3-stress.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -356,20 +356,24 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
-    <a class="dropdown-item" href="./theory-uq.html">
- <span class="dropdown-text">Inference UQ · Bayesian stress inversion</span></a>
-  </li>  
-        <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">Measurement UQ · error in δv/v</span></a>
+ <span class="dropdown-text">1 · Measurement · error in δv/v</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
- <span class="dropdown-text">Bayesian measurement · marginalise the choice</span></a>
+ <span class="dropdown-text">1 · Measurement · marginalise the choice</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">Processing → depth · sampling &amp; propagation</span></a>
+ <span class="dropdown-text">2 · Depth · kernels → δVs/Vs &amp; δρ/ρ</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-3-stress.html">
+ <span class="dropdown-text">3 · Stress &amp; attribution</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./theory-uq.html">
+ <span class="dropdown-text">Companion · inference UQ (stress inversion)</span></a>
   </li>  
     </ul>
   </li>
@@ -447,7 +451,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-uq.html">Theoretical contributions</a></li><li class="breadcrumb-item"><a href="./theory-uq.html">Inference UQ (stress from δv/v)</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-uq.html">Companion — inference UQ (stress inversion)</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -487,7 +491,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Theoretical contributions</span></a>
+ <span class="menu-text">The uncertainty arc</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -495,26 +499,32 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory-uq.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Inference UQ (stress from δv/v)</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Measurement UQ (error in δv/v)</span></a>
+ <span class="menu-text">1 · Measurement — error in δv/v</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-bayesian-measurement.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Bayesian measurement (marginalise the choice)</span></a>
+ <span class="menu-text">1 · Measurement — marginalise the choice</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Processing → depth (sampling &amp; propagation)</span></a>
+ <span class="menu-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Stress &amp; attribution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory-uq.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Companion — inference UQ (stress inversion)</span></a>
   </div>
 </li>
       </ul>
@@ -555,7 +565,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./tutorial-05-interpretation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">5 · Interpretation — stress at depth</span></a>
+ <span class="menu-text">5 · Interpreting stress at depth</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -609,14 +619,14 @@ window.Quarto = {
   <li><a href="#the-likelihood" id="toc-the-likelihood" class="nav-link" data-scroll-target="#the-likelihood">2. The likelihood</a></li>
   <li><a href="#two-regimes-for-the-forward-operator" id="toc-two-regimes-for-the-forward-operator" class="nav-link" data-scroll-target="#two-regimes-for-the-forward-operator">3. Two regimes for the forward operator</a>
   <ul class="collapse">
-  <li><a href="#a.-decoupled-regime-linear-gaussian-closed-form" id="toc-a.-decoupled-regime-linear-gaussian-closed-form" class="nav-link" data-scroll-target="#a.-decoupled-regime-linear-gaussian-closed-form">3a. Decoupled regime → linear-Gaussian, <em>closed form</em></a></li>
-  <li><a href="#b.-coupled-regime-non-gaussian-sampled" id="toc-b.-coupled-regime-non-gaussian-sampled" class="nav-link" data-scroll-target="#b.-coupled-regime-non-gaussian-sampled">3b. Coupled regime → non-Gaussian, <em>sampled</em></a></li>
+  <li><a href="#a.-the-decoupled-regime-is-linear-gaussian-and-closed-form" id="toc-a.-the-decoupled-regime-is-linear-gaussian-and-closed-form" class="nav-link" data-scroll-target="#a.-the-decoupled-regime-is-linear-gaussian-and-closed-form">3a. The decoupled regime is linear-Gaussian and closed-form</a></li>
+  <li><a href="#b.-the-coupled-regime-is-non-gaussian-and-sampled" id="toc-b.-the-coupled-regime-is-non-gaussian-and-sampled" class="nav-link" data-scroll-target="#b.-the-coupled-regime-is-non-gaussian-and-sampled">3b. The coupled regime is non-Gaussian and sampled</a></li>
   </ul></li>
   <li><a href="#model-form-uncertainty-coupling-as-bayesian-model-selection" id="toc-model-form-uncertainty-coupling-as-bayesian-model-selection" class="nav-link" data-scroll-target="#model-form-uncertainty-coupling-as-bayesian-model-selection">4. Model-form uncertainty: coupling as Bayesian model selection</a></li>
-  <li><a href="#priors-that-encode-physics-not-convenience" id="toc-priors-that-encode-physics-not-convenience" class="nav-link" data-scroll-target="#priors-that-encode-physics-not-convenience">5. Priors that encode physics, not convenience</a></li>
-  <li><a href="#the-point-of-it-all-propagating-uncertainty-to-stress" id="toc-the-point-of-it-all-propagating-uncertainty-to-stress" class="nav-link" data-scroll-target="#the-point-of-it-all-propagating-uncertainty-to-stress">6. The point of it all: propagating uncertainty to stress</a></li>
-  <li><a href="#closing-the-loop-posterior-predictive-checks" id="toc-closing-the-loop-posterior-predictive-checks" class="nav-link" data-scroll-target="#closing-the-loop-posterior-predictive-checks">7. Closing the loop: posterior predictive checks</a></li>
-  <li><a href="#summary-the-hierarchical-model-in-one-diagram" id="toc-summary-the-hierarchical-model-in-one-diagram" class="nav-link" data-scroll-target="#summary-the-hierarchical-model-in-one-diagram">8. Summary — the hierarchical model in one diagram</a>
+  <li><a href="#priors-that-encode-physics" id="toc-priors-that-encode-physics" class="nav-link" data-scroll-target="#priors-that-encode-physics">5. Priors that encode physics</a></li>
+  <li><a href="#propagating-uncertainty-to-stress" id="toc-propagating-uncertainty-to-stress" class="nav-link" data-scroll-target="#propagating-uncertainty-to-stress">6. Propagating uncertainty to stress</a></li>
+  <li><a href="#closing-the-loop-with-posterior-predictive-checks" id="toc-closing-the-loop-with-posterior-predictive-checks" class="nav-link" data-scroll-target="#closing-the-loop-with-posterior-predictive-checks">7. Closing the loop with posterior predictive checks</a></li>
+  <li><a href="#the-hierarchical-model-in-one-diagram" id="toc-the-hierarchical-model-in-one-diagram" class="nav-link" data-scroll-target="#the-hierarchical-model-in-one-diagram">8. The hierarchical model in one diagram</a>
   <ul class="collapse">
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul></li>
@@ -627,7 +637,7 @@ window.Quarto = {
 <main class="content" id="quarto-document-content">
 
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-uq.html">Theoretical contributions</a></li><li class="breadcrumb-item"><a href="./theory-uq.html">Inference UQ (stress from δv/v)</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-uq.html">Companion — inference UQ (stress inversion)</a></li></ol></nav>
 <div class="quarto-title">
 <div class="quarto-title-block"><div><h1 class="title">A hierarchical Bayesian theory of uncertainty for δv/v stress meters</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 <p class="subtitle lead">The theoretical contribution — written as theory, not tutorial</p>
@@ -663,7 +673,7 @@ p\big(\,\theta \,\big|\, d\,\big)
 \theta = (\underbrace{a_0, p_1, p_2, s_i}_{\text{amplitudes}},\;
 \underbrace{\beta, \mu', \kappa, B, \alpha_B, c, \phi}_{\text{material}}),
 \tag{1}\]</span></span></p>
-<p>where <span class="math inline">\(d\)</span> is the observed <span class="math inline">\(\delta v/v\)</span> series. Every quantity a seismologist ultimately cares about — stress at depth, pressure sensitivity, water-table depth — is a deterministic function <span class="math inline">\(g(\theta)\)</span>, so its uncertainty is the <strong>pushforward</strong> of <a href="#eq-bayes" class="quarto-xref">Equation&nbsp;1</a> through <span class="math inline">\(g\)</span>.</p>
+<p>where <span class="math inline">\(d\)</span> is the observed <span class="math inline">\(\delta v/v\)</span> series. Every quantity a seismologist cares about — stress at depth, pressure sensitivity, water-table depth — is a deterministic function <span class="math inline">\(g(\theta)\)</span>, so its uncertainty is the <strong>pushforward</strong> of <a href="#eq-bayes" class="quarto-xref">Equation&nbsp;1</a> through <span class="math inline">\(g\)</span>.</p>
 </section>
 <section id="the-likelihood" class="level2">
 <h2 class="anchored" data-anchor-id="the-likelihood">2. The likelihood</h2>
@@ -697,8 +707,8 @@ d_t \;=\; \mathcal{F}_\theta(t) \;+\; \varepsilon_t,
 </section>
 <section id="two-regimes-for-the-forward-operator" class="level2">
 <h2 class="anchored" data-anchor-id="two-regimes-for-the-forward-operator">3. Two regimes for the forward operator</h2>
-<section id="a.-decoupled-regime-linear-gaussian-closed-form" class="level3">
-<h3 class="anchored" data-anchor-id="a.-decoupled-regime-linear-gaussian-closed-form">3a. Decoupled regime → linear-Gaussian, <em>closed form</em></h3>
+<section id="a.-the-decoupled-regime-is-linear-gaussian-and-closed-form" class="level3">
+<h3 class="anchored" data-anchor-id="a.-the-decoupled-regime-is-linear-gaussian-and-closed-form">3a. The decoupled regime is linear-Gaussian and closed-form</h3>
 <p>When the stress sources act independently, <span class="math inline">\(\mathcal{F}_\theta\)</span> is <strong>linear in the amplitudes</strong> (Eq. 6 of the manuscript):</p>
 <p><span id="eq-superpose"><span class="math display">\[
 \mathcal{F}_\theta(t) = a_0
@@ -721,8 +731,8 @@ p(m \mid d) = \mathcal{N}\!\big(\hat m,\; \hat C\big),
 <p><span class="k-title">Why this matters</span> In the decoupled regime there is <strong>no sampling, no convergence diagnostic, no tuning</strong> — the full joint posterior over all amplitudes, including their <em>correlations</em>, is available analytically. Those correlations are the part a point estimate throws away, and they are what make the propagated stress uncertainty honest.</p>
 </div>
 </section>
-<section id="b.-coupled-regime-non-gaussian-sampled" class="level3">
-<h3 class="anchored" data-anchor-id="b.-coupled-regime-non-gaussian-sampled">3b. Coupled regime → non-Gaussian, <em>sampled</em></h3>
+<section id="b.-the-coupled-regime-is-non-gaussian-and-sampled" class="level3">
+<h3 class="anchored" data-anchor-id="b.-the-coupled-regime-is-non-gaussian-and-sampled">3b. The coupled regime is non-Gaussian and sampled</h3>
 <p>When Phase 2 flags coupling (§4 below), the forward operator becomes <strong>state-dependent</strong> (Eq. 19): the parameters that multiply one forcing depend on the instantaneous state set by another. Schematically,</p>
 <p><span id="eq-coupled"><span class="math display">\[
 \frac{d(\delta v/v)}{dt}
@@ -753,8 +763,8 @@ p(m \mid d) = \mathcal{N}\!\big(\hat m,\; \hat C\big),
 \tag{9}\]</span></span></p>
 <p>i.e.&nbsp;a ratio of <em>marginal</em> likelihoods that automatically penalises the extra parameters of the coupled model (the Bayesian Occam factor). In v0.1 the <span class="math inline">\(\mathrm{Pe}_d\)</span> thresholds act as a fast, interpretable surrogate for this test — a two-level escalation flag (soft warning / hard escalate) — with the full Bayes-factor model comparison scheduled alongside the v0.2 MCMC backend. Either way, <strong>the decision to add physics is a quantified inference, not a judgement call.</strong></p>
 </section>
-<section id="priors-that-encode-physics-not-convenience" class="level2">
-<h2 class="anchored" data-anchor-id="priors-that-encode-physics-not-convenience">5. Priors that encode physics, not convenience</h2>
+<section id="priors-that-encode-physics" class="level2">
+<h2 class="anchored" data-anchor-id="priors-that-encode-physics">5. Priors that encode physics</h2>
 <p>The material parameters carry genuine prior information from rock physics, and we encode it as independent Gaussians,</p>
 <p><span id="eq-prior"><span class="math display">\[
 p(\theta_{\text{mat}}) = \prod_k \mathcal{N}\!\big(\theta_k;\, \mu_k, \sigma_k^2\big),
@@ -809,8 +819,8 @@ p(\theta_{\text{mat}}) = \prod_k \mathcal{N}\!\big(\theta_k;\, \mu_k, \sigma_k^2
 </tbody>
 </table>
 </section>
-<section id="the-point-of-it-all-propagating-uncertainty-to-stress" class="level2">
-<h2 class="anchored" data-anchor-id="the-point-of-it-all-propagating-uncertainty-to-stress">6. The point of it all: propagating uncertainty to stress</h2>
+<section id="propagating-uncertainty-to-stress" class="level2">
+<h2 class="anchored" data-anchor-id="propagating-uncertainty-to-stress">6. Propagating uncertainty to stress</h2>
 <p>Stress at depth is <strong>not</strong> a fitted parameter; it is a <em>derived</em> quantity, and this is where the Bayesian framing pays off. Phase 6 takes the fitted hydrological coefficient <span class="math inline">\(p_1\)</span> and pushes it through three transformations:</p>
 <p><span id="eq-chain"><span class="math display">\[
 p_1 \;\xrightarrow{\;/\rho g\;}\;
@@ -829,8 +839,8 @@ p_1 \;\xrightarrow{\;/\rho g\;}\;
 </ol>
 <p>Either way, <strong>the stress estimate ships with a posterior</strong>, and the same machinery serves the decoupled and coupled regimes.</p>
 </section>
-<section id="closing-the-loop-posterior-predictive-checks" class="level2">
-<h2 class="anchored" data-anchor-id="closing-the-loop-posterior-predictive-checks">7. Closing the loop: posterior predictive checks</h2>
+<section id="closing-the-loop-with-posterior-predictive-checks" class="level2">
+<h2 class="anchored" data-anchor-id="closing-the-loop-with-posterior-predictive-checks">7. Closing the loop with posterior predictive checks</h2>
 <p>A Bayesian model is only as good as its predictive residuals, so Phase 5 is not an afterthought — it is the model-criticism half of the inference. If the fitted model is adequate, the standardised residuals <span class="math inline">\(r_t = (d_t - \mathcal{F}_{\hat\theta}(t))/\sigma_t\)</span> should be <strong>white noise</strong>. Phase 5 runs a Ljung–Box test on <span class="math inline">\(r_t\)</span>:</p>
 <p><span id="eq-ljungbox"><span class="math display">\[
 Q = N(N+2)\sum_{k=1}^{h} \frac{\hat\rho_k^2}{N-k}
@@ -838,8 +848,8 @@ Q = N(N+2)\sum_{k=1}^{h} \frac{\hat\rho_k^2}{N-k}
 \tag{13}\]</span></span></p>
 <p>with <span class="math inline">\(\hat\rho_k\)</span> the lag-<span class="math inline">\(k\)</span> autocorrelation. A small <span class="math inline">\(p\)</span>-value is <em>evidence of unmodelled physics</em> and triggers the iterative loop back into earlier phases — was a coupling tier underestimated (Phase 2)? is the velocity model wrong (Phase 1)? This is a frequentist instrument doing a Bayesian job: it is the posterior predictive check that tells us when <a href="#eq-bayes" class="quarto-xref">Equation&nbsp;1</a> has the wrong <span class="math inline">\(\mathcal{F}\)</span>.</p>
 </section>
-<section id="summary-the-hierarchical-model-in-one-diagram" class="level2">
-<h2 class="anchored" data-anchor-id="summary-the-hierarchical-model-in-one-diagram">8. Summary — the hierarchical model in one diagram</h2>
+<section id="the-hierarchical-model-in-one-diagram" class="level2">
+<h2 class="anchored" data-anchor-id="the-hierarchical-model-in-one-diagram">8. The hierarchical model in one diagram</h2>
 <div class="cell" data-layout-align="center">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1418,13 +1428,13 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./index.html" class="pagination-link" aria-label="codameter">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">codameter</span>
+      <a href="./uncertainty-3-stress.html" class="pagination-link" aria-label="3 · Stress &amp; attribution">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">3 · Stress &amp; attribution</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./theory-measurement-uq.html" class="pagination-link" aria-label="Measurement UQ (error in δv/v)">
-        <span class="nav-page-text">Measurement UQ (error in δv/v)</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./tutorial-01-data.html" class="pagination-link" aria-label="1 · Data &amp; site readiness">
+        <span class="nav-page-text">1 · Data &amp; site readiness</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
@@ -1475,7 +1485,7 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>$$ {#eq-bayes}</span>
 <span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>where $d$ is the observed $\delta v/v$ series. Every quantity a seismologist</span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>ultimately cares about — stress at depth, pressure sensitivity, water-table</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>cares about — stress at depth, pressure sensitivity, water-table</span>
 <span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>depth — is a deterministic function $g(\theta)$, so its uncertainty is the</span>
 <span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>**pushforward** of @eq-bayes through $g$.</span>
 <span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
@@ -1520,7 +1530,7 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
 <span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. Two regimes for the forward operator</span></span>
 <span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a><span class="fu">### 3a. Decoupled regime → linear-Gaussian, *closed form*</span></span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a><span class="fu">### 3a. The decoupled regime is linear-Gaussian and closed-form</span></span>
 <span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>When the stress sources act independently, $\mathcal{F}_\theta$ is **linear in</span>
 <span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a>the amplitudes** (Eq. 6 of the manuscript):</span>
@@ -1564,7 +1574,7 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
 <span id="cb2-134"><a href="#cb2-134" aria-hidden="true" tabindex="-1"></a>uncertainty honest.</span>
 <span id="cb2-135"><a href="#cb2-135" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb2-136"><a href="#cb2-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a><span class="fu">### 3b. Coupled regime → non-Gaussian, *sampled*</span></span>
+<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a><span class="fu">### 3b. The coupled regime is non-Gaussian and sampled</span></span>
 <span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a>When Phase 2 flags coupling (§4 below), the forward operator becomes</span>
 <span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a>**state-dependent** (Eq. 19): the parameters that multiply one forcing depend</span>
@@ -1630,7 +1640,7 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
 <span id="cb2-200"><a href="#cb2-200" aria-hidden="true" tabindex="-1"></a>Either way, **the decision to add physics is a quantified inference, not a</span>
 <span id="cb2-201"><a href="#cb2-201" aria-hidden="true" tabindex="-1"></a>judgement call.**</span>
 <span id="cb2-202"><a href="#cb2-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-203"><a href="#cb2-203" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5. Priors that encode physics, not convenience</span></span>
+<span id="cb2-203"><a href="#cb2-203" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5. Priors that encode physics</span></span>
 <span id="cb2-204"><a href="#cb2-204" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-205"><a href="#cb2-205" aria-hidden="true" tabindex="-1"></a>The material parameters carry genuine prior information from rock physics, and</span>
 <span id="cb2-206"><a href="#cb2-206" aria-hidden="true" tabindex="-1"></a>we encode it as independent Gaussians,</span>
@@ -1656,7 +1666,7 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
 <span id="cb2-226"><a href="#cb2-226" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\phi$ <span class="pp">|</span> porosity <span class="pp">|</span> <span class="in">`porosity_prior`</span> <span class="pp">|</span></span>
 <span id="cb2-227"><a href="#cb2-227" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $c$ <span class="pp">|</span> hydraulic diffusivity <span class="pp">|</span> <span class="in">`hydraulic_diffusivity_prior_log10`</span> <span class="pp">|</span></span>
 <span id="cb2-228"><a href="#cb2-228" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-229"><a href="#cb2-229" aria-hidden="true" tabindex="-1"></a><span class="fu">## 6. The point of it all: propagating uncertainty to stress</span></span>
+<span id="cb2-229"><a href="#cb2-229" aria-hidden="true" tabindex="-1"></a><span class="fu">## 6. Propagating uncertainty to stress</span></span>
 <span id="cb2-230"><a href="#cb2-230" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-231"><a href="#cb2-231" aria-hidden="true" tabindex="-1"></a>Stress at depth is **not** a fitted parameter; it is a *derived* quantity, and</span>
 <span id="cb2-232"><a href="#cb2-232" aria-hidden="true" tabindex="-1"></a>this is where the Bayesian framing pays off. Phase 6 takes the fitted</span>
@@ -1697,7 +1707,7 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
 <span id="cb2-267"><a href="#cb2-267" aria-hidden="true" tabindex="-1"></a>Either way, **the stress estimate ships with a posterior**, and the same</span>
 <span id="cb2-268"><a href="#cb2-268" aria-hidden="true" tabindex="-1"></a>machinery serves the decoupled and coupled regimes.</span>
 <span id="cb2-269"><a href="#cb2-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-270"><a href="#cb2-270" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. Closing the loop: posterior predictive checks</span></span>
+<span id="cb2-270"><a href="#cb2-270" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. Closing the loop with posterior predictive checks</span></span>
 <span id="cb2-271"><a href="#cb2-271" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-272"><a href="#cb2-272" aria-hidden="true" tabindex="-1"></a>A Bayesian model is only as good as its predictive residuals, so Phase 5 is</span>
 <span id="cb2-273"><a href="#cb2-273" aria-hidden="true" tabindex="-1"></a>not an afterthought — it is the model-criticism half of the inference. If the</span>
@@ -1717,7 +1727,7 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
 <span id="cb2-287"><a href="#cb2-287" aria-hidden="true" tabindex="-1"></a>is the posterior predictive check that tells us when @eq-bayes has the wrong</span>
 <span id="cb2-288"><a href="#cb2-288" aria-hidden="true" tabindex="-1"></a>$\mathcal{F}$.</span>
 <span id="cb2-289"><a href="#cb2-289" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-290"><a href="#cb2-290" aria-hidden="true" tabindex="-1"></a><span class="fu">## 8. Summary — the hierarchical model in one diagram</span></span>
+<span id="cb2-290"><a href="#cb2-290" aria-hidden="true" tabindex="-1"></a><span class="fu">## 8. The hierarchical model in one diagram</span></span>
 <span id="cb2-291"><a href="#cb2-291" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-294"><a href="#cb2-294" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
 <span id="cb2-295"><a href="#cb2-295" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>

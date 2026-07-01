@@ -40,7 +40,7 @@ fig.set_size_inches(10, 7)
 plt.show()
 ```
 
-## Closing the loop — posterior predictive check
+## Closing the loop with a posterior predictive check
 
 Phase 5 runs the Ljung–Box whiteness test ([Ljung–Box](theory-uq.qmd#eq-ljungbox)) on the standardised
 residuals. A large $p$-value means the residuals are white — no evidence of

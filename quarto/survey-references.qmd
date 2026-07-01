@@ -1,5 +1,5 @@
 ---
-title: "dv/v monitoring literature — references"
+title: "dv/v monitoring literature references"
 subtitle: "Full citations for the processing-parameter survey, with DOI & links"
 toc: true
 toc-depth: 2

@@ -45,7 +45,7 @@ p\big(\,\theta \,\big|\, d\,\big)
 $$ {#eq-bayes}
 
 where $d$ is the observed $\delta v/v$ series. Every quantity a seismologist
-ultimately cares about — stress at depth, pressure sensitivity, water-table
+cares about — stress at depth, pressure sensitivity, water-table
 depth — is a deterministic function $g(\theta)$, so its uncertainty is the
 **pushforward** of @eq-bayes through $g$.
 
@@ -90,7 +90,7 @@ in the structure of $\mathcal{F}_\theta$.
 
 ## 3. Two regimes for the forward operator
 
-### 3a. Decoupled regime → linear-Gaussian, *closed form*
+### 3a. The decoupled regime is linear-Gaussian and closed-form
 
 When the stress sources act independently, $\mathcal{F}_\theta$ is **linear in
 the amplitudes** (Eq. 6 of the manuscript):
@@ -134,7 +134,7 @@ point estimate throws away, and they are what make the propagated stress
 uncertainty honest.
 :::
 
-### 3b. Coupled regime → non-Gaussian, *sampled*
+### 3b. The coupled regime is non-Gaussian and sampled
 
 When Phase 2 flags coupling (§4 below), the forward operator becomes
 **state-dependent** (Eq. 19): the parameters that multiply one forcing depend
@@ -200,7 +200,7 @@ full Bayes-factor model comparison scheduled alongside the v0.2 MCMC backend.
 Either way, **the decision to add physics is a quantified inference, not a
 judgement call.**
 
-## 5. Priors that encode physics, not convenience
+## 5. Priors that encode physics
 
 The material parameters carry genuine prior information from rock physics, and
 we encode it as independent Gaussians,
@@ -226,7 +226,7 @@ model's physics, and the package refuses to run with an incoherent one.
 | $\phi$ | porosity | `porosity_prior` |
 | $c$ | hydraulic diffusivity | `hydraulic_diffusivity_prior_log10` |
 
-## 6. The point of it all: propagating uncertainty to stress
+## 6. Propagating uncertainty to stress
 
 Stress at depth is **not** a fitted parameter; it is a *derived* quantity, and
 this is where the Bayesian framing pays off. Phase 6 takes the fitted
@@ -267,7 +267,7 @@ them is itself a statement about the regime:
 Either way, **the stress estimate ships with a posterior**, and the same
 machinery serves the decoupled and coupled regimes.
 
-## 7. Closing the loop: posterior predictive checks
+## 7. Closing the loop with posterior predictive checks
 
 A Bayesian model is only as good as its predictive residuals, so Phase 5 is
 not an afterthought — it is the model-criticism half of the inference. If the
@@ -287,7 +287,7 @@ wrong (Phase 1)? This is a frequentist instrument doing a Bayesian job: it
 is the posterior predictive check that tells us when @eq-bayes has the wrong
 $\mathcal{F}$.
 
-## 8. Summary — the hierarchical model in one diagram
+## 8. The hierarchical model in one diagram
 
 ```{mermaid}
 flowchart TB

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>How processing choices move dv/v — a synthetic demonstration – codameter</title>
+<title>How processing choices move dv/v – codameter</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -334,20 +334,24 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
-    <a class="dropdown-item" href="./theory-uq.html">
- <span class="dropdown-text">Inference UQ · Bayesian stress inversion</span></a>
-  </li>  
-        <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">Measurement UQ · error in δv/v</span></a>
+ <span class="dropdown-text">1 · Measurement · error in δv/v</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
- <span class="dropdown-text">Bayesian measurement · marginalise the choice</span></a>
+ <span class="dropdown-text">1 · Measurement · marginalise the choice</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">Processing → depth · sampling &amp; propagation</span></a>
+ <span class="dropdown-text">2 · Depth · kernels → δVs/Vs &amp; δρ/ρ</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-3-stress.html">
+ <span class="dropdown-text">3 · Stress &amp; attribution</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./theory-uq.html">
+ <span class="dropdown-text">Companion · inference UQ (stress inversion)</span></a>
   </li>  
     </ul>
   </li>
@@ -465,7 +469,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Theoretical contributions</span></a>
+ <span class="menu-text">The uncertainty arc</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -473,26 +477,32 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Inference UQ (stress from δv/v)</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Measurement UQ (error in δv/v)</span></a>
+ <span class="menu-text">1 · Measurement — error in δv/v</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-bayesian-measurement.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Bayesian measurement (marginalise the choice)</span></a>
+ <span class="menu-text">1 · Measurement — marginalise the choice</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Processing → depth (sampling &amp; propagation)</span></a>
+ <span class="menu-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Stress &amp; attribution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory-uq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Companion — inference UQ (stress inversion)</span></a>
   </div>
 </li>
       </ul>
@@ -533,7 +543,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./tutorial-05-interpretation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">5 · Interpretation — stress at depth</span></a>
+ <span class="menu-text">5 · Interpreting stress at depth</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -583,13 +593,13 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#estimator-choice-the-full-noisepy-yuan-et-al.-2021-suite" id="toc-estimator-choice-the-full-noisepy-yuan-et-al.-2021-suite" class="nav-link active" data-scroll-target="#estimator-choice-the-full-noisepy-yuan-et-al.-2021-suite">1. Estimator choice — the full NoisePy / Yuan et al.&nbsp;(2021) suite</a></li>
-  <li><a href="#aggregating-cross-components-the-same-data-three-answers" id="toc-aggregating-cross-components-the-same-data-three-answers" class="nav-link" data-scroll-target="#aggregating-cross-components-the-same-data-three-answers">2. Aggregating cross-components — the same data, three answers</a></li>
+  <li><a href="#the-full-noisepy-yuan-et-al.-2021-estimator-suite" id="toc-the-full-noisepy-yuan-et-al.-2021-estimator-suite" class="nav-link active" data-scroll-target="#the-full-noisepy-yuan-et-al.-2021-estimator-suite">1. The full NoisePy / Yuan et al.&nbsp;(2021) estimator suite</a></li>
+  <li><a href="#aggregating-cross-components" id="toc-aggregating-cross-components" class="nav-link" data-scroll-target="#aggregating-cross-components">2. Aggregating cross-components</a></li>
   <li><a href="#station-pair-aggregation-and-the-error-bar-you-report" id="toc-station-pair-aggregation-and-the-error-bar-you-report" class="nav-link" data-scroll-target="#station-pair-aggregation-and-the-error-bar-you-report">3. Station-pair aggregation and the error bar you report</a></li>
-  <li><a href="#frequency-band-selects-the-depth-and-the-signal" id="toc-frequency-band-selects-the-depth-and-the-signal" class="nav-link" data-scroll-target="#frequency-band-selects-the-depth-and-the-signal">4. Frequency band selects the depth — and the signal</a></li>
+  <li><a href="#frequency-band-selects-the-depth-and-the-signal" id="toc-frequency-band-selects-the-depth-and-the-signal" class="nav-link" data-scroll-target="#frequency-band-selects-the-depth-and-the-signal">4. Frequency band selects the depth and the signal</a></li>
   <li><a href="#the-coda-window-does-not-transfer-across-bands" id="toc-the-coda-window-does-not-transfer-across-bands" class="nav-link" data-scroll-target="#the-coda-window-does-not-transfer-across-bands">5. The coda window does not transfer across bands</a></li>
-  <li><a href="#stacking-length-resolution-vs-noise" id="toc-stacking-length-resolution-vs-noise" class="nav-link" data-scroll-target="#stacking-length-resolution-vs-noise">6. Stacking length — resolution vs noise</a></li>
-  <li><a href="#reference-strategy-total-stack-moving-or-joint-inversion" id="toc-reference-strategy-total-stack-moving-or-joint-inversion" class="nav-link" data-scroll-target="#reference-strategy-total-stack-moving-or-joint-inversion">7. Reference strategy — total stack, moving, or joint inversion</a></li>
+  <li><a href="#stacking-length-trades-resolution-against-noise" id="toc-stacking-length-trades-resolution-against-noise" class="nav-link" data-scroll-target="#stacking-length-trades-resolution-against-noise">6. Stacking length trades resolution against noise</a></li>
+  <li><a href="#reference-strategy" id="toc-reference-strategy" class="nav-link" data-scroll-target="#reference-strategy">7. Reference strategy</a></li>
   <li><a href="#deviations-that-manufacture-dvv" id="toc-deviations-that-manufacture-dvv" class="nav-link" data-scroll-target="#deviations-that-manufacture-dvv">8. Deviations that <em>manufacture</em> dv/v</a></li>
   <li><a href="#the-garden-of-forking-paths" id="toc-the-garden-of-forking-paths" class="nav-link" data-scroll-target="#the-garden-of-forking-paths">9. The garden of forking paths</a></li>
   <li><a href="#takeaways" id="toc-takeaways" class="nav-link" data-scroll-target="#takeaways">Takeaways</a></li>
@@ -602,7 +612,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./survey-best-practices.html">Literature survey</a></li><li class="breadcrumb-item"><a href="./survey-synthetic-demo.html">Synthetic demo: choices move dv/v</a></li></ol></nav>
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">How processing choices move dv/v — a synthetic demonstration</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<div class="quarto-title-block"><div><h1 class="title">How processing choices move dv/v</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 <p class="subtitle lead">Known truth in, choices applied, artefacts out</p>
 </div>
 
@@ -624,7 +634,7 @@ window.Quarto = {
 <p><span class="k-title">The experiment</span> We synthesize a <strong>reference coda</strong> cross-correlation function (CCF), repeat it over three years while imposing a <strong>known</strong> ground-truth <span class="math inline">\(\delta v/v(t)\)</span>, and add measurement noise. Then we <em>measure <span class="math inline">\(\delta v/v\)</span> back</em> under different processing choices — and, deliberately, some <strong>deviations from best practice</strong>: the wrong estimator for the signal size, a different way to aggregate a pair’s cross-components, a coda window reused across frequency bands, a moving reference, a station clock error, seasonal noise in the late coda. Because the truth is known, <strong>every gap is an artefact of a choice</strong>, not of nature. The worry is reproducibility: these choices are usually <strong>ad-hoc and undocumented</strong>, yet they move the answer — so two groups analysing the same data can disagree for no physical reason. This is the waveform-level companion to the <a href="./survey-best-practices.html">best-practice survey</a> and its <a href="./survey-references.html">references</a>.</p>
 </div>
 <p>The machinery lives in <a href="https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/synthetic_demo.py"><code>codameter.synthetic_demo</code></a>: a band-limited, multiply-scattered coda (<code>make_coda</code>, and a frequency-dependent-decay variant <code>make_freqdep_coda</code>), a homogeneous velocity change applied by stretching the coda (<code>impose_dvv</code>), daily noisy CCFs (<code>daily_ccfs</code>), artefact injectors (<code>add_clock_drift</code>, <code>add_seasonal_late_noise</code>), and the estimators below. A noiseless self-check confirms recovery to <span class="math inline">\(\sim\!10^{-6}\)</span>.</p>
-<div id="e40e20b5" class="cell" data-execution_count="1">
+<div id="38189e60" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Set up — imports, style, self-check, and the coda waveform</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -659,8 +669,8 @@ window.Quarto = {
 </div>
 </div>
 <hr>
-<section id="estimator-choice-the-full-noisepy-yuan-et-al.-2021-suite" class="level2">
-<h2 class="anchored" data-anchor-id="estimator-choice-the-full-noisepy-yuan-et-al.-2021-suite">1. Estimator choice — the full NoisePy / Yuan et al.&nbsp;(2021) suite</h2>
+<section id="the-full-noisepy-yuan-et-al.-2021-estimator-suite" class="level2">
+<h2 class="anchored" data-anchor-id="the-full-noisepy-yuan-et-al.-2021-estimator-suite">1. The full NoisePy / Yuan et al.&nbsp;(2021) estimator suite</h2>
 <p>NoisePy’s <code>monitoring_methods</code> ships <strong>seven</strong> dv/v estimators, and we reproduce <strong>all seven live</strong> here: <code>stretching</code> (TS), <code>wcc_dvv</code> (windowed cross-correlation), <code>dtw_dvv</code> (dynamic time warping), <code>mwcs_dvv</code> (moving-window cross-spectrum), and the wavelet-domain <code>wxs_dvv</code> (<strong>WCS</strong>, the popular wavelet cross-spectrum), <code>wts_dvv</code> (wavelet stretching), and <code>wtdtw_dvv</code> (wavelet DTW). <strong>Yuan et al.&nbsp;(2021)</strong> benchmark the suite numerically.</p>
 <p>On <strong>small, clean</strong> <span class="math inline">\(\delta v/v\)</span> they all sit on the 1:1 line (panel a) — so the <em>choice does not matter and the result is reproducible</em>. The choice bites at <strong>large</strong> <span class="math inline">\(\delta v/v\)</span> (panel b), where the methods split by <strong>family</strong>:</p>
 <ul>
@@ -669,7 +679,7 @@ window.Quarto = {
 <li><strong>Warping methods</strong> (DTW, WTDTW) track but <strong>under-shoot</strong> the largest strains (a discretized-warp bias).</li>
 </ul>
 <p>No method is simply “right”; the point is that an <strong>ad-hoc estimator choice</strong> — or even a sub-choice like whether to unwrap — silently changes the answer once the signal leaves the small-amplitude regime.</p>
-<div id="ba6b6fce" class="cell" data-execution_count="2">
+<div id="79be470b" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>sd.fig_methods()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -684,15 +694,15 @@ window.Quarto = {
 </div>
 <hr>
 </section>
-<section id="aggregating-cross-components-the-same-data-three-answers" class="level2">
-<h2 class="anchored" data-anchor-id="aggregating-cross-components-the-same-data-three-answers">2. Aggregating cross-components — the same data, three answers</h2>
+<section id="aggregating-cross-components" class="level2">
+<h2 class="anchored" data-anchor-id="aggregating-cross-components">2. Aggregating cross-components</h2>
 <p>A single station pair carries several cross-component CCFs (ZZ, ZN, …), each a noisy view of the <em>same</em> <span class="math inline">\(\delta v/v\)</span>. How you combine them is a workflow choice that is almost never reported, yet it changes both the value <strong>and the uncertainty</strong>:</p>
 <ul>
 <li><strong>A — average the dv/v.</strong> Peak-pick each component’s stretching curve <span class="math inline">\(\mathrm{CC}(\varepsilon, t)\)</span>, then <strong>average the per-component dv/v</strong>. Its uncertainty is the <em>ensemble spread</em> of the picks. <em>Unweighted</em>, a few poor components drag the mean around; <strong>CC-weighted</strong>, they are suppressed.</li>
 <li><strong>B — average the images.</strong> Stack the <span class="math inline">\(\mathrm{CC}(\varepsilon, t)\)</span> images across components <strong>first</strong>, then peak-pick once. Its uncertainty is the <em>width of the averaged CC peak</em> — a different statistical object entirely.</li>
 </ul>
 <p>All three are defensible and appear in the literature (including NoisePy). On the same station pair they give visibly different time series — A-unweighted swings with the poor components while CC-weighted-A and image-stack-B track — and they propagate uncertainty along <strong>incompatible pathways</strong>, so two studies using different recipes are simply not comparable.</p>
-<div id="1a162574" class="cell" data-execution_count="3">
+<div id="7a514770" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sd.fig_aggregation()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -717,7 +727,7 @@ window.Quarto = {
 <li><strong>standard deviation</strong> — report the between-pair <em>scatter</em>, not divided by <span class="math inline">\(\sqrt{N}\)</span>.</li>
 </ul>
 <p>On the same network the <strong>means nearly coincide</strong>, but the reported <span class="math inline">\(1\sigma\)</span> spans a factor of <span class="math inline">\(\sim\!\sqrt{N}\)</span> (panel b). A velocity change that is “<span class="math inline">\(3\sigma\)</span> significant” under the tight convention is “<span class="math inline">\(1\sigma\)</span>, not significant” under the conservative one — from the <em>same data</em>. Error bars are not comparable across studies unless the aggregation and the SE-vs-SD convention are both stated.</p>
-<div id="09be236c" class="cell" data-execution_count="4">
+<div id="3eed1e7a" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sd.fig_uncertainty()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -733,9 +743,9 @@ window.Quarto = {
 <hr>
 </section>
 <section id="frequency-band-selects-the-depth-and-the-signal" class="level2">
-<h2 class="anchored" data-anchor-id="frequency-band-selects-the-depth-and-the-signal">4. Frequency band selects the depth — and the signal</h2>
+<h2 class="anchored" data-anchor-id="frequency-band-selects-the-depth-and-the-signal">4. Frequency band selects the depth and the signal</h2>
 <p>Give the medium <strong>two layers</strong>: a shallow one with a strong seasonal cycle and a deep one with a multi-year drought trend, each living in a different part of the coda spectrum. Band high → you recover the shallow seasonal signal; band low → the deep trend. <strong>The band is not a free knob — it chooses what you measure</strong> (survey rule 6).</p>
-<div id="deff85b1" class="cell" data-execution_count="5">
+<div id="b7303158" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sd.fig_frequency_depth()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -754,7 +764,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="the-coda-window-does-not-transfer-across-bands">5. The coda window does not transfer across bands</h2>
 <p>A common deviation: pick one lapse window (say 20–40 s) and reuse it at every frequency. But the coda <strong>decays faster at high frequency</strong> (<span class="math inline">\(A(t)\propto
 e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency is <strong>pure noise</strong> at high frequency (panel a). Measuring the high band in that fixed late window returns garbage; an earlier, SNR-matched window recovers the truth (panel b). The window must scale with the band — ideally set from the coda envelope / a fixed number of mean-free-times, not copied across bands.</p>
-<div id="abe6421c" class="cell" data-execution_count="6">
+<div id="c498d50d" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sd.fig_window_band()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -769,10 +779,10 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 </div>
 <hr>
 </section>
-<section id="stacking-length-resolution-vs-noise" class="level2">
-<h2 class="anchored" data-anchor-id="stacking-length-resolution-vs-noise">6. Stacking length — resolution vs noise</h2>
+<section id="stacking-length-trades-resolution-against-noise" class="level2">
+<h2 class="anchored" data-anchor-id="stacking-length-trades-resolution-against-noise">6. Stacking length trades resolution against noise</h2>
 <p>A coseismic <strong>step</strong> under a seasonal cycle. A 1-day CCF is noisy but captures the step’s timing; a long trailing stack suppresses noise but <strong>rounds off and delays the step</strong> — the resolution/precision trade-off behind stacking choices (survey rule 7).</p>
-<div id="f613f422" class="cell" data-execution_count="7">
+<div id="da2b8b1d" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sd.fig_stacking()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -787,10 +797,10 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 </div>
 <hr>
 </section>
-<section id="reference-strategy-total-stack-moving-or-joint-inversion" class="level2">
-<h2 class="anchored" data-anchor-id="reference-strategy-total-stack-moving-or-joint-inversion">7. Reference strategy — total stack, moving, or joint inversion</h2>
+<section id="reference-strategy" class="level2">
+<h2 class="anchored" data-anchor-id="reference-strategy">7. Reference strategy</h2>
 <p>How you define the reference sets what survives. A <strong>total-stack</strong> reference is unbiased but noisy; a <strong>moving</strong> reference re-baselines continuously and so <strong>erases slow trends</strong> (the pre-eruptive decline vanishes); the <strong>Brenguier et al.&nbsp;(2014) joint inversion</strong> measures relative <span class="math inline">\(\delta v/v\)</span> between many short stacks and inverts <code>x_i − x_j = m_{ij}</code> with a smoothness penalty — robust to any single reference <em>and</em> trend-preserving.</p>
-<div id="22aa208f" class="cell" data-execution_count="8">
+<div id="44c15cfc" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sd.fig_reference()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -812,7 +822,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <li><strong>Station clock error</strong> (panel a). A timing drift delays the whole CCF — a <em>constant</em> lag, independent of lapse — so it appears with <strong>opposite sign on the causal and acausal branches</strong>. A real velocity change moves both the same way, so measuring the two branches separately is the diagnostic.</li>
 <li><strong>Seasonal noise in the late coda</strong> (panel b). A seasonally changing noise-source distribution warps the low-SNR late coda, so a <strong>late</strong> window reports a coherent spurious <em>seasonal</em> <span class="math inline">\(\delta v/v\)</span> many times the real signal, while an <strong>early</strong>, higher-SNR window stays clean (the Zhan 2013 / Daskalakis 2016 warning).</li>
 </ul>
-<div id="f0be8093" class="cell" data-execution_count="9">
+<div id="17d4e7f5" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>sd.fig_artifacts()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -830,7 +840,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <section id="the-garden-of-forking-paths" class="level2">
 <h2 class="anchored" data-anchor-id="the-garden-of-forking-paths">9. The garden of forking paths</h2>
 <p>Finally, take one volcano dataset and run <strong>27 individually defensible pipelines</strong> (3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The median tracks the truth, but the 10–90 % spread across pipelines fans out <strong>most where it matters</strong> — at the sharp co-eruptive drop. The honest object is a <em>distribution</em> of <span class="math inline">\(\delta v/v\)</span> over processing choices, which is exactly what <a href="https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/uq_processing.py"><code>codameter.uq_processing</code></a> samples and marginalizes.</p>
-<div id="f32d5d62" class="cell" data-execution_count="10">
+<div id="64fc63e5" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sd.fig_multiverse()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1404,7 +1414,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "How processing choices move dv/v — a synthetic demonstration"</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "How processing choices move dv/v"</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Known truth in, choices applied, artefacts out"</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> codameter-pixi</span></span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
@@ -1466,7 +1476,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. Estimator choice — the full NoisePy / Yuan et al. (2021) suite</span></span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. The full NoisePy / Yuan et al. (2021) estimator suite</span></span>
 <span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a>NoisePy's <span class="in">`monitoring_methods`</span> ships **seven** dv/v estimators, and we reproduce</span>
 <span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>**all seven live** here: <span class="in">`stretching`</span> (TS), <span class="in">`wcc_dvv`</span> (windowed</span>
@@ -1499,7 +1509,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2. Aggregating cross-components — the same data, three answers</span></span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2. Aggregating cross-components</span></span>
 <span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>A single station pair carries several cross-component CCFs (ZZ, ZN, …), each a</span>
 <span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a>noisy view of the *same* $\delta v/v$. How you combine them is a workflow choice</span>
@@ -1553,7 +1563,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <span id="cb12-156"><a href="#cb12-156" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-157"><a href="#cb12-157" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb12-158"><a href="#cb12-158" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-159"><a href="#cb12-159" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4. Frequency band selects the depth — and the signal</span></span>
+<span id="cb12-159"><a href="#cb12-159" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4. Frequency band selects the depth and the signal</span></span>
 <span id="cb12-160"><a href="#cb12-160" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-161"><a href="#cb12-161" aria-hidden="true" tabindex="-1"></a>Give the medium **two layers**: a shallow one with a strong seasonal cycle and a</span>
 <span id="cb12-162"><a href="#cb12-162" aria-hidden="true" tabindex="-1"></a>deep one with a multi-year drought trend, each living in a different part of the</span>
@@ -1585,7 +1595,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <span id="cb12-192"><a href="#cb12-192" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-193"><a href="#cb12-193" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb12-194"><a href="#cb12-194" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-195"><a href="#cb12-195" aria-hidden="true" tabindex="-1"></a><span class="fu">## 6. Stacking length — resolution vs noise</span></span>
+<span id="cb12-195"><a href="#cb12-195" aria-hidden="true" tabindex="-1"></a><span class="fu">## 6. Stacking length trades resolution against noise</span></span>
 <span id="cb12-196"><a href="#cb12-196" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-197"><a href="#cb12-197" aria-hidden="true" tabindex="-1"></a>A coseismic **step** under a seasonal cycle. A 1-day CCF is noisy but captures</span>
 <span id="cb12-198"><a href="#cb12-198" aria-hidden="true" tabindex="-1"></a>the step's timing; a long trailing stack suppresses noise but **rounds off and</span>
@@ -1599,7 +1609,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <span id="cb12-208"><a href="#cb12-208" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-209"><a href="#cb12-209" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb12-210"><a href="#cb12-210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-211"><a href="#cb12-211" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. Reference strategy — total stack, moving, or joint inversion</span></span>
+<span id="cb12-211"><a href="#cb12-211" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. Reference strategy</span></span>
 <span id="cb12-212"><a href="#cb12-212" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-213"><a href="#cb12-213" aria-hidden="true" tabindex="-1"></a>How you define the reference sets what survives. A **total-stack** reference is</span>
 <span id="cb12-214"><a href="#cb12-214" aria-hidden="true" tabindex="-1"></a>unbiased but noisy; a **moving** reference re-baselines continuously and so</span>

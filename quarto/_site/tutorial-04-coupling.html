@@ -334,20 +334,24 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
-    <a class="dropdown-item" href="./theory-uq.html">
- <span class="dropdown-text">Inference UQ · Bayesian stress inversion</span></a>
-  </li>  
-        <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">Measurement UQ · error in δv/v</span></a>
+ <span class="dropdown-text">1 · Measurement · error in δv/v</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
- <span class="dropdown-text">Bayesian measurement · marginalise the choice</span></a>
+ <span class="dropdown-text">1 · Measurement · marginalise the choice</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">Processing → depth · sampling &amp; propagation</span></a>
+ <span class="dropdown-text">2 · Depth · kernels → δVs/Vs &amp; δρ/ρ</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-3-stress.html">
+ <span class="dropdown-text">3 · Stress &amp; attribution</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./theory-uq.html">
+ <span class="dropdown-text">Companion · inference UQ (stress inversion)</span></a>
   </li>  
     </ul>
   </li>
@@ -465,7 +469,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Theoretical contributions</span></a>
+ <span class="menu-text">The uncertainty arc</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -473,26 +477,32 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Inference UQ (stress from δv/v)</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Measurement UQ (error in δv/v)</span></a>
+ <span class="menu-text">1 · Measurement — error in δv/v</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-bayesian-measurement.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Bayesian measurement (marginalise the choice)</span></a>
+ <span class="menu-text">1 · Measurement — marginalise the choice</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Processing → depth (sampling &amp; propagation)</span></a>
+ <span class="menu-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Stress &amp; attribution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory-uq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Companion — inference UQ (stress inversion)</span></a>
   </div>
 </li>
       </ul>
@@ -533,7 +543,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./tutorial-05-interpretation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">5 · Interpretation — stress at depth</span></a>
+ <span class="menu-text">5 · Interpreting stress at depth</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -685,7 +695,7 @@ coupling likelihood            : low  (score 0.32)</code></pre>
 <img src="tutorial-04-coupling_files/figure-html/fig-danger-output-1.png" width="834" height="376" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-danger-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: The coupling risk landscape. Risk (purple) peaks at Pe_d≈1 where drained and undrained responses interfere. Our synthetic Parkfield site (green) sits far in the safe, drained regime — but a clay-rich or deep site can land in the danger zone, where the linear posterior is no longer valid.
+Figure&nbsp;1: The coupling risk surface. Risk (purple) peaks at Pe_d≈1 where drained and undrained responses interfere. Our synthetic Parkfield site (green) sits far in the safe, drained regime — but a clay-rich or deep site can land in the danger zone, where the linear posterior is no longer valid.
 </figcaption>
 </figure>
 </div>
@@ -1218,8 +1228,8 @@ Figure&nbsp;2: Coupling-mechanism scores. Low across the board here — consiste
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./tutorial-05-interpretation.html" class="pagination-link" aria-label="5 · Interpretation — stress at depth">
-        <span class="nav-page-text">5 · Interpretation — stress at depth</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./tutorial-05-interpretation.html" class="pagination-link" aria-label="5 · Interpreting stress at depth">
+        <span class="nav-page-text">5 · Interpreting stress at depth</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
@@ -1287,7 +1297,7 @@ Figure&nbsp;2: Coupling-mechanism scores. Low across the board here — consiste
 <span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-danger</span></span>
-<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The coupling risk landscape. Risk (purple) peaks at Pe_d≈1 where drained and undrained responses interfere. Our synthetic Parkfield site (green) sits far in the safe, drained regime — but a clay-rich or deep site can land in the danger zone, where the linear posterior is no longer valid."</span></span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The coupling risk surface. Risk (purple) peaks at Pe_d≈1 where drained and undrained responses interfere. Our synthetic Parkfield site (green) sits far in the safe, drained regime — but a clay-rich or deep site can land in the danger zone, where the linear posterior is no longer valid."</span></span>
 <span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>pe <span class="op">=</span> np.logspace(<span class="op">-</span><span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">400</span>)</span>
 <span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a><span class="co"># schematic risk: peaks at Pe=1 on a log axis (matches the package's intent)</span></span>
 <span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>risk <span class="op">=</span> np.exp(<span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> (np.log10(pe))<span class="op">**</span><span class="dv">2</span> <span class="op">/</span> <span class="fl">0.5</span><span class="op">**</span><span class="dv">2</span>)</span>

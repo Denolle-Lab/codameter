@@ -1,5 +1,5 @@
 ---
-title: "The other uncertainty: measurement error in δv/v"
+title: "Measurement error in δv/v"
 subtitle: "Aleatoric & methodological error conditioned on processing choices"
 jupyter: codameter-pixi
 bibliography: references.bib
@@ -7,16 +7,40 @@ bibliography: references.bib
 
 ::: {.keyidea}
 [Thesis]{.k-title}
-The [first theory page](theory-uq.qmd) quantifies the **epistemic** uncertainty
-of inferring stress *from* a $\delta v/v$ series — it takes the series and its
-`dvv_err` as given. But in our discipline the $\delta v/v$ *measurement itself*
-is the least reproducible step: it is the end of a long chain of processing
-choices (method, window, band, stacking, gating, **reference**), almost none of
-which are propagated. This page quantifies that **measurement** error. Its
-deliverable is not a scalar per epoch but a structured **measurement covariance**
-$C_d$ — the very object the inference likelihood assumes is diagonal. The two
-pages are two halves of one budget.
+This is **step 1 of the uncertainty arc**. A $\delta v/v$ series is the end of a
+long chain of processing choices (method, window, band, stacking, gating,
+**reference**), almost none of which are propagated — and it is the least
+reproducible step in the discipline. This page quantifies that **measurement**
+error. Its deliverable is not a scalar per epoch but a structured **measurement
+covariance** $C_d$: the object [step 2 · depth](theory-processing-depth.qmd) and
+[step 3 · stress](uncertainty-3-stress.qmd) consume, and the very object the
+inference likelihood on the [companion inference-UQ page](theory-uq.qmd) assumes
+is diagonal.
 :::
+
+### Where the field stands
+
+The community agrees on the ingredients of a good measurement — a stretching-family
+estimator for robustness at low SNR and large change (Yuan et al. 2021;
+Mikesell et al. 2015), a coherence-based error model (Clarke et al. 2011;
+Weaver et al. 2011), a long stable reference (Wang et al. 2017), and cross-checking
+against a second estimator (Obermann et al. 2019) — yet no two studies report the
+same set, and the uncertainty convention is the least standardized of all
+([literature survey](survey-best-practices.qmd)). Propagating the measurement
+covariance matters because everything downstream in the arc consumes it: a depth
+profile or a stress estimate is only as honest as the $C_d$ it starts from. The
+table pairs each choice with its documented deviation and the consequence; it is
+the source the executable `codameter.deviations` menu draws from.
+
+| Choice | Best practice | Common deviation | Consequence |
+|---|---|---|---|
+| Estimator | Stretching family, robust at low SNR / large δv/v | Bare MWCS / wrapped phase | Cycle-skips at large δv/v; error ~10× or catastrophic |
+| Frequency band | Band matched to the target depth | Off-target or single wide band | Mixes depths; mostly sets precision |
+| Coda window | Past the direct arrival, scaled with the band | Fixed late window reused across bands | Noise at high *f*; bias, inflated σ |
+| Stack length | Short enough to resolve the transient (~10 d) | Over-long stack (~45 d) | Smears and delays a step |
+| Reference | Long fixed stack or joint inversion (Brenguier et al. 2014) | Moving / trailing reference | Erases slow trends |
+| Coherence gating | Discard low-coherence epochs | No gating | Keeps corrupted epochs; changes *N*~eff~ |
+| Uncertainty definition | State it: within-measurement / SE / SD | Left unstated | Factor √*N* ambiguity in significance |
 
 ```{python}
 #| label: setup
@@ -54,7 +78,7 @@ We treat each fork as a source of measurement uncertainty and quantify three
 things a diagonal `dvv_err` cannot express: a **within-method floor**, a
 **methodological spread**, and the **temporal correlation** the choices induce.
 
-## 2. The within-method floor — coherence-limited precision
+## 2. The coherence-limited within-method floor
 
 For a *fixed* configuration there is an irreducible scatter set by the coda
 coherence. Weaver et al. (2011) and Clarke et al. (2011) give the standard
@@ -92,7 +116,7 @@ ax[1].legend(fontsize=8, frameon=False)
 plt.tight_layout(); plt.show()
 ```
 
-## 3. The methodological spread — an ensemble over choices
+## 3. The methodological spread over choices
 
 The floor assumes the configuration is *the* configuration. It is not. Run the
 same data through several defensible pipelines and you get an **ensemble** of
@@ -180,7 +204,7 @@ for i, v in enumerate([neff_diag, neff_corr]):
 plt.tight_layout(); plt.show()
 ```
 
-## 5. Reference choice, and the Brenguier (2014) all-to-all cure
+## 5. Reference choice and the Brenguier (2014) all-to-all cure
 
 The most consequential — and least examined — fork is the **reference**.
 Referencing every epoch to one stack makes the reference's own noise a
@@ -238,7 +262,7 @@ ax.legend(fontsize=8, frameon=False, loc="upper right")
 plt.show()
 ```
 
-## 6. Closing the loop: $C_d$ is what the inversion actually needs
+## 6. $C_d$ is what the inversion actually needs
 
 The [inference page](theory-uq.qmd) wrote the likelihood with
 $W=\operatorname{diag}(1/\sigma_t^2)$ — a **diagonal** $C_d$. That is the one

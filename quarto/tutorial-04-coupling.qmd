@@ -62,7 +62,7 @@ site sits on.
 
 ```{python}
 #| label: fig-danger
-#| fig-cap: "The coupling risk landscape. Risk (purple) peaks at Pe_d≈1 where drained and undrained responses interfere. Our synthetic Parkfield site (green) sits far in the safe, drained regime — but a clay-rich or deep site can land in the danger zone, where the linear posterior is no longer valid."
+#| fig-cap: "The coupling risk surface. Risk (purple) peaks at Pe_d≈1 where drained and undrained responses interfere. Our synthetic Parkfield site (green) sits far in the safe, drained regime — but a clay-rich or deep site can land in the danger zone, where the linear posterior is no longer valid."
 pe = np.logspace(-2, 3, 400)
 # schematic risk: peaks at Pe=1 on a log axis (matches the package's intent)
 risk = np.exp(-0.5 * (np.log10(pe))**2 / 0.5**2)

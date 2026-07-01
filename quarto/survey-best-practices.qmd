@@ -1,5 +1,5 @@
 ---
-title: "dv/v passive-monitoring: processing parameters & best practices by application"
+title: "dv/v processing parameters and best practices by application"
 subtitle: "A community-literature survey of how the dv/v knobs are set, and why"
 execute:
   enabled: false
@@ -85,7 +85,7 @@ Wang & Yao 2020; Yuan 2021).
 | Station config | Pairs/arrays where dense; single-station (cross-comp > autocorr) for sparse networks | Single-station survives when only one station remains during an eruption (De Plaen). |
 | Depth sensitivity | Shallow, upper ~0.3–3 km; occasionally mid-crustal magma (~3–10 km) | dv/v dominated by compliant, crack-rich shallow edifice. |
 
-**Key rule:** environmental (rainfall) correction is essential — hydrological dv/v is
+**Key rule:** environmental (rainfall) correction is necessary — hydrological dv/v is
 comparable in amplitude to the pre-eruptive signal (Rivet 2015).
 
 ---

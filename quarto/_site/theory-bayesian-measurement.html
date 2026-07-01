@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>The new best practice: a Bayesian δv/v measurement – codameter</title>
+<title>A Bayesian δv/v measurement – codameter</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -353,20 +353,24 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
-    <a class="dropdown-item" href="./theory-uq.html">
- <span class="dropdown-text">Inference UQ · Bayesian stress inversion</span></a>
-  </li>  
-        <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">Measurement UQ · error in δv/v</span></a>
+ <span class="dropdown-text">1 · Measurement · error in δv/v</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
- <span class="dropdown-text">Bayesian measurement · marginalise the choice</span></a>
+ <span class="dropdown-text">1 · Measurement · marginalise the choice</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">Processing → depth · sampling &amp; propagation</span></a>
+ <span class="dropdown-text">2 · Depth · kernels → δVs/Vs &amp; δρ/ρ</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-3-stress.html">
+ <span class="dropdown-text">3 · Stress &amp; attribution</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./theory-uq.html">
+ <span class="dropdown-text">Companion · inference UQ (stress inversion)</span></a>
   </li>  
     </ul>
   </li>
@@ -444,7 +448,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-uq.html">Theoretical contributions</a></li><li class="breadcrumb-item"><a href="./theory-bayesian-measurement.html">Bayesian measurement (marginalise the choice)</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-bayesian-measurement.html">1 · Measurement — marginalise the choice</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -484,7 +488,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Theoretical contributions</span></a>
+ <span class="menu-text">The uncertainty arc</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -492,26 +496,32 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./theory-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Inference UQ (stress from δv/v)</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Measurement UQ (error in δv/v)</span></a>
+ <span class="menu-text">1 · Measurement — error in δv/v</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-bayesian-measurement.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Bayesian measurement (marginalise the choice)</span></a>
+ <span class="menu-text">1 · Measurement — marginalise the choice</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Processing → depth (sampling &amp; propagation)</span></a>
+ <span class="menu-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Stress &amp; attribution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory-uq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Companion — inference UQ (stress inversion)</span></a>
   </div>
 </li>
       </ul>
@@ -552,7 +562,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./tutorial-05-interpretation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">5 · Interpretation — stress at depth</span></a>
+ <span class="menu-text">5 · Interpreting stress at depth</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -604,7 +614,7 @@ window.Quarto = {
   <ul>
   <li><a href="#the-model-choice-as-a-nuisance-parameter" id="toc-the-model-choice-as-a-nuisance-parameter" class="nav-link active" data-scroll-target="#the-model-choice-as-a-nuisance-parameter">1. The model: choice as a nuisance parameter</a></li>
   <li><a href="#run-it-on-a-truth-known-synthetic" id="toc-run-it-on-a-truth-known-synthetic" class="nav-link" data-scroll-target="#run-it-on-a-truth-known-synthetic">2. Run it on a truth-known synthetic</a></li>
-  <li><a href="#two-covariances-and-why-the-field-conflates-them" id="toc-two-covariances-and-why-the-field-conflates-them" class="nav-link" data-scroll-target="#two-covariances-and-why-the-field-conflates-them">3. Two covariances — and why the field conflates them</a></li>
+  <li><a href="#two-covariances-the-field-conflates" id="toc-two-covariances-the-field-conflates" class="nav-link" data-scroll-target="#two-covariances-the-field-conflates">3. Two covariances the field conflates</a></li>
   <li><a href="#closing-the-loop" id="toc-closing-the-loop" class="nav-link" data-scroll-target="#closing-the-loop">4. Closing the loop</a>
   <ul class="collapse">
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
@@ -616,9 +626,9 @@ window.Quarto = {
 <main class="content" id="quarto-document-content">
 
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-uq.html">Theoretical contributions</a></li><li class="breadcrumb-item"><a href="./theory-bayesian-measurement.html">Bayesian measurement (marginalise the choice)</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-bayesian-measurement.html">1 · Measurement — marginalise the choice</a></li></ol></nav>
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">The new best practice: a Bayesian δv/v measurement</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<div class="quarto-title-block"><div><h1 class="title">A Bayesian δv/v measurement</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 <p class="subtitle lead">Marginalising the processing choice into a time-dependent data covariance</p>
 </div>
 
@@ -687,8 +697,8 @@ effective sample size  N_eff   : 18 of 229 epochs</code></pre>
 </div>
 <p>The Weaver floor is rescaled upward (<span class="math inline">\(s&gt;1\)</span>): the coherence-limited formula, taken alone, <em>understates</em> the real scatter once the methodological spread is included.</p>
 </section>
-<section id="two-covariances-and-why-the-field-conflates-them" class="level2">
-<h2 class="anchored" data-anchor-id="two-covariances-and-why-the-field-conflates-them">3. Two covariances — and why the field conflates them</h2>
+<section id="two-covariances-the-field-conflates" class="level2">
+<h2 class="anchored" data-anchor-id="two-covariances-the-field-conflates">3. Two covariances the field conflates</h2>
 <div id="cell-fig-bayes" class="cell" data-execution_count="3">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1277,18 +1287,18 @@ D=\operatorname{diag}\big(\sigma_{\rm tot}(t)\big),\;\; R_{ij}=e^{-|t_i-t_j|/L},
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./theory-measurement-uq.html" class="pagination-link" aria-label="Measurement UQ (error in δv/v)">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Measurement UQ (error in δv/v)</span>
+      <a href="./theory-measurement-uq.html" class="pagination-link" aria-label="1 · Measurement — error in δv/v">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">1 · Measurement — error in δv/v</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./theory-processing-depth.html" class="pagination-link" aria-label="Processing → depth (sampling &amp; propagation)">
-        <span class="nav-page-text">Processing → depth (sampling &amp; propagation)</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./theory-processing-depth.html" class="pagination-link" aria-label="2 · Depth — kernels → δVs/Vs &amp; δρ/ρ">
+        <span class="nav-page-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "The new best practice: a Bayesian δv/v measurement"</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "A Bayesian δv/v measurement"</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Marginalising the processing choice into a time-dependent data covariance"</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> codameter-pixi</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
@@ -1360,7 +1370,7 @@ D=\operatorname{diag}\big(\sigma_{\rm tot}(t)\big),\;\; R_{ij}=e^{-|t_i-t_j|/L},
 <span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>The Weaver floor is rescaled upward ($s&gt;1$): the coherence-limited formula, taken</span>
 <span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>alone, *understates* the real scatter once the methodological spread is included.</span>
 <span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. Two covariances — and why the field conflates them</span></span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. Two covariances the field conflates</span></span>
 <span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-bayes</span></span>

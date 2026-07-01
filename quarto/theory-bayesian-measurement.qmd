@@ -1,5 +1,5 @@
 ---
-title: "The new best practice: a Bayesian δv/v measurement"
+title: "A Bayesian δv/v measurement"
 subtitle: "Marginalising the processing choice into a time-dependent data covariance"
 jupyter: codameter-pixi
 bibliography: references.bib
@@ -71,7 +71,7 @@ print(f"effective sample size  N_eff   : {res.n_eff:.0f} of {len(res.times_days)
 The Weaver floor is rescaled upward ($s>1$): the coherence-limited formula, taken
 alone, *understates* the real scatter once the methodological spread is included.
 
-## 3. Two covariances — and why the field conflates them
+## 3. Two covariances the field conflates
 
 ```{python}
 #| label: fig-bayes

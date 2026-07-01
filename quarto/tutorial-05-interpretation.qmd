@@ -1,5 +1,5 @@
 ---
-title: "5 · Interpretation — stress at depth"
+title: "5 · Interpreting stress at depth"
 subtitle: "Phase 6 — pushing the posterior through the bridge relation"
 jupyter: codameter-pixi
 

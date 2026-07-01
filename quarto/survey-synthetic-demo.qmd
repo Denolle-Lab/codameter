@@ -1,5 +1,5 @@
 ---
-title: "How processing choices move dv/v — a synthetic demonstration"
+title: "How processing choices move dv/v"
 subtitle: "Known truth in, choices applied, artefacts out"
 jupyter: codameter-pixi
 execute:
@@ -61,7 +61,7 @@ ax.legend(loc="upper right"); fig.tight_layout()
 
 ---
 
-## 1. Estimator choice — the full NoisePy / Yuan et al. (2021) suite
+## 1. The full NoisePy / Yuan et al. (2021) estimator suite
 
 NoisePy's `monitoring_methods` ships **seven** dv/v estimators, and we reproduce
 **all seven live** here: `stretching` (TS), `wcc_dvv` (windowed
@@ -94,7 +94,7 @@ sd.fig_methods();
 
 ---
 
-## 2. Aggregating cross-components — the same data, three answers
+## 2. Aggregating cross-components
 
 A single station pair carries several cross-component CCFs (ZZ, ZN, …), each a
 noisy view of the *same* $\delta v/v$. How you combine them is a workflow choice
@@ -148,7 +148,7 @@ sd.fig_uncertainty();
 
 ---
 
-## 4. Frequency band selects the depth — and the signal
+## 4. Frequency band selects the depth and the signal
 
 Give the medium **two layers**: a shallow one with a strong seasonal cycle and a
 deep one with a multi-year drought trend, each living in a different part of the
@@ -180,7 +180,7 @@ sd.fig_window_band();
 
 ---
 
-## 6. Stacking length — resolution vs noise
+## 6. Stacking length trades resolution against noise
 
 A coseismic **step** under a seasonal cycle. A 1-day CCF is noisy but captures
 the step's timing; a long trailing stack suppresses noise but **rounds off and
@@ -194,7 +194,7 @@ sd.fig_stacking();
 
 ---
 
-## 7. Reference strategy — total stack, moving, or joint inversion
+## 7. Reference strategy
 
 How you define the reference sets what survives. A **total-stack** reference is
 unbiased but noisy; a **moving** reference re-baselines continuously and so
