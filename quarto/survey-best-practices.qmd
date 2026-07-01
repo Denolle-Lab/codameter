@@ -33,13 +33,19 @@ of the repository.
 ::: {.callout-warning appearance="simple"}
 **Provenance.** The four measurement fields (frequency band, coda window,
 estimator, uncertainty treatment) were re-checked against the **full text** for
-the 82 studies we could read in full text (open access plus institutional access) — those rows are flagged
-`full text` in the table's `measurement_source` column, and an `n/r` there means
-the value is genuinely not stated in the paper. The remaining rows were populated
-from **abstracts only**, so their `n/r` means "not found in the abstract," not
-"not reported" — the value is very likely in the methods and simply not yet read.
-The coda-window and frequency-band gaps in the raw scan were therefore a
-lower bound on what the literature states, not a finding about the field.
+82 of the 103 studies (open access, plus AGU/Wiley titles read through a UW Wiley
+text-and-data-mining token). Those rows are flagged `full text` in the table's
+`measurement_source` column, and an `n/r` there means the value is genuinely not
+stated in the paper.
+
+The remaining rows carry `abstract scan` (19) or `abstract only (paywalled)` (2):
+these are the studies published **outside the Wiley token's coverage** (Elsevier,
+AAAS/*Science*, Springer, SEG/SSA, one EGU abstract), for which full text was not
+available here. Their fields come from the abstract, so an `n/r` means "not found
+in the abstract," not "not reported" — the value is very likely stated in the
+methods and awaits a **manual full-text check** (institutional VPN or a supplied
+PDF). Treat the coda-window and frequency-band gaps on these rows as a lower bound
+on what the literature reports, not a finding about the field.
 :::
 
 ---
