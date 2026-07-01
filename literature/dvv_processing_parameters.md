@@ -9,10 +9,10 @@ The machine-readable version with all columns is [dvv_processing_parameters.csv]
 | Volcano | 19 |
 | Earthquake/Fault | 25 |
 | Landslide | 13 |
-| Groundwater/Hydrology | 17 |
+| Groundwater/Hydrology | 18 |
 | Cryosphere | 6 |
 | Geothermal/Reservoir | 7 |
-| Methodology | 16 |
+| Methodology | 15 |
 | **Total (unique)** | **103** |
 
 ## Volcano
@@ -100,6 +100,7 @@ The machine-readable version with all columns is [dvv_processing_parameters.csv]
 | Hillers, Campillo & Ma, 2014 | TCDP borehole array, Chelungpu fault, Taiwan | Precipitation-driven groundwater / pore-pressure change (fluid discharge) | Ambient noise | n/r | n/r | n/r | Array | Near-surface to borehole depth | n/r | [DOI](https://doi.org/10.1016/j.epsl.2014.01.040) (paywall) |
 | Lecocq, Longuevergne, Pedersen, Brenguier & Stammler, 2017 | Gräfenberg Array (GRA1-4), SE Germany (karst limestone aquifer) | Groundwater storage at mesoscale; thermoelastic + hydrologic modeling over 30 yr | Ambient noise | 0.1-0.8 | 20-100 (and -20 to -100) | MWCS (Brenguier all-pairs) | Array | Near-surface to ~200 m | ~±0.01% over 30 years | [DOI](https://doi.org/10.1038/s41598-017-14468-9) (HTML) |
 | Nimiya, Ikeda & Tsuji, 2017 † | Kyushu Island, Japan (2016 Kumamoto region) | Stress/pore-pressure (coseismic; precipitation tested, minor here) | Ambient noise | 0.1-0.9 | 100 | stretching (+MWCS check) | Station pairs | ~0-10 km; lower freq = greater depth | ~0.3-0.4% near faults; ~0.7-0.8% at Aso volcano | [DOI](https://doi.org/10.1126/sciadv.1700813) (HTML) |
+| Wang, Brenguier, Campillo, Lecointre, Takeda & Aoki, 2017 † | Japan (nationwide; strongest in Kyushu/volcanic zones) | Thermoelastic strain + hydrology (pore-pressure diffusion / precipitation) | Ambient noise | 0.15-0.90 | -60 to +60 (doublet over coda) | doublet + Bayesian least-squares inversion (Brenguier 2014) | Array | Uppermost crust (first few km); pore-pressure diffusion in Kyushu | n/r (large seasonal in some regions) | [DOI](https://doi.org/10.1002/2017JB014307) (paywall) |
 | Clements & Denolle, 2018 | San Gabriel Valley, California, USA | Groundwater level / aquifer storage (drought-recharge cycles) | Ambient noise | 0.1-0.25 and 0.5-2.0 | 30 s (0.1-0.25 Hz), 10 s (0.5-2 Hz) | MWCS | Single-station cross-comp | Upper ~500 m near-surface | Order ~0.1% over drought-flood cycle | [DOI](https://doi.org/10.1029/2018GL077706) (preprint) |
 | Kim & Lekic, 2019 | Gulf Coast Aquifer, southern Texas (IU.HKT near Houston), USA | Groundwater (Gulf Coast Aquifer) | Both | n/r | n/r | Other | Single-station autocorr | Aquifer depth; yearly-scale response (weak daily precip correlation) | n/r | [DOI](https://doi.org/10.1029/2019GL084719) (paywall) |
 | Andajani, Tsuji, Snieder & Ikeda, 2020 | Chugoku & Shikoku, SW Japan (Hi-net) | Rainfall-induced crustal pore-pressure change (groundwater recharge) | Ambient noise | 0.1-0.9 | 100 | stretching | Station pairs | Tens of m to greater depth via diffusive pore pressure at low freq | n/r (seasonal; negative correlation with pore pressure) | [DOI](https://doi.org/10.1186/s40623-020-01311-1) (HTML) |
@@ -113,7 +114,7 @@ The machine-readable version with all columns is [dvv_processing_parameters.csv]
 | Zhang et al., 2023 | Central Oklahoma, USA | Terrestrial water storage / drought / groundwater (seasonal + multi-year) | Ambient noise | n/r | n/r | n/r | n/r | Near-surface; multi-year drought/recharge dominates | n/r | [DOI](https://doi.org/10.1029/2023GL103419) (paywall) |
 | Mao, Ellsworth, Zheng & Beroza, 2025 | Greater Los Angeles, California, USA | Groundwater drought recovery from 2023 atmospheric-river storms (depth-dependent) | Ambient noise | ~0.2-2.0 (multi-band, as Mao 2022) | Early coda ~15-50 | Other | Array | Resolves surface/near-surface vs aquifers below ~50 m | n/r (decadal trend; only ~25% of groundwater lost since 2006 recovered) | [DOI](https://doi.org/10.1126/science.adr6139) (paywall) |
 
-† Cross-application study: Sens-Schönfelder & Wegler, 2006 → also Earthquake/Fault; Methodology; Volcano; Nimiya, Ikeda & Tsuji, 2017 → also Volcano; Illien, Andermann, Sens-Schönfelder, et al., 2022 → also Earthquake/Fault; Clements & Denolle, 2023 → also Earthquake/Fault
+† Cross-application study: Sens-Schönfelder & Wegler, 2006 → also Earthquake/Fault; Methodology; Volcano; Nimiya, Ikeda & Tsuji, 2017 → also Volcano; Wang, Brenguier, Campillo, Lecointre, Takeda & Aoki, 2017 → also Earthquake/Fault; Methodology; Illien, Andermann, Sens-Schönfelder, et al., 2022 → also Earthquake/Fault; Clements & Denolle, 2023 → also Earthquake/Fault
 
 ## Cryosphere
 
@@ -155,14 +156,13 @@ The machine-readable version with all columns is [dvv_processing_parameters.csv]
 | Stehly, Froment, Campillo, Liu & Chen 2015 | Wenchuan Mw 7.9 region (test dataset) | Denoising correlations (curvelet filtering) to improve dv/v temporal resolution | Ambient noise | 0.33-1.0 (1-3 s) | (dist/1.8)+20 to 120 | stretching | station pairs / array | n/r | n/a | [DOI](https://doi.org/10.1093/gji/ggv110) (HTML) |
 | Daskalakis, Evangelidis, Garnier, Melis, Papanicolaou & Tsogka 2016 | synthetic + real noise | Robust dv/v estimation insensitive to noise-source seasonality (normalization) | Ambient noise | 0.1-1.0 (real); 0.15-0.65 (synthetic) | [15,35] and [-35,-15] | stretching (+MWCS compare) | station pairs | n/r | n/a | [DOI](https://doi.org/10.1093/gji/ggw142) (preprint) |
 | Obermann, Planès, Hadziioannou & Campillo 2016 | 3-D wavefield simulations | Lapse-time-dependent depth sensitivity kernels in 3-D | Both | n/r (numerical study) | 1 s overlapping windows | stretching | n/a | 3-D kernels: penetration depth increases with lapse time; quantitative surface/body-wave partition | n/a | [DOI](https://doi.org/10.1093/gji/ggw264) (HTML) |
-| Wang, Brenguier, Campillo, Lecointre, Takeda & Aoki 2017 † | Japan / Hi-net (test dataset) | Stacking strategy & reference choice for stable nationwide dv/v | Ambient noise | ~0.1-0.9 Hz (multi-band) | coda windows | MWCS | dense national network | frequency-band depth proxy (shallow crust) | seasonal ~0.1% | [DOI](https://doi.org/10.1002/2017JB014307) (HTML) |
 | Obermann & Hillers 2019 | review | Review: seismic time-lapse interferometry methods across scales | Both | scale-dependent | lapse-time/depth dependent | Other | single station to networks | depth proxy via frequency band & coda lapse time | n/a | [DOI](https://doi.org/10.1016/bs.agph.2019.06.001) (paywall) |
 | Jiang & Denolle 2020 | benchmark vs MSNoise | Software/workflow (NoisePy) high-performance ambient-noise processing | Ambient noise | user-defined | user-defined | Other | large-N networks | n/r | n/a | [DOI](https://doi.org/10.1785/0220190364) (paywall) |
 | Wang & Yao 2020 | review | Review of ambient-noise dv/v monitoring methods & perspective | Ambient noise | n/r (review) | n/r (review) | stretching, MWCS, DTW, WCS (review) | single station to networks | frequency-band depth sensitivity discussed | n/a | [DOI](https://doi.org/10.26464/epp2020048) (HTML) |
 | Yuan, Bryan & Denolle 2021 | 2-D heterogeneous half-space simulations | Benchmark comparison of dv/v measurement methods (time/freq/wavelet) | Both | varies (e.g. 0.5-2.2) | 45-75 (example) | WCC, TS, DTW, MWCS, WCS, WTS, WTDTW (7 compared) | n/a | n/r | n/a | [DOI](https://doi.org/10.1093/gji/ggab140) (HTML) |
 
-† Cross-application study: Clarke, Zaccarelli, Shapiro & Brenguier 2011 → also Volcano; Wang, Brenguier, Campillo, Lecointre, Takeda & Aoki 2017 → also Earthquake/Fault; Groundwater/Hydrology
+† Cross-application study: Clarke, Zaccarelli, Shapiro & Brenguier 2011 → also Volcano
 
 ---
 
-**Access formats:** HTML: 30, PDF: 6, paywall: 59, preprint: 8. Paywalled rows have more `n/r` cells because internal parameters could not be verified from the abstract alone.
+**Access formats:** HTML: 29, PDF: 6, paywall: 60, preprint: 8. Paywalled rows have more `n/r` cells because internal parameters could not be verified from the abstract alone.

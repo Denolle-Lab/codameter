@@ -316,18 +316,18 @@
     "region_site": "Japan / Hi-net (test dataset)",
     "signal_source": "Ambient noise",
     "components": "single-station cross-component & pairs",
-    "freq_band_hz": "~0.1-0.9 Hz (multi-band)",
-    "coda_window_s": "coda windows",
-    "dvv_method": "MWCS",
+    "freq_band_hz": "0.15-0.90",
+    "coda_window_s": "-60 to +60 (doublet over coda)",
+    "dvv_method": "doublet + Bayesian least-squares inversion (Brenguier 2014)",
     "stack_scheme": "compares stacking schemes; long reference stack for seasonal trends",
     "station_config": "dense national network",
     "depth_sensitivity": "frequency-band depth proxy (shallow crust)",
     "dvv_amplitude": "seasonal ~0.1%",
-    "uncertainty_treatment": "demonstrates reference-stack and stacking-length choice control the apparent long-term trend and seasonal amplitude",
+    "uncertainty_treatment": "Bayesian least-squares inversion; error bars from inversion",
     "best_practice_note": "Reference-stack and stacking-window choice bias the recovered seasonal/long-term dv/v; use a long, representative reference and consistent stacking to compare across stations/regions",
     "doi_url": "https://doi.org/10.1002/2017JB014307",
     "open_access_format": "HTML",
-    "measurement_source": "abstract only (paywalled)"
+    "measurement_source": "full text (this work, 2026)"
   },
   {
     "key": "obermannhillers2019",

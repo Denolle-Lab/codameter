@@ -52,18 +52,18 @@
     "region_site": "Japan (nationwide; strongest in Kyushu/volcanic zones)",
     "signal_source": "Ambient noise",
     "components": "Z-component cross-correlations (Hi-net)",
-    "freq_band_hz": "n/r",
-    "coda_window_s": "n/r",
-    "dvv_method": "Stretching",
+    "freq_band_hz": "0.15-0.90",
+    "coda_window_s": "-60 to +60 (doublet over coda)",
+    "dvv_method": "doublet + Bayesian least-squares inversion (Brenguier 2014)",
     "stack_scheme": "Daily CCFs; ~1-yr reference, moving-window current stack",
     "station_config": "Array",
     "depth_sensitivity": "Uppermost crust (first few km); pore-pressure diffusion in Kyushu",
     "dvv_amplitude": "n/r (large seasonal in some regions)",
-    "uncertainty_treatment": "n/r",
+    "uncertainty_treatment": "Bayesian least-squares inversion; error bars from inversion",
     "best_practice_note": "Decomposes seasonal dv/v into thermoelastic vs delayed pore-pressure diffusion; dv/v min aligns with July rain max in Kyushu",
     "doi_url": "https://doi.org/10.1002/2017JB014307",
     "open_access_format": "paywall",
-    "measurement_source": "abstract only (paywalled)"
+    "measurement_source": "full text (this work, 2026)"
   },
   {
     "key": "lecocq_2017_grafenberg",

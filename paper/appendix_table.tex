@@ -79,6 +79,7 @@
 \citet{Hillers2014} & TCDP borehole array, Chelungpu fault, Taiwan & n/r & n/r & n/r & n/r & n/r \\
 \citet{Lecocq2017} & Gräfenberg Array (GRA1-4), SE Germany (karst limestone aquifer) & 0.1-0.8 & 20-100 (and -20 to -100) & MWCS (Brenguier all-pairs) & Daily CCFs, 31-day rolling window & LSQ slope error as inverse-variance weight; bootstrap \\
 \citet{Nimiya2017} & Kyushu Island, Japan (2016 Kumamoto region) & 0.1-0.9 & 100 & stretching (+MWCS check) & Daily CCFs from 30-min segments; 1-yr reference, 30-day moving stack & SD over six 50-s subwindows \\
+\citet{Wang2017} & Japan (nationwide; strongest in Kyushu/volcanic zones) & 0.15-0.90 & -60 to +60 (doublet over coda) & doublet + Bayesian least-squares inversion (Brenguier 2014) & Daily CCFs; \textasciitilde{}1-yr reference, moving-window current stack & Bayesian least-squares inversion; error bars from inversion \\
 \citet{Clements2018} & San Gabriel Valley, California, USA & 0.1-0.25 and 0.5-2.0 & 30 s (0.1-0.25 Hz), 10 s (0.5-2 Hz) & MWCS & Daily stacks vs reference & none (QC only: dt<=0.2 s, coh>=0.5) \\
 \citet{Kim2019} & Gulf Coast Aquifer, southern Texas (IU.HKT near Houston), USA & n/r & n/r & Other & Multi-year (\textasciitilde{}20 yr) record; yearly-scale comparisons & n/r \\
 \citet{Andajani2020} & Chugoku \& Shikoku, SW Japan (Hi-net) & 0.1-0.9 & 100 & stretching & n/r & stretching CC as quality indicator (no error bars) \\
@@ -115,7 +116,6 @@
 \citet{Stehly2015} & Wenchuan Mw 7.9 region (test dataset) & 0.33-1.0 (1-3 s) & (dist/1.8)+20 to 120 & stretching & daily correlations curvelet-filtered before stacking & Weaver et al. (2011) rms formula \\
 \citet{Daskalakis2016} & synthetic + real noise & 0.1-1.0 (real); 0.15-0.65 (synthetic) & [15,35] and [-35,-15] & stretching (+MWCS compare) & normalized cross-correlation functions & CC>0.7 rejection; \textasciitilde{}+-0.1\% significance \\
 \citet{Obermann2016} & 3-D wavefield simulations & n/r (numerical study) & 1 s overlapping windows & stretching & n/a & SD over 20 receivers \\
-\citet{Wang2017} & Japan / Hi-net (test dataset) & \textasciitilde{}0.1-0.9 Hz (multi-band) & coda windows & MWCS & compares stacking schemes; long reference stack for seasonal trends & demonstrates reference-stack and stacking-length choice control the apparent long-term t… \\
 \citet{Obermann2019} & review & scale-dependent & lapse-time/depth dependent & Other & reference and moving-stack strategies reviewed & synthesizes error sources: noise-source variability, processing choices, sensitivity ker… \\
 \citet{Jiang2020} & benchmark vs MSNoise & user-defined & user-defined & Other & linear/PWS/robust stacking; reference + moving stacks & offers multiple dv/v estimators so users can cross-check; parallel/HDF5 reproducible pip… \\
 \citet{Wang2020} & review & n/r (review) & n/r (review) & stretching, MWCS, DTW, WCS (review) & reference and stacking strategies reviewed & Bayesian least-squares / MCMC (review) \\

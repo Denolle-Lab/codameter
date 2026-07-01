@@ -184,18 +184,18 @@
     "region_site": "Japan nationwide (718 Hi-net stations); notably Kyushu and Hokkaido",
     "signal_source": "Ambient noise",
     "components": "n/r",
-    "freq_band_hz": "n/r",
-    "coda_window_s": "n/r",
-    "dvv_method": "Stretching",
+    "freq_band_hz": "0.15-0.90",
+    "coda_window_s": "-60 to +60 (doublet over coda)",
+    "dvv_method": "doublet + Bayesian least-squares inversion (Brenguier 2014)",
     "stack_scheme": "n/r",
     "station_config": "Single-station autocorr",
     "depth_sensitivity": "Upper crust",
     "dvv_amplitude": "Seasonal dv/v ~0.01% (~1e-4) for Kyushu and NE Hokkaido",
-    "uncertainty_treatment": "n/r",
+    "uncertainty_treatment": "Bayesian least-squares inversion; error bars from inversion",
     "best_practice_note": "Continental-scale single-station monitoring linking seasonal dv/v to environmental loads (rainfall/pore pressure, snow, sea level)",
     "doi_url": "https://doi.org/10.1002/2017JB014307",
     "open_access_format": "paywall",
-    "measurement_source": "abstract only (paywalled)"
+    "measurement_source": "full text (this work, 2026)"
   },
   {
     "key": "nakata2011",
