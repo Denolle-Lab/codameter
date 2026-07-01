@@ -632,8 +632,18 @@ window.Quarto = {
 </div>
 <p>This survey backs the measurement-design scoring in <a href="https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/uq_measurement.py"><code>codameter</code>’s <code>uq_measurement</code> module</a>: the parameters tabulated here are exactly the knobs scored there. Full citations with DOIs are on the <a href="./survey-references.html">references page</a>; the complete per-study parameter table (CSV + Markdown, one row per paper) lives in the <a href="https://github.com/Denolle-Lab/codameter/tree/master/literature"><code>literature/</code> folder</a> of the repository.</p>
 <blockquote class="blockquote">
-<p>Citations below are short keys (Author Year); resolve them on the <a href="./survey-references.html">references page</a>. <code>n/r</code> in the per-study table means the value was <strong>not reported</strong> in the source — it was never guessed.</p>
+<p>Citations below are short keys (Author Year); resolve them on the <a href="./survey-references.html">references page</a>. <code>n/r</code> in the per-study table means a value was <strong>not found in the source as scanned</strong> — it was never guessed.</p>
 </blockquote>
+<div class="callout callout-style-simple callout-warning">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Provenance.</strong> The four measurement fields (frequency band, coda window, estimator, uncertainty treatment) were re-checked against the <strong>full text</strong> for the 40 open-access studies reachable to us — those rows are flagged <code>full text</code> in the table’s <code>measurement_source</code> column, and an <code>n/r</code> there means the value is genuinely not stated in the paper. The remaining rows were populated from <strong>abstracts only</strong>, so their <code>n/r</code> means “not found in the abstract,” not “not reported” — the value is very likely in the methods and simply not yet read. The coda-window and frequency-band gaps in the raw scan were therefore a lower bound on what the literature states, not a finding about the field.</p>
+</div>
+</div>
+</div>
 <hr>
 <section id="cross-cutting-methodology-rules" class="level2">
 <h2 class="anchored" data-anchor-id="cross-cutting-methodology-rules">Cross-cutting methodology rules</h2>
@@ -1444,151 +1454,163 @@ window.Quarto = {
 <span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>of the repository.</span>
 <span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Citations below are short keys (Author Year); resolve them on the</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="co">[</span><span class="ot">references page</span><span class="co">](survey-references.qmd)</span><span class="at">. </span><span class="in">`n/r`</span><span class="at"> in the per-study table means the</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; value was **not reported** in the source — it was never guessed.</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="co">[</span><span class="ot">references page</span><span class="co">](survey-references.qmd)</span><span class="at">. </span><span class="in">`n/r`</span><span class="at"> in the per-study table means a</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; value was **not found in the source as scanned** — it was never guessed.</span></span>
 <span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cross-cutting methodology rules</span></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>These hold across all applications (sources: Snieder 2002; Sens-Schönfelder &amp;</span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>Wegler 2006; Bensen 2007; Hadziioannou 2009/2011; Clarke 2011; Weaver 2011;</span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>Obermann 2013/2016; Zhan 2013; Lecocq 2014; Mikesell 2015; Stehly 2015;</span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>Daskalakis 2016; Wang 2017; Obermann &amp; Hillers 2019; Jiang &amp; Denolle 2020;</span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>Wang &amp; Yao 2020; Yuan 2021).</span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Coda time shift equals −dv/v for a homogeneous change, and sensitivity grows</span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>   with lapse time** (<span class="in">`dt = −t·dv/v`</span>). Later coda amplifies tiny velocity changes</span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>   — the physical basis for using coda over direct waves (Snieder 2002; Obermann 2013).</span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**A fully reconstructed Green's function is NOT required — temporally stable</span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>   noise sources are.** Partial GF retrieval is acceptable provided the noise-source</span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>   distribution and correlation waveforms are stable in time (Hadziioannou 2009).</span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Use the canonical 4-phase preprocessing:** time-domain normalization (one-bit or</span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>   running-mean) + spectral whitening → correlate → stack → SNR-based QC</span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>   (Bensen 2007), as implemented in MSNoise (Lecocq 2014) and NoisePy (Jiang &amp; Denolle 2020).</span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Stretching is more robust than MWCS/cross-spectral methods at low SNR and for</span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>   uniform changes; cross-spectral methods cycle-skip at large dv/v.** DTW and</span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>   wavelet methods help at low SNR / large perturbations (Mikesell 2015; Yuan 2021;</span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>   Mao 2020).</span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Quantify dv/v uncertainty explicitly:** coherence-weighted per-window phase errors</span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>   for MWCS (Clarke 2011); the analytic RMS formula based on coherence loss, bandwidth,</span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>   and coda-window length for stretching (Weaver 2011). SNR is a usable quality proxy.</span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>**Depth is set by frequency band and coda lapse time — not assumed.** Early coda /</span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>   higher frequency → shallow surface-wave sensitivity; later coda → deeper body-wave</span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>   sensitivity. Select band and window for the target depth using lapse-time-dependent</span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>   3-D kernels (Obermann 2013, 2016).</span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>**Reference-stack choice and stacking-window length bias the long-term trend and</span>
-<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>   seasonal amplitude.** Use a long, representative reference and a consistent stacking</span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>   scheme for cross-station comparability (Wang 2017).</span>
-<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a><span class="ss">8. </span>**Beware spurious dv/v from non-stationary noise.** Temporal changes in the</span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>   noise-source spectrum (Zhan 2013) and seasonal source fluctuations (Daskalakis 2016)</span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>   create apparent velocity changes; verify spectral stationarity, restrict to stable</span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>   bands, and normalize the CCFs.</span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="ss">9. </span>**Boost temporal resolution via denoising/clustering, not just longer stacks:**</span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>   curvelet denoising (Stehly 2015) and waveform clustering by noise-source condition</span>
-<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>   (Hadziioannou 2011) reach daily resolution from short stacks.</span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="ss">10. </span>**Cross-check with multiple estimators and reproducible, parameter-transparent</span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>    software** (MSNoise, NoisePy); each method has distinct failure modes (Obermann &amp; Hillers 2019).</span>
-<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="fu">## Volcano</span></span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
-<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> ~0.1–2 Hz (deep/edifice) up to 1–4 Hz, &gt;5 Hz for coda <span class="pp">|</span> Multi-band stacking is the emerging standard for depth discrimination (Feng 2020; Donaldson 2019; Takano 2017). <span class="pp">|</span></span>
-<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~5–120 s <span class="pp">|</span> Short (5–35 s) for near-field single-station; up to ~100–120 s for station pairs (min lag set by inter-station distance). <span class="pp">|</span></span>
-<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching (default); MWCS for error bars; wavelet for environmental separation <span class="pp">|</span> CWI of repeating earthquakes when noise unstable during crises (Hotovec-Ellis). <span class="pp">|</span></span>
-<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Pairs/arrays where dense; single-station (cross-comp &gt; autocorr) for sparse networks <span class="pp">|</span> Single-station survives when only one station remains during an eruption (De Plaen). <span class="pp">|</span></span>
-<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> Shallow, upper ~0.3–3 km; occasionally mid-crustal magma (~3–10 km) <span class="pp">|</span> dv/v dominated by compliant, crack-rich shallow edifice. <span class="pp">|</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>::: {.callout-warning appearance="simple"}</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>**Provenance.** The four measurement fields (frequency band, coda window,</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>estimator, uncertainty treatment) were re-checked against the **full text** for</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>the 40 open-access studies reachable to us — those rows are flagged</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="in">`full text`</span> in the table's <span class="in">`measurement_source`</span> column, and an <span class="in">`n/r`</span> there means</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>the value is genuinely not stated in the paper. The remaining rows were populated</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>from **abstracts only**, so their <span class="in">`n/r`</span> means "not found in the abstract," not</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>"not reported" — the value is very likely in the methods and simply not yet read.</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>The coda-window and frequency-band gaps in the raw scan were therefore a</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>lower bound on what the literature states, not a finding about the field.</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cross-cutting methodology rules</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>These hold across all applications (sources: Snieder 2002; Sens-Schönfelder &amp;</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>Wegler 2006; Bensen 2007; Hadziioannou 2009/2011; Clarke 2011; Weaver 2011;</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>Obermann 2013/2016; Zhan 2013; Lecocq 2014; Mikesell 2015; Stehly 2015;</span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>Daskalakis 2016; Wang 2017; Obermann &amp; Hillers 2019; Jiang &amp; Denolle 2020;</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>Wang &amp; Yao 2020; Yuan 2021).</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Coda time shift equals −dv/v for a homogeneous change, and sensitivity grows</span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>   with lapse time** (<span class="in">`dt = −t·dv/v`</span>). Later coda amplifies tiny velocity changes</span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>   — the physical basis for using coda over direct waves (Snieder 2002; Obermann 2013).</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**A fully reconstructed Green's function is NOT required — temporally stable</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>   noise sources are.** Partial GF retrieval is acceptable provided the noise-source</span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>   distribution and correlation waveforms are stable in time (Hadziioannou 2009).</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Use the canonical 4-phase preprocessing:** time-domain normalization (one-bit or</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>   running-mean) + spectral whitening → correlate → stack → SNR-based QC</span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>   (Bensen 2007), as implemented in MSNoise (Lecocq 2014) and NoisePy (Jiang &amp; Denolle 2020).</span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Stretching is more robust than MWCS/cross-spectral methods at low SNR and for</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>   uniform changes; cross-spectral methods cycle-skip at large dv/v.** DTW and</span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>   wavelet methods help at low SNR / large perturbations (Mikesell 2015; Yuan 2021;</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>   Mao 2020).</span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Quantify dv/v uncertainty explicitly:** coherence-weighted per-window phase errors</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>   for MWCS (Clarke 2011); the analytic RMS formula based on coherence loss, bandwidth,</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>   and coda-window length for stretching (Weaver 2011). SNR is a usable quality proxy.</span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>**Depth is set by frequency band and coda lapse time — not assumed.** Early coda /</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>   higher frequency → shallow surface-wave sensitivity; later coda → deeper body-wave</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>   sensitivity. Select band and window for the target depth using lapse-time-dependent</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>   3-D kernels (Obermann 2013, 2016).</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>**Reference-stack choice and stacking-window length bias the long-term trend and</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>   seasonal amplitude.** Use a long, representative reference and a consistent stacking</span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a>   scheme for cross-station comparability (Wang 2017).</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="ss">8. </span>**Beware spurious dv/v from non-stationary noise.** Temporal changes in the</span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>   noise-source spectrum (Zhan 2013) and seasonal source fluctuations (Daskalakis 2016)</span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>   create apparent velocity changes; verify spectral stationarity, restrict to stable</span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>   bands, and normalize the CCFs.</span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="ss">9. </span>**Boost temporal resolution via denoising/clustering, not just longer stacks:**</span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a>   curvelet denoising (Stehly 2015) and waveform clustering by noise-source condition</span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>   (Hadziioannou 2011) reach daily resolution from short stacks.</span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="ss">10. </span>**Cross-check with multiple estimators and reproducible, parameter-transparent</span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>    software** (MSNoise, NoisePy); each method has distinct failure modes (Obermann &amp; Hillers 2019).</span>
 <span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>**Key rule:** environmental (rainfall) correction is necessary — hydrological dv/v is</span>
-<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>comparable in amplitude to the pre-eruptive signal (Rivet 2015).</span>
-<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="fu">## Earthquake / Fault</span></span>
-<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
-<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
-<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> 0.1–2 Hz (crustal); 0.06–0.9 Hz for mid/deep crust; 4–12 Hz for shallow damage <span class="pp">|</span> Band selects the depth probed. <span class="pp">|</span></span>
-<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~5–30 s (crustal noise); ~3 s for high-freq aftershock autocorrelations <span class="pp">|</span> Later coda → deeper/larger volume but lower SNR. <span class="pp">|</span></span>
-<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching (tolerates coseismic waveform change); MWCS / wavelet for frequency-resolved precision <span class="pp">|</span> Wavelet handles cycle-skipping at large dv/v (Mao 2020; Sheng 2022). <span class="pp">|</span></span>
-<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Single-station autocorr for dense mapping; pairs/arrays for deep &amp; slow-slip <span class="pp">|</span> Autocorr maximizes coverage; pairs give long-period sensitivity. <span class="pp">|</span></span>
-<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> Coseismic damage shallow (top ~100 m–few km); deep change needs long-period / tiltmeters <span class="pp">|</span> Strong-motion softening saturates near surface (Rubinstein &amp; Beroza; Nakata; Sawazaki). <span class="pp">|</span></span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a><span class="fu">## Volcano</span></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> ~0.1–2 Hz (deep/edifice) up to 1–4 Hz, &gt;5 Hz for coda <span class="pp">|</span> Multi-band stacking is the emerging standard for depth discrimination (Feng 2020; Donaldson 2019; Takano 2017). <span class="pp">|</span></span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~5–120 s <span class="pp">|</span> Short (5–35 s) for near-field single-station; up to ~100–120 s for station pairs (min lag set by inter-station distance). <span class="pp">|</span></span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching (default); MWCS for error bars; wavelet for environmental separation <span class="pp">|</span> CWI of repeating earthquakes when noise unstable during crises (Hotovec-Ellis). <span class="pp">|</span></span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Pairs/arrays where dense; single-station (cross-comp &gt; autocorr) for sparse networks <span class="pp">|</span> Single-station survives when only one station remains during an eruption (De Plaen). <span class="pp">|</span></span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> Shallow, upper ~0.3–3 km; occasionally mid-crustal magma (~3–10 km) <span class="pp">|</span> dv/v dominated by compliant, crack-rich shallow edifice. <span class="pp">|</span></span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a>**Key rule:** environmental (rainfall) correction is necessary — hydrological dv/v is</span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a>comparable in amplitude to the pre-eruptive signal (Rivet 2015).</span>
 <span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a>**Key rule:** coseismic velocity reductions are dominantly a shallow (top ~100 m)</span>
-<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a>nonlinear site effect — separate near-surface from genuine fault-zone change before</span>
-<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a>interpreting (Rubinstein &amp; Beroza 2005).</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a><span class="fu">## Earthquake / Fault</span></span>
 <span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a><span class="fu">## Landslide</span></span>
-<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
-<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
-<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> ~2–20 Hz (clayey precursors cluster 4–12 Hz) <span class="pp">|</span> Far higher than volcano/tectonic — shallow bodies. <span class="pp">|</span></span>
-<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~0.05–2 s <span class="pp">|</span> Inter-sensor distances of tens of m; usable coda arrives within ~1–2 s. <span class="pp">|</span></span>
-<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching dominates; SPAC / MASW-interferometry for structure <span class="pp">|</span> MWCS comparatively rare. <span class="pp">|</span></span>
-<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Short-distance pairs for a single failure plane; dense / borehole arrays for 4-D imaging &amp; early warning <span class="pp">|</span> Liu 2025 (28-stn array); Whiteley 2026 (10-stn array); de Wit 2026 (borehole). <span class="pp">|</span></span>
-<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> Very shallow, top few m to ~40 m <span class="pp">|</span> Failure surfaces and pore-pressure changes are near-surface. <span class="pp">|</span></span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
+<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> 0.1–2 Hz (crustal); 0.06–0.9 Hz for mid/deep crust; 4–12 Hz for shallow damage <span class="pp">|</span> Band selects the depth probed. <span class="pp">|</span></span>
+<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~5–30 s (crustal noise); ~3 s for high-freq aftershock autocorrelations <span class="pp">|</span> Later coda → deeper/larger volume but lower SNR. <span class="pp">|</span></span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching (tolerates coseismic waveform change); MWCS / wavelet for frequency-resolved precision <span class="pp">|</span> Wavelet handles cycle-skipping at large dv/v (Mao 2020; Sheng 2022). <span class="pp">|</span></span>
+<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Single-station autocorr for dense mapping; pairs/arrays for deep &amp; slow-slip <span class="pp">|</span> Autocorr maximizes coverage; pairs give long-period sensitivity. <span class="pp">|</span></span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> Coseismic damage shallow (top ~100 m–few km); deep change needs long-period / tiltmeters <span class="pp">|</span> Strong-motion softening saturates near surface (Rubinstein &amp; Beroza; Nakata; Sawazaki). <span class="pp">|</span></span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a>**Key rule:** coseismic velocity reductions are dominantly a shallow (top ~100 m)</span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a>nonlinear site effect — separate near-surface from genuine fault-zone change before</span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a>interpreting (Rubinstein &amp; Beroza 2005).</span>
 <span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a>**Differs from volcano/tectonic:** higher frequencies, shallower depth, sub-second coda,</span>
-<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a>denser/closer geometry, larger dv/v (several % to ±10 %), and rainfall/freeze-thaw</span>
-<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a>forcings with multi-day lags that must be removed before precursor detection.</span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a><span class="fu">## Landslide</span></span>
 <span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a><span class="fu">## Groundwater / Hydrology</span></span>
-<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
-<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
-<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> ~2–4 Hz (shallow aquifer); ~0.1–2 Hz multi-band for deep/depth-resolved <span class="pp">|</span> Lower frequency → greater depth. <span class="pp">|</span></span>
-<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~2–8 s (single-station autocorr); ~15–100 s (coda-wave) <span class="pp">|</span> Low-coherence early lags discarded. <span class="pp">|</span></span>
-<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching (default); MWCS (Gräfenberg); multi-band coda inversion for depth <span class="pp">|</span> Mao 2022/2025; Fokker 2023. <span class="pp">|</span></span>
-<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Single-station autocorr/cross-comp for cheap dense aquifer monitoring; arrays for depth/spatial resolution <span class="pp">|</span> — <span class="pp">|</span></span>
-<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> Upper ~50–500 m (high-freq) to ~200–700 m (low-freq multi-band) <span class="pp">|</span> Enables explicit shallow-vs-deep-aquifer separation. <span class="pp">|</span></span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> ~2–20 Hz (clayey precursors cluster 4–12 Hz) <span class="pp">|</span> Far higher than volcano/tectonic — shallow bodies. <span class="pp">|</span></span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~0.05–2 s <span class="pp">|</span> Inter-sensor distances of tens of m; usable coda arrives within ~1–2 s. <span class="pp">|</span></span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching dominates; SPAC / MASW-interferometry for structure <span class="pp">|</span> MWCS comparatively rare. <span class="pp">|</span></span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Short-distance pairs for a single failure plane; dense / borehole arrays for 4-D imaging &amp; early warning <span class="pp">|</span> Liu 2025 (28-stn array); Whiteley 2026 (10-stn array); de Wit 2026 (borehole). <span class="pp">|</span></span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> Very shallow, top few m to ~40 m <span class="pp">|</span> Failure surfaces and pore-pressure changes are near-surface. <span class="pp">|</span></span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>**Differs from volcano/tectonic:** higher frequencies, shallower depth, sub-second coda,</span>
+<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a>denser/closer geometry, larger dv/v (several % to ±10 %), and rainfall/freeze-thaw</span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a>forcings with multi-day lags that must be removed before precursor detection.</span>
 <span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a>**Separating hydrologic from thermoelastic/tidal:** fit/remove a thermoelastic component</span>
-<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a>(Tsai 2011 framework) and model the hydrologic part as drained-poroelastic precipitation /</span>
-<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a>pore-pressure diffusion. Diagnostic = seasonal phase lag (thermoelastic lags temperature;</span>
-<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a>hydrologic lags/anticorrelates with precipitation &amp; groundwater level); multi-year trends →</span>
-<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a>net groundwater storage change (Clements &amp; Denolle 2018/2023; Wang 2017).</span>
-<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cryosphere (permafrost, glaciers, freeze-thaw)</span></span>
-<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
-<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
-<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> ~1.5–30 Hz (active layer / rock glacier 4–14 Hz); lower for ice sheets <span class="pp">|</span> Targets shallow few meters. <span class="pp">|</span></span>
-<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~0.3–0.8 s for shallow high-freq arrays <span class="pp">|</span> — <span class="pp">|</span></span>
-<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching; spectral-resonance/modal as complement <span class="pp">|</span> Guillemot 2021. <span class="pp">|</span></span>
-<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Pairs; single-station autocorr at sparse permafrost/polar sites; dense arrays <span class="pp">|</span> Lindner 2021 (single 3-comp); Luo 2023 (polar autocorr). <span class="pp">|</span></span>
-<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> ~0–10 m (active layer / firn) <span class="pp">|</span> Large seasonal swings (e.g. +3 % to −8 %, James 2019). <span class="pp">|</span></span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a><span class="fu">## Groundwater / Hydrology</span></span>
+<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
+<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> ~2–4 Hz (shallow aquifer); ~0.1–2 Hz multi-band for deep/depth-resolved <span class="pp">|</span> Lower frequency → greater depth. <span class="pp">|</span></span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~2–8 s (single-station autocorr); ~15–100 s (coda-wave) <span class="pp">|</span> Low-coherence early lags discarded. <span class="pp">|</span></span>
+<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching (default); MWCS (Gräfenberg); multi-band coda inversion for depth <span class="pp">|</span> Mao 2022/2025; Fokker 2023. <span class="pp">|</span></span>
+<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Single-station autocorr/cross-comp for cheap dense aquifer monitoring; arrays for depth/spatial resolution <span class="pp">|</span> — <span class="pp">|</span></span>
+<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> Upper ~50–500 m (high-freq) to ~200–700 m (low-freq multi-band) <span class="pp">|</span> Enables explicit shallow-vs-deep-aquifer separation. <span class="pp">|</span></span>
+<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a>**Separating hydrologic from thermoelastic/tidal:** fit/remove a thermoelastic component</span>
+<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a>(Tsai 2011 framework) and model the hydrologic part as drained-poroelastic precipitation /</span>
+<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a>pore-pressure diffusion. Diagnostic = seasonal phase lag (thermoelastic lags temperature;</span>
+<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a>hydrologic lags/anticorrelates with precipitation &amp; groundwater level); multi-year trends →</span>
+<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a>net groundwater storage change (Clements &amp; Denolle 2018/2023; Wang 2017).</span>
 <span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a><span class="fu">## Geothermal / Reservoir / CO2 / mining</span></span>
+<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cryosphere (permafrost, glaciers, freeze-thaw)</span></span>
 <span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
 <span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
-<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> ~0.25–3.5 Hz (mining as low as 0.6–1.2 Hz) <span class="pp">|</span> Lower band for depth penetration to reservoir. <span class="pp">|</span></span>
-<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~20 s coda windows for km-scale reservoirs <span class="pp">|</span> Tie window to depth-sensitivity (lapse-time) analysis. <span class="pp">|</span></span>
-<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching; MWCS for larger borehole arrays (Salton Sea) <span class="pp">|</span> — <span class="pp">|</span></span>
-<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Pairs for reservoir localization; dense arrays for tailings dams / mine slopes <span class="pp">|</span> — <span class="pp">|</span></span>
-<span id="cb1-163"><a href="#cb1-163" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> Hundreds of m to a few km; coda-wave kernels attribute location <span class="pp">|</span> Caveat: surface arrays at CO2 sites (Ketzin) sense the shallow subsurface, not the deep plume (Gassenmeier 2015). <span class="pp">|</span></span>
+<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> ~1.5–30 Hz (active layer / rock glacier 4–14 Hz); lower for ice sheets <span class="pp">|</span> Targets shallow few meters. <span class="pp">|</span></span>
+<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~0.3–0.8 s for shallow high-freq arrays <span class="pp">|</span> — <span class="pp">|</span></span>
+<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching; spectral-resonance/modal as complement <span class="pp">|</span> Guillemot 2021. <span class="pp">|</span></span>
+<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Pairs; single-station autocorr at sparse permafrost/polar sites; dense arrays <span class="pp">|</span> Lindner 2021 (single 3-comp); Luo 2023 (polar autocorr). <span class="pp">|</span></span>
+<span id="cb1-163"><a href="#cb1-163" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> ~0–10 m (active layer / firn) <span class="pp">|</span> Large seasonal swings (e.g. +3 % to −8 %, James 2019). <span class="pp">|</span></span>
 <span id="cb1-164"><a href="#cb1-164" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a>**Key rule:** ambient noise can reveal aseismic reservoir response invisible to standard</span>
-<span id="cb1-166"><a href="#cb1-166" aria-hidden="true" tabindex="-1"></a>microseismic monitoring (Obermann 2015; Hillers 2015).</span>
-<span id="cb1-167"><a href="#cb1-167" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-168"><a href="#cb1-168" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-169"><a href="#cb1-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-170"><a href="#cb1-170" aria-hidden="true" tabindex="-1"></a>*Survey compiled from a structured scan of the published literature (2026). Scope is</span>
-<span id="cb1-171"><a href="#cb1-171" aria-hidden="true" tabindex="-1"></a>**dv/v passive monitoring only**; fluvial seismology and landslide detection (power-spectral</span>
-<span id="cb1-172"><a href="#cb1-172" aria-hidden="true" tabindex="-1"></a>methods) are out of scope. See the <span class="co">[</span><span class="ot">references page</span><span class="co">](survey-references.qmd)</span> for full</span>
-<span id="cb1-173"><a href="#cb1-173" aria-hidden="true" tabindex="-1"></a>citations and the repository <span class="co">[</span><span class="ot">`literature/`</span><span class="co">](https://github.com/Denolle-Lab/codameter/tree/master/literature)</span></span>
-<span id="cb1-174"><a href="#cb1-174" aria-hidden="true" tabindex="-1"></a>folder for the machine-readable table and provenance.*</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-166"><a href="#cb1-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-167"><a href="#cb1-167" aria-hidden="true" tabindex="-1"></a><span class="fu">## Geothermal / Reservoir / CO2 / mining</span></span>
+<span id="cb1-168"><a href="#cb1-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-169"><a href="#cb1-169" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Typical / recommended <span class="pp">|</span> Notes <span class="pp">|</span></span>
+<span id="cb1-170"><a href="#cb1-170" aria-hidden="true" tabindex="-1"></a><span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">| ---</span> <span class="pp">|</span></span>
+<span id="cb1-171"><a href="#cb1-171" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency band <span class="pp">|</span> ~0.25–3.5 Hz (mining as low as 0.6–1.2 Hz) <span class="pp">|</span> Lower band for depth penetration to reservoir. <span class="pp">|</span></span>
+<span id="cb1-172"><a href="#cb1-172" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Coda / lapse window <span class="pp">|</span> ~20 s coda windows for km-scale reservoirs <span class="pp">|</span> Tie window to depth-sensitivity (lapse-time) analysis. <span class="pp">|</span></span>
+<span id="cb1-173"><a href="#cb1-173" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> dv/v method <span class="pp">|</span> Stretching; MWCS for larger borehole arrays (Salton Sea) <span class="pp">|</span> — <span class="pp">|</span></span>
+<span id="cb1-174"><a href="#cb1-174" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Station config <span class="pp">|</span> Pairs for reservoir localization; dense arrays for tailings dams / mine slopes <span class="pp">|</span> — <span class="pp">|</span></span>
+<span id="cb1-175"><a href="#cb1-175" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth sensitivity <span class="pp">|</span> Hundreds of m to a few km; coda-wave kernels attribute location <span class="pp">|</span> Caveat: surface arrays at CO2 sites (Ketzin) sense the shallow subsurface, not the deep plume (Gassenmeier 2015). <span class="pp">|</span></span>
+<span id="cb1-176"><a href="#cb1-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-177"><a href="#cb1-177" aria-hidden="true" tabindex="-1"></a>**Key rule:** ambient noise can reveal aseismic reservoir response invisible to standard</span>
+<span id="cb1-178"><a href="#cb1-178" aria-hidden="true" tabindex="-1"></a>microseismic monitoring (Obermann 2015; Hillers 2015).</span>
+<span id="cb1-179"><a href="#cb1-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-180"><a href="#cb1-180" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-181"><a href="#cb1-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-182"><a href="#cb1-182" aria-hidden="true" tabindex="-1"></a>*Survey compiled from a structured scan of the published literature (2026). Scope is</span>
+<span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a>**dv/v passive monitoring only**; fluvial seismology and landslide detection (power-spectral</span>
+<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a>methods) are out of scope. See the <span class="co">[</span><span class="ot">references page</span><span class="co">](survey-references.qmd)</span> for full</span>
+<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a>citations and the repository <span class="co">[</span><span class="ot">`literature/`</span><span class="co">](https://github.com/Denolle-Lab/codameter/tree/master/literature)</span></span>
+<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a>folder for the machine-readable table and provenance.*</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">

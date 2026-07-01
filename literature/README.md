@@ -101,10 +101,22 @@ and read the processing/methods section.
 | `doi_url` | Clickable DOI / publisher link. |
 | `open_access_format` | HTML, PDF, paywall, or preprint. |
 
-`n/r` = **not reported** in the source as scanned; it was deliberately not
-guessed. Paywalled papers carry more `n/r` cells because internal parameters
-could not be verified from the abstract alone — these are the highest-value
-cells to fill by hand.
+`n/r` = **not found in the source as scanned**; it was deliberately not guessed.
+Its meaning depends on the `measurement_source` column:
+
+- `full text (this work, 2026)` — the four measurement fields (frequency band,
+  coda window, estimator, uncertainty treatment) were re-checked against the
+  **full text** of the paper. Here `n/r` means the value is *genuinely not stated
+  in the paper* (or the paper is not a dv/v-measurement study). 40 studies.
+- `abstract scan (2026)` — the row was populated from the abstract and search
+  metadata only. Here `n/r` means *not found in the abstract*, not *not
+  reported*; the value is very likely in the paper's methods section and simply
+  was not read. 60 studies. These are the highest-value cells to fill by hand.
+- `abstract only (paywalled)` — full text could not be retrieved. 3 studies.
+
+The full-text re-check (2026-07) covered the open-access studies reachable from
+`literature/verified_fulltext.jsonl`; each filled value there carries a verbatim
+quote or section locator. Paywalled studies were left at abstract level.
 
 ## How it was built
 

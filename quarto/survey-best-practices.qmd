@@ -27,8 +27,20 @@ per-study parameter table (CSV + Markdown, one row per paper) lives in the
 of the repository.
 
 > Citations below are short keys (Author Year); resolve them on the
-> [references page](survey-references.qmd). `n/r` in the per-study table means the
-> value was **not reported** in the source — it was never guessed.
+> [references page](survey-references.qmd). `n/r` in the per-study table means a
+> value was **not found in the source as scanned** — it was never guessed.
+
+::: {.callout-warning appearance="simple"}
+**Provenance.** The four measurement fields (frequency band, coda window,
+estimator, uncertainty treatment) were re-checked against the **full text** for
+the 40 open-access studies reachable to us — those rows are flagged
+`full text` in the table's `measurement_source` column, and an `n/r` there means
+the value is genuinely not stated in the paper. The remaining rows were populated
+from **abstracts only**, so their `n/r` means "not found in the abstract," not
+"not reported" — the value is very likely in the methods and simply not yet read.
+The coda-window and frequency-band gaps in the raw scan were therefore a
+lower bound on what the literature states, not a finding about the field.
+:::
 
 ---
 

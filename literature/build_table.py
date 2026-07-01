@@ -53,6 +53,7 @@ COLUMNS = [
     "also_applications",
     "doi_url",
     "open_access_format",
+    "measurement_source",
 ]
 
 
