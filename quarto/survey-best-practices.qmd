@@ -33,7 +33,7 @@ of the repository.
 ::: {.callout-warning appearance="simple"}
 **Provenance.** The four measurement fields (frequency band, coda window,
 estimator, uncertainty treatment) were re-checked against the **full text** for
-the 40 open-access studies reachable to us — those rows are flagged
+the 82 studies we could read in full text (open access plus institutional access) — those rows are flagged
 `full text` in the table's `measurement_source` column, and an `n/r` there means
 the value is genuinely not stated in the paper. The remaining rows were populated
 from **abstracts only**, so their `n/r` means "not found in the abstract," not
