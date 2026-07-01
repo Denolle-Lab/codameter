@@ -26,11 +26,12 @@ The field has converged on one physical rule for depth — *depth is set by the
 frequency band and the coda lapse time, not assumed* (Obermann et al. 2013, 2016)
 — and, increasingly, on multi-band measurement to resolve it (Takano et al. 2017;
 Feng et al. 2020; Mao et al. 2022). The step from per-band $\delta v/v$ to a depth
-profile is where reporting thins out: many studies read one band as one depth,
-only a few invert several bands against sensitivity kernels, and the measurement
-error is rarely propagated into the depth estimate. Because the depth *is* the
-claim — the change is in the aquifer, not the soil (Rubinstein & Beroza 2005) — a
-depth reached without its uncertainty cannot support it.
+profile is where reporting is least consistent: many studies read one band as one
+depth, only a few invert several bands against sensitivity kernels, and the
+measurement error is seldom propagated into the depth estimate. The depth
+assignment is frequently the scientific claim itself — whether the change lies in
+the aquifer or the overlying soil (Rubinstein & Beroza 2005) — so a depth reported
+without its uncertainty cannot support that claim.
 
 | Choice | Best practice | Common deviation | Consequence |
 |---|---|---|---|
@@ -190,7 +191,7 @@ plt.show()
 
 ## 4. Propagating the error into a depth profile
 
-Now the payoff. Feed the per-band $\delta v/v$ and the per-band measurement
+The final step feeds the per-band $\delta v/v$ and the per-band measurement
 covariance $C_d$ (built from §2) into a Bayesian linear inversion,
 
 $$
@@ -288,7 +289,7 @@ the measurement noise, **and** the freedom in how the measurement was made. This
 is the depth-domain counterpart of the data covariance $C_d$ that the
 [inference page](theory-uq.qmd) consumes.
 
-## Partial saturation: $\delta V_S/V_S$ is not the whole story
+## Partial saturation: $\delta V_S/V_S$ is not the only contribution
 
 The inversion above assumes the change it recovers is a shear-velocity change
 alone. In partially saturated ground it is not. Filling or draining pore space
@@ -301,10 +302,10 @@ $$
 
 and velocity alone cannot separate them. A petrophysical model — Gassmann fluid
 substitution for the modulus and a porosity–saturation relation for the density
-(Gassmann 1951; Mavko et al. 2009) — is what breaks the degeneracy, at the price
+(Gassmann 1951; Mavko et al. 2009) — is what breaks the degeneracy, at the cost
 of its own prior uncertainty on porosity, fluid modulus, and the saturation path.
 Hydrological and cryospheric targets, where saturation swings are large
-(Clements & Denolle 2018; James et al. 2019), are exactly where ignoring the
+(Clements & Denolle 2018; James et al. 2019), are precisely where neglecting the
 density term biases the inferred velocity change and, downstream, the stress.
 
 The planned extension carries $\delta\rho/\rho$ as a **second inverted field**

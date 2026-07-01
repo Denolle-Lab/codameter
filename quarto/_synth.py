@@ -42,12 +42,14 @@ def set_style() -> None:
     mpl.rcParams.update({
         "figure.dpi": 120,
         "savefig.dpi": 120,
+        "font.family": "sans-serif",
+        "font.sans-serif": ["Optima", "Avenir Next", "PT Sans", "DejaVu Sans"],
         "font.size": 11,
         "axes.spines.top": False,
         "axes.spines.right": False,
         "axes.grid": True,
         "grid.alpha": 0.25,
-        "axes.titleweight": "600",
+        "axes.titleweight": "medium",
         "figure.facecolor": "white",
         "axes.prop_cycle": mpl.cycler(color=[
             C["hydro"], C["thermo"], C["damage"], C["fit"], C["accent"]]),

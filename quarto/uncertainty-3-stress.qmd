@@ -6,12 +6,12 @@ bibliography: references.bib
 
 ::: {.keyidea}
 [Thesis]{.k-title}
-This is **step 3 of the uncertainty arc** — the payoff, and the least
-reproducible number in the discipline. A depth profile of velocity change
+This is **step 3 of the uncertainty arc** — the culmination of the arc, and the
+least reproducible quantity in the discipline. A depth profile of velocity change
 [from step 2](theory-processing-depth.qmd) becomes effective stress and strain
-only through a **petrophysical model**, and the coefficients that model needs are
-poorly known — so the stress uncertainty is dominated by *epistemic* prior
-uncertainty, not by the measurement. This page is a **framework**: the physics
+only through a **petrophysical model**, and the coefficients that model requires
+are poorly constrained — so the stress uncertainty is dominated by *epistemic*
+prior uncertainty, not by the measurement. This page is a **framework**: the physics
 and the honest budget are set out here, and the executable modules
 (`uq_stress_depth`, `uq_attribution`) are tracked as open development. The
 [companion inference-UQ page](theory-uq.qmd) holds the Bayesian
@@ -20,17 +20,16 @@ stress-inversion machinery this step draws on.
 
 ## Where the field stands
 
-The reason to want $\delta V_S/V_S(z)$ is almost never the velocity itself; it is
-the stress, strain, or pore-pressure change that drives it and — increasingly —
-*which* forcing is responsible. Here the literature is more fragmented than
-converged. Volcano and fault studies often read the velocity change qualitatively
-(a pre-eruptive pressurization, a coseismic damage); hydrological studies fit an
-explicit poroelastic or thermoelastic model and separate the two by their
-seasonal phase lag (Tsai 2011; Clements & Denolle 2018; Wang 2017); and a growing
-set quantifies stress sensitivity through an acoustoelastic coefficient
-(Brenguier et al. 2008; Nakata & Snieder 2011). What is missing almost everywhere
-is the *uncertainty* on that final number and an honest apportionment of it among
-the competing forcings.
+The quantity of interest is rarely the velocity change itself but the stress,
+strain, or pore-pressure change that produces it and — increasingly — the forcing
+responsible for it. Here the literature remains fragmented. Volcano and fault
+studies often interpret the velocity change qualitatively (a pre-eruptive
+pressurization, coseismic damage); hydrological studies fit an explicit
+poroelastic or thermoelastic model and separate the two by their seasonal phase
+lag (Tsai 2011; Wang 2017; Clements & Denolle 2018); and a growing body quantifies
+stress sensitivity through an acoustoelastic coefficient (Brenguier et al. 2008;
+Nakata & Snieder 2011). What is largely absent is the *uncertainty* on that final
+quantity and a defensible apportionment of it among the competing forcings.
 
 ## From velocity change to effective stress
 
@@ -58,7 +57,7 @@ either alone understates the stress uncertainty. It is the depth-resolved analog
 of the scalar pushforward already shown in
 [tutorial 5](tutorial-05-interpretation.qmd).
 
-## Attribution: which forcing, and how sure
+## Attribution: which forcing, and with what confidence
 
 Beyond the *state* of stress, the community wants **attribution**: how much of the
 change at depth $z$ is poroelastic, thermoelastic, load, damage, or tectonic, and
@@ -78,8 +77,9 @@ measurement covariance $C_d$ this arc builds.
   attribution component.
 - **Confidence.** Sampling the joint posterior — forcing amplitudes, material
   priors, and the measurement realization — turns each share into a credible
-  interval and, decomposed once more, says whether a fuzzy attribution is
-  **data-limited or model-limited**: what to measure next.
+  interval and, decomposed further, indicates whether a weak attribution is
+  **data-limited or model-limited** — i.e., which additional data would most
+  reduce it.
 
 The deliverable is a depth–source attribution chart — per depth, a stacked bar of
 $A_k(z)$ with credible-interval whiskers plus an explicit coupling slice
@@ -94,7 +94,7 @@ $A_k(z)$ with credible-interval whiskers plus an explicit coupling slice
 | Uncertainty budget | Merge the aleatoric depth covariance with the epistemic material priors | Report the measurement error only | Stress error too small by its dominant term |
 | Stress measure | Report effective stress; flag any total-stress assumptions | Conflate effective and total stress | Non-comparable, ambiguous stress |
 | Forcing separation | Physical diagnostic (seasonal phase lag, branch, coupling test) | Attribute by eye | Mis-attribution when forcings are collinear |
-| Attribution uncertainty | Credible intervals plus a data- vs model-limited split | A single point attribution | No sense of confidence, nor of what to measure next |
+| Attribution uncertainty | Credible intervals plus a data- vs model-limited split | A single point attribution | No measure of confidence, nor of which data would most reduce it |
 
 ---
 

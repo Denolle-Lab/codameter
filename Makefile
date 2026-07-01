@@ -15,12 +15,19 @@
 # Quarto must see the pixi Python so the codameter-pixi kernel resolves.
 export QUARTO_PYTHON := $(CURDIR)/.pixi/envs/default/bin/python
 
-.PHONY: all paper site check clean
+.PHONY: all paper site figs check clean
 
-all: paper site
+all: figs paper site
 
+# Regenerate the demo figures (uses matplotlib style in codameter.synthetic_demo).
+# Must run in the pixi env so the deps and the Optima font stack resolve.
+figs:
+	pixi run python literature/synthetic_dvv_demo.py
+
+# Build the paper. Run under pixi so build.py's figure subprocess (sys.executable)
+# is the pixi python, not a bare/base python that lacks the deps.
 paper:
-	python paper/build.py
+	pixi run python paper/build.py
 
 site:
 	pixi run quarto render quarto/

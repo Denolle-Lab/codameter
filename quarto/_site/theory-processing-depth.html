@@ -621,7 +621,7 @@ window.Quarto = {
   <li><a href="#one-error-per-band-a-depth-kernel" id="toc-one-error-per-band-a-depth-kernel" class="nav-link" data-scroll-target="#one-error-per-band-a-depth-kernel">3. One error per band → a depth kernel</a></li>
   <li><a href="#propagating-the-error-into-a-depth-profile" id="toc-propagating-the-error-into-a-depth-profile" class="nav-link" data-scroll-target="#propagating-the-error-into-a-depth-profile">4. Propagating the error into a depth profile</a></li>
   <li><a href="#the-full-chain" id="toc-the-full-chain" class="nav-link" data-scroll-target="#the-full-chain">5. The full chain</a></li>
-  <li><a href="#partial-saturation-delta-v_sv_s-is-not-the-whole-story" id="toc-partial-saturation-delta-v_sv_s-is-not-the-whole-story" class="nav-link" data-scroll-target="#partial-saturation-delta-v_sv_s-is-not-the-whole-story">Partial saturation: <span class="math inline">\(\delta V_S/V_S\)</span> is not the whole story</a>
+  <li><a href="#partial-saturation-delta-v_sv_s-is-not-the-only-contribution" id="toc-partial-saturation-delta-v_sv_s-is-not-the-only-contribution" class="nav-link" data-scroll-target="#partial-saturation-delta-v_sv_s-is-not-the-only-contribution">Partial saturation: <span class="math inline">\(\delta V_S/V_S\)</span> is not the only contribution</a>
   <ul class="collapse">
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul></li>
@@ -657,7 +657,7 @@ window.Quarto = {
 </div>
 <section id="where-the-field-stands" class="level3">
 <h3 class="anchored" data-anchor-id="where-the-field-stands">Where the field stands</h3>
-<p>The field has converged on one physical rule for depth — <em>depth is set by the frequency band and the coda lapse time, not assumed</em> (Obermann et al.&nbsp;2013, 2016) — and, increasingly, on multi-band measurement to resolve it (Takano et al.&nbsp;2017; Feng et al.&nbsp;2020; Mao et al.&nbsp;2022). The step from per-band <span class="math inline">\(\delta v/v\)</span> to a depth profile is where reporting thins out: many studies read one band as one depth, only a few invert several bands against sensitivity kernels, and the measurement error is rarely propagated into the depth estimate. Because the depth <em>is</em> the claim — the change is in the aquifer, not the soil (Rubinstein &amp; Beroza 2005) — a depth reached without its uncertainty cannot support it.</p>
+<p>The field has converged on one physical rule for depth — <em>depth is set by the frequency band and the coda lapse time, not assumed</em> (Obermann et al.&nbsp;2013, 2016) — and, increasingly, on multi-band measurement to resolve it (Takano et al.&nbsp;2017; Feng et al.&nbsp;2020; Mao et al.&nbsp;2022). The step from per-band <span class="math inline">\(\delta v/v\)</span> to a depth profile is where reporting is least consistent: many studies read one band as one depth, only a few invert several bands against sensitivity kernels, and the measurement error is seldom propagated into the depth estimate. The depth assignment is frequently the scientific claim itself — whether the change lies in the aquifer or the overlying soil (Rubinstein &amp; Beroza 2005) — so a depth reported without its uncertainty cannot support that claim.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -782,7 +782,7 @@ t_2 = t_1 + \frac{Q_c}{\pi f}\,\ln(\mathrm{SNR}_0),
 <div id="fig-rules" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-rules-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="theory-processing-depth_files/figure-html/fig-rules-output-1.png" width="746" height="568" class="figure-img">
+<img src="theory-processing-depth_files/figure-html/fig-rules-output-1.png" width="743" height="569" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rules-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: The envelope-flatten rule (Eq. 1) makes the usable coda length frequency-dependent: high-frequency coda decays into the noise sooner, so its window is shorter. A fixed window (grey) ignores this — the two rules agree only near one frequency, and disagree everywhere else. That disagreement is a measurement uncertainty.
@@ -857,7 +857,7 @@ Figure&nbsp;1: The envelope-flatten rule (Eq. 1) makes the usable coda length fr
 <div id="fig-multiverse" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-multiverse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="theory-processing-depth_files/figure-html/fig-multiverse-output-1.png" width="1125" height="418" class="figure-img">
+<img src="theory-processing-depth_files/figure-html/fig-multiverse-output-1.png" width="1124" height="415" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-multiverse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;2: Left: the sampled coda windows, coloured by rule — the envelope rule (red) sweeps a frequency-dependent locus, the moving rule (purple) scatters along the coda, the fixed rule (blue) clusters by habit. Right: the per-band error budget. The processing-choice spread (hatched) is a large, irreducible part of the total that no single pipeline reveals.
@@ -918,7 +918,7 @@ peak sensitivity depth per band (m): [695 335 275 225 185  95  55  35  25]</code
 <div id="fig-kernels" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-kernels-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="theory-processing-depth_files/figure-html/fig-kernels-output-1.png" width="607" height="495" class="figure-img">
+<img src="theory-processing-depth_files/figure-html/fig-kernels-output-1.png" width="603" height="496" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-kernels-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;3: The band sensitivity kernels K_b(z) (area-normalised). Each band is a depth-weighting function; the set spans ~30–470 m here. This is the bridge that turns a <em>frequency</em>-domain error budget into a <em>depth</em>-domain one — and why you want several bands, not one.
@@ -930,7 +930,7 @@ Figure&nbsp;3: The band sensitivity kernels K_b(z) (area-normalised). Each band 
 </section>
 <section id="propagating-the-error-into-a-depth-profile" class="level2">
 <h2 class="anchored" data-anchor-id="propagating-the-error-into-a-depth-profile">4. Propagating the error into a depth profile</h2>
-<p>Now the payoff. Feed the per-band <span class="math inline">\(\delta v/v\)</span> and the per-band measurement covariance <span class="math inline">\(C_d\)</span> (built from §2) into a Bayesian linear inversion,</p>
+<p>The final step feeds the per-band <span class="math inline">\(\delta v/v\)</span> and the per-band measurement covariance <span class="math inline">\(C_d\)</span> (built from §2) into a Bayesian linear inversion,</p>
 <p><span id="eq-depthinv"><span class="math display">\[
 \hat C_m = (G^\top C_d^{-1} G + C_{m0}^{-1})^{-1},\qquad
 \hat m = \hat C_m\, G^\top C_d^{-1}\, d,
@@ -994,7 +994,7 @@ mean depth σ, floor only  : 2.88e-03  (under-reported by 1.10×)</code></pre>
 <div id="fig-depth" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-depth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="theory-processing-depth_files/figure-html/fig-depth-output-1.png" width="1125" height="512" class="figure-img">
+<img src="theory-processing-depth_files/figure-html/fig-depth-output-1.png" width="1124" height="509" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-depth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;4: The propagated depth result for one noise realisation. The posterior mean (purple) recovers the shallow anomaly; the dark band is the ±2σ uncertainty with the <em>full</em> processing-choice budget, the light dashed band is what you would report from the within-method floor alone. Ignoring the processing choices under-states the depth uncertainty — most in the shallow section probed by the high-frequency bands, where the windows are shortest and the estimators diverge most. The envelope is wide because a few bands resolve only a few depths; some realisations misplace the peak entirely, which is exactly why the ±2σ band — not the mean — is the result.
@@ -1069,13 +1069,13 @@ Important
 </div>
 <p>The processing choices enter as a <strong>prior</strong>, are <strong>sampled</strong> and marginalised into one error per band, and — through the sensitivity kernels — propagate into a depth profile whose uncertainty <em>finally</em> reflects what was actually unknown: the measurement noise, <strong>and</strong> the freedom in how the measurement was made. This is the depth-domain counterpart of the data covariance <span class="math inline">\(C_d\)</span> that the <a href="./theory-uq.html">inference page</a> consumes.</p>
 </section>
-<section id="partial-saturation-delta-v_sv_s-is-not-the-whole-story" class="level2">
-<h2 class="anchored" data-anchor-id="partial-saturation-delta-v_sv_s-is-not-the-whole-story">Partial saturation: <span class="math inline">\(\delta V_S/V_S\)</span> is not the whole story</h2>
+<section id="partial-saturation-delta-v_sv_s-is-not-the-only-contribution" class="level2">
+<h2 class="anchored" data-anchor-id="partial-saturation-delta-v_sv_s-is-not-the-only-contribution">Partial saturation: <span class="math inline">\(\delta V_S/V_S\)</span> is not the only contribution</h2>
 <p>The inversion above assumes the change it recovers is a shear-velocity change alone. In partially saturated ground it is not. Filling or draining pore space changes both the shear modulus and the bulk density, so for the shear-dominated coda the observed change mixes the two,</p>
 <p><span class="math display">\[
 \frac{\delta v}{v} \;\approx\; \tfrac12\frac{\delta\mu}{\mu} \;-\; \tfrac12\frac{\delta\rho}{\rho},
 \]</span></p>
-<p>and velocity alone cannot separate them. A petrophysical model — Gassmann fluid substitution for the modulus and a porosity–saturation relation for the density (Gassmann 1951; Mavko et al.&nbsp;2009) — is what breaks the degeneracy, at the price of its own prior uncertainty on porosity, fluid modulus, and the saturation path. Hydrological and cryospheric targets, where saturation swings are large (Clements &amp; Denolle 2018; James et al.&nbsp;2019), are exactly where ignoring the density term biases the inferred velocity change and, downstream, the stress.</p>
+<p>and velocity alone cannot separate them. A petrophysical model — Gassmann fluid substitution for the modulus and a porosity–saturation relation for the density (Gassmann 1951; Mavko et al.&nbsp;2009) — is what breaks the degeneracy, at the cost of its own prior uncertainty on porosity, fluid modulus, and the saturation path. Hydrological and cryospheric targets, where saturation swings are large (Clements &amp; Denolle 2018; James et al.&nbsp;2019), are precisely where neglecting the density term biases the inferred velocity change and, downstream, the stress.</p>
 <p>The planned extension carries <span class="math inline">\(\delta\rho/\rho\)</span> as a <strong>second inverted field</strong> with its own kernel and reports how much of the surface <span class="math inline">\(\delta v/v\)</span> each field explains, propagating the saturation and porosity prior into the split. This is tracked as open development — a <code>codameter</code> Gassmann / partial-saturation module and its synthetic demo (see the repository issues) — and it is the depth-step input the <a href="./uncertainty-3-stress.html">stress page</a> needs before effective stress can be trusted in unsaturated ground.</p>
 <hr>
 <div class="callout callout-style-default callout-tip callout-titled">
@@ -1620,309 +1620,310 @@ Steegen, Sara, Francis Tuerlinckx, Andrew Gelman, and Wolf Vanpaemel. 2016. <spa
 <span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>frequency band and the coda lapse time, not assumed* (Obermann et al. 2013, 2016)</span>
 <span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>— and, increasingly, on multi-band measurement to resolve it (Takano et al. 2017;</span>
 <span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>Feng et al. 2020; Mao et al. 2022). The step from per-band $\delta v/v$ to a depth</span>
-<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>profile is where reporting thins out: many studies read one band as one depth,</span>
-<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>only a few invert several bands against sensitivity kernels, and the measurement</span>
-<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>error is rarely propagated into the depth estimate. Because the depth *is* the</span>
-<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>claim — the change is in the aquifer, not the soil (Rubinstein &amp; Beroza 2005) — a</span>
-<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>depth reached without its uncertainty cannot support it.</span>
-<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Choice <span class="pp">|</span> Best practice <span class="pp">|</span> Common deviation <span class="pp">|</span> Consequence <span class="pp">|</span></span>
-<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
-<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth assignment <span class="pp">|</span> Invert several bands against sensitivity kernels <span class="pp">|</span> Read one band as one depth <span class="pp">|</span> No depth resolution or error <span class="pp">|</span></span>
-<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Band selection <span class="pp">|</span> Bands where the kernels resolve (no half-space leak, coherent coda) <span class="pp">|</span> Convenience band <span class="pp">|</span> Kernel leaks; unstable inversion <span class="pp">|</span></span>
-<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Measurement error <span class="pp">|</span> Propagate the per-band $C_d$ into the profile <span class="pp">|</span> Plot a profile with no covariance <span class="pp">|</span> Overconfident depth attribution <span class="pp">|</span></span>
-<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Saturation <span class="pp">|</span> Separate $\delta V_S/V_S$ and $\delta\rho/\rho$ with a petrophysical model <span class="pp">|</span> Assume a pure $\delta V_S/V_S$ change <span class="pp">|</span> Biased velocity change and stress in hydrological / cryospheric targets <span class="pp">|</span></span>
-<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Velocity model <span class="pp">|</span> State the reference $V_P,V_S(z)$ and its uncertainty <span class="pp">|</span> Fixed, unstated model <span class="pp">|</span> Hidden systematic in the kernels and moduli <span class="pp">|</span></span>
-<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
-<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys, numpy <span class="im">as</span> np, matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, <span class="st">"."</span>)</span>
-<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> _synth <span class="im">import</span> build_parkfield_site, set_style, C</span>
-<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>set_style()</span>
-<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.uq_processing <span class="im">import</span> (</span>
-<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>    ProcessingPrior, sample_processing_choices, per_band_marginal_error,</span>
-<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>    flatten_end_lapse, choice_floor)</span>
-<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.uq_depth <span class="im">import</span> band_sensitivity_matrix, invert_depth_profile</span>
-<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.kernels <span class="im">import</span> make_fine_model</span>
-<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">11</span>)</span>
-<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-59"><a href="#cb13-59" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. The window *rule* is the deep, frequency-dependent choice</span></span>
-<span id="cb13-60"><a href="#cb13-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-61"><a href="#cb13-61" aria-hidden="true" tabindex="-1"></a>Different groups do not just pick different numbers; they pick different</span>
-<span id="cb13-62"><a href="#cb13-62" aria-hidden="true" tabindex="-1"></a>*algorithms* for where the coda window goes. Three dominate:</span>
-<span id="cb13-63"><a href="#cb13-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-64"><a href="#cb13-64" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Rule <span class="pp">|</span> Start $t_1$ <span class="pp">|</span> End $t_2$ <span class="pp">|</span> Character <span class="pp">|</span></span>
-<span id="cb13-65"><a href="#cb13-65" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
-<span id="cb13-66"><a href="#cb13-66" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **fixed** <span class="pp">|</span> a habitual lapse <span class="pp">|</span> $t_1 + L$, fixed $L$ <span class="pp">|</span> simple, frequency-blind <span class="pp">|</span></span>
-<span id="cb13-67"><a href="#cb13-67" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **envelope pick → flatten** | the envelope **pick** | where $\log A(t)$ **flattens** into noise <span class="pp">|</span> *physical*, frequency-dependent <span class="pp">|</span></span>
-<span id="cb13-68"><a href="#cb13-68" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **moving** <span class="pp">|</span> slides along the coda <span class="pp">|</span> short window, many positions <span class="pp">|</span> samples a range of scattering depths <span class="pp">|</span></span>
-<span id="cb13-69"><a href="#cb13-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-70"><a href="#cb13-70" aria-hidden="true" tabindex="-1"></a>The envelope rule is the interesting one. With coda decay</span>
-<span id="cb13-71"><a href="#cb13-71" aria-hidden="true" tabindex="-1"></a>$A(t)\propto e^{-\pi f t/Q_c}$, the log-envelope flattens into the noise floor at</span>
-<span id="cb13-72"><a href="#cb13-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-73"><a href="#cb13-73" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb13-74"><a href="#cb13-74" aria-hidden="true" tabindex="-1"></a>t_2 = t_1 + \frac{Q_c}{\pi f}\,\ln(\mathrm{SNR}_0),</span>
-<span id="cb13-75"><a href="#cb13-75" aria-hidden="true" tabindex="-1"></a>$$ {#eq-flatten}</span>
-<span id="cb13-76"><a href="#cb13-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-77"><a href="#cb13-77" aria-hidden="true" tabindex="-1"></a>so the window **shrinks as frequency rises** — exactly where a fixed window</span>
-<span id="cb13-78"><a href="#cb13-78" aria-hidden="true" tabindex="-1"></a>silently disagrees. <span class="in">`flatten_end_lapse`</span> encodes this.</span>
-<span id="cb13-79"><a href="#cb13-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-82"><a href="#cb13-82" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb13-83"><a href="#cb13-83" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-rules</span></span>
-<span id="cb13-84"><a href="#cb13-84" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The envelope-flatten rule (Eq. 1) makes the usable coda length frequency-dependent: high-frequency coda decays into the noise sooner, so its window is shorter. A fixed window (grey) ignores this — the two rules agree only near one frequency, and disagree everywhere else. That disagreement is a measurement uncertainty."</span></span>
-<span id="cb13-85"><a href="#cb13-85" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> np.linspace(<span class="fl">0.4</span>, <span class="dv">5</span>, <span class="dv">100</span>)</span>
-<span id="cb13-86"><a href="#cb13-86" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> qc, col <span class="kw">in</span> [(<span class="dv">25</span>, C[<span class="st">"hydro"</span>]), (<span class="dv">40</span>, C[<span class="st">"thermo"</span>]), (<span class="dv">60</span>, C[<span class="st">"damage"</span>])]:</span>
-<span id="cb13-87"><a href="#cb13-87" aria-hidden="true" tabindex="-1"></a>    ax_end <span class="op">=</span> [flatten_end_lapse(<span class="fl">8.0</span>, fi, qc, <span class="dv">80</span>) <span class="op">-</span> <span class="fl">8.0</span> <span class="cf">for</span> fi <span class="kw">in</span> f]</span>
-<span id="cb13-88"><a href="#cb13-88" aria-hidden="true" tabindex="-1"></a>    plt.plot(f, ax_end, color<span class="op">=</span>col, label<span class="op">=</span><span class="ss">f"$Q_c$=</span><span class="sc">{</span>qc<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb13-89"><a href="#cb13-89" aria-hidden="true" tabindex="-1"></a>plt.axhline(<span class="dv">25</span>, color<span class="op">=</span><span class="st">"0.5"</span>, ls<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"fixed L = 25 s"</span>)</span>
-<span id="cb13-90"><a href="#cb13-90" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"frequency (Hz)"</span>)<span class="op">;</span> plt.ylabel(<span class="st">"coda window length (s)"</span>)</span>
-<span id="cb13-91"><a href="#cb13-91" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"envelope-flatten window length vs frequency"</span>)</span>
-<span id="cb13-92"><a href="#cb13-92" aria-hidden="true" tabindex="-1"></a>plt.legend(fontsize<span class="op">=</span><span class="dv">8</span>, frameon<span class="op">=</span><span class="va">False</span>)<span class="op">;</span> plt.show()</span>
-<span id="cb13-93"><a href="#cb13-93" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-94"><a href="#cb13-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-95"><a href="#cb13-95" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2. Sampling the choices as a Bayesian "multiverse"</span></span>
-<span id="cb13-96"><a href="#cb13-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-97"><a href="#cb13-97" aria-hidden="true" tabindex="-1"></a>To be Bayesian about the choice, we put a prior $p(c)$ over the whole</span>
-<span id="cb13-98"><a href="#cb13-98" aria-hidden="true" tabindex="-1"></a>configuration $c=(\text{rule}, t_1, L, f, \dots)$ and **sample** it — a Monte</span>
-<span id="cb13-99"><a href="#cb13-99" aria-hidden="true" tabindex="-1"></a>Carlo over the analysis multiverse <span class="co">[</span><span class="ot">@Steegen2016</span><span class="co">]</span>. Each draw yields a coda</span>
-<span id="cb13-100"><a href="#cb13-100" aria-hidden="true" tabindex="-1"></a>window and, through the Weaver/Clarke floor, a within-choice error. The law of</span>
-<span id="cb13-101"><a href="#cb13-101" aria-hidden="true" tabindex="-1"></a>total variance then splits the marginal measurement variance into a</span>
-<span id="cb13-102"><a href="#cb13-102" aria-hidden="true" tabindex="-1"></a>**within-choice floor** and a **processing-choice spread**:</span>
-<span id="cb13-103"><a href="#cb13-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-104"><a href="#cb13-104" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb13-105"><a href="#cb13-105" aria-hidden="true" tabindex="-1"></a>\operatorname{Var}(\delta v/v) =</span>
-<span id="cb13-106"><a href="#cb13-106" aria-hidden="true" tabindex="-1"></a>\underbrace{\mathbb{E}_c[\operatorname{Var}(\delta v/v\mid c)]}_{\text{floor}}</span>
-<span id="cb13-107"><a href="#cb13-107" aria-hidden="true" tabindex="-1"></a>+\underbrace{\operatorname{Var}_c[\mathbb{E}(\delta v/v\mid c)]}_{\text{choice spread}} .</span>
-<span id="cb13-108"><a href="#cb13-108" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ltv}</span>
-<span id="cb13-109"><a href="#cb13-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-112"><a href="#cb13-112" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb13-113"><a href="#cb13-113" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: sample</span></span>
-<span id="cb13-114"><a href="#cb13-114" aria-hidden="true" tabindex="-1"></a>bands <span class="op">=</span> np.array([<span class="fl">0.6</span>, <span class="fl">0.8</span>, <span class="fl">1.0</span>, <span class="fl">1.3</span>, <span class="fl">1.7</span>, <span class="fl">2.2</span>, <span class="fl">2.8</span>, <span class="fl">3.6</span>, <span class="fl">4.5</span>])</span>
-<span id="cb13-115"><a href="#cb13-115" aria-hidden="true" tabindex="-1"></a>prior <span class="op">=</span> ProcessingPrior(</span>
-<span id="cb13-116"><a href="#cb13-116" aria-hidden="true" tabindex="-1"></a>    bands_hz<span class="op">=</span>bands,</span>
-<span id="cb13-117"><a href="#cb13-117" aria-hidden="true" tabindex="-1"></a>    rule_weights<span class="op">=</span>{<span class="st">"fixed"</span>: <span class="fl">0.5</span>, <span class="st">"envelope_pick_flatten"</span>: <span class="fl">0.3</span>, <span class="st">"moving"</span>: <span class="fl">0.2</span>},</span>
-<span id="cb13-118"><a href="#cb13-118" aria-hidden="true" tabindex="-1"></a>    start_lapse_s<span class="op">=</span>(<span class="fl">4.0</span>, <span class="fl">12.0</span>), window_length_s<span class="op">=</span>(<span class="fl">10.0</span>, <span class="fl">40.0</span>), qc<span class="op">=</span><span class="fl">40.0</span>, snr0<span class="op">=</span><span class="fl">80.0</span>,</span>
-<span id="cb13-119"><a href="#cb13-119" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb13-120"><a href="#cb13-120" aria-hidden="true" tabindex="-1"></a>choices <span class="op">=</span> sample_processing_choices(prior, <span class="dv">12000</span>, rng)</span>
-<span id="cb13-121"><a href="#cb13-121" aria-hidden="true" tabindex="-1"></a><span class="co"># a (illustrative) per-band methodological bias: estimators disagree more at</span></span>
-<span id="cb13-122"><a href="#cb13-122" aria-hidden="true" tabindex="-1"></a><span class="co"># high frequency where the windows are shortest and the codas least coherent.</span></span>
-<span id="cb13-123"><a href="#cb13-123" aria-hidden="true" tabindex="-1"></a>band_bias <span class="op">=</span> {<span class="bu">float</span>(f): <span class="fl">2.5e-4</span> <span class="op">+</span> <span class="fl">1.0e-4</span> <span class="op">*</span> f <span class="cf">for</span> f <span class="kw">in</span> bands}</span>
-<span id="cb13-124"><a href="#cb13-124" aria-hidden="true" tabindex="-1"></a>pbe <span class="op">=</span> per_band_marginal_error(choices, band_bias<span class="op">=</span>band_bias)</span>
-<span id="cb13-125"><a href="#cb13-125" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> f <span class="kw">in</span> bands:</span>
-<span id="cb13-126"><a href="#cb13-126" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> pbe[<span class="bu">float</span>(f)]</span>
-<span id="cb13-127"><a href="#cb13-127" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>f<span class="sc">:&gt;4.1f}</span><span class="ss"> Hz  floor=</span><span class="sc">{</span>s[<span class="st">'within'</span>]<span class="sc">:.2e}</span><span class="ss">  choice=</span><span class="sc">{</span>s[<span class="st">'processing'</span>]<span class="sc">:.2e}</span><span class="ss">  "</span></span>
-<span id="cb13-128"><a href="#cb13-128" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"total=</span><span class="sc">{</span>s[<span class="st">'total'</span>]<span class="sc">:.2e}</span><span class="ss">  (n=</span><span class="sc">{</span>s[<span class="st">'n'</span>]<span class="sc">:.0f}</span><span class="ss">)"</span>)</span>
-<span id="cb13-129"><a href="#cb13-129" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-130"><a href="#cb13-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-133"><a href="#cb13-133" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb13-134"><a href="#cb13-134" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-multiverse</span></span>
-<span id="cb13-135"><a href="#cb13-135" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Left: the sampled coda windows, coloured by rule — the envelope rule (red) sweeps a frequency-dependent locus, the moving rule (purple) scatters along the coda, the fixed rule (blue) clusters by habit. Right: the per-band error budget. The processing-choice spread (hatched) is a large, irreducible part of the total that no single pipeline reveals."</span></span>
-<span id="cb13-136"><a href="#cb13-136" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.6</span>), gridspec_kw<span class="op">=</span>{<span class="st">"width_ratios"</span>:[<span class="fl">1.1</span>,<span class="dv">1</span>]})</span>
-<span id="cb13-137"><a href="#cb13-137" aria-hidden="true" tabindex="-1"></a>rule_col <span class="op">=</span> {<span class="st">"fixed"</span>: C[<span class="st">"hydro"</span>], <span class="st">"envelope_pick_flatten"</span>: C[<span class="st">"thermo"</span>], <span class="st">"moving"</span>: C[<span class="st">"damage"</span>]}</span>
-<span id="cb13-138"><a href="#cb13-138" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rule <span class="kw">in</span> rule_col:</span>
-<span id="cb13-139"><a href="#cb13-139" aria-hidden="true" tabindex="-1"></a>    sub <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> choices[:<span class="dv">2500</span>] <span class="cf">if</span> c.rule <span class="op">==</span> rule]</span>
-<span id="cb13-140"><a href="#cb13-140" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].scatter([c.f_center_hz <span class="cf">for</span> c <span class="kw">in</span> sub], [c.t2_s <span class="op">-</span> c.t1_s <span class="cf">for</span> c <span class="kw">in</span> sub],</span>
-<span id="cb13-141"><a href="#cb13-141" aria-hidden="true" tabindex="-1"></a>                  s<span class="op">=</span><span class="dv">6</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, color<span class="op">=</span>rule_col[rule], label<span class="op">=</span>rule)</span>
-<span id="cb13-142"><a href="#cb13-142" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"band centre (Hz)"</span>, ylabel<span class="op">=</span><span class="st">"window length (s)"</span>,</span>
-<span id="cb13-143"><a href="#cb13-143" aria-hidden="true" tabindex="-1"></a>          title<span class="op">=</span><span class="st">"sampled choices c ~ p(c)"</span>)</span>
-<span id="cb13-144"><a href="#cb13-144" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].legend(fontsize<span class="op">=</span><span class="dv">7</span>, frameon<span class="op">=</span><span class="va">False</span>, markerscale<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb13-145"><a href="#cb13-145" aria-hidden="true" tabindex="-1"></a>within <span class="op">=</span> np.array([pbe[<span class="bu">float</span>(f)][<span class="st">"within"</span>] <span class="cf">for</span> f <span class="kw">in</span> bands])</span>
-<span id="cb13-146"><a href="#cb13-146" aria-hidden="true" tabindex="-1"></a>proc   <span class="op">=</span> np.array([pbe[<span class="bu">float</span>(f)][<span class="st">"processing"</span>] <span class="cf">for</span> f <span class="kw">in</span> bands])</span>
-<span id="cb13-147"><a href="#cb13-147" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(bands, within, width<span class="op">=</span><span class="fl">0.15</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], label<span class="op">=</span><span class="st">"within-choice floor"</span>)</span>
-<span id="cb13-148"><a href="#cb13-148" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(bands, proc, width<span class="op">=</span><span class="fl">0.15</span>, bottom<span class="op">=</span>within, color<span class="op">=</span>C[<span class="st">"band"</span>],</span>
-<span id="cb13-149"><a href="#cb13-149" aria-hidden="true" tabindex="-1"></a>          hatch<span class="op">=</span><span class="st">"///"</span>, label<span class="op">=</span><span class="st">"processing-choice spread"</span>)</span>
-<span id="cb13-150"><a href="#cb13-150" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"band centre (Hz)"</span>, ylabel<span class="op">=</span><span class="st">"σ contribution (added in quadrature)"</span>,</span>
-<span id="cb13-151"><a href="#cb13-151" aria-hidden="true" tabindex="-1"></a>          title<span class="op">=</span><span class="st">"per-band error budget"</span>)</span>
-<span id="cb13-152"><a href="#cb13-152" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].legend(fontsize<span class="op">=</span><span class="dv">8</span>, frameon<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb13-153"><a href="#cb13-153" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
-<span id="cb13-154"><a href="#cb13-154" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-155"><a href="#cb13-155" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-156"><a href="#cb13-156" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb13-157"><a href="#cb13-157" aria-hidden="true" tabindex="-1"></a>This is the answer to *"how do we sample the uncertainties in the various</span>
-<span id="cb13-158"><a href="#cb13-158" aria-hidden="true" tabindex="-1"></a>parameter choices?"* — draw them from a prior and marginalise. And to *"do we</span>
-<span id="cb13-159"><a href="#cb13-159" aria-hidden="true" tabindex="-1"></a>make one error per frequency band?"* — yes: <span class="in">`per_band_marginal_error`</span> collapses</span>
-<span id="cb13-160"><a href="#cb13-160" aria-hidden="true" tabindex="-1"></a>the multiverse into one $\sigma_b$ per band, which is precisely what the depth</span>
-<span id="cb13-161"><a href="#cb13-161" aria-hidden="true" tabindex="-1"></a>kernel needs next.</span>
-<span id="cb13-162"><a href="#cb13-162" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb13-163"><a href="#cb13-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-164"><a href="#cb13-164" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. One error per band → a depth kernel</span></span>
-<span id="cb13-165"><a href="#cb13-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-166"><a href="#cb13-166" aria-hidden="true" tabindex="-1"></a>A band does not see a depth; it sees a **kernel** $K_b(z)$ — the Rayleigh-wave</span>
-<span id="cb13-167"><a href="#cb13-167" aria-hidden="true" tabindex="-1"></a>sensitivity of that band, computed here with <span class="in">`disba`</span> through</span>
-<span id="cb13-168"><a href="#cb13-168" aria-hidden="true" tabindex="-1"></a><span class="in">`band_sensitivity_matrix`</span>. Low frequencies sense deep and broad; high</span>
-<span id="cb13-169"><a href="#cb13-169" aria-hidden="true" tabindex="-1"></a>frequencies sense shallow and sharp. Stacking the kernels is the forward</span>
-<span id="cb13-170"><a href="#cb13-170" aria-hidden="true" tabindex="-1"></a>operator $d = G\,m$ with $m(z)=\delta V_S/V_S(z)$.</span>
-<span id="cb13-171"><a href="#cb13-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-174"><a href="#cb13-174" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb13-175"><a href="#cb13-175" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: kernels</span></span>
-<span id="cb13-176"><a href="#cb13-176" aria-hidden="true" tabindex="-1"></a>site <span class="op">=</span> build_parkfield_site()</span>
-<span id="cb13-177"><a href="#cb13-177" aria-hidden="true" tabindex="-1"></a>th, vp, vs, rho <span class="op">=</span> site.velocity_model.to_arrays()</span>
-<span id="cb13-178"><a href="#cb13-178" aria-hidden="true" tabindex="-1"></a>fine <span class="op">=</span> make_fine_model(th, vp, vs, rho, target_dz_km<span class="op">=</span><span class="fl">0.01</span>, max_depth_km<span class="op">=</span><span class="fl">1.5</span>)</span>
-<span id="cb13-179"><a href="#cb13-179" aria-hidden="true" tabindex="-1"></a>K <span class="op">=</span> band_sensitivity_matrix(fine, bands, max_depth_km<span class="op">=</span><span class="fl">0.7</span>)</span>
-<span id="cb13-180"><a href="#cb13-180" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"design G:"</span>, K.G.shape, <span class="st">"(bands × depths)"</span>)</span>
-<span id="cb13-181"><a href="#cb13-181" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"peak sensitivity depth per band (m):"</span>,</span>
-<span id="cb13-182"><a href="#cb13-182" aria-hidden="true" tabindex="-1"></a>      np.<span class="bu">round</span>(K.peak_depths_km <span class="op">*</span> <span class="fl">1e3</span>).astype(<span class="bu">int</span>))</span>
-<span id="cb13-183"><a href="#cb13-183" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-184"><a href="#cb13-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-187"><a href="#cb13-187" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb13-188"><a href="#cb13-188" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-kernels</span></span>
-<span id="cb13-189"><a href="#cb13-189" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The band sensitivity kernels K_b(z) (area-normalised). Each band is a depth-weighting function; the set spans ~30–470 m here. This is the bridge that turns a *frequency*-domain error budget into a *depth*-domain one — and why you want several bands, not one."</span></span>
-<span id="cb13-190"><a href="#cb13-190" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">5.5</span>, <span class="fl">4.2</span>))</span>
-<span id="cb13-191"><a href="#cb13-191" aria-hidden="true" tabindex="-1"></a>zc <span class="op">=</span> K.depths_km <span class="op">*</span> <span class="fl">1e3</span></span>
-<span id="cb13-192"><a href="#cb13-192" aria-hidden="true" tabindex="-1"></a>cmap <span class="op">=</span> plt.cm.viridis(np.linspace(<span class="dv">0</span>, <span class="fl">0.92</span>, <span class="bu">len</span>(bands)))</span>
-<span id="cb13-193"><a href="#cb13-193" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> b <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(bands)):</span>
-<span id="cb13-194"><a href="#cb13-194" aria-hidden="true" tabindex="-1"></a>    ax.plot(K.G[b] <span class="op">/</span> np.<span class="bu">abs</span>(K.G[b]).<span class="bu">max</span>(), zc, color<span class="op">=</span>cmap[b], lw<span class="op">=</span><span class="fl">1.3</span>,</span>
-<span id="cb13-195"><a href="#cb13-195" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>bands[b]<span class="sc">:.1f}</span><span class="ss"> Hz"</span>)</span>
-<span id="cb13-196"><a href="#cb13-196" aria-hidden="true" tabindex="-1"></a>ax.invert_yaxis()</span>
-<span id="cb13-197"><a href="#cb13-197" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"normalised sensitivity"</span>, ylabel<span class="op">=</span><span class="st">"depth (m)"</span>,</span>
-<span id="cb13-198"><a href="#cb13-198" aria-hidden="true" tabindex="-1"></a>       title<span class="op">=</span><span class="st">"$K_b(z)$ — frequency → depth"</span>)</span>
-<span id="cb13-199"><a href="#cb13-199" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">7</span>, frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">2</span>, title<span class="op">=</span><span class="st">"band"</span>)</span>
-<span id="cb13-200"><a href="#cb13-200" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb13-201"><a href="#cb13-201" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-202"><a href="#cb13-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-203"><a href="#cb13-203" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4. Propagating the error into a depth profile</span></span>
-<span id="cb13-204"><a href="#cb13-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-205"><a href="#cb13-205" aria-hidden="true" tabindex="-1"></a>Now the payoff. Feed the per-band $\delta v/v$ and the per-band measurement</span>
-<span id="cb13-206"><a href="#cb13-206" aria-hidden="true" tabindex="-1"></a>covariance $C_d$ (built from §2) into a Bayesian linear inversion,</span>
-<span id="cb13-207"><a href="#cb13-207" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-208"><a href="#cb13-208" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb13-209"><a href="#cb13-209" aria-hidden="true" tabindex="-1"></a>\hat C_m = (G^\top C_d^{-1} G + C_{m0}^{-1})^{-1},\qquad</span>
-<span id="cb13-210"><a href="#cb13-210" aria-hidden="true" tabindex="-1"></a>\hat m = \hat C_m\, G^\top C_d^{-1}\, d,</span>
-<span id="cb13-211"><a href="#cb13-211" aria-hidden="true" tabindex="-1"></a>$$ {#eq-depthinv}</span>
-<span id="cb13-212"><a href="#cb13-212" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-213"><a href="#cb13-213" aria-hidden="true" tabindex="-1"></a>(<span class="in">`invert_depth_profile`</span>, with a smoothness prior $C_{m0}$). The **measurement</span>
-<span id="cb13-214"><a href="#cb13-214" aria-hidden="true" tabindex="-1"></a>error — including the processing-choice part — flows straight into the depth</span>
-<span id="cb13-215"><a href="#cb13-215" aria-hidden="true" tabindex="-1"></a>uncertainty** $\sqrt{\operatorname{diag}\hat C_m}$.</span>
-<span id="cb13-216"><a href="#cb13-216" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-219"><a href="#cb13-219" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb13-220"><a href="#cb13-220" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: invert</span></span>
-<span id="cb13-221"><a href="#cb13-221" aria-hidden="true" tabindex="-1"></a><span class="co"># a true velocity-change anomaly at ~120 m depth (e.g. a shallow pore-pressure pulse)</span></span>
-<span id="cb13-222"><a href="#cb13-222" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> K.depths_km</span>
-<span id="cb13-223"><a href="#cb13-223" aria-hidden="true" tabindex="-1"></a>m_true <span class="op">=</span> <span class="fl">4e-3</span> <span class="op">*</span> np.exp(<span class="op">-</span>(((z <span class="op">-</span> <span class="fl">0.12</span>) <span class="op">/</span> <span class="fl">0.09</span>) <span class="op">**</span> <span class="dv">2</span>))</span>
-<span id="cb13-224"><a href="#cb13-224" aria-hidden="true" tabindex="-1"></a>d_clean <span class="op">=</span> K.G <span class="op">@</span> m_true</span>
-<span id="cb13-225"><a href="#cb13-225" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-226"><a href="#cb13-226" aria-hidden="true" tabindex="-1"></a>sigma_band <span class="op">=</span> np.array([pbe[<span class="bu">float</span>(f)][<span class="st">"total"</span>] <span class="cf">for</span> f <span class="kw">in</span> bands])</span>
-<span id="cb13-227"><a href="#cb13-227" aria-hidden="true" tabindex="-1"></a><span class="co"># floor-only budget = ignore the processing-choice spread (the naive approach)</span></span>
-<span id="cb13-228"><a href="#cb13-228" aria-hidden="true" tabindex="-1"></a>sigma_floor <span class="op">=</span> np.array([pbe[<span class="bu">float</span>(f)][<span class="st">"within"</span>] <span class="cf">for</span> f <span class="kw">in</span> bands])</span>
-<span id="cb13-229"><a href="#cb13-229" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-230"><a href="#cb13-230" aria-hidden="true" tabindex="-1"></a><span class="co"># a fresh, fixed noise draw for a reproducible figure (one realisation)</span></span>
-<span id="cb13-231"><a href="#cb13-231" aria-hidden="true" tabindex="-1"></a>noise_rng <span class="op">=</span> np.random.default_rng(<span class="dv">7</span>)</span>
-<span id="cb13-232"><a href="#cb13-232" aria-hidden="true" tabindex="-1"></a>d_obs <span class="op">=</span> d_clean <span class="op">+</span> sigma_band <span class="op">*</span> noise_rng.standard_normal(<span class="bu">len</span>(bands))</span>
-<span id="cb13-233"><a href="#cb13-233" aria-hidden="true" tabindex="-1"></a>post_full  <span class="op">=</span> invert_depth_profile(d_obs, np.diag(sigma_band<span class="op">**</span><span class="dv">2</span>), K,</span>
-<span id="cb13-234"><a href="#cb13-234" aria-hidden="true" tabindex="-1"></a>                                  prior_std<span class="op">=</span><span class="fl">8e-3</span>, corr_length_km<span class="op">=</span><span class="fl">0.12</span>)</span>
-<span id="cb13-235"><a href="#cb13-235" aria-hidden="true" tabindex="-1"></a>post_floor <span class="op">=</span> invert_depth_profile(d_obs, np.diag(sigma_floor<span class="op">**</span><span class="dv">2</span>), K,</span>
-<span id="cb13-236"><a href="#cb13-236" aria-hidden="true" tabindex="-1"></a>                                  prior_std<span class="op">=</span><span class="fl">8e-3</span>, corr_length_km<span class="op">=</span><span class="fl">0.12</span>)</span>
-<span id="cb13-237"><a href="#cb13-237" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"depth of recovered peak : </span><span class="sc">{</span>z[np.argmax(post_full.mean)]<span class="op">*</span><span class="fl">1e3</span><span class="sc">:.0f}</span><span class="ss"> m (truth 120 m)"</span>)</span>
-<span id="cb13-238"><a href="#cb13-238" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"mean depth σ, full budget : </span><span class="sc">{</span>post_full<span class="sc">.</span>std<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
-<span id="cb13-239"><a href="#cb13-239" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"mean depth σ, floor only  : </span><span class="sc">{</span>post_floor<span class="sc">.</span>std<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">  "</span></span>
-<span id="cb13-240"><a href="#cb13-240" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(under-reported by </span><span class="sc">{</span>post_full<span class="sc">.</span>std<span class="sc">.</span>mean()<span class="op">/</span>post_floor<span class="sc">.</span>std<span class="sc">.</span>mean()<span class="sc">:.2f}</span><span class="ss">×)"</span>)</span>
-<span id="cb13-241"><a href="#cb13-241" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-242"><a href="#cb13-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-245"><a href="#cb13-245" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb13-246"><a href="#cb13-246" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-depth</span></span>
-<span id="cb13-247"><a href="#cb13-247" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The propagated depth result for one noise realisation. The posterior mean (purple) recovers the shallow anomaly; the dark band is the ±2σ uncertainty with the *full* processing-choice budget, the light dashed band is what you would report from the within-method floor alone. Ignoring the processing choices under-states the depth uncertainty — most in the shallow section probed by the high-frequency bands, where the windows are shortest and the estimators diverge most. The envelope is wide because a few bands resolve only a few depths; some realisations misplace the peak entirely, which is exactly why the ±2σ band — not the mean — is the result."</span></span>
-<span id="cb13-248"><a href="#cb13-248" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">4.4</span>), gridspec_kw<span class="op">=</span>{<span class="st">"width_ratios"</span>:[<span class="fl">1.3</span>,<span class="dv">1</span>]})</span>
-<span id="cb13-249"><a href="#cb13-249" aria-hidden="true" tabindex="-1"></a>zc <span class="op">=</span> z <span class="op">*</span> <span class="fl">1e3</span></span>
-<span id="cb13-250"><a href="#cb13-250" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].plot(m_true, zc, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.8</span>, label<span class="op">=</span><span class="st">"truth"</span>)</span>
-<span id="cb13-251"><a href="#cb13-251" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].plot(post_full.mean, zc, color<span class="op">=</span>C[<span class="st">"band"</span>], lw<span class="op">=</span><span class="fl">1.6</span>, label<span class="op">=</span><span class="st">"posterior mean"</span>)</span>
-<span id="cb13-252"><a href="#cb13-252" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].fill_betweenx(zc, post_full.mean<span class="op">-</span><span class="dv">2</span><span class="op">*</span>post_full.std, post_full.mean<span class="op">+</span><span class="dv">2</span><span class="op">*</span>post_full.std,</span>
-<span id="cb13-253"><a href="#cb13-253" aria-hidden="true" tabindex="-1"></a>                    color<span class="op">=</span>C[<span class="st">"band"</span>], alpha<span class="op">=</span><span class="fl">0.25</span>, label<span class="op">=</span><span class="st">"±2σ (full budget)"</span>)</span>
-<span id="cb13-254"><a href="#cb13-254" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].fill_betweenx(zc, post_floor.mean<span class="op">-</span><span class="dv">2</span><span class="op">*</span>post_floor.std, post_floor.mean<span class="op">+</span><span class="dv">2</span><span class="op">*</span>post_floor.std,</span>
-<span id="cb13-255"><a href="#cb13-255" aria-hidden="true" tabindex="-1"></a>                    facecolor<span class="op">=</span><span class="st">"none"</span>, edgecolor<span class="op">=</span>C[<span class="st">"fit"</span>], ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">1.0</span>,</span>
-<span id="cb13-256"><a href="#cb13-256" aria-hidden="true" tabindex="-1"></a>                    label<span class="op">=</span><span class="st">"±2σ (floor only)"</span>)</span>
-<span id="cb13-257"><a href="#cb13-257" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].invert_yaxis()</span>
-<span id="cb13-258"><a href="#cb13-258" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="vs">r"</span><span class="dv">$\d</span><span class="vs">elta V_S/V_S</span><span class="kw">(</span><span class="vs">z</span><span class="kw">)</span><span class="dv">$</span><span class="vs">"</span>, ylabel<span class="op">=</span><span class="st">"depth (m)"</span>, title<span class="op">=</span><span class="st">"depth profile + propagated error"</span>)</span>
-<span id="cb13-259"><a href="#cb13-259" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].legend(fontsize<span class="op">=</span><span class="fl">7.5</span>, frameon<span class="op">=</span><span class="va">False</span>, loc<span class="op">=</span><span class="st">"lower right"</span>)</span>
-<span id="cb13-260"><a href="#cb13-260" aria-hidden="true" tabindex="-1"></a><span class="co"># resolution: diagonal of R shows how well each depth is independently resolved</span></span>
-<span id="cb13-261"><a href="#cb13-261" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot(np.diag(post_full.resolution), zc, color<span class="op">=</span>C[<span class="st">"thermo"</span>], lw<span class="op">=</span><span class="fl">1.5</span>)</span>
-<span id="cb13-262"><a href="#cb13-262" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].invert_yaxis()</span>
-<span id="cb13-263"><a href="#cb13-263" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"resolution (diag R)"</span>, title<span class="op">=</span><span class="st">"depth resolution"</span>)</span>
-<span id="cb13-264"><a href="#cb13-264" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].text(<span class="fl">0.5</span>, <span class="fl">0.05</span>, <span class="ss">f"trace(R) = </span><span class="sc">{</span>np<span class="sc">.</span>trace(post_full.resolution)<span class="sc">:.1f}</span><span class="ch">\n</span><span class="ss">"</span></span>
-<span id="cb13-265"><a href="#cb13-265" aria-hidden="true" tabindex="-1"></a>           <span class="ss">f"≈ independent depths</span><span class="ch">\n</span><span class="ss">from </span><span class="sc">{</span><span class="bu">len</span>(bands)<span class="sc">}</span><span class="ss"> bands"</span>,</span>
-<span id="cb13-266"><a href="#cb13-266" aria-hidden="true" tabindex="-1"></a>           transform<span class="op">=</span>ax[<span class="dv">1</span>].transAxes, fontsize<span class="op">=</span><span class="dv">8</span>, va<span class="op">=</span><span class="st">"bottom"</span>)</span>
-<span id="cb13-267"><a href="#cb13-267" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
-<span id="cb13-268"><a href="#cb13-268" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-269"><a href="#cb13-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-270"><a href="#cb13-270" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
-<span id="cb13-271"><a href="#cb13-271" aria-hidden="true" tabindex="-1"></a>Two lessons the resolution panel makes concrete. **First**, a handful of bands</span>
-<span id="cb13-272"><a href="#cb13-272" aria-hidden="true" tabindex="-1"></a>resolves only a handful of independent depths ($\mathrm{trace}\,R\approx$ the</span>
-<span id="cb13-273"><a href="#cb13-273" aria-hidden="true" tabindex="-1"></a>band count) — depth inversion from $\delta v/v$ is inherently low-resolution, and</span>
-<span id="cb13-274"><a href="#cb13-274" aria-hidden="true" tabindex="-1"></a>honesty about that is part of the uncertainty. **Second**, the gap between the</span>
-<span id="cb13-275"><a href="#cb13-275" aria-hidden="true" tabindex="-1"></a>two envelopes *is* the cost of pretending the processing choice was fixed.</span>
-<span id="cb13-276"><a href="#cb13-276" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb13-277"><a href="#cb13-277" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-278"><a href="#cb13-278" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5. The full chain</span></span>
-<span id="cb13-279"><a href="#cb13-279" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-282"><a href="#cb13-282" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
-<span id="cb13-283"><a href="#cb13-283" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
-<span id="cb13-284"><a href="#cb13-284" aria-hidden="true" tabindex="-1"></a>    RAW[<span class="ot">"</span><span class="st">repeated coda</span><span class="ot">"</span>]</span>
-<span id="cb13-285"><a href="#cb13-285" aria-hidden="true" tabindex="-1"></a>    PRIOR[<span class="ot">"</span><span class="st">p(c): window rule,&lt;br/&gt;length, start, band</span><span class="ot">"</span>]</span>
-<span id="cb13-286"><a href="#cb13-286" aria-hidden="true" tabindex="-1"></a>    SAMPLE[<span class="ot">"</span><span class="st">sample c ~ p(c)&lt;br/&gt;(multiverse)</span><span class="ot">"</span>]</span>
-<span id="cb13-287"><a href="#cb13-287" aria-hidden="true" tabindex="-1"></a>    BAND[<span class="ot">"</span><span class="st">per-band σ_b&lt;br/&gt;floor ⊕ choice spread</span><span class="ot">"</span>]</span>
-<span id="cb13-288"><a href="#cb13-288" aria-hidden="true" tabindex="-1"></a>    KERN[<span class="ot">"</span><span class="st">kernels K_b(z)&lt;br/&gt;(disba)</span><span class="ot">"</span>]</span>
-<span id="cb13-289"><a href="#cb13-289" aria-hidden="true" tabindex="-1"></a>    CD[<span class="ot">"</span><span class="st">measurement&lt;br/&gt;covariance C_d</span><span class="ot">"</span>]</span>
-<span id="cb13-290"><a href="#cb13-290" aria-hidden="true" tabindex="-1"></a>    INV[<span class="ot">"</span><span class="st">depth inversion&lt;br/&gt;m(z), Ĉ_m</span><span class="ot">"</span>]</span>
-<span id="cb13-291"><a href="#cb13-291" aria-hidden="true" tabindex="-1"></a>    OUT[<span class="ot">"</span><span class="st">δV_S/V_S(z)&lt;br/&gt;+ honest envelope</span><span class="ot">"</span>]</span>
-<span id="cb13-292"><a href="#cb13-292" aria-hidden="true" tabindex="-1"></a>    RAW --&gt; SAMPLE</span>
-<span id="cb13-293"><a href="#cb13-293" aria-hidden="true" tabindex="-1"></a>    PRIOR --&gt; SAMPLE --&gt; BAND --&gt; CD</span>
-<span id="cb13-294"><a href="#cb13-294" aria-hidden="true" tabindex="-1"></a>    BAND --&gt; KERN</span>
-<span id="cb13-295"><a href="#cb13-295" aria-hidden="true" tabindex="-1"></a>    KERN --&gt; INV</span>
-<span id="cb13-296"><a href="#cb13-296" aria-hidden="true" tabindex="-1"></a>    CD --&gt; INV --&gt; OUT</span>
-<span id="cb13-297"><a href="#cb13-297" aria-hidden="true" tabindex="-1"></a>    style PRIOR fill:<span class="co">#fff3e0,stroke:#c77700</span></span>
-<span id="cb13-298"><a href="#cb13-298" aria-hidden="true" tabindex="-1"></a>    style CD fill:<span class="co">#ede7f6,stroke:#5e35b1</span></span>
-<span id="cb13-299"><a href="#cb13-299" aria-hidden="true" tabindex="-1"></a>    style OUT fill:<span class="co">#e8f5e9,stroke:#2e7d32</span></span>
-<span id="cb13-300"><a href="#cb13-300" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-301"><a href="#cb13-301" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-302"><a href="#cb13-302" aria-hidden="true" tabindex="-1"></a>The processing choices enter as a **prior**, are **sampled** and marginalised</span>
-<span id="cb13-303"><a href="#cb13-303" aria-hidden="true" tabindex="-1"></a>into one error per band, and — through the sensitivity kernels — propagate into</span>
-<span id="cb13-304"><a href="#cb13-304" aria-hidden="true" tabindex="-1"></a>a depth profile whose uncertainty *finally* reflects what was actually unknown:</span>
-<span id="cb13-305"><a href="#cb13-305" aria-hidden="true" tabindex="-1"></a>the measurement noise, **and** the freedom in how the measurement was made. This</span>
-<span id="cb13-306"><a href="#cb13-306" aria-hidden="true" tabindex="-1"></a>is the depth-domain counterpart of the data covariance $C_d$ that the</span>
-<span id="cb13-307"><a href="#cb13-307" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">inference page</span><span class="co">](theory-uq.qmd)</span> consumes.</span>
-<span id="cb13-308"><a href="#cb13-308" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-309"><a href="#cb13-309" aria-hidden="true" tabindex="-1"></a><span class="fu">## Partial saturation: $\delta V_S/V_S$ is not the whole story</span></span>
-<span id="cb13-310"><a href="#cb13-310" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-311"><a href="#cb13-311" aria-hidden="true" tabindex="-1"></a>The inversion above assumes the change it recovers is a shear-velocity change</span>
-<span id="cb13-312"><a href="#cb13-312" aria-hidden="true" tabindex="-1"></a>alone. In partially saturated ground it is not. Filling or draining pore space</span>
-<span id="cb13-313"><a href="#cb13-313" aria-hidden="true" tabindex="-1"></a>changes both the shear modulus and the bulk density, so for the shear-dominated</span>
-<span id="cb13-314"><a href="#cb13-314" aria-hidden="true" tabindex="-1"></a>coda the observed change mixes the two,</span>
-<span id="cb13-315"><a href="#cb13-315" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-316"><a href="#cb13-316" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb13-317"><a href="#cb13-317" aria-hidden="true" tabindex="-1"></a>\frac{\delta v}{v} \;\approx\; \tfrac12\frac{\delta\mu}{\mu} \;-\; \tfrac12\frac{\delta\rho}{\rho},</span>
-<span id="cb13-318"><a href="#cb13-318" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb13-319"><a href="#cb13-319" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-320"><a href="#cb13-320" aria-hidden="true" tabindex="-1"></a>and velocity alone cannot separate them. A petrophysical model — Gassmann fluid</span>
-<span id="cb13-321"><a href="#cb13-321" aria-hidden="true" tabindex="-1"></a>substitution for the modulus and a porosity–saturation relation for the density</span>
-<span id="cb13-322"><a href="#cb13-322" aria-hidden="true" tabindex="-1"></a>(Gassmann 1951; Mavko et al. 2009) — is what breaks the degeneracy, at the price</span>
-<span id="cb13-323"><a href="#cb13-323" aria-hidden="true" tabindex="-1"></a>of its own prior uncertainty on porosity, fluid modulus, and the saturation path.</span>
-<span id="cb13-324"><a href="#cb13-324" aria-hidden="true" tabindex="-1"></a>Hydrological and cryospheric targets, where saturation swings are large</span>
-<span id="cb13-325"><a href="#cb13-325" aria-hidden="true" tabindex="-1"></a>(Clements &amp; Denolle 2018; James et al. 2019), are exactly where ignoring the</span>
-<span id="cb13-326"><a href="#cb13-326" aria-hidden="true" tabindex="-1"></a>density term biases the inferred velocity change and, downstream, the stress.</span>
-<span id="cb13-327"><a href="#cb13-327" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-328"><a href="#cb13-328" aria-hidden="true" tabindex="-1"></a>The planned extension carries $\delta\rho/\rho$ as a **second inverted field**</span>
-<span id="cb13-329"><a href="#cb13-329" aria-hidden="true" tabindex="-1"></a>with its own kernel and reports how much of the surface $\delta v/v$ each field</span>
-<span id="cb13-330"><a href="#cb13-330" aria-hidden="true" tabindex="-1"></a>explains, propagating the saturation and porosity prior into the split. This is</span>
-<span id="cb13-331"><a href="#cb13-331" aria-hidden="true" tabindex="-1"></a>tracked as open development — a <span class="in">`codameter`</span> Gassmann / partial-saturation module</span>
-<span id="cb13-332"><a href="#cb13-332" aria-hidden="true" tabindex="-1"></a>and its synthetic demo (see the repository issues) — and it is the depth-step</span>
-<span id="cb13-333"><a href="#cb13-333" aria-hidden="true" tabindex="-1"></a>input the <span class="co">[</span><span class="ot">stress page</span><span class="co">](uncertainty-3-stress.qmd)</span> needs before effective stress</span>
-<span id="cb13-334"><a href="#cb13-334" aria-hidden="true" tabindex="-1"></a>can be trusted in unsaturated ground.</span>
-<span id="cb13-335"><a href="#cb13-335" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-336"><a href="#cb13-336" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb13-337"><a href="#cb13-337" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-338"><a href="#cb13-338" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
-<span id="cb13-339"><a href="#cb13-339" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where this lives in the code</span></span>
-<span id="cb13-340"><a href="#cb13-340" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-flatten → <span class="in">`codameter.uq_processing.flatten_end_lapse`</span></span>
-<span id="cb13-341"><a href="#cb13-341" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>§2 sampling / @eq-ltv → <span class="in">`ProcessingPrior`</span>, <span class="in">`sample_processing_choices`</span>, <span class="in">`per_band_marginal_error`</span></span>
-<span id="cb13-342"><a href="#cb13-342" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>§3 kernels → <span class="in">`codameter.uq_depth.band_sensitivity_matrix`</span> (built on <span class="in">`codameter.kernels`</span>, <span class="in">`disba`</span>)</span>
-<span id="cb13-343"><a href="#cb13-343" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-depthinv → <span class="in">`codameter.uq_depth.invert_depth_profile`</span> → <span class="in">`DepthProfilePosterior`</span></span>
-<span id="cb13-344"><a href="#cb13-344" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb13-345"><a href="#cb13-345" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-346"><a href="#cb13-346" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
-<span id="cb13-347"><a href="#cb13-347" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-348"><a href="#cb13-348" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
-<span id="cb13-349"><a href="#cb13-349" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>profile is where reporting is least consistent: many studies read one band as one</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>depth, only a few invert several bands against sensitivity kernels, and the</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>measurement error is seldom propagated into the depth estimate. The depth</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>assignment is frequently the scientific claim itself — whether the change lies in</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>the aquifer or the overlying soil (Rubinstein &amp; Beroza 2005) — so a depth reported</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>without its uncertainty cannot support that claim.</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Choice <span class="pp">|</span> Best practice <span class="pp">|</span> Common deviation <span class="pp">|</span> Consequence <span class="pp">|</span></span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Depth assignment <span class="pp">|</span> Invert several bands against sensitivity kernels <span class="pp">|</span> Read one band as one depth <span class="pp">|</span> No depth resolution or error <span class="pp">|</span></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Band selection <span class="pp">|</span> Bands where the kernels resolve (no half-space leak, coherent coda) <span class="pp">|</span> Convenience band <span class="pp">|</span> Kernel leaks; unstable inversion <span class="pp">|</span></span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Measurement error <span class="pp">|</span> Propagate the per-band $C_d$ into the profile <span class="pp">|</span> Plot a profile with no covariance <span class="pp">|</span> Overconfident depth attribution <span class="pp">|</span></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Saturation <span class="pp">|</span> Separate $\delta V_S/V_S$ and $\delta\rho/\rho$ with a petrophysical model <span class="pp">|</span> Assume a pure $\delta V_S/V_S$ change <span class="pp">|</span> Biased velocity change and stress in hydrological / cryospheric targets <span class="pp">|</span></span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Velocity model <span class="pp">|</span> State the reference $V_P,V_S(z)$ and its uncertainty <span class="pp">|</span> Fixed, unstated model <span class="pp">|</span> Hidden systematic in the kernels and moduli <span class="pp">|</span></span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys, numpy <span class="im">as</span> np, matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, <span class="st">"."</span>)</span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> _synth <span class="im">import</span> build_parkfield_site, set_style, C</span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>set_style()</span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.uq_processing <span class="im">import</span> (</span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>    ProcessingPrior, sample_processing_choices, per_band_marginal_error,</span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>    flatten_end_lapse, choice_floor)</span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.uq_depth <span class="im">import</span> band_sensitivity_matrix, invert_depth_profile</span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.kernels <span class="im">import</span> make_fine_model</span>
+<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">11</span>)</span>
+<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-59"><a href="#cb13-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-60"><a href="#cb13-60" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. The window *rule* is the deep, frequency-dependent choice</span></span>
+<span id="cb13-61"><a href="#cb13-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-62"><a href="#cb13-62" aria-hidden="true" tabindex="-1"></a>Different groups do not just pick different numbers; they pick different</span>
+<span id="cb13-63"><a href="#cb13-63" aria-hidden="true" tabindex="-1"></a>*algorithms* for where the coda window goes. Three dominate:</span>
+<span id="cb13-64"><a href="#cb13-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-65"><a href="#cb13-65" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Rule <span class="pp">|</span> Start $t_1$ <span class="pp">|</span> End $t_2$ <span class="pp">|</span> Character <span class="pp">|</span></span>
+<span id="cb13-66"><a href="#cb13-66" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb13-67"><a href="#cb13-67" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **fixed** <span class="pp">|</span> a habitual lapse <span class="pp">|</span> $t_1 + L$, fixed $L$ <span class="pp">|</span> simple, frequency-blind <span class="pp">|</span></span>
+<span id="cb13-68"><a href="#cb13-68" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **envelope pick → flatten** | the envelope **pick** | where $\log A(t)$ **flattens** into noise <span class="pp">|</span> *physical*, frequency-dependent <span class="pp">|</span></span>
+<span id="cb13-69"><a href="#cb13-69" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **moving** <span class="pp">|</span> slides along the coda <span class="pp">|</span> short window, many positions <span class="pp">|</span> samples a range of scattering depths <span class="pp">|</span></span>
+<span id="cb13-70"><a href="#cb13-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-71"><a href="#cb13-71" aria-hidden="true" tabindex="-1"></a>The envelope rule is the interesting one. With coda decay</span>
+<span id="cb13-72"><a href="#cb13-72" aria-hidden="true" tabindex="-1"></a>$A(t)\propto e^{-\pi f t/Q_c}$, the log-envelope flattens into the noise floor at</span>
+<span id="cb13-73"><a href="#cb13-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-74"><a href="#cb13-74" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb13-75"><a href="#cb13-75" aria-hidden="true" tabindex="-1"></a>t_2 = t_1 + \frac{Q_c}{\pi f}\,\ln(\mathrm{SNR}_0),</span>
+<span id="cb13-76"><a href="#cb13-76" aria-hidden="true" tabindex="-1"></a>$$ {#eq-flatten}</span>
+<span id="cb13-77"><a href="#cb13-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-78"><a href="#cb13-78" aria-hidden="true" tabindex="-1"></a>so the window **shrinks as frequency rises** — exactly where a fixed window</span>
+<span id="cb13-79"><a href="#cb13-79" aria-hidden="true" tabindex="-1"></a>silently disagrees. <span class="in">`flatten_end_lapse`</span> encodes this.</span>
+<span id="cb13-80"><a href="#cb13-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-83"><a href="#cb13-83" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-84"><a href="#cb13-84" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-rules</span></span>
+<span id="cb13-85"><a href="#cb13-85" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The envelope-flatten rule (Eq. 1) makes the usable coda length frequency-dependent: high-frequency coda decays into the noise sooner, so its window is shorter. A fixed window (grey) ignores this — the two rules agree only near one frequency, and disagree everywhere else. That disagreement is a measurement uncertainty."</span></span>
+<span id="cb13-86"><a href="#cb13-86" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> np.linspace(<span class="fl">0.4</span>, <span class="dv">5</span>, <span class="dv">100</span>)</span>
+<span id="cb13-87"><a href="#cb13-87" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> qc, col <span class="kw">in</span> [(<span class="dv">25</span>, C[<span class="st">"hydro"</span>]), (<span class="dv">40</span>, C[<span class="st">"thermo"</span>]), (<span class="dv">60</span>, C[<span class="st">"damage"</span>])]:</span>
+<span id="cb13-88"><a href="#cb13-88" aria-hidden="true" tabindex="-1"></a>    ax_end <span class="op">=</span> [flatten_end_lapse(<span class="fl">8.0</span>, fi, qc, <span class="dv">80</span>) <span class="op">-</span> <span class="fl">8.0</span> <span class="cf">for</span> fi <span class="kw">in</span> f]</span>
+<span id="cb13-89"><a href="#cb13-89" aria-hidden="true" tabindex="-1"></a>    plt.plot(f, ax_end, color<span class="op">=</span>col, label<span class="op">=</span><span class="ss">f"$Q_c$=</span><span class="sc">{</span>qc<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-90"><a href="#cb13-90" aria-hidden="true" tabindex="-1"></a>plt.axhline(<span class="dv">25</span>, color<span class="op">=</span><span class="st">"0.5"</span>, ls<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"fixed L = 25 s"</span>)</span>
+<span id="cb13-91"><a href="#cb13-91" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"frequency (Hz)"</span>)<span class="op">;</span> plt.ylabel(<span class="st">"coda window length (s)"</span>)</span>
+<span id="cb13-92"><a href="#cb13-92" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"envelope-flatten window length vs frequency"</span>)</span>
+<span id="cb13-93"><a href="#cb13-93" aria-hidden="true" tabindex="-1"></a>plt.legend(fontsize<span class="op">=</span><span class="dv">8</span>, frameon<span class="op">=</span><span class="va">False</span>)<span class="op">;</span> plt.show()</span>
+<span id="cb13-94"><a href="#cb13-94" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-95"><a href="#cb13-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-96"><a href="#cb13-96" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2. Sampling the choices as a Bayesian "multiverse"</span></span>
+<span id="cb13-97"><a href="#cb13-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-98"><a href="#cb13-98" aria-hidden="true" tabindex="-1"></a>To be Bayesian about the choice, we put a prior $p(c)$ over the whole</span>
+<span id="cb13-99"><a href="#cb13-99" aria-hidden="true" tabindex="-1"></a>configuration $c=(\text{rule}, t_1, L, f, \dots)$ and **sample** it — a Monte</span>
+<span id="cb13-100"><a href="#cb13-100" aria-hidden="true" tabindex="-1"></a>Carlo over the analysis multiverse <span class="co">[</span><span class="ot">@Steegen2016</span><span class="co">]</span>. Each draw yields a coda</span>
+<span id="cb13-101"><a href="#cb13-101" aria-hidden="true" tabindex="-1"></a>window and, through the Weaver/Clarke floor, a within-choice error. The law of</span>
+<span id="cb13-102"><a href="#cb13-102" aria-hidden="true" tabindex="-1"></a>total variance then splits the marginal measurement variance into a</span>
+<span id="cb13-103"><a href="#cb13-103" aria-hidden="true" tabindex="-1"></a>**within-choice floor** and a **processing-choice spread**:</span>
+<span id="cb13-104"><a href="#cb13-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-105"><a href="#cb13-105" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb13-106"><a href="#cb13-106" aria-hidden="true" tabindex="-1"></a>\operatorname{Var}(\delta v/v) =</span>
+<span id="cb13-107"><a href="#cb13-107" aria-hidden="true" tabindex="-1"></a>\underbrace{\mathbb{E}_c[\operatorname{Var}(\delta v/v\mid c)]}_{\text{floor}}</span>
+<span id="cb13-108"><a href="#cb13-108" aria-hidden="true" tabindex="-1"></a>+\underbrace{\operatorname{Var}_c[\mathbb{E}(\delta v/v\mid c)]}_{\text{choice spread}} .</span>
+<span id="cb13-109"><a href="#cb13-109" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ltv}</span>
+<span id="cb13-110"><a href="#cb13-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-113"><a href="#cb13-113" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-114"><a href="#cb13-114" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: sample</span></span>
+<span id="cb13-115"><a href="#cb13-115" aria-hidden="true" tabindex="-1"></a>bands <span class="op">=</span> np.array([<span class="fl">0.6</span>, <span class="fl">0.8</span>, <span class="fl">1.0</span>, <span class="fl">1.3</span>, <span class="fl">1.7</span>, <span class="fl">2.2</span>, <span class="fl">2.8</span>, <span class="fl">3.6</span>, <span class="fl">4.5</span>])</span>
+<span id="cb13-116"><a href="#cb13-116" aria-hidden="true" tabindex="-1"></a>prior <span class="op">=</span> ProcessingPrior(</span>
+<span id="cb13-117"><a href="#cb13-117" aria-hidden="true" tabindex="-1"></a>    bands_hz<span class="op">=</span>bands,</span>
+<span id="cb13-118"><a href="#cb13-118" aria-hidden="true" tabindex="-1"></a>    rule_weights<span class="op">=</span>{<span class="st">"fixed"</span>: <span class="fl">0.5</span>, <span class="st">"envelope_pick_flatten"</span>: <span class="fl">0.3</span>, <span class="st">"moving"</span>: <span class="fl">0.2</span>},</span>
+<span id="cb13-119"><a href="#cb13-119" aria-hidden="true" tabindex="-1"></a>    start_lapse_s<span class="op">=</span>(<span class="fl">4.0</span>, <span class="fl">12.0</span>), window_length_s<span class="op">=</span>(<span class="fl">10.0</span>, <span class="fl">40.0</span>), qc<span class="op">=</span><span class="fl">40.0</span>, snr0<span class="op">=</span><span class="fl">80.0</span>,</span>
+<span id="cb13-120"><a href="#cb13-120" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-121"><a href="#cb13-121" aria-hidden="true" tabindex="-1"></a>choices <span class="op">=</span> sample_processing_choices(prior, <span class="dv">12000</span>, rng)</span>
+<span id="cb13-122"><a href="#cb13-122" aria-hidden="true" tabindex="-1"></a><span class="co"># a (illustrative) per-band methodological bias: estimators disagree more at</span></span>
+<span id="cb13-123"><a href="#cb13-123" aria-hidden="true" tabindex="-1"></a><span class="co"># high frequency where the windows are shortest and the codas least coherent.</span></span>
+<span id="cb13-124"><a href="#cb13-124" aria-hidden="true" tabindex="-1"></a>band_bias <span class="op">=</span> {<span class="bu">float</span>(f): <span class="fl">2.5e-4</span> <span class="op">+</span> <span class="fl">1.0e-4</span> <span class="op">*</span> f <span class="cf">for</span> f <span class="kw">in</span> bands}</span>
+<span id="cb13-125"><a href="#cb13-125" aria-hidden="true" tabindex="-1"></a>pbe <span class="op">=</span> per_band_marginal_error(choices, band_bias<span class="op">=</span>band_bias)</span>
+<span id="cb13-126"><a href="#cb13-126" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> f <span class="kw">in</span> bands:</span>
+<span id="cb13-127"><a href="#cb13-127" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> pbe[<span class="bu">float</span>(f)]</span>
+<span id="cb13-128"><a href="#cb13-128" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>f<span class="sc">:&gt;4.1f}</span><span class="ss"> Hz  floor=</span><span class="sc">{</span>s[<span class="st">'within'</span>]<span class="sc">:.2e}</span><span class="ss">  choice=</span><span class="sc">{</span>s[<span class="st">'processing'</span>]<span class="sc">:.2e}</span><span class="ss">  "</span></span>
+<span id="cb13-129"><a href="#cb13-129" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"total=</span><span class="sc">{</span>s[<span class="st">'total'</span>]<span class="sc">:.2e}</span><span class="ss">  (n=</span><span class="sc">{</span>s[<span class="st">'n'</span>]<span class="sc">:.0f}</span><span class="ss">)"</span>)</span>
+<span id="cb13-130"><a href="#cb13-130" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-131"><a href="#cb13-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-134"><a href="#cb13-134" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-135"><a href="#cb13-135" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-multiverse</span></span>
+<span id="cb13-136"><a href="#cb13-136" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Left: the sampled coda windows, coloured by rule — the envelope rule (red) sweeps a frequency-dependent locus, the moving rule (purple) scatters along the coda, the fixed rule (blue) clusters by habit. Right: the per-band error budget. The processing-choice spread (hatched) is a large, irreducible part of the total that no single pipeline reveals."</span></span>
+<span id="cb13-137"><a href="#cb13-137" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.6</span>), gridspec_kw<span class="op">=</span>{<span class="st">"width_ratios"</span>:[<span class="fl">1.1</span>,<span class="dv">1</span>]})</span>
+<span id="cb13-138"><a href="#cb13-138" aria-hidden="true" tabindex="-1"></a>rule_col <span class="op">=</span> {<span class="st">"fixed"</span>: C[<span class="st">"hydro"</span>], <span class="st">"envelope_pick_flatten"</span>: C[<span class="st">"thermo"</span>], <span class="st">"moving"</span>: C[<span class="st">"damage"</span>]}</span>
+<span id="cb13-139"><a href="#cb13-139" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rule <span class="kw">in</span> rule_col:</span>
+<span id="cb13-140"><a href="#cb13-140" aria-hidden="true" tabindex="-1"></a>    sub <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> choices[:<span class="dv">2500</span>] <span class="cf">if</span> c.rule <span class="op">==</span> rule]</span>
+<span id="cb13-141"><a href="#cb13-141" aria-hidden="true" tabindex="-1"></a>    ax[<span class="dv">0</span>].scatter([c.f_center_hz <span class="cf">for</span> c <span class="kw">in</span> sub], [c.t2_s <span class="op">-</span> c.t1_s <span class="cf">for</span> c <span class="kw">in</span> sub],</span>
+<span id="cb13-142"><a href="#cb13-142" aria-hidden="true" tabindex="-1"></a>                  s<span class="op">=</span><span class="dv">6</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, color<span class="op">=</span>rule_col[rule], label<span class="op">=</span>rule)</span>
+<span id="cb13-143"><a href="#cb13-143" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"band centre (Hz)"</span>, ylabel<span class="op">=</span><span class="st">"window length (s)"</span>,</span>
+<span id="cb13-144"><a href="#cb13-144" aria-hidden="true" tabindex="-1"></a>          title<span class="op">=</span><span class="st">"sampled choices c ~ p(c)"</span>)</span>
+<span id="cb13-145"><a href="#cb13-145" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].legend(fontsize<span class="op">=</span><span class="dv">7</span>, frameon<span class="op">=</span><span class="va">False</span>, markerscale<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb13-146"><a href="#cb13-146" aria-hidden="true" tabindex="-1"></a>within <span class="op">=</span> np.array([pbe[<span class="bu">float</span>(f)][<span class="st">"within"</span>] <span class="cf">for</span> f <span class="kw">in</span> bands])</span>
+<span id="cb13-147"><a href="#cb13-147" aria-hidden="true" tabindex="-1"></a>proc   <span class="op">=</span> np.array([pbe[<span class="bu">float</span>(f)][<span class="st">"processing"</span>] <span class="cf">for</span> f <span class="kw">in</span> bands])</span>
+<span id="cb13-148"><a href="#cb13-148" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(bands, within, width<span class="op">=</span><span class="fl">0.15</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], label<span class="op">=</span><span class="st">"within-choice floor"</span>)</span>
+<span id="cb13-149"><a href="#cb13-149" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(bands, proc, width<span class="op">=</span><span class="fl">0.15</span>, bottom<span class="op">=</span>within, color<span class="op">=</span>C[<span class="st">"band"</span>],</span>
+<span id="cb13-150"><a href="#cb13-150" aria-hidden="true" tabindex="-1"></a>          hatch<span class="op">=</span><span class="st">"///"</span>, label<span class="op">=</span><span class="st">"processing-choice spread"</span>)</span>
+<span id="cb13-151"><a href="#cb13-151" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"band centre (Hz)"</span>, ylabel<span class="op">=</span><span class="st">"σ contribution (added in quadrature)"</span>,</span>
+<span id="cb13-152"><a href="#cb13-152" aria-hidden="true" tabindex="-1"></a>          title<span class="op">=</span><span class="st">"per-band error budget"</span>)</span>
+<span id="cb13-153"><a href="#cb13-153" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].legend(fontsize<span class="op">=</span><span class="dv">8</span>, frameon<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb13-154"><a href="#cb13-154" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb13-155"><a href="#cb13-155" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-156"><a href="#cb13-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-157"><a href="#cb13-157" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb13-158"><a href="#cb13-158" aria-hidden="true" tabindex="-1"></a>This is the answer to *"how do we sample the uncertainties in the various</span>
+<span id="cb13-159"><a href="#cb13-159" aria-hidden="true" tabindex="-1"></a>parameter choices?"* — draw them from a prior and marginalise. And to *"do we</span>
+<span id="cb13-160"><a href="#cb13-160" aria-hidden="true" tabindex="-1"></a>make one error per frequency band?"* — yes: <span class="in">`per_band_marginal_error`</span> collapses</span>
+<span id="cb13-161"><a href="#cb13-161" aria-hidden="true" tabindex="-1"></a>the multiverse into one $\sigma_b$ per band, which is precisely what the depth</span>
+<span id="cb13-162"><a href="#cb13-162" aria-hidden="true" tabindex="-1"></a>kernel needs next.</span>
+<span id="cb13-163"><a href="#cb13-163" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb13-164"><a href="#cb13-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-165"><a href="#cb13-165" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. One error per band → a depth kernel</span></span>
+<span id="cb13-166"><a href="#cb13-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-167"><a href="#cb13-167" aria-hidden="true" tabindex="-1"></a>A band does not see a depth; it sees a **kernel** $K_b(z)$ — the Rayleigh-wave</span>
+<span id="cb13-168"><a href="#cb13-168" aria-hidden="true" tabindex="-1"></a>sensitivity of that band, computed here with <span class="in">`disba`</span> through</span>
+<span id="cb13-169"><a href="#cb13-169" aria-hidden="true" tabindex="-1"></a><span class="in">`band_sensitivity_matrix`</span>. Low frequencies sense deep and broad; high</span>
+<span id="cb13-170"><a href="#cb13-170" aria-hidden="true" tabindex="-1"></a>frequencies sense shallow and sharp. Stacking the kernels is the forward</span>
+<span id="cb13-171"><a href="#cb13-171" aria-hidden="true" tabindex="-1"></a>operator $d = G\,m$ with $m(z)=\delta V_S/V_S(z)$.</span>
+<span id="cb13-172"><a href="#cb13-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-175"><a href="#cb13-175" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-176"><a href="#cb13-176" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: kernels</span></span>
+<span id="cb13-177"><a href="#cb13-177" aria-hidden="true" tabindex="-1"></a>site <span class="op">=</span> build_parkfield_site()</span>
+<span id="cb13-178"><a href="#cb13-178" aria-hidden="true" tabindex="-1"></a>th, vp, vs, rho <span class="op">=</span> site.velocity_model.to_arrays()</span>
+<span id="cb13-179"><a href="#cb13-179" aria-hidden="true" tabindex="-1"></a>fine <span class="op">=</span> make_fine_model(th, vp, vs, rho, target_dz_km<span class="op">=</span><span class="fl">0.01</span>, max_depth_km<span class="op">=</span><span class="fl">1.5</span>)</span>
+<span id="cb13-180"><a href="#cb13-180" aria-hidden="true" tabindex="-1"></a>K <span class="op">=</span> band_sensitivity_matrix(fine, bands, max_depth_km<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb13-181"><a href="#cb13-181" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"design G:"</span>, K.G.shape, <span class="st">"(bands × depths)"</span>)</span>
+<span id="cb13-182"><a href="#cb13-182" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"peak sensitivity depth per band (m):"</span>,</span>
+<span id="cb13-183"><a href="#cb13-183" aria-hidden="true" tabindex="-1"></a>      np.<span class="bu">round</span>(K.peak_depths_km <span class="op">*</span> <span class="fl">1e3</span>).astype(<span class="bu">int</span>))</span>
+<span id="cb13-184"><a href="#cb13-184" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-185"><a href="#cb13-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-188"><a href="#cb13-188" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-189"><a href="#cb13-189" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-kernels</span></span>
+<span id="cb13-190"><a href="#cb13-190" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The band sensitivity kernels K_b(z) (area-normalised). Each band is a depth-weighting function; the set spans ~30–470 m here. This is the bridge that turns a *frequency*-domain error budget into a *depth*-domain one — and why you want several bands, not one."</span></span>
+<span id="cb13-191"><a href="#cb13-191" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">5.5</span>, <span class="fl">4.2</span>))</span>
+<span id="cb13-192"><a href="#cb13-192" aria-hidden="true" tabindex="-1"></a>zc <span class="op">=</span> K.depths_km <span class="op">*</span> <span class="fl">1e3</span></span>
+<span id="cb13-193"><a href="#cb13-193" aria-hidden="true" tabindex="-1"></a>cmap <span class="op">=</span> plt.cm.viridis(np.linspace(<span class="dv">0</span>, <span class="fl">0.92</span>, <span class="bu">len</span>(bands)))</span>
+<span id="cb13-194"><a href="#cb13-194" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> b <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(bands)):</span>
+<span id="cb13-195"><a href="#cb13-195" aria-hidden="true" tabindex="-1"></a>    ax.plot(K.G[b] <span class="op">/</span> np.<span class="bu">abs</span>(K.G[b]).<span class="bu">max</span>(), zc, color<span class="op">=</span>cmap[b], lw<span class="op">=</span><span class="fl">1.3</span>,</span>
+<span id="cb13-196"><a href="#cb13-196" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>bands[b]<span class="sc">:.1f}</span><span class="ss"> Hz"</span>)</span>
+<span id="cb13-197"><a href="#cb13-197" aria-hidden="true" tabindex="-1"></a>ax.invert_yaxis()</span>
+<span id="cb13-198"><a href="#cb13-198" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"normalised sensitivity"</span>, ylabel<span class="op">=</span><span class="st">"depth (m)"</span>,</span>
+<span id="cb13-199"><a href="#cb13-199" aria-hidden="true" tabindex="-1"></a>       title<span class="op">=</span><span class="st">"$K_b(z)$ — frequency → depth"</span>)</span>
+<span id="cb13-200"><a href="#cb13-200" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">7</span>, frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">2</span>, title<span class="op">=</span><span class="st">"band"</span>)</span>
+<span id="cb13-201"><a href="#cb13-201" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb13-202"><a href="#cb13-202" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-203"><a href="#cb13-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-204"><a href="#cb13-204" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4. Propagating the error into a depth profile</span></span>
+<span id="cb13-205"><a href="#cb13-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-206"><a href="#cb13-206" aria-hidden="true" tabindex="-1"></a>The final step feeds the per-band $\delta v/v$ and the per-band measurement</span>
+<span id="cb13-207"><a href="#cb13-207" aria-hidden="true" tabindex="-1"></a>covariance $C_d$ (built from §2) into a Bayesian linear inversion,</span>
+<span id="cb13-208"><a href="#cb13-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-209"><a href="#cb13-209" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb13-210"><a href="#cb13-210" aria-hidden="true" tabindex="-1"></a>\hat C_m = (G^\top C_d^{-1} G + C_{m0}^{-1})^{-1},\qquad</span>
+<span id="cb13-211"><a href="#cb13-211" aria-hidden="true" tabindex="-1"></a>\hat m = \hat C_m\, G^\top C_d^{-1}\, d,</span>
+<span id="cb13-212"><a href="#cb13-212" aria-hidden="true" tabindex="-1"></a>$$ {#eq-depthinv}</span>
+<span id="cb13-213"><a href="#cb13-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-214"><a href="#cb13-214" aria-hidden="true" tabindex="-1"></a>(<span class="in">`invert_depth_profile`</span>, with a smoothness prior $C_{m0}$). The **measurement</span>
+<span id="cb13-215"><a href="#cb13-215" aria-hidden="true" tabindex="-1"></a>error — including the processing-choice part — flows straight into the depth</span>
+<span id="cb13-216"><a href="#cb13-216" aria-hidden="true" tabindex="-1"></a>uncertainty** $\sqrt{\operatorname{diag}\hat C_m}$.</span>
+<span id="cb13-217"><a href="#cb13-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-220"><a href="#cb13-220" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-221"><a href="#cb13-221" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: invert</span></span>
+<span id="cb13-222"><a href="#cb13-222" aria-hidden="true" tabindex="-1"></a><span class="co"># a true velocity-change anomaly at ~120 m depth (e.g. a shallow pore-pressure pulse)</span></span>
+<span id="cb13-223"><a href="#cb13-223" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> K.depths_km</span>
+<span id="cb13-224"><a href="#cb13-224" aria-hidden="true" tabindex="-1"></a>m_true <span class="op">=</span> <span class="fl">4e-3</span> <span class="op">*</span> np.exp(<span class="op">-</span>(((z <span class="op">-</span> <span class="fl">0.12</span>) <span class="op">/</span> <span class="fl">0.09</span>) <span class="op">**</span> <span class="dv">2</span>))</span>
+<span id="cb13-225"><a href="#cb13-225" aria-hidden="true" tabindex="-1"></a>d_clean <span class="op">=</span> K.G <span class="op">@</span> m_true</span>
+<span id="cb13-226"><a href="#cb13-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-227"><a href="#cb13-227" aria-hidden="true" tabindex="-1"></a>sigma_band <span class="op">=</span> np.array([pbe[<span class="bu">float</span>(f)][<span class="st">"total"</span>] <span class="cf">for</span> f <span class="kw">in</span> bands])</span>
+<span id="cb13-228"><a href="#cb13-228" aria-hidden="true" tabindex="-1"></a><span class="co"># floor-only budget = ignore the processing-choice spread (the naive approach)</span></span>
+<span id="cb13-229"><a href="#cb13-229" aria-hidden="true" tabindex="-1"></a>sigma_floor <span class="op">=</span> np.array([pbe[<span class="bu">float</span>(f)][<span class="st">"within"</span>] <span class="cf">for</span> f <span class="kw">in</span> bands])</span>
+<span id="cb13-230"><a href="#cb13-230" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-231"><a href="#cb13-231" aria-hidden="true" tabindex="-1"></a><span class="co"># a fresh, fixed noise draw for a reproducible figure (one realisation)</span></span>
+<span id="cb13-232"><a href="#cb13-232" aria-hidden="true" tabindex="-1"></a>noise_rng <span class="op">=</span> np.random.default_rng(<span class="dv">7</span>)</span>
+<span id="cb13-233"><a href="#cb13-233" aria-hidden="true" tabindex="-1"></a>d_obs <span class="op">=</span> d_clean <span class="op">+</span> sigma_band <span class="op">*</span> noise_rng.standard_normal(<span class="bu">len</span>(bands))</span>
+<span id="cb13-234"><a href="#cb13-234" aria-hidden="true" tabindex="-1"></a>post_full  <span class="op">=</span> invert_depth_profile(d_obs, np.diag(sigma_band<span class="op">**</span><span class="dv">2</span>), K,</span>
+<span id="cb13-235"><a href="#cb13-235" aria-hidden="true" tabindex="-1"></a>                                  prior_std<span class="op">=</span><span class="fl">8e-3</span>, corr_length_km<span class="op">=</span><span class="fl">0.12</span>)</span>
+<span id="cb13-236"><a href="#cb13-236" aria-hidden="true" tabindex="-1"></a>post_floor <span class="op">=</span> invert_depth_profile(d_obs, np.diag(sigma_floor<span class="op">**</span><span class="dv">2</span>), K,</span>
+<span id="cb13-237"><a href="#cb13-237" aria-hidden="true" tabindex="-1"></a>                                  prior_std<span class="op">=</span><span class="fl">8e-3</span>, corr_length_km<span class="op">=</span><span class="fl">0.12</span>)</span>
+<span id="cb13-238"><a href="#cb13-238" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"depth of recovered peak : </span><span class="sc">{</span>z[np.argmax(post_full.mean)]<span class="op">*</span><span class="fl">1e3</span><span class="sc">:.0f}</span><span class="ss"> m (truth 120 m)"</span>)</span>
+<span id="cb13-239"><a href="#cb13-239" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"mean depth σ, full budget : </span><span class="sc">{</span>post_full<span class="sc">.</span>std<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
+<span id="cb13-240"><a href="#cb13-240" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"mean depth σ, floor only  : </span><span class="sc">{</span>post_floor<span class="sc">.</span>std<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">  "</span></span>
+<span id="cb13-241"><a href="#cb13-241" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(under-reported by </span><span class="sc">{</span>post_full<span class="sc">.</span>std<span class="sc">.</span>mean()<span class="op">/</span>post_floor<span class="sc">.</span>std<span class="sc">.</span>mean()<span class="sc">:.2f}</span><span class="ss">×)"</span>)</span>
+<span id="cb13-242"><a href="#cb13-242" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-243"><a href="#cb13-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-246"><a href="#cb13-246" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-247"><a href="#cb13-247" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-depth</span></span>
+<span id="cb13-248"><a href="#cb13-248" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The propagated depth result for one noise realisation. The posterior mean (purple) recovers the shallow anomaly; the dark band is the ±2σ uncertainty with the *full* processing-choice budget, the light dashed band is what you would report from the within-method floor alone. Ignoring the processing choices under-states the depth uncertainty — most in the shallow section probed by the high-frequency bands, where the windows are shortest and the estimators diverge most. The envelope is wide because a few bands resolve only a few depths; some realisations misplace the peak entirely, which is exactly why the ±2σ band — not the mean — is the result."</span></span>
+<span id="cb13-249"><a href="#cb13-249" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">4.4</span>), gridspec_kw<span class="op">=</span>{<span class="st">"width_ratios"</span>:[<span class="fl">1.3</span>,<span class="dv">1</span>]})</span>
+<span id="cb13-250"><a href="#cb13-250" aria-hidden="true" tabindex="-1"></a>zc <span class="op">=</span> z <span class="op">*</span> <span class="fl">1e3</span></span>
+<span id="cb13-251"><a href="#cb13-251" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].plot(m_true, zc, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.8</span>, label<span class="op">=</span><span class="st">"truth"</span>)</span>
+<span id="cb13-252"><a href="#cb13-252" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].plot(post_full.mean, zc, color<span class="op">=</span>C[<span class="st">"band"</span>], lw<span class="op">=</span><span class="fl">1.6</span>, label<span class="op">=</span><span class="st">"posterior mean"</span>)</span>
+<span id="cb13-253"><a href="#cb13-253" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].fill_betweenx(zc, post_full.mean<span class="op">-</span><span class="dv">2</span><span class="op">*</span>post_full.std, post_full.mean<span class="op">+</span><span class="dv">2</span><span class="op">*</span>post_full.std,</span>
+<span id="cb13-254"><a href="#cb13-254" aria-hidden="true" tabindex="-1"></a>                    color<span class="op">=</span>C[<span class="st">"band"</span>], alpha<span class="op">=</span><span class="fl">0.25</span>, label<span class="op">=</span><span class="st">"±2σ (full budget)"</span>)</span>
+<span id="cb13-255"><a href="#cb13-255" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].fill_betweenx(zc, post_floor.mean<span class="op">-</span><span class="dv">2</span><span class="op">*</span>post_floor.std, post_floor.mean<span class="op">+</span><span class="dv">2</span><span class="op">*</span>post_floor.std,</span>
+<span id="cb13-256"><a href="#cb13-256" aria-hidden="true" tabindex="-1"></a>                    facecolor<span class="op">=</span><span class="st">"none"</span>, edgecolor<span class="op">=</span>C[<span class="st">"fit"</span>], ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb13-257"><a href="#cb13-257" aria-hidden="true" tabindex="-1"></a>                    label<span class="op">=</span><span class="st">"±2σ (floor only)"</span>)</span>
+<span id="cb13-258"><a href="#cb13-258" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].invert_yaxis()</span>
+<span id="cb13-259"><a href="#cb13-259" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="vs">r"</span><span class="dv">$\d</span><span class="vs">elta V_S/V_S</span><span class="kw">(</span><span class="vs">z</span><span class="kw">)</span><span class="dv">$</span><span class="vs">"</span>, ylabel<span class="op">=</span><span class="st">"depth (m)"</span>, title<span class="op">=</span><span class="st">"depth profile + propagated error"</span>)</span>
+<span id="cb13-260"><a href="#cb13-260" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].legend(fontsize<span class="op">=</span><span class="fl">7.5</span>, frameon<span class="op">=</span><span class="va">False</span>, loc<span class="op">=</span><span class="st">"lower right"</span>)</span>
+<span id="cb13-261"><a href="#cb13-261" aria-hidden="true" tabindex="-1"></a><span class="co"># resolution: diagonal of R shows how well each depth is independently resolved</span></span>
+<span id="cb13-262"><a href="#cb13-262" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot(np.diag(post_full.resolution), zc, color<span class="op">=</span>C[<span class="st">"thermo"</span>], lw<span class="op">=</span><span class="fl">1.5</span>)</span>
+<span id="cb13-263"><a href="#cb13-263" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].invert_yaxis()</span>
+<span id="cb13-264"><a href="#cb13-264" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"resolution (diag R)"</span>, title<span class="op">=</span><span class="st">"depth resolution"</span>)</span>
+<span id="cb13-265"><a href="#cb13-265" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].text(<span class="fl">0.5</span>, <span class="fl">0.05</span>, <span class="ss">f"trace(R) = </span><span class="sc">{</span>np<span class="sc">.</span>trace(post_full.resolution)<span class="sc">:.1f}</span><span class="ch">\n</span><span class="ss">"</span></span>
+<span id="cb13-266"><a href="#cb13-266" aria-hidden="true" tabindex="-1"></a>           <span class="ss">f"≈ independent depths</span><span class="ch">\n</span><span class="ss">from </span><span class="sc">{</span><span class="bu">len</span>(bands)<span class="sc">}</span><span class="ss"> bands"</span>,</span>
+<span id="cb13-267"><a href="#cb13-267" aria-hidden="true" tabindex="-1"></a>           transform<span class="op">=</span>ax[<span class="dv">1</span>].transAxes, fontsize<span class="op">=</span><span class="dv">8</span>, va<span class="op">=</span><span class="st">"bottom"</span>)</span>
+<span id="cb13-268"><a href="#cb13-268" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb13-269"><a href="#cb13-269" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-270"><a href="#cb13-270" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-271"><a href="#cb13-271" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
+<span id="cb13-272"><a href="#cb13-272" aria-hidden="true" tabindex="-1"></a>Two lessons the resolution panel makes concrete. **First**, a handful of bands</span>
+<span id="cb13-273"><a href="#cb13-273" aria-hidden="true" tabindex="-1"></a>resolves only a handful of independent depths ($\mathrm{trace}\,R\approx$ the</span>
+<span id="cb13-274"><a href="#cb13-274" aria-hidden="true" tabindex="-1"></a>band count) — depth inversion from $\delta v/v$ is inherently low-resolution, and</span>
+<span id="cb13-275"><a href="#cb13-275" aria-hidden="true" tabindex="-1"></a>honesty about that is part of the uncertainty. **Second**, the gap between the</span>
+<span id="cb13-276"><a href="#cb13-276" aria-hidden="true" tabindex="-1"></a>two envelopes *is* the cost of pretending the processing choice was fixed.</span>
+<span id="cb13-277"><a href="#cb13-277" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb13-278"><a href="#cb13-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-279"><a href="#cb13-279" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5. The full chain</span></span>
+<span id="cb13-280"><a href="#cb13-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-283"><a href="#cb13-283" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb13-284"><a href="#cb13-284" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
+<span id="cb13-285"><a href="#cb13-285" aria-hidden="true" tabindex="-1"></a>    RAW[<span class="ot">"</span><span class="st">repeated coda</span><span class="ot">"</span>]</span>
+<span id="cb13-286"><a href="#cb13-286" aria-hidden="true" tabindex="-1"></a>    PRIOR[<span class="ot">"</span><span class="st">p(c): window rule,&lt;br/&gt;length, start, band</span><span class="ot">"</span>]</span>
+<span id="cb13-287"><a href="#cb13-287" aria-hidden="true" tabindex="-1"></a>    SAMPLE[<span class="ot">"</span><span class="st">sample c ~ p(c)&lt;br/&gt;(multiverse)</span><span class="ot">"</span>]</span>
+<span id="cb13-288"><a href="#cb13-288" aria-hidden="true" tabindex="-1"></a>    BAND[<span class="ot">"</span><span class="st">per-band σ_b&lt;br/&gt;floor ⊕ choice spread</span><span class="ot">"</span>]</span>
+<span id="cb13-289"><a href="#cb13-289" aria-hidden="true" tabindex="-1"></a>    KERN[<span class="ot">"</span><span class="st">kernels K_b(z)&lt;br/&gt;(disba)</span><span class="ot">"</span>]</span>
+<span id="cb13-290"><a href="#cb13-290" aria-hidden="true" tabindex="-1"></a>    CD[<span class="ot">"</span><span class="st">measurement&lt;br/&gt;covariance C_d</span><span class="ot">"</span>]</span>
+<span id="cb13-291"><a href="#cb13-291" aria-hidden="true" tabindex="-1"></a>    INV[<span class="ot">"</span><span class="st">depth inversion&lt;br/&gt;m(z), Ĉ_m</span><span class="ot">"</span>]</span>
+<span id="cb13-292"><a href="#cb13-292" aria-hidden="true" tabindex="-1"></a>    OUT[<span class="ot">"</span><span class="st">δV_S/V_S(z)&lt;br/&gt;+ honest envelope</span><span class="ot">"</span>]</span>
+<span id="cb13-293"><a href="#cb13-293" aria-hidden="true" tabindex="-1"></a>    RAW --&gt; SAMPLE</span>
+<span id="cb13-294"><a href="#cb13-294" aria-hidden="true" tabindex="-1"></a>    PRIOR --&gt; SAMPLE --&gt; BAND --&gt; CD</span>
+<span id="cb13-295"><a href="#cb13-295" aria-hidden="true" tabindex="-1"></a>    BAND --&gt; KERN</span>
+<span id="cb13-296"><a href="#cb13-296" aria-hidden="true" tabindex="-1"></a>    KERN --&gt; INV</span>
+<span id="cb13-297"><a href="#cb13-297" aria-hidden="true" tabindex="-1"></a>    CD --&gt; INV --&gt; OUT</span>
+<span id="cb13-298"><a href="#cb13-298" aria-hidden="true" tabindex="-1"></a>    style PRIOR fill:<span class="co">#fff3e0,stroke:#c77700</span></span>
+<span id="cb13-299"><a href="#cb13-299" aria-hidden="true" tabindex="-1"></a>    style CD fill:<span class="co">#ede7f6,stroke:#5e35b1</span></span>
+<span id="cb13-300"><a href="#cb13-300" aria-hidden="true" tabindex="-1"></a>    style OUT fill:<span class="co">#e8f5e9,stroke:#2e7d32</span></span>
+<span id="cb13-301"><a href="#cb13-301" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-302"><a href="#cb13-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-303"><a href="#cb13-303" aria-hidden="true" tabindex="-1"></a>The processing choices enter as a **prior**, are **sampled** and marginalised</span>
+<span id="cb13-304"><a href="#cb13-304" aria-hidden="true" tabindex="-1"></a>into one error per band, and — through the sensitivity kernels — propagate into</span>
+<span id="cb13-305"><a href="#cb13-305" aria-hidden="true" tabindex="-1"></a>a depth profile whose uncertainty *finally* reflects what was actually unknown:</span>
+<span id="cb13-306"><a href="#cb13-306" aria-hidden="true" tabindex="-1"></a>the measurement noise, **and** the freedom in how the measurement was made. This</span>
+<span id="cb13-307"><a href="#cb13-307" aria-hidden="true" tabindex="-1"></a>is the depth-domain counterpart of the data covariance $C_d$ that the</span>
+<span id="cb13-308"><a href="#cb13-308" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">inference page</span><span class="co">](theory-uq.qmd)</span> consumes.</span>
+<span id="cb13-309"><a href="#cb13-309" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-310"><a href="#cb13-310" aria-hidden="true" tabindex="-1"></a><span class="fu">## Partial saturation: $\delta V_S/V_S$ is not the only contribution</span></span>
+<span id="cb13-311"><a href="#cb13-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-312"><a href="#cb13-312" aria-hidden="true" tabindex="-1"></a>The inversion above assumes the change it recovers is a shear-velocity change</span>
+<span id="cb13-313"><a href="#cb13-313" aria-hidden="true" tabindex="-1"></a>alone. In partially saturated ground it is not. Filling or draining pore space</span>
+<span id="cb13-314"><a href="#cb13-314" aria-hidden="true" tabindex="-1"></a>changes both the shear modulus and the bulk density, so for the shear-dominated</span>
+<span id="cb13-315"><a href="#cb13-315" aria-hidden="true" tabindex="-1"></a>coda the observed change mixes the two,</span>
+<span id="cb13-316"><a href="#cb13-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-317"><a href="#cb13-317" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb13-318"><a href="#cb13-318" aria-hidden="true" tabindex="-1"></a>\frac{\delta v}{v} \;\approx\; \tfrac12\frac{\delta\mu}{\mu} \;-\; \tfrac12\frac{\delta\rho}{\rho},</span>
+<span id="cb13-319"><a href="#cb13-319" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb13-320"><a href="#cb13-320" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-321"><a href="#cb13-321" aria-hidden="true" tabindex="-1"></a>and velocity alone cannot separate them. A petrophysical model — Gassmann fluid</span>
+<span id="cb13-322"><a href="#cb13-322" aria-hidden="true" tabindex="-1"></a>substitution for the modulus and a porosity–saturation relation for the density</span>
+<span id="cb13-323"><a href="#cb13-323" aria-hidden="true" tabindex="-1"></a>(Gassmann 1951; Mavko et al. 2009) — is what breaks the degeneracy, at the cost</span>
+<span id="cb13-324"><a href="#cb13-324" aria-hidden="true" tabindex="-1"></a>of its own prior uncertainty on porosity, fluid modulus, and the saturation path.</span>
+<span id="cb13-325"><a href="#cb13-325" aria-hidden="true" tabindex="-1"></a>Hydrological and cryospheric targets, where saturation swings are large</span>
+<span id="cb13-326"><a href="#cb13-326" aria-hidden="true" tabindex="-1"></a>(Clements &amp; Denolle 2018; James et al. 2019), are precisely where neglecting the</span>
+<span id="cb13-327"><a href="#cb13-327" aria-hidden="true" tabindex="-1"></a>density term biases the inferred velocity change and, downstream, the stress.</span>
+<span id="cb13-328"><a href="#cb13-328" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-329"><a href="#cb13-329" aria-hidden="true" tabindex="-1"></a>The planned extension carries $\delta\rho/\rho$ as a **second inverted field**</span>
+<span id="cb13-330"><a href="#cb13-330" aria-hidden="true" tabindex="-1"></a>with its own kernel and reports how much of the surface $\delta v/v$ each field</span>
+<span id="cb13-331"><a href="#cb13-331" aria-hidden="true" tabindex="-1"></a>explains, propagating the saturation and porosity prior into the split. This is</span>
+<span id="cb13-332"><a href="#cb13-332" aria-hidden="true" tabindex="-1"></a>tracked as open development — a <span class="in">`codameter`</span> Gassmann / partial-saturation module</span>
+<span id="cb13-333"><a href="#cb13-333" aria-hidden="true" tabindex="-1"></a>and its synthetic demo (see the repository issues) — and it is the depth-step</span>
+<span id="cb13-334"><a href="#cb13-334" aria-hidden="true" tabindex="-1"></a>input the <span class="co">[</span><span class="ot">stress page</span><span class="co">](uncertainty-3-stress.qmd)</span> needs before effective stress</span>
+<span id="cb13-335"><a href="#cb13-335" aria-hidden="true" tabindex="-1"></a>can be trusted in unsaturated ground.</span>
+<span id="cb13-336"><a href="#cb13-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-337"><a href="#cb13-337" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb13-338"><a href="#cb13-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-339"><a href="#cb13-339" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
+<span id="cb13-340"><a href="#cb13-340" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where this lives in the code</span></span>
+<span id="cb13-341"><a href="#cb13-341" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-flatten → <span class="in">`codameter.uq_processing.flatten_end_lapse`</span></span>
+<span id="cb13-342"><a href="#cb13-342" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>§2 sampling / @eq-ltv → <span class="in">`ProcessingPrior`</span>, <span class="in">`sample_processing_choices`</span>, <span class="in">`per_band_marginal_error`</span></span>
+<span id="cb13-343"><a href="#cb13-343" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>§3 kernels → <span class="in">`codameter.uq_depth.band_sensitivity_matrix`</span> (built on <span class="in">`codameter.kernels`</span>, <span class="in">`disba`</span>)</span>
+<span id="cb13-344"><a href="#cb13-344" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>@eq-depthinv → <span class="in">`codameter.uq_depth.invert_depth_profile`</span> → <span class="in">`DepthProfilePosterior`</span></span>
+<span id="cb13-345"><a href="#cb13-345" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb13-346"><a href="#cb13-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-347"><a href="#cb13-347" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
+<span id="cb13-348"><a href="#cb13-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-349"><a href="#cb13-349" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb13-350"><a href="#cb13-350" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

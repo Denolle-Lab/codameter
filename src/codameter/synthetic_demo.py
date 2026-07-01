@@ -841,8 +841,10 @@ def apply_style() -> None:
 
     mpl.rcParams.update({
         "figure.dpi": 130, "savefig.dpi": 130, "font.size": 10.5,
+        "font.family": "sans-serif",
+        "font.sans-serif": ["Optima", "Avenir Next", "PT Sans", "DejaVu Sans"],
         "axes.spines.top": False, "axes.spines.right": False,
-        "axes.grid": True, "grid.alpha": 0.25, "axes.titleweight": "600",
+        "axes.grid": True, "grid.alpha": 0.25, "axes.titleweight": "medium",
         "figure.facecolor": "white", "legend.frameon": False,
     })
 
@@ -920,7 +922,7 @@ def fig_methods(seed: int = 11):
             title="(b) large dv/v — MWCS cycle-skips; unwrapped WCS & TS track")
     axB.legend(loc="lower left", fontsize=8, ncol=2)
     fig.suptitle("Estimator choice — the seven NoisePy monitoring methods "
-                 "(Yuan et al. 2021)", fontweight="600")
+                 "(Yuan et al. 2021)", fontweight="medium")
     fig.tight_layout()
     return fig
 
@@ -989,7 +991,7 @@ def fig_aggregation(seed: int = 88):
             title="(b) the averaged CC(dv/v, t) image (Approach B)")
     axB.legend(loc="upper right", fontsize=8)
     fig.suptitle("Cross-component aggregation: an undocumented choice that makes "
-                 "studies incomparable", fontweight="600")
+                 "studies incomparable", fontweight="medium")
     fig.tight_layout()
     return fig
 
@@ -1090,7 +1092,7 @@ def fig_uncertainty(seed: int = 123):
             title=f"(b) the error bar itself is a choice (≈{ratio:.1f}× range)")
     axB.legend(loc="upper left", fontsize=8)
     fig.suptitle("Station-pair aggregation & uncertainty: incomparable error "
-                 "bars from one dataset", fontweight="600")
+                 "bars from one dataset", fontweight="medium")
     fig.tight_layout()
     return fig
 
@@ -1135,7 +1137,7 @@ def fig_window_band(seed: int = 66):
             title="(b) reusing the low-band window at high band → noise")
     axB.legend(loc="lower left", fontsize=8.5)
     fig.suptitle("Coda window does not transfer across frequency bands",
-                 fontweight="600")
+                 fontweight="medium")
     fig.tight_layout()
     return fig
 
@@ -1241,7 +1243,7 @@ def fig_artifacts(seed: int = 77):
             title="(b) seasonal noise in the late coda → spurious cycle")
     axB.legend(loc="lower left", fontsize=8.5)
     fig.suptitle("Deviations that manufacture dv/v: clock error and "
-                 "late-coda noise", fontweight="600")
+                 "late-coda noise", fontweight="medium")
     fig.tight_layout()
     return fig
 

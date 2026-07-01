@@ -52,7 +52,7 @@ def plot_workflow_six_panel(
     )
     if title is None:
         title = f"codameter: {result.site.site_id}"
-    fig.suptitle(title, fontsize=12, fontweight="bold")
+    fig.suptitle(title, fontsize=12, fontweight="medium")
 
     dvv = result.phase0.dvv
     sigma = result.phase0.sigma_dvv

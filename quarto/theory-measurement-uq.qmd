@@ -20,12 +20,13 @@ is diagonal.
 
 ### Where the field stands
 
-The community agrees on the ingredients of a good measurement — a stretching-family
-estimator for robustness at low SNR and large change (Yuan et al. 2021;
-Mikesell et al. 2015), a coherence-based error model (Clarke et al. 2011;
-Weaver et al. 2011), a long stable reference (Wang et al. 2017), and cross-checking
-against a second estimator (Obermann et al. 2019) — yet no two studies report the
-same set, and the uncertainty convention is the least standardized of all
+The community agrees on the components of a well-posed measurement — a
+stretching-family estimator for robustness at low SNR and large change
+(Mikesell et al. 2015; Yuan et al. 2021), a coherence-based error model
+(Clarke et al. 2011; Weaver et al. 2011), a long stable reference (Wang et al.
+2017), and cross-validation against a second estimator (Obermann et al. 2019) —
+yet no two studies report the same set, and the uncertainty convention is the
+least standardized of all
 ([literature survey](survey-best-practices.qmd)). Propagating the measurement
 covariance matters because everything downstream in the arc consumes it: a depth
 profile or a stress estimate is only as honest as the $C_d$ it starts from. The
