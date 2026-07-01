@@ -88,6 +88,21 @@ def make_key(authors_year: str, year: str) -> str:
     return f"{ascii_key(surname(authors_year)) or 'Anon'}{year}"
 
 
+def clean_html(text: str) -> str:
+    """Convert Crossref's embedded HTML/MathML in titles to LaTeX and strip tags.
+
+    Crossref returns magnitude notation as ``<i>M</i><sub>w</sub>``; render the
+    sub/superscripts properly and drop italic/bold tags.
+    """
+    text = re.sub(r"<sub>(.*?)</sub>",
+                  lambda m: r"\textsubscript{" + re.sub(r"<[^>]+>", "", m.group(1)) + "}",
+                  text, flags=re.I | re.S)
+    text = re.sub(r"<sup>(.*?)</sup>",
+                  lambda m: r"\textsuperscript{" + re.sub(r"<[^>]+>", "", m.group(1)) + "}",
+                  text, flags=re.I | re.S)
+    return re.sub(r"<[^>]+>", "", text)
+
+
 def tex_escape(s: str) -> str:
     s = str(s or "")
     for a, b in [("\\", r"\textbackslash{}"), ("&", r"\&"), ("%", r"\%"),
@@ -106,6 +121,21 @@ def bib_authors(rec: dict) -> str:
     return " and ".join(parts)
 
 
+def authors_from_label(authors_year: str) -> str:
+    """BibTeX author string from a short ``Surname & Surname, 2020`` label.
+
+    Used when Crossref has no author list (or no record at all): turns
+    ``"Obermann & Hillers 2019"`` into ``"Obermann and Hillers"`` and
+    ``"Kristjánsdóttir et al., 2019"`` into ``"Kristjánsdóttir and others"``, so
+    bibtex never sees a raw string it would mangle into broken initials.
+    """
+    s = re.sub(r",?\s*\d{4}[a-z]?\s*$", "", (authors_year or "").strip())
+    s = re.sub(r"\bet al\.?", " and others", s, flags=re.I)
+    s = re.sub(r"\s*[&;]\s*|\s+and\s+", " and ", s)
+    names = [n.strip() for n in s.split(" and ") if n.strip()]
+    return latexify(" and ".join(names)) if names else latexify(authors_year)
+
+
 def existing_keys() -> set[str]:
     if not REFS.exists():
         return set()
@@ -118,9 +148,10 @@ def bib_entry(key: str, row: dict, rec: dict | None) -> str:
     year = row.get("year", "")
     if rec and rec.get("title"):
         fields = {
-            "author": latexify(bib_authors(rec) or row["authors_year"]),
-            "title": latexify(rec["title"].rstrip(". ")),
-            "journal": latexify(rec.get("container", "")),
+            "author": bib_authors(rec) and latexify(bib_authors(rec))
+            or authors_from_label(row["authors_year"]),
+            "title": latexify(clean_html(rec["title"].rstrip(". "))),
+            "journal": latexify(clean_html(rec.get("container", ""))),
             "year": rec.get("year") or year,
             "volume": rec.get("volume", ""),
             "pages": (rec.get("page", "") or "").replace("-", "--"),
@@ -128,11 +159,15 @@ def bib_entry(key: str, row: dict, rec: dict | None) -> str:
         }
         body = ",\n".join(f"  {k} = {{{v}}}" for k, v in fields.items() if v)
         return f"@article{{{key},\n{body}\n}}\n"
+    # No Crossref record: a minimal but honest @misc. We do NOT invent a title
+    # (the topic description goes in a note); the verifiable bits are the parsed
+    # authors, the year, and the source URL.
+    note = latexify(row.get("target_process", "").strip())
     fields = {
-        "author": latexify(row["authors_year"].replace(" et al.", " and others")),
-        "title": latexify(row.get("target_process", "") or "dv/v monitoring study"),
+        "author": authors_from_label(row["authors_year"]),
         "year": year,
-        "howpublished": row["doi_url"],
+        "howpublished": f"\\url{{{row['doi_url']}}}",
+        "note": f"dv/v monitoring study ({note})" if note and note != "n/r" else "",
         "doi": doi,
     }
     body = ",\n".join(f"  {k} = {{{v}}}" for k, v in fields.items() if v)
