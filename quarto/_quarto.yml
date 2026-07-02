@@ -33,7 +33,7 @@ website:
             file: theory-bayesian-measurement.qmd
           - text: "2 · Depth · kernels → δVs/Vs & δρ/ρ"
             file: theory-processing-depth.qmd
-          - text: "3 · Stress & attribution"
+          - text: "3 · Stress & strain"
             file: uncertainty-3-stress.qmd
           - text: "Companion · inference UQ (stress inversion)"
             file: theory-uq.qmd
@@ -80,7 +80,7 @@ website:
             file: theory-bayesian-measurement.qmd
           - text: "2 · Depth — kernels → δVs/Vs & δρ/ρ"
             file: theory-processing-depth.qmd
-          - text: "3 · Stress & attribution"
+          - text: "3 · Stress & strain"
             file: uncertainty-3-stress.qmd
           - text: "Companion — inference UQ (stress inversion)"
             file: theory-uq.qmd

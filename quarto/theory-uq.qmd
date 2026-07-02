@@ -13,9 +13,11 @@ groundwater, or velocity sensitivity) from $\delta v/v$. We argue that the
 scientifically defensible object is a **posterior distribution**, obtained by
 propagating three distinct sources of uncertainty — measurement noise,
 material-property priors, and *model-form* uncertainty about coupling —
-through the inverse problem in one coherent hierarchical model. This page
-develops that model. No other dv/v framework, to our knowledge, closes this
-loop.
+through the inverse problem in one coherent hierarchical model. This page develops
+that **inference machinery**. The *forward physics* it inverts — the acoustoelastic
+coefficients, the per-forcing models, and the coupling regimes — is the companion
+[unified-framework paper](https://github.com/mdenolle/dvv-coupling-framework);
+codameter's contribution is the uncertainty quantification wrapped around it.
 :::
 
 ## 1. Why point estimates are not enough
@@ -23,7 +25,8 @@ loop.
 The forward physics that maps stress and strain to $\delta v/v$ is governed by
 the **acoustoelastic** sensitivity $\beta$ and the nonlinear-elastic
 sensitivity $\mu'$ — quantities that are known only to within a factor of
-order unity at any real site. A typical workflow fixes $\beta$ at a
+order unity at any real site. (Their theory is the companion framework's; here
+they are uncertain *inputs* to the inference.) A typical workflow fixes $\beta$ at a
 literature value, fits a regression, and quotes the result. The trouble is
 that the *dominant* uncertainty in the final stress estimate is usually **not**
 the measurement noise on $\delta v/v$ at all; it is the prior uncertainty on
@@ -92,8 +95,8 @@ in the structure of $\mathcal{F}_\theta$.
 
 ### 3a. The decoupled regime is linear-Gaussian and closed-form
 
-When the stress sources act independently, $\mathcal{F}_\theta$ is **linear in
-the amplitudes** (Eq. 6 of the manuscript):
+When the stress sources act independently, the forward operator (the companion
+framework's decoupled model, its Eq. 6) is **linear in the amplitudes**:
 
 $$
 \mathcal{F}_\theta(t) = a_0
@@ -137,8 +140,9 @@ uncertainty honest.
 ### 3b. The coupled regime is non-Gaussian and sampled
 
 When Phase 2 flags coupling (§4 below), the forward operator becomes
-**state-dependent** (Eq. 19): the parameters that multiply one forcing depend
-on the instantaneous state set by another. Schematically,
+**state-dependent** (the framework's coupled model, its Eq. 19): the parameters
+that multiply one forcing depend on the instantaneous state set by another.
+Schematically,
 
 $$
 \frac{d(\delta v/v)}{dt}
@@ -241,7 +245,10 @@ p_1 \;\xrightarrow{\;/\rho g\;}\;
 \mu' = -\frac{2\mu}{\kappa}\,\beta_{\text{eff}},
 $$ {#eq-chain}
 
-the last step being the **bridge relation** $\beta = -\mu'\kappa/2\mu$ (Eq. 7).
+the last step being the **bridge relation** $\beta = -\mu'\kappa/2\mu$ (the
+framework's Eq. 7; its component generalization
+$\Delta\sigma_{ij}=\beta_{ij}(z)\,\delta V_S/V_S$ is what the
+[depth-resolved stress page](uncertainty-3-stress.qmd) inverts).
 Each arrow involves parameters that are themselves uncertain — $\rho$, $\kappa$,
 $\mu$ — so the uncertainty in the final $\mu'$ (or, read the other way, the
 inferred stress) is the variance of a product/quotient of correlated random

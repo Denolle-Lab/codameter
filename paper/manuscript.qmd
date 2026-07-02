@@ -38,8 +38,8 @@ abstract: |
   the monitoring literature — how it propagates through frequency-dependent
   sensitivity kernels to a depth profile of shear-velocity change (and, in
   partially saturated ground, a density change that a petrophysical model must
-  separate), and onward to effective stress, strain, and an uncertainty-aware
-  attribution of the change at depth to the forcing that drives it.
+  separate), and onward to effective stress and strain at depth --- the honest
+  input a companion framework needs to attribute the change to its forcing.
 bibliography:
   - references.bib
   - survey.bib
@@ -106,10 +106,11 @@ the end depends on an honest $C_d$ at the start. The first two-thirds of this
 paper quantify and model that measurement covariance
 (Sections~\ref{sec:results}--\ref{sec:bayes}). The final third then lays out, as
 a roadmap grounded in the monitoring literature rather than in new synthetics,
-how $C_d$ propagates to a depth profile (Section~\ref{sec:depth}) and to
-effective stress, strain, and their attribution at depth
-(Section~\ref{sec:stress}) --- the inference the community seeks, and the reason
-the measurement covariance must be estimated with care.
+how $C_d$ propagates to a depth profile (Section~\ref{sec:depth}) and to stress
+and strain at depth (Section~\ref{sec:stress}), the point at which a companion
+framework takes over the attribution to a forcing mechanism --- the inference the
+community seeks, and the reason the measurement covariance must be estimated with
+care.
 
 # A controlled synthetic framework {#sec:methods}
 
@@ -565,7 +566,7 @@ unstated model & Hidden systematic in the kernels and the moduli \\
 \end{tabularx}
 \end{table}
 
-# Stress: from velocity change to effective stress, strain, and attribution {#sec:stress}
+# Stress: from velocity change to stress and strain at depth {#sec:stress}
 
 The quantity of interest is rarely the velocity change itself but the stress,
 strain, or pore-pressure change that produces it and --- increasingly --- the
@@ -582,62 +583,66 @@ is dominated by *epistemic* prior uncertainty rather than by the measurement, so
 stress value reported without it is the least constrained quantity in the chain,
 and the one most often reported as a result.
 
-Effective stress follows from strain through the elastic moduli, and strain
-follows from the velocity change through the acoustoelastic (bridge) relation
-$\beta(z)=-\mu'(z)\,\kappa(z)/2\mu(z)$ (Denolle, in prep.), with $\mu(z)=\rho
-V_S^2$ and $\kappa(z)=\rho\,(V_P^2-\tfrac43 V_S^2)$ read from a velocity model. Per
-depth, the volumetric strain is $\varepsilon_{\rm vol}(z)=(\delta
-V_S/V_S)(z)/\beta(z)$ and the effective-stress change is
-$\Delta\sigma'(z)=\kappa(z)\,\varepsilon_{\rm vol}(z)$; total stress adds a
-poroelastic term $\alpha_B(z)\,\Delta p(z)$ and is carried as an optional
-extension, since effective stress is what \dvv\ most directly senses. The
-coefficients $\beta(z),\mu'(z)$ are layered and weakly constrained --- sometimes
-inferred from a tomographic $V_P,V_S$ model --- so they enter as *per-layer
-priors*, and the honest stress covariance is the Monte-Carlo pushforward of the
-depth posterior $C_m(z)$ *through* those priors. This is the step where the
-aleatoric measurement chain and the epistemic material priors merge; taking
-either alone understates the stress uncertainty.
+Velocity change is the acoustoelastic response to a stress change. Under isotropic
+load the response is scalar --- $\delta v/v = \beta\,\varepsilon_{kk}$ with the
+bridge relation $\beta=-\mu'\kappa/2\mu$ (Denolle, in prep.) --- but in general it
+is anisotropic, and the dominant fracture fabric selects *which* stress or strain
+component the velocity change tracks: a confining load reads as volumetric strain,
+a directional stress reads as one deviatoric component. Writing $\beta_{ij}(z)$
+for the acoustoelastic coefficient of the fabric-selected component, the
+depth-resolved meter is
+\begin{equation}
+\Delta\sigma_{ij}(z,t) = \beta_{ij}(z)\,\frac{\delta V_S}{V_S}(z,t),
+\label{eq:acoustoelastic}
+\end{equation}
+with $\beta_{ij}$ built from the layered moduli $\mu(z)=\rho V_S^2$,
+$\kappa(z)=\rho\,(V_P^2-\tfrac43 V_S^2)$ and the nonlinear sensitivity $\mu'(z)$;
+the forward physics, its drained/undrained regimes, and the fabric diagnostic that
+fixes $\beta_{ij}$ are the subject of the companion framework (Denolle, in prep.).
+These coefficients are layered and weakly constrained --- sometimes inferred from a
+tomographic $V_P,V_S$ model --- so they enter as *per-layer priors*, and the honest
+stress covariance is the Monte-Carlo pushforward of the depth posterior $C_m(z)$
+*through* those priors. This is the step where the aleatoric measurement chain and
+the epistemic material priors merge; taking either alone understates the stress
+uncertainty. Effective stress ($\Delta\sigma'=\kappa\,\varepsilon_{\rm vol}$ under
+isotropic load, poroelastically clean) is the headline; total stress adds a
+poroelastic term $\alpha_B\,\Delta p$ and is an optional extension.
 
-Beyond the state of stress, the community seeks attribution: how much of the
-change at depth $z$ is poroelastic, thermoelastic, load, damage, or tectonic, and
-with what confidence. The natural frame is the geophysical analogue of climate
-detection-and-attribution --- optimal fingerprinting scaled by the measurement
-covariance $C_d$ developed above. Each forcing $k$ predicts a depth--time
-effective-stress fingerprint; a generalized-least-squares regression weighted by
-$C_d$ gives its amplitude, a variance decomposition gives its share $A_k(z)$ of
-the stress variability at each depth, and the cross-covariances quantify how
-ambiguous the attribution is when two forcings are collinear (thermoelastic and
-hydrologic are both seasonal). When forcings couple, the additive
-decomposition gives way to Sobol variance indices whose interaction term *is* the
-coupling contribution. Sampling the joint posterior --- forcing amplitudes,
-material priors, and the measurement realization --- turns each share into a
-credible interval and, decomposed further, indicates whether a weak attribution is
-data-limited or model-limited, i.e., which additional data would most reduce it.
+Attribution --- how much of $\Delta\sigma(z,t)$ is thermoelastic, poroelastic,
+load, damage, or tectonic --- is deliberately *not* codameter's step. Each
+mechanism is a stress term that can act in isolation, and decomposing the total
+into those terms is the contribution of the companion unified-framework paper
+(Denolle, in prep.), which supplies the forward models and the fabric diagnostic
+that define $\beta_{ij}$. codameter's role ends at delivering $\Delta\sigma_{ij}(z,t)$
+with its posterior --- the honest input any such decomposition must consume. The
+division of labour is clean: this paper is accountable for the measurement
+covariance and its propagation to stress; the framework is accountable for the
+physics that turns that stress into a named mechanism.
 
 \begin{table}[htbp]
 \footnotesize
 \caption{Stress step: best practice versus the common deviation in converting a
-depth profile of velocity change to stress and attributing it, with the
-consequence for the reported result.}
+depth profile of velocity change to stress, with the consequence for the reported
+result. Attribution of the stress to a forcing mechanism is the companion
+framework's step and is not tabulated here.}
 \label{tab:bp-stress}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm} L L L@{}}
 \toprule
 \textbf{Choice} & \textbf{Best practice} & \textbf{Common deviation} &
 \textbf{Consequence} \\
 \midrule
-Stress conversion & Acoustoelastic bridge with layered $\beta(z),\mu'(z)$ priors &
-Single scalar coefficient, no prior & Understated (epistemic) stress error \\
+Stress conversion & Acoustoelastic meter $\Delta\sigma_{ij}=\beta_{ij}(z)\,\delta V_S/V_S$
+with layered $\beta_{ij},\mu'(z)$ priors & Single scalar coefficient, no prior &
+Understated (epistemic) stress error \\
+Stress component & Identify the fabric-selected component (isotropic vs deviatoric)
+before inverting & Assume the isotropic $\delta v/v=\beta\varepsilon_{kk}$
+everywhere & Wrong sign and magnitude under deviatoric load \\
 Uncertainty budget & Merge the aleatoric depth covariance with the epistemic
 material priors & Report the measurement error only & Stress error too small by
 its dominant term \\
 Stress measure & Report effective stress (poroelastically clean); flag any
 total-stress assumptions & Conflate effective and total stress &
 Non-comparable, ambiguous stress \\
-Forcing separation & Physical diagnostic (seasonal phase lag, branch asymmetry,
-coupling test) & Attribute by eye & Mis-attribution when forcings are collinear \\
-Attribution uncertainty & Credible intervals plus a data- versus model-limited
-split & A single point attribution & No sense of confidence, nor of what to
-measure next \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -713,9 +718,9 @@ and~\ref{sec:stress} set out the rest of the chain: invert the per-band $C_d$
 through sensitivity kernels for a depth profile and its covariance, separate the
 shear-velocity and density contributions where the ground is partially saturated,
 and push the depth posterior through layered petrophysical priors to effective
-stress, strain, and an uncertainty-aware attribution to the driving forcing. At
-each step the honest error bar depends on the one before it, which is why a
-defensible stress or attribution at depth begins with a defensible $C_d$. Building
+stress and strain at depth, which a companion framework then attributes to a
+forcing mechanism. At each step the honest error bar depends on the one before it,
+which is why a defensible stress at depth begins with a defensible $C_d$. Building
 and testing those propagation stages on truth-known synthetics is the natural
 continuation of this work, and is under way in the open codameter framework.
 
@@ -732,10 +737,10 @@ carry the resulting measurement covariance into the inference, and release the
 pipeline as executable code. The same discipline extends down the inference
 chain: the measurement covariance is the input a depth inversion consumes, that
 depth profile the input a stress conversion consumes, and only a pipeline that
-carries the covariance to the end can attach an honest uncertainty --- and an
-honest attribution --- to a change at depth. We offer codameter as one such
-record, and as the framework in which the depth and stress stages are being
-built.
+carries the covariance to the end can attach an honest uncertainty to a stress or
+strain change at depth --- and hand a defensible posterior to the companion
+framework that attributes it to a forcing. We offer codameter as one such record,
+and as the package in which the depth and stress stages are being built.
 
 \appendix
 

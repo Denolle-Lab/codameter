@@ -52,15 +52,18 @@ previous step's covariance.
   saturated ground, a density change $\delta\rho/\rho(z)$ that needs a
   petrophysical model to separate. See
   [kernels → δVs/Vs & δρ/ρ](theory-processing-depth.qmd).
-- **3 · Stress & attribution** — push the depth posterior through layered
-  petrophysical priors to effective stress and strain, and attribute the change
-  at depth to its forcing with uncertainty. See
-  [stress & attribution](uncertainty-3-stress.qmd); the companion
-  [inference UQ](theory-uq.qmd) page holds the Bayesian stress-inversion machinery.
+- **3 · Stress & strain** — push the depth posterior through layered
+  acoustoelastic priors to stress and strain at depth,
+  $\Delta\sigma_{ij}(z,t)=\beta_{ij}(z)\,\delta V_S/V_S$, with a posterior. See
+  [stress & strain](uncertainty-3-stress.qmd); the companion
+  [inference UQ](theory-uq.qmd) page holds the Bayesian machinery. **Attribution**
+  — which forcing drives that stress — is the companion
+  [coupling-framework project](https://github.com/mdenolle/dvv-coupling-framework),
+  which consumes this step's output.
 
 > 👉 Read them in order: **[1 · Measurement](theory-measurement-uq.qmd)** →
 > **[2 · Depth](theory-processing-depth.qmd)** →
-> **[3 · Stress & attribution](uncertainty-3-stress.qmd)**.
+> **[3 · Stress & strain](uncertainty-3-stress.qmd)**.
 
 ### ② The implementation tutorial
 
