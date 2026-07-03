@@ -27,9 +27,9 @@ website:
         file: index.qmd
       - text: "Theory"
         menu:
-          - text: "1 · Measurement · marginal error in δv/v"
+          - text: "1 · Measurement · the marginal errors, and how they differ"
             file: theory-measurement-uq.qmd
-          - text: "1 · Measurement · marginalise the choice"
+          - text: "1 · Measurement · into a Bayesian measurement"
             file: theory-bayesian-measurement.qmd
           - text: "2 · Depth · δv/v → δVs(z)/Vs"
             file: theory-processing-depth.qmd
@@ -76,9 +76,9 @@ website:
           - index.qmd
       - section: "The uncertainty arc"
         contents:
-          - text: "1 · Measurement — marginal error in δv/v"
+          - text: "1 · Measurement — the marginal errors, and how they differ"
             file: theory-measurement-uq.qmd
-          - text: "1 · Measurement — marginalise the choice"
+          - text: "1 · Measurement — into a Bayesian measurement"
             file: theory-bayesian-measurement.qmd
           - text: "2 · Depth — δv/v → δVs(z)/Vs"
             file: theory-processing-depth.qmd

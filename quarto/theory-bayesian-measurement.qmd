@@ -1,19 +1,20 @@
 ---
-title: "A Bayesian δv/v measurement"
-subtitle: "Marginalising the processing choice into a time-dependent data covariance"
+title: "Turning the marginal errors into a Bayesian measurement"
+subtitle: "Marginalise the processing choice → a posterior δv/v(t) and its time-dependent Cd"
 jupyter: codameter-pixi
 bibliography: references.bib
 ---
 
 ::: {.keyidea}
 [Thesis]{.k-title}
-The [measurement-UQ page](theory-measurement-uq.qmd) showed that the processing
-choice — estimator, band, window, stack, reference — usually dominates the
-$\delta v/v$ error budget, and that the honest deliverable is a structured
-**measurement covariance** $C_d$, not a scalar per epoch. This page makes that
-*operational*: treat the processing choice as a **nuisance parameter** with a
-prior, run an ensemble of reasonable pipelines on the same data, and
-**marginalise** the choice out with a Bayesian hierarchical model. The output is
+The [companion page](theory-measurement-uq.qmd) mapped the **marginal errors** in
+a $\delta v/v$ series and how they differ — the within-method floor, the
+methodological spread, temporal correlation, and reference choice — and showed the
+processing choice usually dominates. This page makes that *operational*: it turns
+those marginal errors into a single **Bayesian measurement**. Treat the processing
+choice as a **nuisance parameter** with a prior, run an ensemble of reasonable
+pipelines on the same data, and **marginalise** the choice out with a Bayesian
+hierarchical model. The output is
 a posterior $\delta v/v(t)$ *and* the time-dependent $C_d$ a downstream stress or
 depth inversion should consume. This is the measurement step done the way the
 [inference page](theory-uq.qmd) already does the stress step.

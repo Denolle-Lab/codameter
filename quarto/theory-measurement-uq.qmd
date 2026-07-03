@@ -1,6 +1,6 @@
 ---
-title: "Measurement error in δv/v"
-subtitle: "Aleatoric & methodological error conditioned on processing choices"
+title: "The marginal errors in δv/v, and how they differ"
+subtitle: "The within-method floor, the methodological spread, temporal correlation, and reference choice — and where each dominates"
 jupyter: codameter-pixi
 bibliography: references.bib
 ---
@@ -10,12 +10,15 @@ bibliography: references.bib
 This is **step 1 of the uncertainty arc**. A $\delta v/v$ series is the end of a
 long chain of processing choices (method, window, band, stacking, gating,
 **reference**), almost none of which are propagated — and it is the least
-reproducible step in the discipline. This page quantifies that **measurement**
-error. Its deliverable is not a scalar per epoch but a structured **measurement
-covariance** $C_d$: the object [step 2 · depth](theory-processing-depth.qmd) and
-[step 3 · stress](uncertainty-3-stress.qmd) consume, and the very object the
-inference likelihood on the [companion inference-UQ page](theory-uq.qmd) assumes
-is diagonal.
+reproducible step in the discipline. This page maps the **marginal errors** in
+that series and shows **how they differ**: the within-method coherence floor, the
+methodological spread across processing choices, their temporal correlation, and
+the shift from the reference choice — and where each one dominates. Its deliverable
+is not a scalar per epoch but a structured **measurement covariance** $C_d$, the
+object [step 2 · depth](theory-processing-depth.qmd) and
+[step 3 · stress](uncertainty-3-stress.qmd) consume. The
+[companion page](theory-bayesian-measurement.qmd) then turns these marginal errors
+into a single Bayesian measurement.
 :::
 
 ### Where the field stands

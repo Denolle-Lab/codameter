@@ -44,10 +44,12 @@ step consumes the previous step's covariance.
 - **1 · Measurement — the marginal error in $\delta v/v$.** The error in the
   measurement *itself*, marginalised over processing choices (method, window,
   stacking, gating, and the **reference**, including the Brenguier (2014)
-  all-to-all scheme). It produces the structured data covariance $C_d$. Two facets:
-  [the marginal error](theory-measurement-uq.qmd) and
-  [marginalising the choice](theory-bayesian-measurement.qmd) — the same object,
-  two views.
+  all-to-all scheme). Two pages: first
+  [the marginal errors, and how they differ](theory-measurement-uq.qmd) — the
+  within-method floor, the methodological spread, temporal correlation, and
+  reference choice; then
+  [turning them into a Bayesian measurement](theory-bayesian-measurement.qmd) — a
+  posterior $\delta v/v(t)$ and the structured data covariance $C_d$.
 - **2 · Depth — $\delta v/v \to \delta V_S(z)/V_S$.** Invert the per-band $C_d$
   through sensitivity kernels for a profile of shear-velocity change
   $\delta V_S/V_S(z)$ and, in partially saturated ground, a density change
