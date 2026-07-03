@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>0 · Measuring δv/v from noisy cross-correlations – codameter</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./tutorial-01-data.html" rel="next">
+<link href="./theory-uq.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-b1cbdb3c7cc7440c614a61479eed037f.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-a3baf02b9a6864aef715c9cafd5d9fcb.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-b1cbdb3c7cc7440c614a61479eed037f.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-fe51ba719ff736b1e9fed2935e4c1e0f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-af50361543bdc15837c98d19f9912a76.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-fe51ba719ff736b1e9fed2935e4c1e0f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">codameter</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-theory" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Theory</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
+        <li>
+    <a class="dropdown-item" href="./theory-measurement-uq.html">
+ <span class="dropdown-text">1 · Measurement — marginal errors</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./theory-bayesian-measurement.html">
+ <span class="dropdown-text">2 · Measurement — Bayesian measurement</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./theory-processing-depth.html">
+ <span class="dropdown-text">3 · Depth — δv/v → δVs(z)/Vs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-3-stress.html">
+ <span class="dropdown-text">4 · Stress meter — δv/v as a stress meter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-4-attribution.html">
+ <span class="dropdown-text">5 · Stress meter — process attribution</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./theory-uq.html">
+ <span class="dropdown-text">Companion — inference UQ</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tutorial" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Tutorial</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-tutorial">    
+        <li>
+    <a class="dropdown-item" href="./tutorial-00-measurement.html">
+ <span class="dropdown-text">0 · Measuring δv/v from CCFs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./tutorial-01-data.html">
+ <span class="dropdown-text">1 · Data &amp; site readiness</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./tutorial-02-forward.html">
+ <span class="dropdown-text">2 · Decoupled forward models</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./tutorial-03-inversion.html">
+ <span class="dropdown-text">3 · Linear superposition &amp; inversion</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./tutorial-04-coupling.html">
+ <span class="dropdown-text">4 · When decoupling breaks: coupling diagnostics</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./tutorial-05-interpretation.html">
+ <span class="dropdown-text">5 · Interpretation: stress at depth</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./tutorial-06-endtoend.html">
+ <span class="dropdown-text">6 · End-to-end Parkfield walkthrough</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-survey" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Survey</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-survey">    
+        <li>
+    <a class="dropdown-item" href="./survey-best-practices.html">
+ <span class="dropdown-text">Processing parameters &amp; best practices</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./survey-synthetic-demo.html">
+ <span class="dropdown-text">Synthetic demo: choices move dv/v</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./survey-references.html">
+ <span class="dropdown-text">References (full citations + DOIs)</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/Denolle-Lab/codameter"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./tutorial-00-measurement.html">Implementation tutorial</a></li><li class="breadcrumb-item"><a href="./tutorial-00-measurement.html">0 · Measuring δv/v from CCFs</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Overview</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">codameter</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">The uncertainty arc</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Measurement — marginal errors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory-bayesian-measurement.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Measurement — Bayesian measurement</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Depth — δv/v → δVs(z)/Vs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Stress meter — δv/v as a stress meter</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-4-attribution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Stress meter — process attribution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./theory-uq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Companion — inference UQ</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Implementation tutorial</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial-00-measurement.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">0 · Measuring δv/v from CCFs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial-01-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Data &amp; site readiness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial-02-forward.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Decoupled forward models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial-03-inversion.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Linear superposition &amp; inversion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial-04-coupling.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · When decoupling breaks</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial-05-interpretation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Interpreting stress at depth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial-06-endtoend.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">6 · End-to-end Parkfield walkthrough</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Literature survey</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./survey-best-practices.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Processing parameters &amp; best practices</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./survey-synthetic-demo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Synthetic demo: choices move dv/v</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./survey-references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References (full citations + DOIs)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./tutorial-00-measurement.html">Implementation tutorial</a></li><li class="breadcrumb-item"><a href="./tutorial-00-measurement.html">0 · Measuring δv/v from CCFs</a></li></ol></nav>
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">0 · Measuring δv/v from noisy cross-correlations</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<p class="subtitle lead">A realistic CCF gather → δv/v(t), its uncertainty over time, and the covariance C_d</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="keyidea">
+<p><span class="k-title">Thesis</span> Every other tutorial starts from a <span class="math inline">\(\delta v/v\)</span> <em>series</em>. This one starts one step earlier — from the <strong>raw daily cross-correlations</strong>, the actual input. We build a CCF gather that carries the nuisances real data does (a slow velocity change, finite SNR, an instrument <strong>clock drift</strong>, and a <strong>seasonal</strong> noise-source wobble in the late coda), then use <code>codameter</code> to recover <span class="math inline">\(\delta v/v(t)\)</span>, <strong>its uncertainty over time</strong>, and the <strong>measurement covariance</strong> <span class="math inline">\(C_d\)</span> — the exact object <a href="./theory-processing-depth.html">step 2 · depth</a> consumes. It is the hands-on companion to the <a href="./theory-measurement-uq.html">marginal-errors</a> and <a href="./theory-bayesian-measurement.html">Bayesian-measurement</a> theory pages.</p>
+</div>
+<div id="setup" class="cell" data-execution_count="1">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys, numpy <span class="im">as</span> np, matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, <span class="st">"."</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> _synth <span class="im">import</span> set_style, C</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>set_style()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.synthetic_demo <span class="im">import</span> (</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    Synth, _days, volcano_truth, daily_ccfs,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    add_clock_drift, add_seasonal_late_noise,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    stretching_cc, peak_dvv, measure_stretching, YEAR_D,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.uq_measurement <span class="im">import</span> weaver_stretching_error</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter <span class="im">import</span> uq_bayes <span class="im">as</span> B</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<section id="a-realistic-cross-correlation-gather" class="level2">
+<h2 class="anchored" data-anchor-id="a-realistic-cross-correlation-gather">1. A realistic cross-correlation gather</h2>
+<p>We assemble the data the way a monitoring station delivers it: one reference coda and a stack of <strong>daily</strong> cross-correlations, each a noisy repeat of that reference with a small, slowly changing stretch. On top of the true velocity change we layer three nuisances that a real record almost always contains:</p>
+<ul>
+<li><strong>A long-term velocity change</strong> — a slow pre-eruptive decline, a sharp co-eruptive drop, then recovery (<code>volcano_truth</code>). This is the signal, and it is the <em>long-term shifting of the coda phases</em> we want to recover.</li>
+<li><strong>Measurement noise</strong> — a finite coda-to-noise ratio (<code>snr</code>), the irreducible per-day scatter.</li>
+<li><strong>An instrument clock drift</strong> — a station-timing error that delays the <em>whole</em> correlation by a lag that grows with time (<code>add_clock_drift</code>). It mimics a real velocity change but, being a constant lag, betrays itself on the two coda branches (§2).</li>
+<li><strong>A seasonal noise-source wobble</strong> — a seasonally changing noise field that warps only the <strong>late</strong> coda (<code>add_seasonal_late_noise</code>), injecting a spurious seasonal <span class="math inline">\(\delta v/v\)</span> into a late measurement window but not an early one.</li>
+</ul>
+<div id="build" class="cell" data-execution_count="2">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> Synth()                       <span class="co"># shared coda geometry: lag axis s.t, reference s.ref</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>days <span class="op">=</span> _days(<span class="fl">2.5</span>)                 <span class="co"># ~2.5 years of daily CCFs</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>truth <span class="op">=</span> volcano_truth(days)       <span class="co"># the ground-truth δv/v(t)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># start from clean daily CCFs at a realistic SNR ...</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>ccfs <span class="op">=</span> daily_ccfs(s.t, [s.ref], [truth], fs<span class="op">=</span>s.fs, snr<span class="op">=</span><span class="fl">7.0</span>, seed<span class="op">=</span><span class="dv">55</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># ... then contaminate them the way nature does:</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>ccfs <span class="op">=</span> add_clock_drift(ccfs, s.t, drift_s_per_day<span class="op">=</span><span class="fl">5e-5</span>, onset_day<span class="op">=</span><span class="dv">300</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>ccfs <span class="op">=</span> add_seasonal_late_noise(ccfs, s.t, days, fs<span class="op">=</span>s.fs, onset_s<span class="op">=</span><span class="fl">25.0</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                               dvv_amp<span class="op">=</span><span class="fl">0.0035</span>, jitter<span class="op">=</span><span class="fl">0.05</span>, seed<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"gather: </span><span class="sc">{</span>ccfs<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> daily CCFs × </span><span class="sc">{</span>ccfs<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> lag samples "</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(±</span><span class="sc">{</span>s<span class="sc">.</span>maxlag_s<span class="sc">:g}</span><span class="ss"> s at </span><span class="sc">{</span>s<span class="sc">.</span>fs<span class="sc">:g}</span><span class="ss"> Hz)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>gather: 913 daily CCFs × 5001 lag samples (±50 s at 50 Hz)</code></pre>
+</div>
+</div>
+<div id="cell-fig-gather" class="cell" data-execution_count="3">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.6</span>), gridspec_kw<span class="op">=</span>{<span class="st">"width_ratios"</span>: [<span class="fl">1.3</span>, <span class="dv">1</span>]})</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>yrs <span class="op">=</span> days <span class="op">/</span> YEAR_D</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>vmax <span class="op">=</span> np.percentile(np.<span class="bu">abs</span>(ccfs), <span class="dv">99</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].imshow(ccfs, aspect<span class="op">=</span><span class="st">"auto"</span>, origin<span class="op">=</span><span class="st">"lower"</span>, cmap<span class="op">=</span><span class="st">"RdBu_r"</span>, vmin<span class="op">=-</span>vmax, vmax<span class="op">=</span>vmax,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>             extent<span class="op">=</span>[s.t[<span class="dv">0</span>], s.t[<span class="op">-</span><span class="dv">1</span>], yrs[<span class="dv">0</span>], yrs[<span class="op">-</span><span class="dv">1</span>]])</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"lag (s)"</span>, ylabel<span class="op">=</span><span class="st">"time (years)"</span>, title<span class="op">=</span><span class="st">"(a) daily CCF gather"</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot(yrs, truth <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"damage"</span>], lw<span class="op">=</span><span class="fl">1.8</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].axvspan(<span class="dv">300</span> <span class="op">/</span> YEAR_D, yrs[<span class="op">-</span><span class="dv">1</span>], color<span class="op">=</span>C[<span class="st">"thermo"</span>], alpha<span class="op">=</span><span class="fl">0.08</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].text(<span class="dv">300</span> <span class="op">/</span> YEAR_D, ax[<span class="dv">1</span>].get_ylim()[<span class="dv">1</span>], <span class="st">" clock drift on"</span>, color<span class="op">=</span>C[<span class="st">"thermo"</span>],</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>           fontsize<span class="op">=</span><span class="dv">8</span>, va<span class="op">=</span><span class="st">"top"</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"0.7"</span>, lw<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"true δv/v (%)"</span>, title<span class="op">=</span><span class="st">"(b) ground truth"</span>)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-gather" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-gather-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="tutorial-00-measurement_files/figure-html/fig-gather-output-1.png" width="1184" height="415" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gather-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: The synthetic gather. (a) The stack of daily cross-correlations (lag × time); the coda structure repeats day to day, and the imposed changes are a fraction of a percent — invisible by eye, which is the whole problem. (b) The ground truth we are trying to recover: a slow decline, a co-eruptive drop at year 2, and recovery. The clock drift (from day 300) and the seasonal wobble are the nuisances layered on top.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="measure-δvv-and-watch-the-nuisances-bite" class="level2">
+<h2 class="anchored" data-anchor-id="measure-δvv-and-watch-the-nuisances-bite">2. Measure δv/v — and watch the nuisances bite</h2>
+<p>The workhorse is <strong>trace stretching</strong>: for each day, find the stretch <span class="math inline">\(\varepsilon\)</span> of the reference coda that best matches the current trace over a lapse window. The <code>stretching_cc</code> helper returns the full correlation image <span class="math inline">\(\mathrm{CC}(\varepsilon,t)\)</span>; its bright ridge <em>is</em> the apparent <span class="math inline">\(\delta v/v(t)\)</span>.</p>
+<div id="cell-fig-ccimage" class="cell" data-execution_count="4">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>band, window <span class="op">=</span> (<span class="fl">0.4</span>, <span class="fl">1.0</span>), (<span class="fl">8.0</span>, <span class="fl">35.0</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>es, cc_img <span class="op">=</span> stretching_cc(ccfs, s.ref, s.t, band<span class="op">=</span>band, fs<span class="op">=</span>s.fs, window<span class="op">=</span>window)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>dvv_both, cc_peak <span class="op">=</span> peak_dvv(es, cc_img)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">7.5</span>, <span class="fl">3.4</span>))</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(cc_img.T, aspect<span class="op">=</span><span class="st">"auto"</span>, origin<span class="op">=</span><span class="st">"lower"</span>, cmap<span class="op">=</span><span class="st">"magma"</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>               extent<span class="op">=</span>[yrs[<span class="dv">0</span>], yrs[<span class="op">-</span><span class="dv">1</span>], es[<span class="dv">0</span>] <span class="op">*</span> <span class="dv">100</span>, es[<span class="op">-</span><span class="dv">1</span>] <span class="op">*</span> <span class="dv">100</span>], vmin<span class="op">=</span><span class="fl">0.3</span>, vmax<span class="op">=</span><span class="fl">1.0</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, truth <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span><span class="st">"w"</span>, lw<span class="op">=</span><span class="fl">1.2</span>, ls<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"truth"</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, dvv_both <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"recovered (both branches)"</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"trial δv/v (%)"</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>       title<span class="op">=</span><span class="st">"CC(ε, t): the recovered δv/v is the ridge"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>, loc<span class="op">=</span><span class="st">"lower left"</span>)<span class="op">;</span> fig.colorbar(im, ax<span class="op">=</span>ax, fraction<span class="op">=</span><span class="fl">0.046</span>, label<span class="op">=</span><span class="st">"CC"</span>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-ccimage" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ccimage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="tutorial-00-measurement_files/figure-html/fig-ccimage-output-1.png" width="880" height="391" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ccimage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: The stretching correlation image CC(ε, t) over a late coda window [8, 35] s. The bright ridge is the recovered δv/v(t). It shows the true decline and drop — but also a slow upward creep after day 300 (the clock drift) and a faint annual wobble (the seasonal late-coda noise). Raw, a single late-window stretch conflates all three.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>The clock-drift diagnostic.</strong> A clock error delays the whole correlation by a constant lag, so it looks like a <em>slowing</em> on the causal (positive-lag) branch and a <em>speeding</em> on the acausal branch — opposite signs. A true velocity change moves both the same way. Measuring the two branches separately exposes it; using <strong>both</strong> branches together averages it away.</p>
+<div id="cell-fig-branches" class="cell" data-execution_count="5">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>dvv_c, _ <span class="op">=</span> measure_stretching(ccfs, s.ref, s.t, band<span class="op">=</span>band, fs<span class="op">=</span>s.fs, window<span class="op">=</span>window, branch<span class="op">=</span><span class="st">"causal"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>dvv_a, _ <span class="op">=</span> measure_stretching(ccfs, s.ref, s.t, band<span class="op">=</span>band, fs<span class="op">=</span>s.fs, window<span class="op">=</span>window, branch<span class="op">=</span><span class="st">"acausal"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="fl">3.2</span>))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, truth <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.8</span>, label<span class="op">=</span><span class="st">"truth"</span>, zorder<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, dvv_c <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"hydro"</span>], lw<span class="op">=</span><span class="fl">0.9</span>, label<span class="op">=</span><span class="st">"causal branch"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, dvv_a <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"thermo"</span>], lw<span class="op">=</span><span class="fl">0.9</span>, label<span class="op">=</span><span class="st">"acausal branch"</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, dvv_both <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], lw<span class="op">=</span><span class="fl">1.4</span>, label<span class="op">=</span><span class="st">"both (clock error cancels)"</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>ax.axvline(<span class="dv">300</span> <span class="op">/</span> YEAR_D, color<span class="op">=</span><span class="st">"0.6"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"δv/v (%)"</span>, title<span class="op">=</span><span class="st">"Branch asymmetry reveals the clock drift"</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>, ncol<span class="op">=</span><span class="dv">2</span>)<span class="op">;</span> plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-branches" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-branches-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="tutorial-00-measurement_files/figure-html/fig-branches-output-1.png" width="944" height="367" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-branches-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Measuring each coda branch separately is the clock-error diagnostic. After day 300 the causal and acausal δv/v split symmetrically (the clock drift, opposite sign on each), while their average — the ‘both-branch’ measurement — cancels it and tracks the truth. A single-branch pipeline would mistake the clock drift for a real velocity change.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="the-uncertainty-over-time" class="level2">
+<h2 class="anchored" data-anchor-id="the-uncertainty-over-time">3. The uncertainty over time</h2>
+<p>A single number per epoch is not enough — the error is <strong>time-dependent</strong>. The irreducible <em>within-method floor</em> comes from the coda coherence: where the current trace correlates poorly with the reference (the low-SNR days, and especially the sharp co-eruptive drop), the stretching estimate is less certain. The <code>weaver_stretching_error</code> formula turns the peak correlation <span class="math inline">\(\mathrm{CC}(t)\)</span> into a per-epoch standard error.</p>
+<div id="cell-fig-floor" class="cell" data-execution_count="6">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fc <span class="op">=</span> <span class="bu">float</span>(np.sqrt(band[<span class="dv">0</span>] <span class="op">*</span> band[<span class="dv">1</span>]))              <span class="co"># band centre</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sig_within <span class="op">=</span> weaver_stretching_error(cc_peak, fc, window[<span class="dv">0</span>], window[<span class="dv">1</span>])</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.2</span>), gridspec_kw<span class="op">=</span>{<span class="st">"width_ratios"</span>: [<span class="dv">1</span>, <span class="dv">1</span>]})</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].plot(yrs, cc_peak, color<span class="op">=</span>C[<span class="st">"accent"</span>], lw<span class="op">=</span><span class="fl">1.0</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"peak CC"</span>, title<span class="op">=</span><span class="st">"(a) coda coherence"</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].fill_between(yrs, (dvv_both <span class="op">-</span> <span class="dv">2</span> <span class="op">*</span> sig_within) <span class="op">*</span> <span class="dv">100</span>, (dvv_both <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> sig_within) <span class="op">*</span> <span class="dv">100</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                   color<span class="op">=</span>C[<span class="st">"band"</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, lw<span class="op">=</span><span class="dv">0</span>, label<span class="op">=</span><span class="st">"±2σ within-method"</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot(yrs, dvv_both <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"δv/v"</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot(yrs, truth <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.2</span>, label<span class="op">=</span><span class="st">"truth"</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"δv/v (%)"</span>, title<span class="op">=</span><span class="st">"(b) within-method error band"</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].legend(fontsize<span class="op">=</span><span class="dv">8</span>)<span class="op">;</span> plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-floor" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-floor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="tutorial-00-measurement_files/figure-html/fig-floor-output-1.png" width="1124" height="367" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-floor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: The coherence-limited error floor. Where the peak CC dips — the noisy stretch around the co-eruptive drop at year 2 — the within-method σ spikes. This is the floor a single pipeline would report; §4 shows it is only part of the story.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="the-measurement-covariance-c_d" class="level2">
+<h2 class="anchored" data-anchor-id="the-measurement-covariance-c_d">4. The measurement covariance <span class="math inline">\(C_d\)</span></h2>
+<p>The within-method floor assumes <em>one</em> pipeline is correct. It is not: the estimator, band, and window are all defensible-but-different choices, and their spread is a genuine, usually dominant, uncertainty. <code>codameter</code> marginalises that choice — it runs an ensemble of pipelines on the same gather and folds their spread, the coherence floor, and the temporal correlation into one <strong>time-dependent measurement covariance</strong> <span class="math inline">\(C_d\)</span>. One call does the whole thing:</p>
+<div id="bayes" class="cell" data-execution_count="7">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>res, run <span class="op">=</span> B.bayes_dvv_from_ccfs(ccfs, s.t, s.fs, truth<span class="op">=</span>truth, days<span class="op">=</span>days,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                                 cadence<span class="op">=</span><span class="dv">4</span>, n_iter<span class="op">=</span><span class="dv">1200</span>, burn<span class="op">=</span><span class="dv">400</span>, thin<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"ensemble                     : </span><span class="sc">{</span>run<span class="sc">.</span>members<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> pipelines"</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"methodological bias scale τ  : </span><span class="sc">{</span>res<span class="sc">.</span>tau<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Weaver-floor rescale s       : </span><span class="sc">{</span>res<span class="sc">.</span>s<span class="sc">:.2f}</span><span class="ss">   (&gt;1 ⇒ the raw floor is optimistic)"</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"temporal correlation length  : </span><span class="sc">{</span>res<span class="sc">.</span>corr_length_days<span class="sc">:.0f}</span><span class="ss"> days"</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"effective sample size  N_eff : </span><span class="sc">{</span>res<span class="sc">.</span>n_eff<span class="sc">:.0f}</span><span class="ss"> of </span><span class="sc">{</span><span class="bu">len</span>(res.times_days)<span class="sc">}</span><span class="ss"> epochs"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>ensemble                     : 12 pipelines
+methodological bias scale τ  : 7.31e-05
+Weaver-floor rescale s       : 7.90   (&gt;1 ⇒ the raw floor is optimistic)
+temporal correlation length  : 65 days
+effective sample size  N_eff : 16 of 229 epochs</code></pre>
+</div>
+</div>
+<div id="cell-fig-cd" class="cell" data-execution_count="8">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>yrs_e <span class="op">=</span> res.times_days <span class="op">/</span> YEAR_D</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>sd_cd <span class="op">=</span> np.sqrt(np.diag(res.Cd))<span class="op">;</span> sd_post <span class="op">=</span> np.sqrt(np.diag(res.mu_cov))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plt.figure(figsize<span class="op">=</span>(<span class="fl">11.5</span>, <span class="fl">3.8</span>))</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>gs <span class="op">=</span> fig.add_gridspec(<span class="dv">1</span>, <span class="dv">3</span>, width_ratios<span class="op">=</span>[<span class="fl">1.5</span>, <span class="fl">1.0</span>, <span class="fl">1.1</span>])</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>ax0 <span class="op">=</span> fig.add_subplot(gs[<span class="dv">0</span>])</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(run.members.shape[<span class="dv">0</span>]):</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    ax0.plot(yrs_e, run.members[k] <span class="op">*</span> <span class="dv">100</span>, lw<span class="op">=</span><span class="fl">0.5</span>, color<span class="op">=</span><span class="st">"0.75"</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>ax0.plot(yrs_e, run.truth <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.8</span>, label<span class="op">=</span><span class="st">"truth"</span>, zorder<span class="op">=</span><span class="dv">6</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>ax0.fill_between(yrs_e, (res.mu_mean <span class="op">-</span> <span class="dv">2</span> <span class="op">*</span> sd_cd) <span class="op">*</span> <span class="dv">100</span>, (res.mu_mean <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> sd_cd) <span class="op">*</span> <span class="dv">100</span>,</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>                 color<span class="op">=</span>C[<span class="st">"damage"</span>], alpha<span class="op">=</span><span class="fl">0.18</span>, lw<span class="op">=</span><span class="dv">0</span>, label<span class="op">=</span><span class="vs">r"±2σ of </span><span class="dv">$</span><span class="vs">C_d</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">data error</span><span class="kw">)</span><span class="vs">"</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>ax0.fill_between(yrs_e, res.mu_lo <span class="op">*</span> <span class="dv">100</span>, res.mu_hi <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], alpha<span class="op">=</span><span class="fl">0.35</span>, lw<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>                 label<span class="op">=</span><span class="st">"95</span><span class="sc">% c</span><span class="st">redible (estimator)"</span>)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>ax0.plot(yrs_e, res.mu_mean <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], lw<span class="op">=</span><span class="fl">1.5</span>, label<span class="op">=</span><span class="st">"posterior mean"</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>ax0.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"δv/v (%)"</span>, title<span class="op">=</span><span class="st">"(a) ensemble → posterior"</span>)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>ax0.legend(fontsize<span class="op">=</span><span class="dv">7</span>, loc<span class="op">=</span><span class="st">"lower left"</span>)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> fig.add_subplot(gs[<span class="dv">1</span>])</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>vmax <span class="op">=</span> <span class="bu">float</span>(np.percentile(np.diag(res.Cd), <span class="dv">85</span>))</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax1.imshow(res.Cd, cmap<span class="op">=</span><span class="st">"PuRd"</span>, origin<span class="op">=</span><span class="st">"lower"</span>, vmin<span class="op">=</span><span class="dv">0</span>, vmax<span class="op">=</span>vmax,</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>                extent<span class="op">=</span>[yrs_e[<span class="dv">0</span>], yrs_e[<span class="op">-</span><span class="dv">1</span>], yrs_e[<span class="dv">0</span>], yrs_e[<span class="op">-</span><span class="dv">1</span>]])</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>ax1.<span class="bu">set</span>(title<span class="op">=</span><span class="ss">f"(b) $C_d$  (L=</span><span class="sc">{</span>res<span class="sc">.</span>corr_length_days<span class="sc">:.0f}</span><span class="ss"> d)"</span>,</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>        xlabel<span class="op">=</span><span class="st">"time (yr)"</span>, ylabel<span class="op">=</span><span class="st">"time (yr)"</span>)</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>fig.colorbar(im, ax<span class="op">=</span>ax1, fraction<span class="op">=</span><span class="fl">0.046</span>)</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> fig.add_subplot(gs[<span class="dv">2</span>])</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>ax2.plot(yrs_e, sd_cd <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"damage"</span>], lw<span class="op">=</span><span class="fl">1.6</span>, label<span class="op">=</span><span class="vs">r"</span><span class="dv">$\s</span><span class="vs">igma_d</span><span class="kw">(</span><span class="vs">t</span><span class="kw">)</span><span class="dv">$</span><span class="vs"> total"</span>)</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>ax2.plot(yrs_e, res.method_std <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"thermo"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"methodological"</span>)</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>ax2.plot(yrs_e, res.within_std <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"hydro"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"within-method"</span>)</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>ax2.plot(yrs_e, sd_post <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, ls<span class="op">=</span><span class="st">":"</span>, label<span class="op">=</span><span class="st">"posterior of mean"</span>)</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>ax2.axvline(<span class="fl">2.0</span>, color<span class="op">=</span><span class="st">"0.6"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>ax2.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"σ (%)"</span>,</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="ss">f"(c) time-dependent;  $N_</span><span class="ch">{{</span><span class="ss">eff</span><span class="ch">}}</span><span class="ss">$=</span><span class="sc">{</span>res<span class="sc">.</span>n_eff<span class="sc">:.0f}</span><span class="ss">"</span>)</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>ax2.legend(fontsize<span class="op">=</span><span class="dv">7</span>)<span class="op">;</span> plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-cd" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-cd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="tutorial-00-measurement_files/figure-html/fig-cd-output-1.png" width="1364" height="438" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: The deliverable. (a) The pipeline ensemble (grey) marginalised into a posterior mean (purple); its 95% credible band is the <em>estimator</em> precision — narrow, and it under-covers the truth — while the ±2σ band of C_d is the honest measurement error. (b) The measurement covariance C_d itself: a time-dependent diagonal with an exponential temporal correlation and a common-mode floor. (c) σ_d(t) split into within-method and methodological parts — both widen at the eruption — with N_eff collapsed far below the epoch count.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div id="coverage" class="cell" data-execution_count="9">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>tr <span class="op">=</span> run.truth</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>cred <span class="op">=</span> np.mean((tr <span class="op">&gt;=</span> res.mu_lo) <span class="op">&amp;</span> (tr <span class="op">&lt;=</span> res.mu_hi))</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>cd95 <span class="op">=</span> np.mean(np.<span class="bu">abs</span>(tr <span class="op">-</span> res.mu_mean) <span class="op">&lt;=</span> <span class="dv">2</span> <span class="op">*</span> sd_cd)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"truth inside 95% credible band : </span><span class="sc">{</span>cred<span class="sc">:.0%}</span><span class="ss">   (the estimator precision under-covers)"</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"truth within ±2σ of C_d        : </span><span class="sc">{</span>cd95<span class="sc">:.0%}</span><span class="ss">   (the honest measurement error covers)"</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"mean σ: credible </span><span class="sc">{</span>sd_post<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">  vs  C_d </span><span class="sc">{</span>sd_cd<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">  "</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(</span><span class="sc">{</span>sd_cd<span class="sc">.</span>mean() <span class="op">/</span> sd_post<span class="sc">.</span>mean()<span class="sc">:.0f}</span><span class="ss">× wider)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>truth inside 95% credible band : 8%   (the estimator precision under-covers)
+truth within ±2σ of C_d        : 100%   (the honest measurement error covers)
+mean σ: credible 1.71e-04  vs  C_d 2.90e-03  (17× wider)</code></pre>
+</div>
+</div>
+<p>The credible band — the precision of the <em>combined</em> estimate — is tight and over-confident; the marginal covariance <span class="math inline">\(C_d\)</span> is what actually covers the truth. That gap is the point: report and <strong>propagate <span class="math inline">\(C_d\)</span></strong>, not the posterior of the averaged series.</p>
+</section>
+<section id="what-you-produced-and-where-it-goes" class="level2">
+<h2 class="anchored" data-anchor-id="what-you-produced-and-where-it-goes">What you produced, and where it goes</h2>
+<p>From a raw, contaminated CCF gather you now have the three objects the rest of the arc needs:</p>
+<ol type="1">
+<li>a marginalised <span class="math inline">\(\delta v/v(t)\)</span> (<code>res.mu_mean</code>),</li>
+<li>its time-dependent standard error <span class="math inline">\(\sigma_d(t)\)</span> (<code>np.sqrt(np.diag(res.Cd))</code>), and</li>
+<li>the full measurement covariance <span class="math inline">\(C_d\)</span> (<code>res.Cd</code>), with its temporal correlation and common-mode floor.</li>
+</ol>
+<p><span class="math inline">\(C_d\)</span> is exactly the input <a href="./theory-processing-depth.html">step 2 · depth</a> inverts through sensitivity kernels for a profile of shear-velocity change — and an honest depth or stress estimate is only as honest as the <span class="math inline">\(C_d\)</span> it starts from. The clock error we diagnosed here is a reminder that some systematics (timing, a non-stationary noise field) must be <strong>detected and removed before</strong> measuring; what remains — coherence, and the freedom in the processing choice — is what <span class="math inline">\(C_d\)</span> carries forward.</p>
+<section id="references" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="references">References</h3>
+<div id="refs" role="list">
+
+</div>
+
+
+<!-- -->
+
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./theory-uq.html" class="pagination-link" aria-label="Companion — inference UQ">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Companion — inference UQ</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./tutorial-01-data.html" class="pagination-link" aria-label="1 · Data &amp; site readiness">
+        <span class="nav-page-text">1 · Data &amp; site readiness</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "0 · Measuring δv/v from noisy cross-correlations"</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "A realistic CCF gather → δv/v(t), its uncertainty over time, and the covariance C_d"</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> codameter-pixi</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>::: {.keyidea}</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Thesis</span><span class="co">]</span>{.k-title}</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>Every other tutorial starts from a $\delta v/v$ *series*. This one starts one step</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>earlier — from the **raw daily cross-correlations**, the actual input. We build a</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>CCF gather that carries the nuisances real data does (a slow velocity change, finite</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>SNR, an instrument **clock drift**, and a **seasonal** noise-source wobble in the</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>late coda), then use <span class="in">`codameter`</span> to recover $\delta v/v(t)$, **its uncertainty over</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>time**, and the **measurement covariance** $C_d$ — the exact object</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">step 2 · depth</span><span class="co">](theory-processing-depth.qmd)</span> consumes. It is the hands-on companion</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>to the <span class="co">[</span><span class="ot">marginal-errors</span><span class="co">](theory-measurement-uq.qmd)</span> and</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Bayesian-measurement</span><span class="co">](theory-bayesian-measurement.qmd)</span> theory pages.</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys, numpy <span class="im">as</span> np, matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, <span class="st">"."</span>)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> _synth <span class="im">import</span> set_style, C</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>set_style()</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.synthetic_demo <span class="im">import</span> (</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    Synth, _days, volcano_truth, daily_ccfs,</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>    add_clock_drift, add_seasonal_late_noise,</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>    stretching_cc, peak_dvv, measure_stretching, YEAR_D,</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter.uq_measurement <span class="im">import</span> weaver_stretching_error</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> codameter <span class="im">import</span> uq_bayes <span class="im">as</span> B</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">3</span>)</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. A realistic cross-correlation gather</span></span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>We assemble the data the way a monitoring station delivers it: one reference coda</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>and a stack of **daily** cross-correlations, each a noisy repeat of that reference</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>with a small, slowly changing stretch. On top of the true velocity change we layer</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>three nuisances that a real record almost always contains:</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**A long-term velocity change** — a slow pre-eruptive decline, a sharp</span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>  co-eruptive drop, then recovery (<span class="in">`volcano_truth`</span>). This is the signal, and it is</span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>  the *long-term shifting of the coda phases* we want to recover.</span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Measurement noise** — a finite coda-to-noise ratio (<span class="in">`snr`</span>), the irreducible</span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>  per-day scatter.</span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**An instrument clock drift** — a station-timing error that delays the *whole*</span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>  correlation by a lag that grows with time (<span class="in">`add_clock_drift`</span>). It mimics a real</span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>  velocity change but, being a constant lag, betrays itself on the two coda</span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>  branches (§2).</span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**A seasonal noise-source wobble** — a seasonally changing noise field that warps</span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>  only the **late** coda (<span class="in">`add_seasonal_late_noise`</span>), injecting a spurious seasonal</span>
+<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a>  $\delta v/v$ into a late measurement window but not an early one.</span>
+<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-61"><a href="#cb13-61" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-62"><a href="#cb13-62" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: build</span></span>
+<span id="cb13-63"><a href="#cb13-63" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> Synth()                       <span class="co"># shared coda geometry: lag axis s.t, reference s.ref</span></span>
+<span id="cb13-64"><a href="#cb13-64" aria-hidden="true" tabindex="-1"></a>days <span class="op">=</span> _days(<span class="fl">2.5</span>)                 <span class="co"># ~2.5 years of daily CCFs</span></span>
+<span id="cb13-65"><a href="#cb13-65" aria-hidden="true" tabindex="-1"></a>truth <span class="op">=</span> volcano_truth(days)       <span class="co"># the ground-truth δv/v(t)</span></span>
+<span id="cb13-66"><a href="#cb13-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-67"><a href="#cb13-67" aria-hidden="true" tabindex="-1"></a><span class="co"># start from clean daily CCFs at a realistic SNR ...</span></span>
+<span id="cb13-68"><a href="#cb13-68" aria-hidden="true" tabindex="-1"></a>ccfs <span class="op">=</span> daily_ccfs(s.t, [s.ref], [truth], fs<span class="op">=</span>s.fs, snr<span class="op">=</span><span class="fl">7.0</span>, seed<span class="op">=</span><span class="dv">55</span>)</span>
+<span id="cb13-69"><a href="#cb13-69" aria-hidden="true" tabindex="-1"></a><span class="co"># ... then contaminate them the way nature does:</span></span>
+<span id="cb13-70"><a href="#cb13-70" aria-hidden="true" tabindex="-1"></a>ccfs <span class="op">=</span> add_clock_drift(ccfs, s.t, drift_s_per_day<span class="op">=</span><span class="fl">5e-5</span>, onset_day<span class="op">=</span><span class="dv">300</span>)</span>
+<span id="cb13-71"><a href="#cb13-71" aria-hidden="true" tabindex="-1"></a>ccfs <span class="op">=</span> add_seasonal_late_noise(ccfs, s.t, days, fs<span class="op">=</span>s.fs, onset_s<span class="op">=</span><span class="fl">25.0</span>,</span>
+<span id="cb13-72"><a href="#cb13-72" aria-hidden="true" tabindex="-1"></a>                               dvv_amp<span class="op">=</span><span class="fl">0.0035</span>, jitter<span class="op">=</span><span class="fl">0.05</span>, seed<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb13-73"><a href="#cb13-73" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"gather: </span><span class="sc">{</span>ccfs<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> daily CCFs × </span><span class="sc">{</span>ccfs<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> lag samples "</span></span>
+<span id="cb13-74"><a href="#cb13-74" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(±</span><span class="sc">{</span>s<span class="sc">.</span>maxlag_s<span class="sc">:g}</span><span class="ss"> s at </span><span class="sc">{</span>s<span class="sc">.</span>fs<span class="sc">:g}</span><span class="ss"> Hz)"</span>)</span>
+<span id="cb13-75"><a href="#cb13-75" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-76"><a href="#cb13-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-79"><a href="#cb13-79" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-80"><a href="#cb13-80" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-gather</span></span>
+<span id="cb13-81"><a href="#cb13-81" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The synthetic gather. (a) The stack of daily cross-correlations (lag × time); the coda structure repeats day to day, and the imposed changes are a fraction of a percent — invisible by eye, which is the whole problem. (b) The ground truth we are trying to recover: a slow decline, a co-eruptive drop at year 2, and recovery. The clock drift (from day 300) and the seasonal wobble are the nuisances layered on top."</span></span>
+<span id="cb13-82"><a href="#cb13-82" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.6</span>), gridspec_kw<span class="op">=</span>{<span class="st">"width_ratios"</span>: [<span class="fl">1.3</span>, <span class="dv">1</span>]})</span>
+<span id="cb13-83"><a href="#cb13-83" aria-hidden="true" tabindex="-1"></a>yrs <span class="op">=</span> days <span class="op">/</span> YEAR_D</span>
+<span id="cb13-84"><a href="#cb13-84" aria-hidden="true" tabindex="-1"></a>vmax <span class="op">=</span> np.percentile(np.<span class="bu">abs</span>(ccfs), <span class="dv">99</span>)</span>
+<span id="cb13-85"><a href="#cb13-85" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].imshow(ccfs, aspect<span class="op">=</span><span class="st">"auto"</span>, origin<span class="op">=</span><span class="st">"lower"</span>, cmap<span class="op">=</span><span class="st">"RdBu_r"</span>, vmin<span class="op">=-</span>vmax, vmax<span class="op">=</span>vmax,</span>
+<span id="cb13-86"><a href="#cb13-86" aria-hidden="true" tabindex="-1"></a>             extent<span class="op">=</span>[s.t[<span class="dv">0</span>], s.t[<span class="op">-</span><span class="dv">1</span>], yrs[<span class="dv">0</span>], yrs[<span class="op">-</span><span class="dv">1</span>]])</span>
+<span id="cb13-87"><a href="#cb13-87" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"lag (s)"</span>, ylabel<span class="op">=</span><span class="st">"time (years)"</span>, title<span class="op">=</span><span class="st">"(a) daily CCF gather"</span>)</span>
+<span id="cb13-88"><a href="#cb13-88" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot(yrs, truth <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"damage"</span>], lw<span class="op">=</span><span class="fl">1.8</span>)</span>
+<span id="cb13-89"><a href="#cb13-89" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].axvspan(<span class="dv">300</span> <span class="op">/</span> YEAR_D, yrs[<span class="op">-</span><span class="dv">1</span>], color<span class="op">=</span>C[<span class="st">"thermo"</span>], alpha<span class="op">=</span><span class="fl">0.08</span>)</span>
+<span id="cb13-90"><a href="#cb13-90" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].text(<span class="dv">300</span> <span class="op">/</span> YEAR_D, ax[<span class="dv">1</span>].get_ylim()[<span class="dv">1</span>], <span class="st">" clock drift on"</span>, color<span class="op">=</span>C[<span class="st">"thermo"</span>],</span>
+<span id="cb13-91"><a href="#cb13-91" aria-hidden="true" tabindex="-1"></a>           fontsize<span class="op">=</span><span class="dv">8</span>, va<span class="op">=</span><span class="st">"top"</span>)</span>
+<span id="cb13-92"><a href="#cb13-92" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"0.7"</span>, lw<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb13-93"><a href="#cb13-93" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"true δv/v (%)"</span>, title<span class="op">=</span><span class="st">"(b) ground truth"</span>)</span>
+<span id="cb13-94"><a href="#cb13-94" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb13-95"><a href="#cb13-95" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-96"><a href="#cb13-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-97"><a href="#cb13-97" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2. Measure δv/v — and watch the nuisances bite</span></span>
+<span id="cb13-98"><a href="#cb13-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-99"><a href="#cb13-99" aria-hidden="true" tabindex="-1"></a>The workhorse is **trace stretching**: for each day, find the stretch $\varepsilon$</span>
+<span id="cb13-100"><a href="#cb13-100" aria-hidden="true" tabindex="-1"></a>of the reference coda that best matches the current trace over a lapse window. The</span>
+<span id="cb13-101"><a href="#cb13-101" aria-hidden="true" tabindex="-1"></a><span class="in">`stretching_cc`</span> helper returns the full correlation image $\mathrm{CC}(\varepsilon,t)$;</span>
+<span id="cb13-102"><a href="#cb13-102" aria-hidden="true" tabindex="-1"></a>its bright ridge *is* the apparent $\delta v/v(t)$.</span>
+<span id="cb13-103"><a href="#cb13-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-106"><a href="#cb13-106" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-107"><a href="#cb13-107" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-ccimage</span></span>
+<span id="cb13-108"><a href="#cb13-108" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The stretching correlation image CC(ε, t) over a late coda window [8, 35] s. The bright ridge is the recovered δv/v(t). It shows the true decline and drop — but also a slow upward creep after day 300 (the clock drift) and a faint annual wobble (the seasonal late-coda noise). Raw, a single late-window stretch conflates all three."</span></span>
+<span id="cb13-109"><a href="#cb13-109" aria-hidden="true" tabindex="-1"></a>band, window <span class="op">=</span> (<span class="fl">0.4</span>, <span class="fl">1.0</span>), (<span class="fl">8.0</span>, <span class="fl">35.0</span>)</span>
+<span id="cb13-110"><a href="#cb13-110" aria-hidden="true" tabindex="-1"></a>es, cc_img <span class="op">=</span> stretching_cc(ccfs, s.ref, s.t, band<span class="op">=</span>band, fs<span class="op">=</span>s.fs, window<span class="op">=</span>window)</span>
+<span id="cb13-111"><a href="#cb13-111" aria-hidden="true" tabindex="-1"></a>dvv_both, cc_peak <span class="op">=</span> peak_dvv(es, cc_img)</span>
+<span id="cb13-112"><a href="#cb13-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-113"><a href="#cb13-113" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">7.5</span>, <span class="fl">3.4</span>))</span>
+<span id="cb13-114"><a href="#cb13-114" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(cc_img.T, aspect<span class="op">=</span><span class="st">"auto"</span>, origin<span class="op">=</span><span class="st">"lower"</span>, cmap<span class="op">=</span><span class="st">"magma"</span>,</span>
+<span id="cb13-115"><a href="#cb13-115" aria-hidden="true" tabindex="-1"></a>               extent<span class="op">=</span>[yrs[<span class="dv">0</span>], yrs[<span class="op">-</span><span class="dv">1</span>], es[<span class="dv">0</span>] <span class="op">*</span> <span class="dv">100</span>, es[<span class="op">-</span><span class="dv">1</span>] <span class="op">*</span> <span class="dv">100</span>], vmin<span class="op">=</span><span class="fl">0.3</span>, vmax<span class="op">=</span><span class="fl">1.0</span>)</span>
+<span id="cb13-116"><a href="#cb13-116" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, truth <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span><span class="st">"w"</span>, lw<span class="op">=</span><span class="fl">1.2</span>, ls<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"truth"</span>)</span>
+<span id="cb13-117"><a href="#cb13-117" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, dvv_both <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"recovered (both branches)"</span>)</span>
+<span id="cb13-118"><a href="#cb13-118" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"trial δv/v (%)"</span>,</span>
+<span id="cb13-119"><a href="#cb13-119" aria-hidden="true" tabindex="-1"></a>       title<span class="op">=</span><span class="st">"CC(ε, t): the recovered δv/v is the ridge"</span>)</span>
+<span id="cb13-120"><a href="#cb13-120" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>, loc<span class="op">=</span><span class="st">"lower left"</span>)<span class="op">;</span> fig.colorbar(im, ax<span class="op">=</span>ax, fraction<span class="op">=</span><span class="fl">0.046</span>, label<span class="op">=</span><span class="st">"CC"</span>)</span>
+<span id="cb13-121"><a href="#cb13-121" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb13-122"><a href="#cb13-122" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-123"><a href="#cb13-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-124"><a href="#cb13-124" aria-hidden="true" tabindex="-1"></a>**The clock-drift diagnostic.** A clock error delays the whole correlation by a</span>
+<span id="cb13-125"><a href="#cb13-125" aria-hidden="true" tabindex="-1"></a>constant lag, so it looks like a *slowing* on the causal (positive-lag) branch and a</span>
+<span id="cb13-126"><a href="#cb13-126" aria-hidden="true" tabindex="-1"></a>*speeding* on the acausal branch — opposite signs. A true velocity change moves both</span>
+<span id="cb13-127"><a href="#cb13-127" aria-hidden="true" tabindex="-1"></a>the same way. Measuring the two branches separately exposes it; using **both**</span>
+<span id="cb13-128"><a href="#cb13-128" aria-hidden="true" tabindex="-1"></a>branches together averages it away.</span>
+<span id="cb13-129"><a href="#cb13-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-132"><a href="#cb13-132" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-133"><a href="#cb13-133" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-branches</span></span>
+<span id="cb13-134"><a href="#cb13-134" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Measuring each coda branch separately is the clock-error diagnostic. After day 300 the causal and acausal δv/v split symmetrically (the clock drift, opposite sign on each), while their average — the 'both-branch' measurement — cancels it and tracks the truth. A single-branch pipeline would mistake the clock drift for a real velocity change."</span></span>
+<span id="cb13-135"><a href="#cb13-135" aria-hidden="true" tabindex="-1"></a>dvv_c, _ <span class="op">=</span> measure_stretching(ccfs, s.ref, s.t, band<span class="op">=</span>band, fs<span class="op">=</span>s.fs, window<span class="op">=</span>window, branch<span class="op">=</span><span class="st">"causal"</span>)</span>
+<span id="cb13-136"><a href="#cb13-136" aria-hidden="true" tabindex="-1"></a>dvv_a, _ <span class="op">=</span> measure_stretching(ccfs, s.ref, s.t, band<span class="op">=</span>band, fs<span class="op">=</span>s.fs, window<span class="op">=</span>window, branch<span class="op">=</span><span class="st">"acausal"</span>)</span>
+<span id="cb13-137"><a href="#cb13-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-138"><a href="#cb13-138" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="fl">3.2</span>))</span>
+<span id="cb13-139"><a href="#cb13-139" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, truth <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.8</span>, label<span class="op">=</span><span class="st">"truth"</span>, zorder<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb13-140"><a href="#cb13-140" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, dvv_c <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"hydro"</span>], lw<span class="op">=</span><span class="fl">0.9</span>, label<span class="op">=</span><span class="st">"causal branch"</span>)</span>
+<span id="cb13-141"><a href="#cb13-141" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, dvv_a <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"thermo"</span>], lw<span class="op">=</span><span class="fl">0.9</span>, label<span class="op">=</span><span class="st">"acausal branch"</span>)</span>
+<span id="cb13-142"><a href="#cb13-142" aria-hidden="true" tabindex="-1"></a>ax.plot(yrs, dvv_both <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], lw<span class="op">=</span><span class="fl">1.4</span>, label<span class="op">=</span><span class="st">"both (clock error cancels)"</span>)</span>
+<span id="cb13-143"><a href="#cb13-143" aria-hidden="true" tabindex="-1"></a>ax.axvline(<span class="dv">300</span> <span class="op">/</span> YEAR_D, color<span class="op">=</span><span class="st">"0.6"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb13-144"><a href="#cb13-144" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"δv/v (%)"</span>, title<span class="op">=</span><span class="st">"Branch asymmetry reveals the clock drift"</span>)</span>
+<span id="cb13-145"><a href="#cb13-145" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>, ncol<span class="op">=</span><span class="dv">2</span>)<span class="op">;</span> plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb13-146"><a href="#cb13-146" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-147"><a href="#cb13-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-148"><a href="#cb13-148" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. The uncertainty over time</span></span>
+<span id="cb13-149"><a href="#cb13-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-150"><a href="#cb13-150" aria-hidden="true" tabindex="-1"></a>A single number per epoch is not enough — the error is **time-dependent**. The</span>
+<span id="cb13-151"><a href="#cb13-151" aria-hidden="true" tabindex="-1"></a>irreducible *within-method floor* comes from the coda coherence: where the current</span>
+<span id="cb13-152"><a href="#cb13-152" aria-hidden="true" tabindex="-1"></a>trace correlates poorly with the reference (the low-SNR days, and especially the</span>
+<span id="cb13-153"><a href="#cb13-153" aria-hidden="true" tabindex="-1"></a>sharp co-eruptive drop), the stretching estimate is less certain. The</span>
+<span id="cb13-154"><a href="#cb13-154" aria-hidden="true" tabindex="-1"></a><span class="in">`weaver_stretching_error`</span> formula turns the peak correlation $\mathrm{CC}(t)$ into a</span>
+<span id="cb13-155"><a href="#cb13-155" aria-hidden="true" tabindex="-1"></a>per-epoch standard error.</span>
+<span id="cb13-156"><a href="#cb13-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-159"><a href="#cb13-159" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-160"><a href="#cb13-160" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-floor</span></span>
+<span id="cb13-161"><a href="#cb13-161" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The coherence-limited error floor. Where the peak CC dips — the noisy stretch around the co-eruptive drop at year 2 — the within-method σ spikes. This is the floor a single pipeline would report; §4 shows it is only part of the story."</span></span>
+<span id="cb13-162"><a href="#cb13-162" aria-hidden="true" tabindex="-1"></a>fc <span class="op">=</span> <span class="bu">float</span>(np.sqrt(band[<span class="dv">0</span>] <span class="op">*</span> band[<span class="dv">1</span>]))              <span class="co"># band centre</span></span>
+<span id="cb13-163"><a href="#cb13-163" aria-hidden="true" tabindex="-1"></a>sig_within <span class="op">=</span> weaver_stretching_error(cc_peak, fc, window[<span class="dv">0</span>], window[<span class="dv">1</span>])</span>
+<span id="cb13-164"><a href="#cb13-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-165"><a href="#cb13-165" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.2</span>), gridspec_kw<span class="op">=</span>{<span class="st">"width_ratios"</span>: [<span class="dv">1</span>, <span class="dv">1</span>]})</span>
+<span id="cb13-166"><a href="#cb13-166" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].plot(yrs, cc_peak, color<span class="op">=</span>C[<span class="st">"accent"</span>], lw<span class="op">=</span><span class="fl">1.0</span>)</span>
+<span id="cb13-167"><a href="#cb13-167" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"peak CC"</span>, title<span class="op">=</span><span class="st">"(a) coda coherence"</span>)</span>
+<span id="cb13-168"><a href="#cb13-168" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].fill_between(yrs, (dvv_both <span class="op">-</span> <span class="dv">2</span> <span class="op">*</span> sig_within) <span class="op">*</span> <span class="dv">100</span>, (dvv_both <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> sig_within) <span class="op">*</span> <span class="dv">100</span>,</span>
+<span id="cb13-169"><a href="#cb13-169" aria-hidden="true" tabindex="-1"></a>                   color<span class="op">=</span>C[<span class="st">"band"</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, lw<span class="op">=</span><span class="dv">0</span>, label<span class="op">=</span><span class="st">"±2σ within-method"</span>)</span>
+<span id="cb13-170"><a href="#cb13-170" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot(yrs, dvv_both <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"δv/v"</span>)</span>
+<span id="cb13-171"><a href="#cb13-171" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot(yrs, truth <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.2</span>, label<span class="op">=</span><span class="st">"truth"</span>)</span>
+<span id="cb13-172"><a href="#cb13-172" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"δv/v (%)"</span>, title<span class="op">=</span><span class="st">"(b) within-method error band"</span>)</span>
+<span id="cb13-173"><a href="#cb13-173" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].legend(fontsize<span class="op">=</span><span class="dv">8</span>)<span class="op">;</span> plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb13-174"><a href="#cb13-174" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-175"><a href="#cb13-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-176"><a href="#cb13-176" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4. The measurement covariance $C_d$</span></span>
+<span id="cb13-177"><a href="#cb13-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-178"><a href="#cb13-178" aria-hidden="true" tabindex="-1"></a>The within-method floor assumes *one* pipeline is correct. It is not: the estimator,</span>
+<span id="cb13-179"><a href="#cb13-179" aria-hidden="true" tabindex="-1"></a>band, and window are all defensible-but-different choices, and their spread is a</span>
+<span id="cb13-180"><a href="#cb13-180" aria-hidden="true" tabindex="-1"></a>genuine, usually dominant, uncertainty. <span class="in">`codameter`</span> marginalises that choice — it</span>
+<span id="cb13-181"><a href="#cb13-181" aria-hidden="true" tabindex="-1"></a>runs an ensemble of pipelines on the same gather and folds their spread, the</span>
+<span id="cb13-182"><a href="#cb13-182" aria-hidden="true" tabindex="-1"></a>coherence floor, and the temporal correlation into one **time-dependent measurement</span>
+<span id="cb13-183"><a href="#cb13-183" aria-hidden="true" tabindex="-1"></a>covariance** $C_d$. One call does the whole thing:</span>
+<span id="cb13-184"><a href="#cb13-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-187"><a href="#cb13-187" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-188"><a href="#cb13-188" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: bayes</span></span>
+<span id="cb13-189"><a href="#cb13-189" aria-hidden="true" tabindex="-1"></a>res, run <span class="op">=</span> B.bayes_dvv_from_ccfs(ccfs, s.t, s.fs, truth<span class="op">=</span>truth, days<span class="op">=</span>days,</span>
+<span id="cb13-190"><a href="#cb13-190" aria-hidden="true" tabindex="-1"></a>                                 cadence<span class="op">=</span><span class="dv">4</span>, n_iter<span class="op">=</span><span class="dv">1200</span>, burn<span class="op">=</span><span class="dv">400</span>, thin<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb13-191"><a href="#cb13-191" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"ensemble                     : </span><span class="sc">{</span>run<span class="sc">.</span>members<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> pipelines"</span>)</span>
+<span id="cb13-192"><a href="#cb13-192" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"methodological bias scale τ  : </span><span class="sc">{</span>res<span class="sc">.</span>tau<span class="sc">:.2e}</span><span class="ss">"</span>)</span>
+<span id="cb13-193"><a href="#cb13-193" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Weaver-floor rescale s       : </span><span class="sc">{</span>res<span class="sc">.</span>s<span class="sc">:.2f}</span><span class="ss">   (&gt;1 ⇒ the raw floor is optimistic)"</span>)</span>
+<span id="cb13-194"><a href="#cb13-194" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"temporal correlation length  : </span><span class="sc">{</span>res<span class="sc">.</span>corr_length_days<span class="sc">:.0f}</span><span class="ss"> days"</span>)</span>
+<span id="cb13-195"><a href="#cb13-195" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"effective sample size  N_eff : </span><span class="sc">{</span>res<span class="sc">.</span>n_eff<span class="sc">:.0f}</span><span class="ss"> of </span><span class="sc">{</span><span class="bu">len</span>(res.times_days)<span class="sc">}</span><span class="ss"> epochs"</span>)</span>
+<span id="cb13-196"><a href="#cb13-196" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-197"><a href="#cb13-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-200"><a href="#cb13-200" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-201"><a href="#cb13-201" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-cd</span></span>
+<span id="cb13-202"><a href="#cb13-202" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The deliverable. (a) The pipeline ensemble (grey) marginalised into a posterior mean (purple); its 95% credible band is the *estimator* precision — narrow, and it under-covers the truth — while the ±2σ band of C_d is the honest measurement error. (b) The measurement covariance C_d itself: a time-dependent diagonal with an exponential temporal correlation and a common-mode floor. (c) σ_d(t) split into within-method and methodological parts — both widen at the eruption — with N_eff collapsed far below the epoch count."</span></span>
+<span id="cb13-203"><a href="#cb13-203" aria-hidden="true" tabindex="-1"></a>yrs_e <span class="op">=</span> res.times_days <span class="op">/</span> YEAR_D</span>
+<span id="cb13-204"><a href="#cb13-204" aria-hidden="true" tabindex="-1"></a>sd_cd <span class="op">=</span> np.sqrt(np.diag(res.Cd))<span class="op">;</span> sd_post <span class="op">=</span> np.sqrt(np.diag(res.mu_cov))</span>
+<span id="cb13-205"><a href="#cb13-205" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plt.figure(figsize<span class="op">=</span>(<span class="fl">11.5</span>, <span class="fl">3.8</span>))</span>
+<span id="cb13-206"><a href="#cb13-206" aria-hidden="true" tabindex="-1"></a>gs <span class="op">=</span> fig.add_gridspec(<span class="dv">1</span>, <span class="dv">3</span>, width_ratios<span class="op">=</span>[<span class="fl">1.5</span>, <span class="fl">1.0</span>, <span class="fl">1.1</span>])</span>
+<span id="cb13-207"><a href="#cb13-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-208"><a href="#cb13-208" aria-hidden="true" tabindex="-1"></a>ax0 <span class="op">=</span> fig.add_subplot(gs[<span class="dv">0</span>])</span>
+<span id="cb13-209"><a href="#cb13-209" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(run.members.shape[<span class="dv">0</span>]):</span>
+<span id="cb13-210"><a href="#cb13-210" aria-hidden="true" tabindex="-1"></a>    ax0.plot(yrs_e, run.members[k] <span class="op">*</span> <span class="dv">100</span>, lw<span class="op">=</span><span class="fl">0.5</span>, color<span class="op">=</span><span class="st">"0.75"</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb13-211"><a href="#cb13-211" aria-hidden="true" tabindex="-1"></a>ax0.plot(yrs_e, run.truth <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">1.8</span>, label<span class="op">=</span><span class="st">"truth"</span>, zorder<span class="op">=</span><span class="dv">6</span>)</span>
+<span id="cb13-212"><a href="#cb13-212" aria-hidden="true" tabindex="-1"></a>ax0.fill_between(yrs_e, (res.mu_mean <span class="op">-</span> <span class="dv">2</span> <span class="op">*</span> sd_cd) <span class="op">*</span> <span class="dv">100</span>, (res.mu_mean <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> sd_cd) <span class="op">*</span> <span class="dv">100</span>,</span>
+<span id="cb13-213"><a href="#cb13-213" aria-hidden="true" tabindex="-1"></a>                 color<span class="op">=</span>C[<span class="st">"damage"</span>], alpha<span class="op">=</span><span class="fl">0.18</span>, lw<span class="op">=</span><span class="dv">0</span>, label<span class="op">=</span><span class="vs">r"±2σ of </span><span class="dv">$</span><span class="vs">C_d</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">data error</span><span class="kw">)</span><span class="vs">"</span>)</span>
+<span id="cb13-214"><a href="#cb13-214" aria-hidden="true" tabindex="-1"></a>ax0.fill_between(yrs_e, res.mu_lo <span class="op">*</span> <span class="dv">100</span>, res.mu_hi <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], alpha<span class="op">=</span><span class="fl">0.35</span>, lw<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb13-215"><a href="#cb13-215" aria-hidden="true" tabindex="-1"></a>                 label<span class="op">=</span><span class="st">"95</span><span class="sc">% c</span><span class="st">redible (estimator)"</span>)</span>
+<span id="cb13-216"><a href="#cb13-216" aria-hidden="true" tabindex="-1"></a>ax0.plot(yrs_e, res.mu_mean <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], lw<span class="op">=</span><span class="fl">1.5</span>, label<span class="op">=</span><span class="st">"posterior mean"</span>)</span>
+<span id="cb13-217"><a href="#cb13-217" aria-hidden="true" tabindex="-1"></a>ax0.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"δv/v (%)"</span>, title<span class="op">=</span><span class="st">"(a) ensemble → posterior"</span>)</span>
+<span id="cb13-218"><a href="#cb13-218" aria-hidden="true" tabindex="-1"></a>ax0.legend(fontsize<span class="op">=</span><span class="dv">7</span>, loc<span class="op">=</span><span class="st">"lower left"</span>)</span>
+<span id="cb13-219"><a href="#cb13-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-220"><a href="#cb13-220" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> fig.add_subplot(gs[<span class="dv">1</span>])</span>
+<span id="cb13-221"><a href="#cb13-221" aria-hidden="true" tabindex="-1"></a>vmax <span class="op">=</span> <span class="bu">float</span>(np.percentile(np.diag(res.Cd), <span class="dv">85</span>))</span>
+<span id="cb13-222"><a href="#cb13-222" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax1.imshow(res.Cd, cmap<span class="op">=</span><span class="st">"PuRd"</span>, origin<span class="op">=</span><span class="st">"lower"</span>, vmin<span class="op">=</span><span class="dv">0</span>, vmax<span class="op">=</span>vmax,</span>
+<span id="cb13-223"><a href="#cb13-223" aria-hidden="true" tabindex="-1"></a>                extent<span class="op">=</span>[yrs_e[<span class="dv">0</span>], yrs_e[<span class="op">-</span><span class="dv">1</span>], yrs_e[<span class="dv">0</span>], yrs_e[<span class="op">-</span><span class="dv">1</span>]])</span>
+<span id="cb13-224"><a href="#cb13-224" aria-hidden="true" tabindex="-1"></a>ax1.<span class="bu">set</span>(title<span class="op">=</span><span class="ss">f"(b) $C_d$  (L=</span><span class="sc">{</span>res<span class="sc">.</span>corr_length_days<span class="sc">:.0f}</span><span class="ss"> d)"</span>,</span>
+<span id="cb13-225"><a href="#cb13-225" aria-hidden="true" tabindex="-1"></a>        xlabel<span class="op">=</span><span class="st">"time (yr)"</span>, ylabel<span class="op">=</span><span class="st">"time (yr)"</span>)</span>
+<span id="cb13-226"><a href="#cb13-226" aria-hidden="true" tabindex="-1"></a>fig.colorbar(im, ax<span class="op">=</span>ax1, fraction<span class="op">=</span><span class="fl">0.046</span>)</span>
+<span id="cb13-227"><a href="#cb13-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-228"><a href="#cb13-228" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> fig.add_subplot(gs[<span class="dv">2</span>])</span>
+<span id="cb13-229"><a href="#cb13-229" aria-hidden="true" tabindex="-1"></a>ax2.plot(yrs_e, sd_cd <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"damage"</span>], lw<span class="op">=</span><span class="fl">1.6</span>, label<span class="op">=</span><span class="vs">r"</span><span class="dv">$\s</span><span class="vs">igma_d</span><span class="kw">(</span><span class="vs">t</span><span class="kw">)</span><span class="dv">$</span><span class="vs"> total"</span>)</span>
+<span id="cb13-230"><a href="#cb13-230" aria-hidden="true" tabindex="-1"></a>ax2.plot(yrs_e, res.method_std <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"thermo"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"methodological"</span>)</span>
+<span id="cb13-231"><a href="#cb13-231" aria-hidden="true" tabindex="-1"></a>ax2.plot(yrs_e, res.within_std <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"hydro"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, label<span class="op">=</span><span class="st">"within-method"</span>)</span>
+<span id="cb13-232"><a href="#cb13-232" aria-hidden="true" tabindex="-1"></a>ax2.plot(yrs_e, sd_post <span class="op">*</span> <span class="dv">100</span>, color<span class="op">=</span>C[<span class="st">"fit"</span>], lw<span class="op">=</span><span class="fl">1.0</span>, ls<span class="op">=</span><span class="st">":"</span>, label<span class="op">=</span><span class="st">"posterior of mean"</span>)</span>
+<span id="cb13-233"><a href="#cb13-233" aria-hidden="true" tabindex="-1"></a>ax2.axvline(<span class="fl">2.0</span>, color<span class="op">=</span><span class="st">"0.6"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb13-234"><a href="#cb13-234" aria-hidden="true" tabindex="-1"></a>ax2.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"time (years)"</span>, ylabel<span class="op">=</span><span class="st">"σ (%)"</span>,</span>
+<span id="cb13-235"><a href="#cb13-235" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="ss">f"(c) time-dependent;  $N_</span><span class="ch">{{</span><span class="ss">eff</span><span class="ch">}}</span><span class="ss">$=</span><span class="sc">{</span>res<span class="sc">.</span>n_eff<span class="sc">:.0f}</span><span class="ss">"</span>)</span>
+<span id="cb13-236"><a href="#cb13-236" aria-hidden="true" tabindex="-1"></a>ax2.legend(fontsize<span class="op">=</span><span class="dv">7</span>)<span class="op">;</span> plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb13-237"><a href="#cb13-237" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-238"><a href="#cb13-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-241"><a href="#cb13-241" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb13-242"><a href="#cb13-242" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: coverage</span></span>
+<span id="cb13-243"><a href="#cb13-243" aria-hidden="true" tabindex="-1"></a>tr <span class="op">=</span> run.truth</span>
+<span id="cb13-244"><a href="#cb13-244" aria-hidden="true" tabindex="-1"></a>cred <span class="op">=</span> np.mean((tr <span class="op">&gt;=</span> res.mu_lo) <span class="op">&amp;</span> (tr <span class="op">&lt;=</span> res.mu_hi))</span>
+<span id="cb13-245"><a href="#cb13-245" aria-hidden="true" tabindex="-1"></a>cd95 <span class="op">=</span> np.mean(np.<span class="bu">abs</span>(tr <span class="op">-</span> res.mu_mean) <span class="op">&lt;=</span> <span class="dv">2</span> <span class="op">*</span> sd_cd)</span>
+<span id="cb13-246"><a href="#cb13-246" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"truth inside 95% credible band : </span><span class="sc">{</span>cred<span class="sc">:.0%}</span><span class="ss">   (the estimator precision under-covers)"</span>)</span>
+<span id="cb13-247"><a href="#cb13-247" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"truth within ±2σ of C_d        : </span><span class="sc">{</span>cd95<span class="sc">:.0%}</span><span class="ss">   (the honest measurement error covers)"</span>)</span>
+<span id="cb13-248"><a href="#cb13-248" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"mean σ: credible </span><span class="sc">{</span>sd_post<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">  vs  C_d </span><span class="sc">{</span>sd_cd<span class="sc">.</span>mean()<span class="sc">:.2e}</span><span class="ss">  "</span></span>
+<span id="cb13-249"><a href="#cb13-249" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(</span><span class="sc">{</span>sd_cd<span class="sc">.</span>mean() <span class="op">/</span> sd_post<span class="sc">.</span>mean()<span class="sc">:.0f}</span><span class="ss">× wider)"</span>)</span>
+<span id="cb13-250"><a href="#cb13-250" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-251"><a href="#cb13-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-252"><a href="#cb13-252" aria-hidden="true" tabindex="-1"></a>The credible band — the precision of the *combined* estimate — is tight and</span>
+<span id="cb13-253"><a href="#cb13-253" aria-hidden="true" tabindex="-1"></a>over-confident; the marginal covariance $C_d$ is what actually covers the truth. That</span>
+<span id="cb13-254"><a href="#cb13-254" aria-hidden="true" tabindex="-1"></a>gap is the point: report and **propagate $C_d$**, not the posterior of the averaged</span>
+<span id="cb13-255"><a href="#cb13-255" aria-hidden="true" tabindex="-1"></a>series.</span>
+<span id="cb13-256"><a href="#cb13-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-257"><a href="#cb13-257" aria-hidden="true" tabindex="-1"></a><span class="fu">## What you produced, and where it goes</span></span>
+<span id="cb13-258"><a href="#cb13-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-259"><a href="#cb13-259" aria-hidden="true" tabindex="-1"></a>From a raw, contaminated CCF gather you now have the three objects the rest of the</span>
+<span id="cb13-260"><a href="#cb13-260" aria-hidden="true" tabindex="-1"></a>arc needs:</span>
+<span id="cb13-261"><a href="#cb13-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-262"><a href="#cb13-262" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>a marginalised $\delta v/v(t)$ (<span class="in">`res.mu_mean`</span>),</span>
+<span id="cb13-263"><a href="#cb13-263" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>its time-dependent standard error $\sigma_d(t)$ (<span class="in">`np.sqrt(np.diag(res.Cd))`</span>), and</span>
+<span id="cb13-264"><a href="#cb13-264" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>the full measurement covariance $C_d$ (<span class="in">`res.Cd`</span>), with its temporal correlation</span>
+<span id="cb13-265"><a href="#cb13-265" aria-hidden="true" tabindex="-1"></a>   and common-mode floor.</span>
+<span id="cb13-266"><a href="#cb13-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-267"><a href="#cb13-267" aria-hidden="true" tabindex="-1"></a>$C_d$ is exactly the input <span class="co">[</span><span class="ot">step 2 · depth</span><span class="co">](theory-processing-depth.qmd)</span> inverts</span>
+<span id="cb13-268"><a href="#cb13-268" aria-hidden="true" tabindex="-1"></a>through sensitivity kernels for a profile of shear-velocity change — and an honest</span>
+<span id="cb13-269"><a href="#cb13-269" aria-hidden="true" tabindex="-1"></a>depth or stress estimate is only as honest as the $C_d$ it starts from. The clock</span>
+<span id="cb13-270"><a href="#cb13-270" aria-hidden="true" tabindex="-1"></a>error we diagnosed here is a reminder that some systematics (timing, a</span>
+<span id="cb13-271"><a href="#cb13-271" aria-hidden="true" tabindex="-1"></a>non-stationary noise field) must be **detected and removed before** measuring;</span>
+<span id="cb13-272"><a href="#cb13-272" aria-hidden="true" tabindex="-1"></a>what remains — coherence, and the freedom in the processing choice — is what $C_d$</span>
+<span id="cb13-273"><a href="#cb13-273" aria-hidden="true" tabindex="-1"></a>carries forward.</span>
+<span id="cb13-274"><a href="#cb13-274" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-275"><a href="#cb13-275" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
+<span id="cb13-276"><a href="#cb13-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-277"><a href="#cb13-277" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb13-278"><a href="#cb13-278" aria-hidden="true" tabindex="-1"></a>:::</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>codameter · Denolle (in prep, <em>JGR Solid Earth</em>)</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    <div class="toc-actions"><ul><li><a href="https://github.com/Denolle-Lab/codameter/edit/main/tutorial-00-measurement.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/Denolle-Lab/codameter/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p>Built with <a href="https://quarto.org">Quarto</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

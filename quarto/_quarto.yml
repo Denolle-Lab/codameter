@@ -41,6 +41,8 @@ website:
             file: theory-uq.qmd
       - text: "Tutorial"
         menu:
+          - text: "0 · Measuring δv/v from CCFs"
+            file: tutorial-00-measurement.qmd
           - text: "1 · Data & site readiness"
             file: tutorial-01-data.qmd
           - text: "2 · Decoupled forward models"
@@ -90,6 +92,8 @@ website:
             file: theory-uq.qmd
       - section: "Implementation tutorial"
         contents:
+          - text: "0 · Measuring δv/v from CCFs"
+            file: tutorial-00-measurement.qmd
           - tutorial-01-data.qmd
           - tutorial-02-forward.qmd
           - tutorial-03-inversion.qmd
