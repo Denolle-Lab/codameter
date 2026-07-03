@@ -3,7 +3,13 @@ title: "0 · Measuring δv/v from noisy cross-correlations"
 subtitle: "A realistic CCF gather → δv/v(t), its uncertainty over time, and the covariance C_d"
 jupyter: codameter-pixi
 bibliography: references.bib
+format:
+  html: default
+  ipynb: default
 ---
+
+[⬇ Download this tutorial as a Jupyter notebook](tutorial-00-measurement.ipynb){.btn .btn-outline-primary .btn-sm role="button" download=""}
+
 
 ::: {.keyidea}
 [Thesis]{.k-title}
