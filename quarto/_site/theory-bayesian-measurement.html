@@ -354,7 +354,7 @@ window.Quarto = {
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">1 · Measurement · error in δv/v</span></a>
+ <span class="dropdown-text">1 · Measurement · marginal error in δv/v</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
@@ -362,11 +362,15 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">2 · Depth · kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="dropdown-text">2 · Depth · δv/v → δVs(z)/Vs</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-3-stress.html">
- <span class="dropdown-text">3 · Stress &amp; strain</span></a>
+ <span class="dropdown-text">3 · Stress meter · δv/v as a stress meter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-4-attribution.html">
+ <span class="dropdown-text">4 · Attribution · which forcing drives it</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-uq.html">
@@ -497,7 +501,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">1 · Measurement — error in δv/v</span></a>
+ <span class="menu-text">1 · Measurement — marginal error in δv/v</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -509,13 +513,19 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="menu-text">2 · Depth — δv/v → δVs(z)/Vs</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">3 · Stress &amp; strain</span></a>
+ <span class="menu-text">3 · Stress meter — δv/v as a stress meter</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-4-attribution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Attribution — which forcing drives it</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -647,7 +657,7 @@ window.Quarto = {
 
 
 <div class="keyidea">
-<p><span class="k-title">Thesis</span> The <a href="./theory-measurement-uq.html">measurement-UQ page</a> showed that the processing choice — estimator, band, window, stack, reference — usually dominates the <span class="math inline">\(\delta v/v\)</span> error budget, and that the honest deliverable is a structured <strong>measurement covariance</strong> <span class="math inline">\(C_d\)</span>, not a scalar per epoch. This page makes that <em>operational</em>: treat the processing choice as a <strong>nuisance parameter</strong> with a prior, run an ensemble of defensible pipelines on the same data, and <strong>marginalise</strong> the choice out with a Bayesian hierarchical model. The output is a posterior <span class="math inline">\(\delta v/v(t)\)</span> <em>and</em> the time-dependent <span class="math inline">\(C_d\)</span> a downstream stress or depth inversion should consume. This is the measurement step done the way the <a href="./theory-uq.html">inference page</a> already does the stress step.</p>
+<p><span class="k-title">Thesis</span> The <a href="./theory-measurement-uq.html">measurement-UQ page</a> showed that the processing choice — estimator, band, window, stack, reference — usually dominates the <span class="math inline">\(\delta v/v\)</span> error budget, and that the honest deliverable is a structured <strong>measurement covariance</strong> <span class="math inline">\(C_d\)</span>, not a scalar per epoch. This page makes that <em>operational</em>: treat the processing choice as a <strong>nuisance parameter</strong> with a prior, run an ensemble of reasonable pipelines on the same data, and <strong>marginalise</strong> the choice out with a Bayesian hierarchical model. The output is a posterior <span class="math inline">\(\delta v/v(t)\)</span> <em>and</em> the time-dependent <span class="math inline">\(C_d\)</span> a downstream stress or depth inversion should consume. This is the measurement step done the way the <a href="./theory-uq.html">inference page</a> already does the stress step.</p>
 </div>
 <div id="setup" class="cell" data-execution_count="1">
 <details open="" class="code-fold">
@@ -663,7 +673,7 @@ window.Quarto = {
 </div>
 <section id="the-model-choice-as-a-nuisance-parameter" class="level2">
 <h2 class="anchored" data-anchor-id="the-model-choice-as-a-nuisance-parameter">1. The model: choice as a nuisance parameter</h2>
-<p>For configuration <span class="math inline">\(k\)</span> (an estimator / band / window / stack / reference drawn from a prior over <em>defensible</em> pipelines) we measure a series <span class="math inline">\(m_k(t)\)</span> with a coherence-limited within-method floor <span class="math inline">\(\sigma_k(t)\)</span> (Weaver/Clarke). We posit</p>
+<p>For configuration <span class="math inline">\(k\)</span> (an estimator / band / window / stack / reference drawn from a prior over <em>reasonable</em> pipelines) we measure a series <span class="math inline">\(m_k(t)\)</span> with a coherence-limited within-method floor <span class="math inline">\(\sigma_k(t)\)</span> (Weaver/Clarke). We posit</p>
 <p><span id="eq-bayes"><span class="math display">\[
 m_k(t) = \mu(t) + \beta_k + \varepsilon_k(t), \qquad
 \beta_k\sim\mathcal N(0,\tau^2),\quad
@@ -673,7 +683,7 @@ m_k(t) = \mu(t) + \beta_k + \varepsilon_k(t), \qquad
 </section>
 <section id="run-it-on-a-truth-known-synthetic" class="level2">
 <h2 class="anchored" data-anchor-id="run-it-on-a-truth-known-synthetic">2. Run it on a truth-known synthetic</h2>
-<p>We build daily coda CCFs with a known volcano <span class="math inline">\(\delta v/v(t)\)</span> (slow inflation, a sharp co-eruptive drop), run the default ensemble of twelve defensible pipelines, and invert.</p>
+<p>We build daily coda CCFs with a known volcano <span class="math inline">\(\delta v/v(t)\)</span> (slow inflation, a sharp co-eruptive drop), run the default ensemble of twelve reasonable pipelines, and invert.</p>
 <div id="run" class="cell" data-execution_count="2">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -737,7 +747,7 @@ effective sample size  N_eff   : 18 of 229 epochs</code></pre>
 <div id="fig-bayes" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-bayes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="theory-bayesian-measurement_files/figure-html/fig-bayes-output-1.png" width="1334" height="441" class="figure-img">
+<img src="theory-bayesian-measurement_files/figure-html/fig-bayes-output-1.png" width="1304" height="438" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bayes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: The Bayesian measurement. (a) The ensemble (grey) is marginalised into a posterior mean (purple). Its 95% credible band (estimator precision) is narrow and <em>under-covers</em> the truth; the ±2σ band of the marginal data covariance <span class="math inline">\(C_d\)</span> (red) is the honest measurement error and covers it. (b) The time-dependent <span class="math inline">\(C_d\)</span>. (c) Its diagonal <span class="math inline">\(σ_d(t)\)</span> split into within-method and methodological parts — wider at the eruption — with the far-tighter posterior-of-the-mean for contrast.
@@ -1287,13 +1297,13 @@ D=\operatorname{diag}\big(\sigma_{\rm tot}(t)\big),\;\; R_{ij}=e^{-|t_i-t_j|/L},
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./theory-measurement-uq.html" class="pagination-link" aria-label="1 · Measurement — error in δv/v">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">1 · Measurement — error in δv/v</span>
+      <a href="./theory-measurement-uq.html" class="pagination-link" aria-label="1 · Measurement — marginal error in δv/v">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">1 · Measurement — marginal error in δv/v</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./theory-processing-depth.html" class="pagination-link" aria-label="2 · Depth — kernels → δVs/Vs &amp; δρ/ρ">
-        <span class="nav-page-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./theory-processing-depth.html" class="pagination-link" aria-label="2 · Depth — δv/v → δVs(z)/Vs">
+        <span class="nav-page-text">2 · Depth — δv/v → δVs(z)/Vs</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
@@ -1311,7 +1321,7 @@ D=\operatorname{diag}\big(\sigma_{\rm tot}(t)\big),\;\; R_{ij}=e^{-|t_i-t_j|/L},
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>$\delta v/v$ error budget, and that the honest deliverable is a structured</span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>**measurement covariance** $C_d$, not a scalar per epoch. This page makes that</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>*operational*: treat the processing choice as a **nuisance parameter** with a</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>prior, run an ensemble of defensible pipelines on the same data, and</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>prior, run an ensemble of reasonable pipelines on the same data, and</span>
 <span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>**marginalise** the choice out with a Bayesian hierarchical model. The output is</span>
 <span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>a posterior $\delta v/v(t)$ *and* the time-dependent $C_d$ a downstream stress or</span>
 <span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>depth inversion should consume. This is the measurement step done the way the</span>
@@ -1332,7 +1342,7 @@ D=\operatorname{diag}\big(\sigma_{\rm tot}(t)\big),\;\; R_{ij}=e^{-|t_i-t_j|/L},
 <span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. The model: choice as a nuisance parameter</span></span>
 <span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>For configuration $k$ (an estimator / band / window / stack / reference drawn</span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>from a prior over *defensible* pipelines) we measure a series $m_k(t)$ with a</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>from a prior over *reasonable* pipelines) we measure a series $m_k(t)$ with a</span>
 <span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>coherence-limited within-method floor $\sigma_k(t)$ (Weaver/Clarke). We posit</span>
 <span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>$$</span>
@@ -1351,7 +1361,7 @@ D=\operatorname{diag}\big(\sigma_{\rm tot}(t)\big),\;\; R_{ij}=e^{-|t_i-t_j|/L},
 <span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="fu">## 2. Run it on a truth-known synthetic</span></span>
 <span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>We build daily coda CCFs with a known volcano $\delta v/v(t)$ (slow inflation, a</span>
-<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>sharp co-eruptive drop), run the default ensemble of twelve defensible pipelines,</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>sharp co-eruptive drop), run the default ensemble of twelve reasonable pipelines,</span>
 <span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>and invert.</span>
 <span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>

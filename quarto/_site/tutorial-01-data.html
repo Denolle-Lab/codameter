@@ -357,7 +357,7 @@ window.Quarto = {
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">1 · Measurement · error in δv/v</span></a>
+ <span class="dropdown-text">1 · Measurement · marginal error in δv/v</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
@@ -365,11 +365,15 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">2 · Depth · kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="dropdown-text">2 · Depth · δv/v → δVs(z)/Vs</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-3-stress.html">
- <span class="dropdown-text">3 · Stress &amp; strain</span></a>
+ <span class="dropdown-text">3 · Stress meter · δv/v as a stress meter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-4-attribution.html">
+ <span class="dropdown-text">4 · Attribution · which forcing drives it</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-uq.html">
@@ -500,7 +504,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">1 · Measurement — error in δv/v</span></a>
+ <span class="menu-text">1 · Measurement — marginal error in δv/v</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -512,13 +516,19 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="menu-text">2 · Depth — δv/v → δVs(z)/Vs</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">3 · Stress &amp; strain</span></a>
+ <span class="menu-text">3 · Stress meter — δv/v as a stress meter</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-4-attribution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Attribution — which forcing drives it</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -708,7 +718,7 @@ window.Quarto = {
 </div>
 <section id="the-observation-and-its-uncertainty" class="level2">
 <h2 class="anchored" data-anchor-id="the-observation-and-its-uncertainty">The observation and its uncertainty</h2>
-<p>The single most important column — and the one most datasets omit — is <code>dvv_err</code>. Without it there is no defensible weighting in the inversion and <strong>no posterior</strong>: the entire <a href="./theory-uq.html">Bayesian story</a> starts from the per-sample <span class="math inline">\(\sigma_t\)</span> in <a href="./theory-uq.html#eq-like">the likelihood</a>. Here it is a constant <span class="math inline">\(1.5\times10^{-4}\)</span>.</p>
+<p>The single most important column — and the one most datasets omit — is <code>dvv_err</code>. Without it there is no principled weighting in the inversion and <strong>no posterior</strong>: the entire <a href="./theory-uq.html">Bayesian story</a> starts from the per-sample <span class="math inline">\(\sigma_t\)</span> in <a href="./theory-uq.html#eq-like">the likelihood</a>. Here it is a constant <span class="math inline">\(1.5\times10^{-4}\)</span>.</p>
 <div id="cell-fig-obs" class="cell" data-execution_count="2">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -726,7 +736,7 @@ window.Quarto = {
 <div id="fig-obs" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-obs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="tutorial-01-data_files/figure-html/fig-obs-output-1.png" width="942" height="375" class="figure-img">
+<img src="tutorial-01-data_files/figure-html/fig-obs-output-1.png" width="935" height="376" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-obs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: Ten years of synthetic δv/v with its ±1σ measurement band. The seasonal swing is the superposition of (still-hidden) thermoelastic and hydrological forcings; the step near 2014 is the earthquake.
@@ -755,7 +765,7 @@ Figure&nbsp;1: Ten years of synthetic δv/v with its ±1σ measurement band. The
 <div id="fig-forcings" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-forcings-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="tutorial-01-data_files/figure-html/fig-forcings-output-1.png" width="927" height="448" class="figure-img">
+<img src="tutorial-01-data_files/figure-html/fig-forcings-output-1.png" width="923" height="450" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-forcings-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;2: The raw environmental forcings. Temperature is a clean seasonal cycle; precipitation is sparse winter storms whose recharge integrates into a slow groundwater signal.
@@ -1356,7 +1366,7 @@ bulk modulus   κ  : 9.53 GPa</code></pre>
 <span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a><span class="fu">## The observation and its uncertainty</span></span>
 <span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>The single most important column — and the one most datasets omit — is</span>
-<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a><span class="in">`dvv_err`</span>. Without it there is no defensible weighting in the inversion and **no</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a><span class="in">`dvv_err`</span>. Without it there is no principled weighting in the inversion and **no</span>
 <span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>posterior**: the entire <span class="co">[</span><span class="ot">Bayesian story</span><span class="co">](theory-uq.qmd)</span> starts from the</span>
 <span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>per-sample $\sigma_t$ in <span class="co">[</span><span class="ot">the likelihood</span><span class="co">](theory-uq.qmd#eq-like)</span>. Here it is a constant $1.5\times10^{-4}$.</span>
 <span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a></span>

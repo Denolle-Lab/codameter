@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Sampling and propagating measurement error to depth – codameter</title>
+<title>δv/v → δVs(z)/Vs: propagating measurement error to depth – codameter</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -357,7 +357,7 @@ window.Quarto = {
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">1 · Measurement · error in δv/v</span></a>
+ <span class="dropdown-text">1 · Measurement · marginal error in δv/v</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
@@ -365,11 +365,15 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">2 · Depth · kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="dropdown-text">2 · Depth · δv/v → δVs(z)/Vs</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-3-stress.html">
- <span class="dropdown-text">3 · Stress &amp; strain</span></a>
+ <span class="dropdown-text">3 · Stress meter · δv/v as a stress meter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-4-attribution.html">
+ <span class="dropdown-text">4 · Attribution · which forcing drives it</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-uq.html">
@@ -451,7 +455,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-processing-depth.html">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-processing-depth.html">2 · Depth — δv/v → δVs(z)/Vs</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -500,7 +504,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">1 · Measurement — error in δv/v</span></a>
+ <span class="menu-text">1 · Measurement — marginal error in δv/v</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -512,13 +516,19 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="menu-text">2 · Depth — δv/v → δVs(z)/Vs</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">3 · Stress &amp; strain</span></a>
+ <span class="menu-text">3 · Stress meter — δv/v as a stress meter</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-4-attribution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Attribution — which forcing drives it</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -632,9 +642,9 @@ window.Quarto = {
 <main class="content" id="quarto-document-content">
 
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-processing-depth.html">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-processing-depth.html">2 · Depth — δv/v → δVs(z)/Vs</a></li></ol></nav>
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">Sampling and propagating measurement error to depth</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<div class="quarto-title-block"><div><h1 class="title">δv/v → δVs(z)/Vs: propagating measurement error to depth</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 <p class="subtitle lead">Window rules as Bayesian nuisance parameters, carried into a depth inversion</p>
 </div>
 
@@ -1587,13 +1597,13 @@ Steegen, Sara, Francis Tuerlinckx, Andrew Gelman, and Wolf Vanpaemel. 2016. <spa
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./uncertainty-3-stress.html" class="pagination-link" aria-label="3 · Stress &amp; strain">
-        <span class="nav-page-text">3 · Stress &amp; strain</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./uncertainty-3-stress.html" class="pagination-link" aria-label="3 · Stress meter — δv/v as a stress meter">
+        <span class="nav-page-text">3 · Stress meter — δv/v as a stress meter</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Sampling and propagating measurement error to depth"</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "δv/v → δVs(z)/Vs: propagating measurement error to depth"</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Window rules as Bayesian nuisance parameters, carried into a depth inversion"</span></span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> codameter-pixi</span></span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>

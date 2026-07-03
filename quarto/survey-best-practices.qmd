@@ -15,7 +15,7 @@ frequency band, coda (lapse-time) window, $\delta v/v$ method, station geometry,
 and depth sensitivity — organized by science application (volcanoes,
 earthquakes/faults, landslides, groundwater, cryosphere, geothermal). It distills
 **103 studies** into recommended value ranges and rules-of-thumb, so a new study
-can choose defensible parameters and know which choices bias the result.
+can choose sound parameters and know which choices bias the result.
 :::
 
 This survey backs the measurement-design scoring in

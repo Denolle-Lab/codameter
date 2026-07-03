@@ -87,7 +87,7 @@ div.csl-indent {
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
 <link href="./tutorial-01-data.html" rel="next">
-<link href="./uncertainty-3-stress.html" rel="prev">
+<link href="./uncertainty-4-attribution.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -357,7 +357,7 @@ window.Quarto = {
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">1 · Measurement · error in δv/v</span></a>
+ <span class="dropdown-text">1 · Measurement · marginal error in δv/v</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
@@ -365,11 +365,15 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">2 · Depth · kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="dropdown-text">2 · Depth · δv/v → δVs(z)/Vs</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-3-stress.html">
- <span class="dropdown-text">3 · Stress &amp; strain</span></a>
+ <span class="dropdown-text">3 · Stress meter · δv/v as a stress meter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-4-attribution.html">
+ <span class="dropdown-text">4 · Attribution · which forcing drives it</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-uq.html">
@@ -500,7 +504,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">1 · Measurement — error in δv/v</span></a>
+ <span class="menu-text">1 · Measurement — marginal error in δv/v</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -512,13 +516,19 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="menu-text">2 · Depth — δv/v → δVs(z)/Vs</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">3 · Stress &amp; strain</span></a>
+ <span class="menu-text">3 · Stress meter — δv/v as a stress meter</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-4-attribution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Attribution — which forcing drives it</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -658,7 +668,7 @@ window.Quarto = {
 
 
 <div class="keyidea">
-<p><span class="k-title">Thesis</span> Ambient-noise seismology routinely reports a <em>point estimate</em> of stress (or groundwater, or velocity sensitivity) from <span class="math inline">\(\delta v/v\)</span>. We argue that the scientifically defensible object is a <strong>posterior distribution</strong>, obtained by propagating three distinct sources of uncertainty — measurement noise, material-property priors, and <em>model-form</em> uncertainty about coupling — through the inverse problem in one coherent hierarchical model. This page develops that <strong>inference machinery</strong>. The <em>forward physics</em> it inverts — the acoustoelastic coefficients, the per-forcing models, and the coupling regimes — is the companion <a href="https://github.com/mdenolle/dvv-coupling-framework">unified-framework paper</a>; codameter’s contribution is the uncertainty quantification wrapped around it.</p>
+<p><span class="k-title">Thesis</span> Ambient-noise seismology routinely reports a <em>point estimate</em> of stress (or groundwater, or velocity sensitivity) from <span class="math inline">\(\delta v/v\)</span>. We argue that the scientifically sound object is a <strong>posterior distribution</strong>, obtained by propagating three distinct sources of uncertainty — measurement noise, material-property priors, and <em>model-form</em> uncertainty about coupling — through the inverse problem in one coherent hierarchical model. This page develops that <strong>inference machinery</strong>. The <em>forward physics</em> it inverts — the acoustoelastic coefficients, the per-forcing models, and the coupling regimes — is the companion <a href="https://github.com/mdenolle/dvv-coupling-framework">unified-framework paper</a>; codameter’s contribution is the uncertainty quantification wrapped around it.</p>
 </div>
 <section id="why-point-estimates-are-not-enough" class="level2">
 <h2 class="anchored" data-anchor-id="why-point-estimates-are-not-enough">1. Why point estimates are not enough</h2>
@@ -677,7 +687,7 @@ p\big(\,\theta \,\big|\, d\,\big)
 </section>
 <section id="the-likelihood" class="level2">
 <h2 class="anchored" data-anchor-id="the-likelihood">2. The likelihood</h2>
-<p>Let <span class="math inline">\(d = \{d_t\}_{t=1}^{N}\)</span> be the measured <span class="math inline">\(\delta v/v\)</span> with per-sample measurement standard deviations <span class="math inline">\(\sigma_t\)</span> (the <code>dvv_err</code> column — the package treats its presence as a precondition for <em>any</em> defensible uncertainty statement). For a chosen forward operator <span class="math inline">\(\mathcal{F}_\theta\)</span>,</p>
+<p>Let <span class="math inline">\(d = \{d_t\}_{t=1}^{N}\)</span> be the measured <span class="math inline">\(\delta v/v\)</span> with per-sample measurement standard deviations <span class="math inline">\(\sigma_t\)</span> (the <code>dvv_err</code> column — the package treats its presence as a precondition for <em>any</em> reasonable uncertainty statement). For a chosen forward operator <span class="math inline">\(\mathcal{F}_\theta\)</span>,</p>
 <p><span id="eq-like"><span class="math display">\[
 d_t \;=\; \mathcal{F}_\theta(t) \;+\; \varepsilon_t,
 \qquad
@@ -1428,8 +1438,8 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./uncertainty-3-stress.html" class="pagination-link" aria-label="3 · Stress &amp; strain">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">3 · Stress &amp; strain</span>
+      <a href="./uncertainty-4-attribution.html" class="pagination-link" aria-label="4 · Attribution — which forcing drives it">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">4 · Attribution — which forcing drives it</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
@@ -1450,7 +1460,7 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Thesis</span><span class="co">]</span>{.k-title}</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>Ambient-noise seismology routinely reports a *point estimate* of stress (or</span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>groundwater, or velocity sensitivity) from $\delta v/v$. We argue that the</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>scientifically defensible object is a **posterior distribution**, obtained by</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>scientifically sound object is a **posterior distribution**, obtained by</span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>propagating three distinct sources of uncertainty — measurement noise,</span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>material-property priors, and *model-form* uncertainty about coupling —</span>
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>through the inverse problem in one coherent hierarchical model. This page develops</span>
@@ -1496,7 +1506,7 @@ Foreman-Mackey, Daniel, David W. Hogg, Dustin Lang, and Jonathan Goodman. 2013. 
 <span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>Let $d = <span class="sc">\{</span>d_t<span class="sc">\}</span>_{t=1}^{N}$ be the measured $\delta v/v$ with per-sample</span>
 <span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>measurement standard deviations $\sigma_t$ (the <span class="in">`dvv_err`</span> column — the package</span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>treats its presence as a precondition for *any* defensible uncertainty</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>treats its presence as a precondition for *any* reasonable uncertainty</span>
 <span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>statement). For a chosen forward operator $\mathcal{F}_\theta$,</span>
 <span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>$$</span>

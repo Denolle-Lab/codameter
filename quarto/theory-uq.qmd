@@ -10,7 +10,7 @@ bibliography: references.bib
 [Thesis]{.k-title}
 Ambient-noise seismology routinely reports a *point estimate* of stress (or
 groundwater, or velocity sensitivity) from $\delta v/v$. We argue that the
-scientifically defensible object is a **posterior distribution**, obtained by
+scientifically sound object is a **posterior distribution**, obtained by
 propagating three distinct sources of uncertainty — measurement noise,
 material-property priors, and *model-form* uncertainty about coupling —
 through the inverse problem in one coherent hierarchical model. This page develops
@@ -56,7 +56,7 @@ depth — is a deterministic function $g(\theta)$, so its uncertainty is the
 
 Let $d = \{d_t\}_{t=1}^{N}$ be the measured $\delta v/v$ with per-sample
 measurement standard deviations $\sigma_t$ (the `dvv_err` column — the package
-treats its presence as a precondition for *any* defensible uncertainty
+treats its presence as a precondition for *any* reasonable uncertainty
 statement). For a chosen forward operator $\mathcal{F}_\theta$,
 
 $$

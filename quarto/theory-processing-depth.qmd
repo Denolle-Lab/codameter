@@ -1,5 +1,5 @@
 ---
-title: "Sampling and propagating measurement error to depth"
+title: "δv/v → δVs(z)/Vs: propagating measurement error to depth"
 subtitle: "Window rules as Bayesian nuisance parameters, carried into a depth inversion"
 jupyter: codameter-pixi
 bibliography: references.bib

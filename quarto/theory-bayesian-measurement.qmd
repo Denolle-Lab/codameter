@@ -12,7 +12,7 @@ choice — estimator, band, window, stack, reference — usually dominates the
 $\delta v/v$ error budget, and that the honest deliverable is a structured
 **measurement covariance** $C_d$, not a scalar per epoch. This page makes that
 *operational*: treat the processing choice as a **nuisance parameter** with a
-prior, run an ensemble of defensible pipelines on the same data, and
+prior, run an ensemble of reasonable pipelines on the same data, and
 **marginalise** the choice out with a Bayesian hierarchical model. The output is
 a posterior $\delta v/v(t)$ *and* the time-dependent $C_d$ a downstream stress or
 depth inversion should consume. This is the measurement step done the way the
@@ -33,7 +33,7 @@ rng = np.random.default_rng(7)
 ## 1. The model: choice as a nuisance parameter
 
 For configuration $k$ (an estimator / band / window / stack / reference drawn
-from a prior over *defensible* pipelines) we measure a series $m_k(t)$ with a
+from a prior over *reasonable* pipelines) we measure a series $m_k(t)$ with a
 coherence-limited within-method floor $\sigma_k(t)$ (Weaver/Clarke). We posit
 
 $$
@@ -52,7 +52,7 @@ the joint posterior of $\mu,\beta,\tau^2,s^2$ and the smoothness precision.
 ## 2. Run it on a truth-known synthetic
 
 We build daily coda CCFs with a known volcano $\delta v/v(t)$ (slow inflation, a
-sharp co-eruptive drop), run the default ensemble of twelve defensible pipelines,
+sharp co-eruptive drop), run the default ensemble of twelve reasonable pipelines,
 and invert.
 
 ```{python}

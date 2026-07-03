@@ -1,6 +1,6 @@
 ---
-title: "Stress and strain at depth"
-subtitle: "From δVs/Vs(z) to stress and strain — and the handoff to the coupling framework"
+title: "δv/v as a stress meter"
+subtitle: "From δVs/Vs(z) to stress and strain at depth"
 bibliography: references.bib
 ---
 
@@ -12,9 +12,10 @@ profile of velocity change [from step 2](theory-processing-depth.qmd) becomes
 constrained — so the stress uncertainty is dominated by *epistemic* prior
 uncertainty, not by the measurement. The deliverable is $\Delta\sigma_{ij}(z,t)$
 with a posterior. **Attribution** — deciding *which* forcing (thermoelastic,
-poroelastic, damage, tectonic) drives that stress — is the contribution of the
-companion **[unified-framework paper](https://github.com/mdenolle/dvv-coupling-framework)**,
-not codameter; this page produces the honest input that decomposition consumes. The
+poroelastic, damage, tectonic) drives that stress — is [step 4](uncertainty-4-attribution.qmd),
+packaged with the companion
+[coupling-framework project](https://github.com/mdenolle/dvv-coupling-framework);
+this page produces the honest input that decomposition consumes. The
 [companion inference-UQ page](theory-uq.qmd) holds the Bayesian machinery.
 :::
 
@@ -64,27 +65,15 @@ Effective stress ($\Delta\sigma'=\kappa\,\varepsilon_{\rm vol}$ under isotropic
 load, poroelastically clean) is the headline; total stress adds a poroelastic term
 $\alpha_B\,\Delta p$ and is an optional extension.
 
-## Handoff: attribution is the coupling framework's step
+## Next: process attribution
 
-Attribution — how much of $\Delta\sigma(z,t)$ is thermoelastic, poroelastic, load,
-damage, or tectonic — is deliberately **not** codameter's step. Each mechanism is a
-stress term that can act **in isolation**, and decomposing the total into those
-terms,
-
-$$
-\Delta\sigma(z,t) = \Delta\sigma_{\text{thermo}} + \Delta\sigma_{\text{poro}}
-+ \Delta\sigma_{\text{damage}} + \Delta\sigma_{\text{tectonic}} + \dots,
-$$
-
-is the contribution of the companion
-**[unified-framework paper](https://github.com/mdenolle/dvv-coupling-framework)**,
-which supplies the per-mechanism forward models and the fabric diagnostic that
-define $\beta_{ij}$. That paper frames the decomposition as optimal fingerprinting
-scaled by the very measurement covariance $C_d$ this arc builds. codameter's role
-ends at delivering $\Delta\sigma_{ij}(z,t)$ **with its posterior** — the honest
-input any such attribution must consume. The division of labour is clean: this
-project owns the measurement covariance and its propagation to stress; the
-framework owns the physics that turns that stress into a named mechanism.
+Producing $\Delta\sigma_{ij}(z,t)$ with a posterior is where codameter's job ends.
+Deciding **which forcing** drives that stress — thermoelastic, poroelastic, load,
+damage, or tectonic — is [step 4 of the arc](uncertainty-4-attribution.qmd). The
+division of labour is clean: this project owns the measurement covariance and its
+propagation to stress; the forward physics that turns that stress into a named
+mechanism lives in the companion
+[coupling-framework project](https://github.com/mdenolle/dvv-coupling-framework).
 
 ## Best practice versus deviation
 

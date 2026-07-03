@@ -1,0 +1,86 @@
+---
+title: "Process attribution"
+subtitle: "Which forcing drives the stress at depth — and with what confidence"
+bibliography: references.bib
+---
+
+::: {.keyidea}
+[Thesis]{.k-title}
+This is **step 4 of the uncertainty arc**, and its endpoint. Steps 1–3 deliver
+$\Delta\sigma_{ij}(z,t)$ [with a posterior](uncertainty-3-stress.qmd). Attribution
+asks the community's real question — *which* process (thermoelastic, poroelastic,
+load, damage, tectonic) produced that stress, and how sure are we. The forward
+physics and the executable module for this step live in the companion
+**[coupling-framework project](https://github.com/mdenolle/dvv-coupling-framework)**;
+codameter supplies the measurement covariance $C_d$ and the stress posterior the
+attribution consumes.
+:::
+
+## The terms that carry stress in isolation
+
+Each physical process contributes a stress term that can act on its own, so the
+depth–time stress is a sum of mechanism terms,
+
+$$
+\Delta\sigma(z,t) = \Delta\sigma_{\text{thermo}} + \Delta\sigma_{\text{poro}}
++ \Delta\sigma_{\text{damage}} + \Delta\sigma_{\text{tectonic}} + \dots,
+$$
+
+where each $\Delta\sigma_k(z,t)$ is predicted by the corresponding forward model in
+the framework (Berger thermoelastic, Roeloffs poroelastic including partial
+saturation, Snieder damage/healing, a tectonic term). Attribution is the inverse:
+given the observed $\Delta\sigma(z,t)$ and its covariance, estimate how much each
+term contributed and how well it is resolved.
+
+## Attribution as optimal fingerprinting
+
+The natural frame is the geophysical analogue of climate detection-and-attribution
+— **optimal fingerprinting** scaled by the very measurement covariance $C_d$ this
+arc builds.
+
+- **Apportionment.** Each forcing $k$ predicts a depth–time stress fingerprint; a
+  generalized-least-squares regression weighted by $C_d$ gives its amplitude, and a
+  variance decomposition gives its share $A_k(z)$ of the stress variability at each
+  depth. The cross-covariances quantify how ambiguous the attribution is when two
+  forcings are collinear (thermoelastic and hydrologic are both seasonal).
+- **Coupling.** When forcings couple, the additive decomposition gives way to
+  **Sobol** variance indices whose interaction term *is* the coupling contribution
+  — the coupling framework expressed as an attribution component.
+- **Confidence.** Sampling the joint posterior — forcing amplitudes, material
+  priors, and the measurement realization — turns each share into a credible
+  interval and, decomposed further, shows whether a weak attribution is
+  **data-limited or model-limited** — i.e., which additional data would most reduce
+  it.
+
+The deliverable is a depth–source attribution chart: per depth, a stacked bar of
+$A_k(z)$ with credible-interval whiskers plus an explicit coupling slice
+("at 200 m: 60% poroelastic ±15%, 25% thermoelastic ±10%, 10% co-seismic,
+5% coupling").
+
+## Best practice versus deviation
+
+| Choice | Best practice | Common deviation | Consequence |
+|---|---|---|---|
+| Forcing separation | Physical diagnostic (seasonal phase lag, branch asymmetry, coupling test) | Attribute by eye | Mis-attribution when forcings are collinear |
+| Regression weighting | GLS weighted by the measurement covariance $C_d$ | Unweighted / ordinary least squares | Over-weights low-coherence epochs; wrong shares |
+| Coupling | Sobol indices; report the interaction term explicitly | Assume additive contributions | Hidden coupling mis-assigned to a single forcing |
+| Attribution uncertainty | Credible intervals plus a data- vs model-limited split | A single point attribution | No measure of confidence, nor of which data would most reduce it |
+
+---
+
+::: {.callout-note}
+## Status — lives in the companion framework
+Process attribution is the contribution of the
+[dvv-coupling-framework](https://github.com/mdenolle/dvv-coupling-framework)
+project, which owns the per-mechanism forward models, the fabric diagnostic that
+fixes the acoustoelastic $\beta_{ij}$, and the `uq_attribution` module
+(optimal-fingerprinting shares, Sobol indices, detection, and the data- vs
+model-limited budget). It consumes the $\Delta\sigma_{ij}(z,t)$ posterior that
+[step 3](uncertainty-3-stress.qmd) delivers. Tracked in framework issues #17 and
+#20.
+:::
+
+### References {.unnumbered}
+
+::: {#refs}
+:::

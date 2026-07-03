@@ -357,7 +357,7 @@ window.Quarto = {
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">1 · Measurement · error in δv/v</span></a>
+ <span class="dropdown-text">1 · Measurement · marginal error in δv/v</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
@@ -365,11 +365,15 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">2 · Depth · kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="dropdown-text">2 · Depth · δv/v → δVs(z)/Vs</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-3-stress.html">
- <span class="dropdown-text">3 · Stress &amp; strain</span></a>
+ <span class="dropdown-text">3 · Stress meter · δv/v as a stress meter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-4-attribution.html">
+ <span class="dropdown-text">4 · Attribution · which forcing drives it</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-uq.html">
@@ -451,7 +455,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">1 · Measurement — error in δv/v</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">1 · Measurement — marginal error in δv/v</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -500,7 +504,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">1 · Measurement — error in δv/v</span></a>
+ <span class="menu-text">1 · Measurement — marginal error in δv/v</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -512,13 +516,19 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="menu-text">2 · Depth — δv/v → δVs(z)/Vs</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">3 · Stress &amp; strain</span></a>
+ <span class="menu-text">3 · Stress meter — δv/v as a stress meter</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-4-attribution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Attribution — which forcing drives it</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -634,7 +644,7 @@ window.Quarto = {
 <main class="content" id="quarto-document-content">
 
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">1 · Measurement — error in δv/v</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">The uncertainty arc</a></li><li class="breadcrumb-item"><a href="./theory-measurement-uq.html">1 · Measurement — marginal error in δv/v</a></li></ol></nav>
 <div class="quarto-title">
 <div class="quarto-title-block"><div><h1 class="title">Measurement error in δv/v</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 <p class="subtitle lead">Aleatoric &amp; methodological error conditioned on processing choices</p>
@@ -736,7 +746,7 @@ window.Quarto = {
 </section>
 <section id="the-delta-vv-measurement-is-a-tree-of-choices" class="level2">
 <h2 class="anchored" data-anchor-id="the-delta-vv-measurement-is-a-tree-of-choices">1. The <span class="math inline">\(\delta v/v\)</span> measurement is a tree of choices</h2>
-<p>A <span class="math inline">\(\delta v/v\)</span> value is not measured; it is <em>computed</em> from a stack of repeated coda waves through a pipeline. Each fork is a defensible choice, and different groups fork differently — so the same raw data yields different <span class="math inline">\(\delta v/v(t)\)</span>.</p>
+<p>A <span class="math inline">\(\delta v/v\)</span> value is not measured; it is <em>computed</em> from a stack of repeated coda waves through a pipeline. Each fork is a reasonable choice, and different groups fork differently — so the same raw data yields different <span class="math inline">\(\delta v/v(t)\)</span>.</p>
 <div class="cell" data-layout-align="center">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -819,7 +829,7 @@ Figure&nbsp;1: The coherence-limited δv/v error floor (Weaver/Clarke). Left: er
 </section>
 <section id="the-methodological-spread-over-choices" class="level2">
 <h2 class="anchored" data-anchor-id="the-methodological-spread-over-choices">3. The methodological spread over choices</h2>
-<p>The floor assumes the configuration is <em>the</em> configuration. It is not. Run the same data through several defensible pipelines and you get an <strong>ensemble</strong> of <span class="math inline">\(\delta v/v(t)\)</span> curves whose spread is a genuine, usually dominant, uncertainty. We simulate that here: a common truth seen through stretching, MWCS, a wavelet estimator, and two window/band variants — each with its own bias and coherence-limited noise.</p>
+<p>The floor assumes the configuration is <em>the</em> configuration. It is not. Run the same data through several reasonable pipelines and you get an <strong>ensemble</strong> of <span class="math inline">\(\delta v/v(t)\)</span> curves whose spread is a genuine, usually dominant, uncertainty. We simulate that here: a common truth seen through stretching, MWCS, a wavelet estimator, and two window/band variants — each with its own bias and coherence-limited noise.</p>
 <div id="ensemble" class="cell" data-execution_count="3">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1112,7 +1122,7 @@ Important
 </div>
 </div>
 </div>
-<p>Measurement uncertainty produces the covariance <span class="math inline">\(C_d\)</span>; inference uncertainty consumes it. Reported the old way — one method, one reference, a diagonal <code>dvv_err</code> — a <span class="math inline">\(\delta v/v\)</span> study quietly discards both the methodological spread and the temporal correlation, and over-reports its own confidence. Carrying <span class="math inline">\(C_d\)</span> through is what makes the stress posterior on the <a href="./theory-uq.html">inference page</a> defensible.</p>
+<p>Measurement uncertainty produces the covariance <span class="math inline">\(C_d\)</span>; inference uncertainty consumes it. Reported the old way — one method, one reference, a diagonal <code>dvv_err</code> — a <span class="math inline">\(\delta v/v\)</span> study quietly discards both the methodological spread and the temporal correlation, and over-reports its own confidence. Carrying <span class="math inline">\(C_d\)</span> through is what makes the stress posterior on the <a href="./theory-uq.html">inference page</a> reasonable.</p>
 </section>
 <section id="the-survey-how-103-studies-report-or-dont-their-measurement-error" class="level2">
 <h2 class="anchored" data-anchor-id="the-survey-how-103-studies-report-or-dont-their-measurement-error">8. The survey: how 103 studies report (or don’t) their measurement error</h2>
@@ -1140,16 +1150,45 @@ Important
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>studies surveyed                       : 103
-  report *some* uncertainty treatment  : 75  (73%)
-  do NOT (uncertainty = n/r)           : 28  (27%)
+  report *some* uncertainty treatment  : 89  (86%)
+  do NOT (uncertainty = n/r)           : 14  (14%)
 
 estimator family used (dvv_method):
-  Stretching                    51
-  Other                         29
-  MWCS                          10
-  n/r                            9
-  Wavelet                        3
-  DTW                            1</code></pre>
+  stretching                    29
+  MWCS                          19
+  Stretching                    11
+  Other                          7
+  n/r                            3
+  MWCS (doublet)                 2
+  doublet                        2
+  n/a (no dv/v computed)         2
+  MWCS (MSNoise)                 2
+  doublet (Snieder 2002)         1
+  stretching + MWCS              1
+  CWIRE (stretching + damped LSQ)   1
+  n/a (no dv/v; companion is Makus 2024)   1
+  CWT (cross-wavelet)            1
+  doublet (moving-window CC)     1
+  stretching + doublet (compared)   1
+  n/a (not coda/noise dv/v)      1
+  doublet (MWCS)                 1
+  stretching (autocorrelation CWI)   1
+  stretching and MWCS (doublet)   1
+  wavelet cross-spectrum (WCS)   1
+  stretching (doublet tested)    1
+  wavelet (WTS)                  1
+  stretching and doublet (MWCS)   1
+  n/a (analytic model, no measurement)   1
+  MWCS (Brenguier all-pairs)     1
+  stretching (+MWCS check)       1
+  wavelet cross-spectrum (Morlet)   1
+  n/a (not a velocity-change study)   1
+  stretching (and doublet)       1
+  windowed CC, stretching, DTW (compared)   1
+  stretching (+MWCS compare)     1
+  doublet + Bayesian least-squares inversion (Brenguier 2014)   1
+  stretching, MWCS, DTW, WCS (review)   1
+  WCC, TS, DTW, MWCS, WCS, WTS, WTDTW (7 compared)   1</code></pre>
 </div>
 </div>
 <p>About a quarter of the studies state <em>no</em> explicit measurement uncertainty at all, and among the ~three-quarters that do, the definitions are mutually incomparable (a within-measurement Weaver/Clarke floor, a between-pair standard error, a standard deviation, a bootstrap, or simply “SNR-based”) — exactly the <span class="math inline">\(\sqrt{N}\)</span>-and-more ambiguity of §4–6, so even the studies that report an error bar cannot be compared without reading how it was defined. The full per-study table follows; the <strong>uncertainty-treatment</strong> column is the one to read against this page.</p>
@@ -1211,19 +1250,19 @@ Brenguier et al., 2008
 Volcano
 </td>
 <td>
-0.5–2
-</td>
-<td class="nr">
-n/r
+0.1-0.9
 </td>
 <td>
-Stretching
+n/r (slope of dtau vs tau; short scanning window)
+</td>
+<td>
+MWCS (doublet)
 </td>
 <td>
 Daily stacks referenced to long-term stack
 </td>
 <td>
-Compared against ~0.05% measurement precision / noise floor
+linear-slope uncertainty; exclude &gt;0.04%
 </td>
 </tr>
 <tr>
@@ -1257,19 +1296,19 @@ Obermann et al., 2013
 Volcano
 </td>
 <td>
-&gt;0.5
+0.1-1.0
 </td>
 <td>
-increasing lapse-time coda windows
+10-45
 </td>
 <td>
-Stretching
+stretching
 </td>
 <td>
 Daily stacks, referenced; coda at increasing lapse times
 </td>
-<td class="nr">
-n/r
+<td>
+Weaver et al.&nbsp;coherence-based error formula
 </td>
 </tr>
 <tr>
@@ -1280,19 +1319,19 @@ Hotovec-Ellis et al., 2014
 Volcano
 </td>
 <td>
-&gt;5 (high-frequency repeating earthquakes)
-</td>
-<td class="nr">
-n/r
+1-10 (also 1-5, 5-10)
 </td>
 <td>
-Other
+windows after S arrival; &gt;=5 with CCC&gt;0.65
+</td>
+<td>
+doublet (Snieder 2002)
 </td>
 <td>
 Stack across several hundred repeating-earthquake families (multiplets)
 </td>
-<td class="nr">
-n/r
+<td>
+~0.1% from SD of velocity fit
 </td>
 </tr>
 <tr>
@@ -1302,20 +1341,20 @@ Hotovec-Ellis et al., 2015
 <td>
 Volcano
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+0.5-10
 </td>
 <td>
-Other
+15 s window starting 2 s after first motion
+</td>
+<td>
+stretching
 </td>
 <td>
 Combines repeating-earthquake CWI with ambient-noise interferometry
 </td>
-<td class="nr">
-n/r
+<td>
+reduced similarity (CC) in stretching window
 </td>
 </tr>
 <tr>
@@ -1325,20 +1364,20 @@ Rivet et al., 2015
 <td>
 Volcano
 </td>
-<td class="nr">
-n/r
+<td>
+0.25-2
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Stretching
+MWCS
 </td>
 <td>
 Daily stacks vs reference; network-averaged dv/v
 </td>
 <td>
-dv/v corrected for rainfall pore-pressure to improve detectability of small drops
+coherency + linear-regression error
 </td>
 </tr>
 <tr>
@@ -1349,19 +1388,19 @@ De Plaen et al., 2016
 Volcano
 </td>
 <td>
-0.1–1.0 (drop visible); best SNR 0.5–1 and 1–2
+0.1-1.0, 0.5-1.0, 1.0-2.0, 2.0-4.0
+</td>
+<td>
+5-35 (both branches)
+</td>
+<td>
+MWCS
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Stretching
-</td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+coherency + linear-regression error QC
 </td>
 </tr>
 <tr>
@@ -1372,19 +1411,19 @@ Donaldson et al., 2017
 Volcano
 </td>
 <td>
-0.33–1.0 (lava-lake tremor band)
+0.33-1.0
 </td>
 <td>
-up to ~120 (min lag set by inter-station distance to tremor source)
+30 s window, min lag = interstation dist / 0.8 km/s
 </td>
 <td>
-MWCS
+MWCS (doublet)
 </td>
 <td>
 Daily NCFs stacked over 3-day moving window
 </td>
 <td>
-Reject pairs when MWCS regression error too large; accept if coherence high (&gt;~0.65)
+weighted dt-t regression; coherence&gt;0.65, err&lt;0.1 s thresholds
 </td>
 </tr>
 <tr>
@@ -1395,19 +1434,19 @@ Takano et al., 2017
 Volcano
 </td>
 <td>
-0.5–1; 1–2; 2–4 (depth discrimination)
+0.5-1, 1-2, 2-4
 </td>
-<td class="nr">
-n/r
+<td>
+-20 to +20
 </td>
-<td class="nr">
-n/r
+<td>
+MWCS
 </td>
 <td>
 Cross-correlations 2012–2015, multiple bands
 </td>
-<td class="nr">
-n/r
+<td>
+error bars from coherency
 </td>
 </tr>
 <tr>
@@ -1418,19 +1457,19 @@ Lesage et al., 2018
 Volcano
 </td>
 <td>
-0.125–2
-</td>
-<td class="nr">
-n/r
+0.125-2
 </td>
 <td>
-Stretching
+10-80
+</td>
+<td>
+stretching
 </td>
 <td>
 Daily cross-correlations; 2013 stack as reference
 </td>
 <td>
-Pair averaging → &lt;0.05% noise floor; clock-sync errors identified and corrected
+empirical noise from AVV fluctuations (~0.05%)
 </td>
 </tr>
 <tr>
@@ -1441,10 +1480,10 @@ De Plaen et al., 2019
 Volcano
 </td>
 <td>
-1–2
+1.0-2.0
 </td>
 <td>
-5–35 (causal + acausal lags)
+5-35
 </td>
 <td>
 MWCS
@@ -1453,7 +1492,7 @@ MWCS
 Daily autocorrelations, 2-day linear stack
 </td>
 <td>
-Median errors ~0.03%/station; reject if dt error &gt;0.1 s and coherence &lt;0.6
+cross-coherence + squared misfit; reject dt err&gt;0.1 s or coh&lt;0.6
 </td>
 </tr>
 <tr>
@@ -1464,19 +1503,19 @@ Donaldson et al., 2019
 Volcano
 </td>
 <td>
-multiple bands for depth discrimination (n/r exact)
+0.1-0.4, 0.4-1.0, 1-2, 2-4, 4-16
+</td>
+<td>
+per-band (suppl. Table S1)
+</td>
+<td>
+stretching + MWCS
 </td>
 <td class="nr">
 n/r
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+reject dv/v when stretched-ref CC&lt;0.4
 </td>
 </tr>
 <tr>
@@ -1487,19 +1526,19 @@ Olivier et al., 2019
 Volcano
 </td>
 <td>
-0.1–0.2 (secondary microseism); 0.3–1 (volcanic tremor)
-</td>
-<td class="nr">
-n/r
+0.08-1.2
 </td>
 <td>
-Stretching
+30 s windows; start = dist/700 m/s + 30 s
+</td>
+<td>
+MWCS
 </td>
 <td>
 n/r (passive image interferometry, daily)
 </td>
 <td>
-Resolves &lt;0.1%; cross-checked vs GPS/tilt
+CCF-coherence-based uncertainty
 </td>
 </tr>
 <tr>
@@ -1509,20 +1548,20 @@ Yates et al., 2019
 <td>
 Volcano
 </td>
-<td class="nr">
-n/r
+<td>
+0.1-1.0
+</td>
+<td>
+16 s moving windows within 20-80 s
+</td>
+<td>
+MWCS
 </td>
 <td class="nr">
 n/r
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+QC (err&lt;0.1 s, coh&gt;0.7); error-weighted mean
 </td>
 </tr>
 <tr>
@@ -1533,19 +1572,19 @@ Feng et al., 2020
 Volcano
 </td>
 <td>
-0.3–0.6; 0.6–0.9; 0.9–2.0
+3-8
 </td>
-<td class="nr">
-n/r
+<td>
+[-2.8:-0.4] and [0.4:2.8] (=[-14Dt:2Dt],[2Dt:14Dt])
 </td>
-<td class="nr">
-n/r
+<td>
+stretching
 </td>
 <td>
 Jan 2017–Jun 2018 NCFs
 </td>
-<td class="nr">
-n/r
+<td>
+absolute error from stretching CC
 </td>
 </tr>
 <tr>
@@ -1562,7 +1601,7 @@ n/r
 n/r
 </td>
 <td>
-Other
+CWIRE (stretching + damped LSQ)
 </td>
 <td>
 Coda Wave Interferometry with Repeating Earthquakes (CWIRE), per-cluster pairs
@@ -1578,14 +1617,14 @@ Köpfli et al., 2024
 <td>
 Volcano
 </td>
-<td class="nr">
-n/r
+<td>
+n/a (wavefield amplitude features, not dv/v)
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Other
+n/a (no dv/v; companion is Makus 2024)
 </td>
 <td>
 Long-term NCF stacks; many dv/v series on a common grid
@@ -1601,20 +1640,20 @@ Yates et al., 2024
 <td>
 Volcano
 </td>
-<td class="nr">
-n/r
+<td>
+0.25-2.5 (wavelet 0.1-8.0)
+</td>
+<td>
+min lag 5 s, length 20 cycles (e.g.&nbsp;5-25 at 1 Hz)
+</td>
+<td>
+CWT (cross-wavelet)
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Wavelet
-</td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+slope SD from covariance; coherence weighting
 </td>
 </tr>
 <tr>
@@ -1625,19 +1664,19 @@ Yukutake et al., 2025
 Volcano
 </td>
 <td>
-0.5–2.0
+0.1-0.9, 0.5-2.0, 1.0-4.0
 </td>
-<td class="nr">
-n/r
+<td>
+20-40
 </td>
-<td class="nr">
-n/r
+<td>
+MWCS
 </td>
 <td>
 Long-term interferometry stacks, 2003–2020
 </td>
-<td class="nr">
-n/r
+<td>
+1-2 sigma errors as inversion weights
 </td>
 </tr>
 <tr>
@@ -1647,20 +1686,20 @@ Schaff &amp; Beroza 2004
 <td>
 Earthquake/Fault
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+n/r (unfiltered)
 </td>
 <td>
-Other
+1.4 s moving windows through coda
+</td>
+<td>
+doublet
 </td>
 <td>
 Repeating-earthquake doublets; delays vs pre-mainshock repeaters
 </td>
 <td>
-High-precision relative delay via waveform cross-correlation of near-identical repeaters
+formal slope SE; CC weighting
 </td>
 </tr>
 <tr>
@@ -1696,17 +1735,17 @@ Earthquake/Fault
 <td class="nr">
 n/r
 </td>
-<td class="nr">
-n/r
+<td>
+n/a (direct-S delays, not coda)
 </td>
 <td>
-Other
+doublet (moving-window CC)
 </td>
 <td>
 Repeating-earthquake travel-time delays before vs after mainshock
 </td>
 <td>
-Precise relative delay from near-identical repeating-earthquake waveforms
+CC&gt;0.8 and SNR&gt;4:1 QC
 </td>
 </tr>
 <tr>
@@ -1717,19 +1756,19 @@ Wegler &amp; Sens-Schönfelder 2007
 Earthquake/Fault
 </td>
 <td>
-2–50 (2 Hz high-pass; 100 Hz data)
+2-100 (2 Hz high-pass)
 </td>
 <td>
-5–14
+5-14
 </td>
 <td>
-Stretching
+stretching
 </td>
 <td>
 Daily autocorrelations vs ~two-week pre-event reference; grid search (10000 trials, dv/v ±0.03)
 </td>
 <td>
-±0.1% fluctuation = inversion accuracy
+day-to-day fluctuation ~0.1%; CC&gt;0.5
 </td>
 </tr>
 <tr>
@@ -1763,19 +1802,19 @@ Hadziioannou, Larose, Coutant, Roux, Campillo 2009
 Earthquake/Fault
 </td>
 <td>
-2.5e6 (2.5 MHz lab)
-</td>
-<td class="nr">
-n/r
+2.5 MHz ultrasonic (lab, not seismic band)
 </td>
 <td>
-Other
+12.5-50 us (lab)
+</td>
+<td>
+stretching + doublet (compared)
 </td>
 <td>
 Noise-correlation stacking
 </td>
 <td>
-Demonstrates stability when background noise-source structure is stable
+analytic std of stretching-CC fluctuations
 </td>
 </tr>
 <tr>
@@ -1808,20 +1847,20 @@ Wegler, Nakahara, Sens-Schönfelder, Korn, Shiomi 2009
 <td>
 Earthquake/Fault
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+2-8 and 0.1-0.5
 </td>
 <td>
-Stretching
+5-14 (2-8 Hz); 10-100 (0.1-0.5 Hz)
+</td>
+<td>
+stretching
 </td>
 <td>
 Daily auto-/cross-correlations inverted daily for 2 months pre/post; pre-event reference
 </td>
 <td>
-Daily inversion fluctuations; consistency across 6 stations
+SD over Green's-tensor components; R&gt;0.5
 </td>
 </tr>
 <tr>
@@ -1834,17 +1873,17 @@ Earthquake/Fault
 <td class="nr">
 n/r
 </td>
-<td class="nr">
-n/r
+<td>
+~25 s after ballistic, up to +-200 s lapse
 </td>
 <td>
-Other
+MWCS
 </td>
 <td>
 Noise cross-correlation stacking; sub-array comparison (156 broadband stations)
 </td>
-<td>
-Pre-earthquake fluctuation (~0.02%) used as baseline/noise reference
+<td class="nr">
+n/r
 </td>
 </tr>
 <tr>
@@ -1854,20 +1893,20 @@ Nakata &amp; Snieder 2011
 <td>
 Earthquake/Fault
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+1-13
 </td>
 <td>
-Other
+n/a (deconvolution interferometry, direct S-wave)
+</td>
+<td>
+n/a (not coda/noise dv/v)
 </td>
 <td>
 &gt;300 earthquakes (Jan 1–May 26 2011); borehole-to-surface deconvolution
 </td>
-<td class="nr">
-n/r
+<td>
+SD of travel times over events
 </td>
 </tr>
 <tr>
@@ -1878,19 +1917,19 @@ Rivet, Campillo, Shapiro, Cruz-Atienza, Radiguet, Cotte, Kostoglodov 2011
 Earthquake/Fault
 </td>
 <td>
-0.06–0.14 (periods 7–17 s)
+0.037-0.27 (periods 3.7-27 s)
+</td>
+<td>
+n/r (coda used, no length)
+</td>
+<td>
+doublet (MWCS)
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-MWCS
-</td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+previous-epoch referencing; no explicit error bars
 </td>
 </tr>
 <tr>
@@ -1901,19 +1940,19 @@ Hobiger, Wegler, Shiomi, Nakahara 2012
 Earthquake/Fault
 </td>
 <td>
-0.125–1.0 (three sub-bands)
-</td>
-<td class="nr">
-n/r
+0.125-0.25, 0.25-0.5, 0.5-1.0
 </td>
 <td>
-Stretching
+ten periods, starting 7.5 periods after direct wave
+</td>
+<td>
+stretching
 </td>
 <td>
 Daily cross-correlations vs long-term reference Green's function
 </td>
 <td>
-Curves fit by model (coseismic drop + log postseismic recovery + seasonal)
+CC weighting; 18-component weighted average
 </td>
 </tr>
 <tr>
@@ -1923,20 +1962,20 @@ Minato, Tsuji, Ohmi, Matsuoka 2012
 <td>
 Earthquake/Fault
 </td>
-<td class="nr">
-n/r
+<td>
+2-5
+</td>
+<td>
+2-10 lag
+</td>
+<td>
+stretching
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Stretching
-</td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+SD from pre/post-seismic values
 </td>
 </tr>
 <tr>
@@ -1947,19 +1986,19 @@ Obermann, Planès, Larose, Sens-Schönfelder, Campillo 2013
 Earthquake/Fault
 </td>
 <td>
-central 20 (bandwidth ~12)
+20 Hz central, ~12 Hz bw (numerical)
 </td>
 <td>
-1.8–6.6 (primary lapse ~3.6 s)
+1.5 s windows, centered ~1.8-6.6 s
 </td>
 <td>
-Stretching
+stretching
 </td>
 <td>
 Averaged over 10 random medium realizations per configuration
 </td>
 <td>
-S.d. over 10 realizations; mean-free-path uncertainty ~2–15%
+std over ten random-media realizations
 </td>
 </tr>
 <tr>
@@ -1993,19 +2032,19 @@ Liu, Huang, Peng, Su 2014
 Earthquake/Fault
 </td>
 <td>
-0.25–0.5 (period 2–4 s most sensitive)
-</td>
-<td class="nr">
-n/r
+0.125-1 (1-8 s; subbands 1-2,2-4,4-8 s)
 </td>
 <td>
-Stretching
+30-130
+</td>
+<td>
+MWCS
 </td>
 <td>
 Noise cross-correlation stacking (Aug 2004 – Sep 2011)
 </td>
 <td>
-Pre-event period as baseline (no obvious precursor)
+2-sigma SD across nine components
 </td>
 </tr>
 <tr>
@@ -2016,10 +2055,10 @@ Taira, Brenguier, Kong 2015
 Earthquake/Fault
 </td>
 <td>
-0.08–2.0
+0.1-0.9
 </td>
-<td class="nr">
-n/r
+<td>
+-60 to -20 and +20 to +60
 </td>
 <td>
 MWCS
@@ -2027,8 +2066,8 @@ MWCS
 <td>
 MSNoise cross-correlations; decimated to 20 Hz
 </td>
-<td class="nr">
-n/r
+<td>
+Jackknife 95% CI; 2-sigma SD
 </td>
 </tr>
 <tr>
@@ -2039,19 +2078,19 @@ Gassenmeier, Sens-Schönfelder, Eulenfeld, Bartsch, Victor, Tilmann, Korn 2016
 Earthquake/Fault
 </td>
 <td>
-4–6 primary (also 1–3, 7–10)
+1-3, 4-6, 7-10 (primary 4-6)
 </td>
 <td>
-10–15 primary (also 5–10, 15–20)
+10-15 (for 4-6 Hz)
 </td>
 <td>
-Stretching
+stretching (autocorrelation CWI)
 </td>
 <td>
 Daily autocorrelations; two-step iterative reference
 </td>
 <td>
-Error from correlation-coefficient threshold ±1 s.d.; healing-fit errors (amplitude ~21%, decay time ~34%)
+Gaussian fit to correlation values (CIs)
 </td>
 </tr>
 <tr>
@@ -2061,20 +2100,20 @@ Hillers, Campillo, Brenguier, Moreau, Agnew, Ben-Zion 2019
 <td>
 Earthquake/Fault
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+0.2-2 (sub-bands 0.2-0.4,0.4-0.8,0.8-1.6,0.3-1.5)
 </td>
 <td>
-Stretching
+20-50 (also 20-40,30-50,40-60)
+</td>
+<td>
+stretching and MWCS (doublet)
 </td>
 <td>
 Average-waveform reference for stretching; MWCS also applied
 </td>
 <td>
-Cross-check between time-domain stretching and frequency-domain MWCS
+P-value QC; cc&gt;=0.85 inversion
 </td>
 </tr>
 <tr>
@@ -2085,19 +2124,19 @@ Wang, Campillo, Brenguier, Lecointre, Takeda, Hashima 2019
 Earthquake/Fault
 </td>
 <td>
-0.02–1.0 (period 1–50 s; short-period 1–7 s + tiltmeters 8–50 s)
-</td>
-<td class="nr">
-n/r
+period bands 8-30 s and 15-50 s
 </td>
 <td>
-Stretching
+-400 to 400 (moving 30 &amp; 50 s)
+</td>
+<td>
+doublet
 </td>
 <td>
 Monthly velocity-change estimates
 </td>
-<td class="nr">
-n/r
+<td>
+SD error bars from 2009-2010
 </td>
 </tr>
 <tr>
@@ -2108,19 +2147,19 @@ Mao, Mordret, Campillo, Fang, van der Hilst 2020
 Earthquake/Fault
 </td>
 <td>
-frequency-dependent across band (time-frequency domain)
+0.5-2.0, 0.75-3.0, 1.1-2.2, 1.5-6.0, 2.0-8.0
 </td>
 <td>
-full time-frequency domain
+n/r (real data); synthetic 18.65-35
 </td>
 <td>
-Wavelet
+wavelet cross-spectrum (WCS)
 </td>
 <td>
 Noise cross-correlation stacking
 </td>
 <td>
-Wavelet-coherence thresholding and amplitude-based weighting
+wavelet cross-spectrum amplitude weighting; coherence threshold
 </td>
 </tr>
 <tr>
@@ -2130,20 +2169,20 @@ Poli, Marguin, Wang, D'Agostino, Johnson 2020
 <td>
 Earthquake/Fault
 </td>
-<td class="nr">
-n/r
+<td>
+0.5-1
+</td>
+<td>
+start 10/20/30 s, length 20/40/60 s
+</td>
+<td>
+stretching (doublet tested)
 </td>
 <td class="nr">
 n/r
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+CC-weighting; cc&gt;0.9 retained
 </td>
 </tr>
 <tr>
@@ -2153,20 +2192,20 @@ Boschelli, Zaccarelli, Faenza 2021
 <td>
 Earthquake/Fault
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+&gt;1 (1 Hz high-pass)
 </td>
 <td>
-Other
+n/r (variable lapse window)
+</td>
+<td>
+stretching
 </td>
 <td>
 Daily autocorrelation functions vs mean waveform
 </td>
-<td class="nr">
-n/r
+<td>
+SD across non-overlapping windows
 </td>
 </tr>
 <tr>
@@ -2200,19 +2239,19 @@ Sheng, Mordret, Sager, Brenguier, Boué, Rousset, Vernon, Higueret, Ben-Zion 202
 Earthquake/Fault
 </td>
 <td>
-&gt;1.0
+&gt;1
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Wavelet
+wavelet (WTS)
 </td>
 <td>
 Weekly stacked correlations with ~2-month smoothing
 </td>
 <td>
-Inverse travel-time uncertainties used as weights in misfit
+dt uncertainty as inverse weight
 </td>
 </tr>
 <tr>
@@ -2223,19 +2262,19 @@ Mainsant, Larose, Brönnimann, Jongmans, Michoud, Jaboyedoff (2012)
 Landslide
 </td>
 <td>
-~4-10 (band of measured surface-wave dv/v; spectral analysis up to ~12)
+10-12 (analyzed 4-25)
 </td>
 <td>
-n/r (short inter-sensor distance, coda of daily correlograms)
+0.2-2 (both sides)
 </td>
 <td>
-Stretching
+stretching
 </td>
 <td>
 Daily noise correlograms (cross-correlation functions)
 </td>
 <td>
-Daily correlation-coefficient / waveform-coherence checks; qualitative
+Weaver et al.&nbsp;(2011) CC-based error (~1-2%)
 </td>
 </tr>
 <tr>
@@ -2292,19 +2331,19 @@ Bertello, Berti, Castellaro, Squarzoni (2018)
 Landslide
 </td>
 <td>
-n/r (surface-wave / MASW band, ~few-20)
+n/a (active-source ReMi/MASW dispersion, not coda dv/v)
+</td>
+<td class="nr">
+n/r
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Other
-</td>
-<td>
 Time-lapse interferometry + time-lapse active MASW
 </td>
-<td>
-Comparison passive vs active MASW; qualitative
+<td class="nr">
+n/r
 </td>
 </tr>
 <tr>
@@ -2360,20 +2399,20 @@ Bontemps, Lacroix, Larose, Jara, Taipe (2020)
 <td>
 Landslide
 </td>
-<td>
-~1-10 (landslide-scale)
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Stretching
-</td>
-<td>
 Daily stacks vs reference
 </td>
-<td>
-Confidence bands; gap-flagged periods; correlation with rainfall and seismicity
+<td class="nr">
+n/r
 </td>
 </tr>
 <tr>
@@ -2407,19 +2446,19 @@ Le Breton, Bontemps, Guillemot, Baillet, Larose (2021)
 Landslide
 </td>
 <td>
-~1-20 across studies (landslides typically higher than tectonic)
+1.3-20 (commonly 10-14; 0.1-1 for large/deep)
 </td>
 <td>
-Sub-second to a few s (short inter-station distances)
+end of direct waves to 5-10 periods (site-dependent)
 </td>
 <td>
-Stretching
+stretching and doublet (MWCS)
 </td>
 <td>
 Daily stacks vs long-term reference
 </td>
 <td>
-Reviews spurious fluctuations (noise-source, site-response, inter-sensor distance changes); recommends verification
+Weaver et al.&nbsp;(2011) rms + SD over pairs/windows; discard CC&lt;0.6
 </td>
 </tr>
 <tr>
@@ -2476,19 +2515,19 @@ Whiteley, Chambers, Uhlemann et al.&nbsp;(2026)
 Landslide
 </td>
 <td>
-n/r (near-surface surface-wave / MASW band, ~5-30)
+6-10 (plus two unspecified bands)
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Other
+MWCS
 </td>
 <td>
 Time-lapse interferometry + MASW between recording periods
 </td>
 <td>
-Statistical distribution of surface-wave velocity measurements over time
+none (data report)
 </td>
 </tr>
 <tr>
@@ -2522,19 +2561,19 @@ Sens-Schönfelder &amp; Wegler, 2006
 Groundwater/Hydrology
 </td>
 <td>
-0.5-10 (analysis &gt;0.5)
+0.5 Hz high-pass
 </td>
 <td>
-2-4 and 6-8
+2-8
 </td>
 <td>
-Stretching
+stretching
 </td>
 <td>
 Daily autocorr vs yearly reference
 </td>
 <td>
-Correlation-coefficient maximization; ~0.1% accuracy quoted
+SD over non-overlapping windows
 </td>
 </tr>
 <tr>
@@ -2544,20 +2583,20 @@ Tsai, 2011
 <td>
 Groundwater/Hydrology
 </td>
-<td class="nr">
-n/r
+<td>
+n/a (theory of thermoelastic/hydrologic velocity change)
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Other
+n/a (analytic model, no measurement)
 </td>
 <td class="nr">
 n/r
 </td>
-<td>
-Analytic sensitivity / parameter study
+<td class="nr">
+n/r
 </td>
 </tr>
 <tr>
@@ -2591,19 +2630,19 @@ Lecocq, Longuevergne, Pedersen, Brenguier &amp; Stammler, 2017
 Groundwater/Hydrology
 </td>
 <td>
-0.1-0.8 (~7 s secondary microseism)
+0.1-0.8
 </td>
 <td>
-20-100 lag; 12 s window, 2 s step (MWCS)
+20-100 (and -20 to -100)
 </td>
 <td>
-MWCS
+MWCS (Brenguier all-pairs)
 </td>
 <td>
 Daily CCFs, 31-day rolling window
 </td>
 <td>
-Coherency-weighted least squares; MWCS errors; jackknife stability
+LSQ slope error as inverse-variance weight; bootstrap
 </td>
 </tr>
 <tr>
@@ -2617,16 +2656,39 @@ Groundwater/Hydrology
 0.1-0.9
 </td>
 <td>
-~100 (MWCS coda-onset to 60 s lapse)
+100
 </td>
 <td>
-Stretching
+stretching (+MWCS check)
 </td>
 <td>
 Daily CCFs from 30-min segments; 1-yr reference, 30-day moving stack
 </td>
 <td>
-Stretching vs MWCS cross-check; inter-station distance &lt;40 km
+SD over six 50-s subwindows
+</td>
+</tr>
+<tr>
+<td>
+Wang, Brenguier, Campillo, Lecointre, Takeda &amp; Aoki, 2017
+</td>
+<td>
+Groundwater/Hydrology
+</td>
+<td>
+0.1-0.25 and 0.5-2.0
+</td>
+<td>
+30 s (0.1-0.25 Hz), 10 s (0.5-2 Hz)
+</td>
+<td>
+MWCS
+</td>
+<td>
+Daily CCFs; ~1-yr reference, moving-window current stack
+</td>
+<td>
+none (QC only: dt&lt;=0.2 s, coh&gt;=0.5)
 </td>
 </tr>
 <tr>
@@ -2637,19 +2699,19 @@ Clements &amp; Denolle, 2018
 Groundwater/Hydrology
 </td>
 <td>
-2-4 (0.2-0.5 band discarded as too noisy)
+0.1-0.25 and 0.5-2.0
 </td>
 <td>
-n/r (~1-3 consistent with 2-4 Hz)
+30 s (0.1-0.25 Hz), 10 s (0.5-2 Hz)
 </td>
 <td>
-Stretching
+MWCS
 </td>
 <td>
 Daily stacks vs reference
 </td>
 <td>
-Stretching correlation-coefficient; comparison to GPS/well data
+none (QC only: dt&lt;=0.2 s, coh&gt;=0.5)
 </td>
 </tr>
 <tr>
@@ -2659,20 +2721,20 @@ Kim &amp; Lekic, 2019
 <td>
 Groundwater/Hydrology
 </td>
-<td class="nr">
-n/r
+<td>
+0.01-8
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Other
+stretching
 </td>
 <td>
 Multi-year (~20 yr) record; yearly-scale comparisons
 </td>
-<td class="nr">
-n/r
+<td>
+none (grid-search CC max)
 </td>
 </tr>
 <tr>
@@ -2683,19 +2745,19 @@ Andajani, Tsuji, Snieder &amp; Ikeda, 2020
 Groundwater/Hydrology
 </td>
 <td>
-~0.1-0.9 (low-frequency emphasized)
+0.1-0.9
+</td>
+<td>
+100
+</td>
+<td>
+stretching
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Stretching
-</td>
-<td class="nr">
-n/r
-</td>
-<td>
-Band-pass separation of rainfall vs sea-level/atmospheric forcing; lag analysis
+stretching CC as quality indicator (no error bars)
 </td>
 </tr>
 <tr>
@@ -2706,19 +2768,19 @@ Gaubert-Bastide, Garambois, et al., 2022
 Groundwater/Hydrology
 </td>
 <td>
-~2-4 (little energy &gt;10 Hz)
-</td>
-<td class="nr">
-n/r
+2-5
 </td>
 <td>
-Stretching
+n/a (ballistic Love-wave window, not coda)
+</td>
+<td>
+stretching
 </td>
 <td>
 Hourly correlations over 19 days, two fill/drain cycles
 </td>
 <td>
-Correlation-coefficient QC; dense-array spatial consistency
+eps_max +- sigma (stretching variance)
 </td>
 </tr>
 <tr>
@@ -2728,20 +2790,20 @@ Illien, Andermann, Sens-Schönfelder, et al., 2022
 <td>
 Groundwater/Hydrology
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+4-8 (Chaku); 2-4 (Gumba)
 </td>
 <td>
-Stretching
+12 periods (~3 s) after 4-period skip
+</td>
+<td>
+stretching
 </td>
 <td>
 ~3-yr continuous time series
 </td>
 <td>
-Coupled seismo-hydrological model
+none (multi-reference stack)
 </td>
 </tr>
 <tr>
@@ -2752,19 +2814,19 @@ Mao, Lecointre, van der Hilst &amp; Campillo, 2022
 Groundwater/Hydrology
 </td>
 <td>
-0.2-2.0 (sub-bands 0.2-0.8, 0.4-1.6, 0.5-2.0)
+2-4
 </td>
 <td>
-Early coda ~15-50
+2-8
 </td>
 <td>
-Other
+stretching
 </td>
 <td>
 Daily CCFs stacked over 20 days, 5-day step; pairs &lt;50 km
 </td>
 <td>
-Bayesian inversion; covariance from CC coefficients + smoothing matrix
+cc^2-weighted channel mean (no explicit error bars)
 </td>
 </tr>
 <tr>
@@ -2778,16 +2840,16 @@ Groundwater/Hydrology
 2-4
 </td>
 <td>
-n/r (~1-3 consistent with 2-4 Hz)
+2-8
 </td>
 <td>
-Stretching
+stretching
 </td>
 <td>
 Daily stacks across ~700 stations vs reference
 </td>
 <td>
-Stretching correlation-coefficient; drained-poroelastic rainwater-diffusion model
+cc^2-weighted channel mean (no explicit error bars)
 </td>
 </tr>
 <tr>
@@ -2797,20 +2859,20 @@ Delouche, et al., 2023
 <td>
 Groundwater/Hydrology
 </td>
-<td class="nr">
-n/r
+<td>
+0.33-1 (1-3 s period)
+</td>
+<td>
+15-55
+</td>
+<td>
+stretching
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Stretching
-</td>
-<td class="nr">
-n/r
-</td>
-<td>
-Linear precipitation model; correct dv/v for hydrologic contribution before tectonic interpretation
+Weaver et al.&nbsp;(2011) RMS error
 </td>
 </tr>
 <tr>
@@ -2821,19 +2883,19 @@ Ermert, Cabrera, Sawade, et al., 2023
 Groundwater/Hydrology
 </td>
 <td>
-0.5-1, 1-2, 2-4, 4-8 (octave bands)
-</td>
-<td class="nr">
-n/r
+0.5-1, 1-2, 2-4, 4-8
 </td>
 <td>
-Stretching
+4-10x and 8-20x longest period (e.g.&nbsp;8-16 &amp; 16-40 s)
+</td>
+<td>
+stretching
 </td>
 <td>
 Clustered (GMM) autocorrelation stacks
 </td>
 <td>
-MCMC inversion; 16th-84th percentile; CC&gt;0.6 retained
+CC_best&gt;0.6 QC; no formal dv/v error
 </td>
 </tr>
 <tr>
@@ -2844,19 +2906,19 @@ Fokker, Ruigrok, Hawkins &amp; Trampert, 2023
 Groundwater/Hydrology
 </td>
 <td>
-n/r (frequency-dependent surface-wave kernels)
+1.3-1.6
+</td>
+<td>
+n/r (coda of cross-coherence)
+</td>
+<td>
+stretching
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-Other
-</td>
-<td class="nr">
-n/r
-</td>
-<td>
-Inversion of frequency-dependent dv/v to depth-resolved pore pressure
+standard error sigma/sqrt(n)
 </td>
 </tr>
 <tr>
@@ -2866,20 +2928,20 @@ Zhang et al., 2023
 <td>
 Groundwater/Hydrology
 </td>
-<td class="nr">
-n/r
+<td>
+0.1-1.0 (also 0.3-1.2, 0.5-1.5, 1.0-2.0)
 </td>
-<td class="nr">
-n/r
+<td>
+n/r (dynamic windows, 3.0 &amp; 2.0 km/s)
 </td>
-<td class="nr">
-n/r
+<td>
+MWCS
 </td>
 <td>
 Continuous 2013-2022 record
 </td>
-<td class="nr">
-n/r
+<td>
+SD (avg ~0.009%)
 </td>
 </tr>
 <tr>
@@ -2890,19 +2952,19 @@ Mao, Ellsworth, Zheng &amp; Beroza, 2025
 Groundwater/Hydrology
 </td>
 <td>
-~0.2-2.0 (multi-band, as Mao 2022)
+0.1-0.3
 </td>
 <td>
-Early coda ~15-50
+300 s window from 1.3*t0
 </td>
 <td>
-Other
+stretching
 </td>
 <td>
 Daily CCFs stacked, multi-day step; two-decade record
 </td>
 <td>
-Bayesian depth inversion (as Mao 2022)
+Weaver et al.&nbsp;(2011) error formula
 </td>
 </tr>
 <tr>
@@ -2912,20 +2974,20 @@ Mordret et al., 2016
 <td>
 Cryosphere
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+0.1-0.3
 </td>
 <td>
-Stretching
+300 s window from 1.3*t0
+</td>
+<td>
+stretching
 </td>
 <td>
 Daily cross-correlations over ~2-year record
 </td>
-<td class="nr">
-n/r
+<td>
+Weaver et al.&nbsp;(2011) error formula
 </td>
 </tr>
 <tr>
@@ -2936,19 +2998,19 @@ James et al., 2019
 Cryosphere
 </td>
 <td>
-3-30 (multiple sub-bands)
-</td>
-<td class="nr">
-n/r
+3-30 (18 bands; 13 Hz inversion)
 </td>
 <td>
-Stretching
++-0.2 to 2.0 (center lag)
+</td>
+<td>
+MWCS
 </td>
 <td>
 Daily cross-correlations stacked; reference relative to Jan 2014
 </td>
 <td>
-Correlation-coefficient quality control; Bayesian tomography for spatial maps
+95% CI from posterior
 </td>
 </tr>
 <tr>
@@ -2959,19 +3021,19 @@ Guillemot et al., 2020
 Cryosphere
 </td>
 <td>
-1.5-14 (bands 4-8, 7-11, 10-14)
+n/a (resonance-freq tracking, not dv/v)
+</td>
+<td class="nr">
+n/r
 </td>
 <td>
-0.3-0.8 (causal and acausal)
-</td>
-<td>
-Stretching
+n/a (no dv/v computed)
 </td>
 <td>
 Daily correlograms from hourly raw data
 </td>
-<td>
-Weaver et al.&nbsp;(2011) error formula
+<td class="nr">
+n/r
 </td>
 </tr>
 <tr>
@@ -2982,19 +3044,19 @@ Guillemot et al., 2021
 Cryosphere
 </td>
 <td>
-1-50 (resonance peaks &gt;10)
+n/a (resonance-freq tracking, not dv/v)
+</td>
+<td class="nr">
+n/r
 </td>
 <td>
-n/r (spectral/PSD method, not coda)
-</td>
-<td>
-Other
+n/a (no dv/v computed)
 </td>
 <td>
 PSD-based; finite-element modal modeling
 </td>
-<td>
-Modal modeling comparison
+<td class="nr">
+n/r
 </td>
 </tr>
 <tr>
@@ -3005,19 +3067,19 @@ Lindner et al., 2021
 Cryosphere
 </td>
 <td>
-n/r (high-frequency local band)
-</td>
-<td class="nr">
-n/r
+2-8 (analysis 1-20)
 </td>
 <td>
-Stretching
+-5 to 5 lag
+</td>
+<td>
+wavelet cross-spectrum (Morlet)
 </td>
 <td>
 15-year continuous record; daily/seasonal stacks
 </td>
 <td>
-Comparison with meteorological/borehole records; correlation coefficient
+1 SD
 </td>
 </tr>
 <tr>
@@ -3027,20 +3089,20 @@ Luo et al., 2023
 <td>
 Cryosphere
 </td>
-<td class="nr">
-n/r
-</td>
-<td class="nr">
-n/r
+<td>
+0.1-1 (also 0.1-0.5, 1-2)
 </td>
 <td>
-Stretching
+20-70
+</td>
+<td>
+MWCS
 </td>
 <td>
 Daily autocorrelations stacked
 </td>
 <td>
-Lag-time correlation with GRACE/mass data
+fitted +-sigma; 95% CI
 </td>
 </tr>
 <tr>
@@ -3051,19 +3113,19 @@ Gassenmeier et al., 2015
 Geothermal/Reservoir
 </td>
 <td>
-1.0-3.5 (detail 1.5-3)
+1.5-3
 </td>
 <td>
-Windows after 300 m/s arrival (lapse-time dependent)
+moving windows after 300 m/s phase
 </td>
 <td>
-Stretching
+stretching
 </td>
 <td>
 1-hour segments cross-correlated, stacked to daily
 </td>
 <td>
-Weaver et al.&nbsp;(2011) errors; confidence intervals
+Weaver et al.&nbsp;(2011); scaling-coeff CIs
 </td>
 </tr>
 <tr>
@@ -3097,19 +3159,19 @@ Obermann et al., 2015
 Geothermal/Reservoir
 </td>
 <td>
-n/r (sub-Hz to few Hz local)
+0.1-1
 </td>
 <td>
-Coda of noise cross-correlations (lapse-time dependent)
+20 s window centered ~15 s in coda
 </td>
 <td>
-Stretching
+stretching
 </td>
 <td>
 Daily cross-correlations; reference stacks
 </td>
 <td>
-Sensitivity-kernel-based localization; noise-source checks
+none
 </td>
 </tr>
 <tr>
@@ -3143,19 +3205,19 @@ Olivier et al., 2017
 Geothermal/Reservoir
 </td>
 <td>
-~5-15
-</td>
-<td class="nr">
-n/r
+0.25-1.0, 0.5-2.0, 0.75-3.0, 1.0-4.0, 1.5-6.0, 2.0-8.0
 </td>
 <td>
-Stretching
+20 s (-40 to -20 and 20 to 40)
+</td>
+<td>
+MWCS (MSNoise)
 </td>
 <td>
 Daily cross-correlations across array
 </td>
-<td class="nr">
-n/r
+<td>
+two-sigma SD; CC&gt;0.85 rejection
 </td>
 </tr>
 <tr>
@@ -3166,19 +3228,19 @@ Taira et al., 2018
 Geothermal/Reservoir
 </td>
 <td>
-0.25-8.0 (six bands)
+0.25-1.0, 0.5-2.0, 0.75-3.0, 1.0-4.0, 1.5-6.0, 2.0-8.0
 </td>
 <td>
-20 (coda windows -40 to -20 s and 20 to 40 s)
+20 s (-40 to -20 and 20 to 40)
 </td>
 <td>
-MWCS
+MWCS (MSNoise)
 </td>
 <td>
 Daily NCFs from 30-min segments; 5-day stacks
 </td>
 <td>
-Two-sigma std; correlation-coefficient threshold &gt;0.85
+two-sigma SD; CC&gt;0.85 rejection
 </td>
 </tr>
 <tr>
@@ -3211,20 +3273,20 @@ Snieder, Grêt, Douma &amp; Scales 2002
 <td>
 Methodology
 </td>
-<td class="nr">
-n/r
-</td>
 <td>
-later coda (multiply scattered arrivals)
-</td>
-<td>
-Other
+n/a (dispersion/preprocessing paper, no dv/v)
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-variance of time shift from cross-correlation; statistical theory of multiply scattered waves
+n/a (not a velocity-change study)
+</td>
+<td class="nr">
+n/r
+</td>
+<td class="nr">
+n/r
 </td>
 </tr>
 <tr>
@@ -3235,19 +3297,19 @@ Bensen et al.&nbsp;2007
 Methodology
 </td>
 <td>
-whitening band stated (e.g.&nbsp;5 Hz-100 s periods)
+0.1-0.9
 </td>
 <td>
-n/r (surface-wave window)
+6 s windows overlapping 3 s
 </td>
-<td class="nr">
-n/r
+<td>
+MWCS
 </td>
 <td>
 daily cross-correlation + temporal stacking
 </td>
 <td>
-SNR-based quality control; error analysis on dispersion measurements
+WLS phase-fit error (corrected ~6x)
 </td>
 </tr>
 <tr>
@@ -3257,11 +3319,11 @@ Clarke, Zaccarelli, Shapiro &amp; Brenguier 2011
 <td>
 Methodology
 </td>
-<td class="nr">
-n/r
+<td>
+0.1-0.9
 </td>
 <td>
-moving windows in coda
+6 s windows overlapping 3 s
 </td>
 <td>
 MWCS
@@ -3270,7 +3332,7 @@ MWCS
 current stack vs reference, weighted linear regression dt vs t
 </td>
 <td>
-formal MWCS errors: coherence-weighted phase-delay errors per window; error inversely proportional to SNR; least-squares slope error on dt/t
+WLS phase-fit error (corrected ~6x)
 </td>
 </tr>
 <tr>
@@ -3280,20 +3342,20 @@ Hadziioannou, Larose, Baig, Roux &amp; Campillo 2011
 <td>
 Methodology
 </td>
-<td class="nr">
-n/r
+<td>
+0.1-0.9
 </td>
 <td>
-coda of autocorrelations
+n/r (whole coda t1-t2)
 </td>
 <td>
-Stretching
+stretching (and doublet)
 </td>
 <td>
 waveform clustering to enhance daily stacks
 </td>
 <td>
-clustering reduces noise-source variability; resolution improved from 30 days to 1 day
+remnant coherence (CC)
 </td>
 </tr>
 <tr>
@@ -3303,20 +3365,20 @@ Weaver, Hadziioannou, Larose &amp; Campillo 2011
 <td>
 Methodology
 </td>
-<td class="nr">
-n/r
+<td>
+0.05-0.5
 </td>
 <td>
-coda window (analytical)
+up to t0=30
 </td>
 <td>
-Stretching
+stretching
 </td>
 <td>
 reference vs current correlation
 </td>
 <td>
-analytic RMS error of stretching estimate as function of coherence/decorrelation, bandwidth and coda window; closed-form error formula
+max CC&gt;0.9 (no formal error)
 </td>
 </tr>
 <tr>
@@ -3327,19 +3389,19 @@ Zhan, Tsai &amp; Clayton 2013
 Methodology
 </td>
 <td>
-sensitive to band choice
-</td>
-<td class="nr">
-n/r
+0.05-0.5
 </td>
 <td>
-Stretching
+up to t0=30
+</td>
+<td>
+stretching
 </td>
 <td>
 reference vs current
 </td>
 <td>
-identifies systematic (non-random) bias from non-stationary noise spectrum; recommends checking noise-source spectral stability
+max CC&gt;0.9 (no formal error)
 </td>
 </tr>
 <tr>
@@ -3350,19 +3412,19 @@ Lecocq, Caudron &amp; Brenguier 2014
 Methodology
 </td>
 <td>
-user-defined (e.g.&nbsp;0.1-1 Hz)
+synthetic (Ricker 12.5; noise 0.5-30)
 </td>
 <td>
-user-defined moving windows
+1-10 lapse; sub-windows 0.1-1.0 s
 </td>
 <td>
-MWCS
+windowed CC, stretching, DTW (compared)
 </td>
 <td>
 daily CCF + reference stack
 </td>
 <td>
-implements Clarke et al.&nbsp;2011 MWCS errors; reproducible parameter database
+WLS lag-vs-lapse; CC&gt;=0.6
 </td>
 </tr>
 <tr>
@@ -3372,20 +3434,20 @@ Mikesell, Malcolm, Yang &amp; Haney 2015
 <td>
 Methodology
 </td>
+<td>
+0.33-1.0 (1-3 s)
+</td>
+<td>
+(dist/1.8)+20 to 120
+</td>
+<td>
+stretching
+</td>
 <td class="nr">
 n/r
 </td>
 <td>
-full-trace local time shifts
-</td>
-<td>
-DTW
-</td>
-<td class="nr">
-n/r
-</td>
-<td>
-compares accuracy of WCC vs stretching vs DTW; DTW more robust at low SNR
+Weaver et al.&nbsp;(2011) rms formula
 </td>
 </tr>
 <tr>
@@ -3395,20 +3457,20 @@ Stehly, Froment, Campillo, Liu &amp; Chen 2015
 <td>
 Methodology
 </td>
-<td class="nr">
-n/r
+<td>
+0.1-1.0 (real); 0.15-0.65 (synthetic)
 </td>
 <td>
-coda of daily correlations
+[15,35] and [-35,-15]
 </td>
 <td>
-Stretching
+stretching (+MWCS compare)
 </td>
 <td>
 daily correlations curvelet-filtered before stacking
 </td>
 <td>
-curvelet denoising reduces dv/v uncertainty, enabling 1-day resolution
+CC&gt;0.7 rejection; ~+-0.1% significance
 </td>
 </tr>
 <tr>
@@ -3418,20 +3480,20 @@ Daskalakis, Evangelidis, Garnier, Melis, Papanicolaou &amp; Tsogka 2016
 <td>
 Methodology
 </td>
-<td class="nr">
-n/r
+<td>
+n/r (numerical study)
 </td>
 <td>
-coda window
+1 s overlapping windows
 </td>
 <td>
-Stretching
+stretching
 </td>
 <td>
 normalized cross-correlation functions
 </td>
 <td>
-shows seasonal noise-source fluctuations create apparent dv/v; adequate CCF normalization removes this bias
+SD over 20 receivers
 </td>
 </tr>
 <tr>
@@ -3442,42 +3504,19 @@ Obermann, Planès, Hadziioannou &amp; Campillo 2016
 Methodology
 </td>
 <td>
-frequency-dependent
+0.15-0.90
 </td>
 <td>
-lapse-time dependent
+-60 to +60 (doublet over coda)
 </td>
 <td>
-Other
+doublet + Bayesian least-squares inversion (Brenguier 2014)
 </td>
 <td class="nr">
 n/r
 </td>
-<td class="nr">
-n/r
-</td>
-</tr>
-<tr>
 <td>
-Wang, Brenguier, Campillo, Lecointre, Takeda &amp; Aoki 2017
-</td>
-<td>
-Methodology
-</td>
-<td>
-~0.1-0.9 Hz (multi-band)
-</td>
-<td>
-coda windows
-</td>
-<td>
-MWCS
-</td>
-<td>
-compares stacking schemes; long reference stack for seasonal trends
-</td>
-<td>
-demonstrates reference-stack and stacking-length choice control the apparent long-term trend and seasonal amplitude
+Bayesian least-squares inversion; error bars from inversion
 </td>
 </tr>
 <tr>
@@ -3534,19 +3573,19 @@ Wang &amp; Yao 2020
 Methodology
 </td>
 <td>
-application-dependent
+n/r (review)
 </td>
 <td>
-application-dependent
+n/r (review)
 </td>
 <td>
-Other
+stretching, MWCS, DTW, WCS (review)
 </td>
 <td>
 reference and stacking strategies reviewed
 </td>
 <td>
-reviews uncertainty/bias sources and method trade-offs
+Bayesian least-squares / MCMC (review)
 </td>
 </tr>
 <tr>
@@ -3557,19 +3596,19 @@ Yuan, Bryan &amp; Denolle 2021
 Methodology
 </td>
 <td>
-multiple bands tested
+varies (e.g.&nbsp;0.5-2.2)
 </td>
 <td>
-coda windows tested
+45-75 (example)
 </td>
 <td>
-Other
+WCC, TS, DTW, MWCS, WCS, WTS, WTDTW (7 compared)
 </td>
 <td class="nr">
 n/r
 </td>
 <td>
-quantifies accuracy/robustness of 7 estimators vs SNR, perturbation size, heterogeneity; wavelet methods handle cycle-skipping
+residuals vs truth over realizations
 </td>
 </tr>
 </tbody>
@@ -4154,7 +4193,7 @@ Brenguier, F., M. Campillo, T. Takeda, et al. 2014. <span>“Mapping Pressurized
 <span id="cb17-60"><a href="#cb17-60" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1. The $\delta v/v$ measurement is a tree of choices</span></span>
 <span id="cb17-61"><a href="#cb17-61" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-62"><a href="#cb17-62" aria-hidden="true" tabindex="-1"></a>A $\delta v/v$ value is not measured; it is *computed* from a stack of repeated</span>
-<span id="cb17-63"><a href="#cb17-63" aria-hidden="true" tabindex="-1"></a>coda waves through a pipeline. Each fork is a defensible choice, and different</span>
+<span id="cb17-63"><a href="#cb17-63" aria-hidden="true" tabindex="-1"></a>coda waves through a pipeline. Each fork is a reasonable choice, and different</span>
 <span id="cb17-64"><a href="#cb17-64" aria-hidden="true" tabindex="-1"></a>groups fork differently — so the same raw data yields different $\delta v/v(t)$.</span>
 <span id="cb17-65"><a href="#cb17-65" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-68"><a href="#cb17-68" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
@@ -4216,7 +4255,7 @@ Brenguier, F., M. Campillo, T. Takeda, et al. 2014. <span>“Mapping Pressurized
 <span id="cb17-126"><a href="#cb17-126" aria-hidden="true" tabindex="-1"></a><span class="fu">## 3. The methodological spread over choices</span></span>
 <span id="cb17-127"><a href="#cb17-127" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-128"><a href="#cb17-128" aria-hidden="true" tabindex="-1"></a>The floor assumes the configuration is *the* configuration. It is not. Run the</span>
-<span id="cb17-129"><a href="#cb17-129" aria-hidden="true" tabindex="-1"></a>same data through several defensible pipelines and you get an **ensemble** of</span>
+<span id="cb17-129"><a href="#cb17-129" aria-hidden="true" tabindex="-1"></a>same data through several reasonable pipelines and you get an **ensemble** of</span>
 <span id="cb17-130"><a href="#cb17-130" aria-hidden="true" tabindex="-1"></a>$\delta v/v(t)$ curves whose spread is a genuine, usually dominant, uncertainty.</span>
 <span id="cb17-131"><a href="#cb17-131" aria-hidden="true" tabindex="-1"></a>We simulate that here: a common truth seen through stretching, MWCS, a wavelet</span>
 <span id="cb17-132"><a href="#cb17-132" aria-hidden="true" tabindex="-1"></a>estimator, and two window/band variants — each with its own bias and</span>
@@ -4447,7 +4486,7 @@ Brenguier, F., M. Campillo, T. Takeda, et al. 2014. <span>“Mapping Pressurized
 <span id="cb17-371"><a href="#cb17-371" aria-hidden="true" tabindex="-1"></a><span class="in">`dvv_err`</span> — a $\delta v/v$ study quietly discards both the methodological spread</span>
 <span id="cb17-372"><a href="#cb17-372" aria-hidden="true" tabindex="-1"></a>and the temporal correlation, and over-reports its own confidence. Carrying</span>
 <span id="cb17-373"><a href="#cb17-373" aria-hidden="true" tabindex="-1"></a>$C_d$ through is what makes the stress posterior on the <span class="co">[</span><span class="ot">inference page</span><span class="co">](theory-uq.qmd)</span></span>
-<span id="cb17-374"><a href="#cb17-374" aria-hidden="true" tabindex="-1"></a>defensible.</span>
+<span id="cb17-374"><a href="#cb17-374" aria-hidden="true" tabindex="-1"></a>reasonable.</span>
 <span id="cb17-375"><a href="#cb17-375" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-376"><a href="#cb17-376" aria-hidden="true" tabindex="-1"></a><span class="fu">## 8. The survey: how 103 studies report (or don't) their measurement error</span></span>
 <span id="cb17-377"><a href="#cb17-377" aria-hidden="true" tabindex="-1"></a></span>

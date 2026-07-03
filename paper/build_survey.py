@@ -218,7 +218,7 @@ def appendix_table(entries: list[tuple[str, dict]]) -> str:
             if len(val) > 90:
                 val = val[:88].rstrip() + "…"
             cells.append(tex_escape(val))
-        out.append(" & ".join(cells) + r" \\")
+        out.append(" & ".join(cells) + r" \\ \hline")
     out += [r"\end{longtable}", r"}"]
     return "\n".join(out) + "\n"
 

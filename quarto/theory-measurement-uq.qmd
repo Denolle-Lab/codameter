@@ -58,7 +58,7 @@ rng = np.random.default_rng(7)
 ## 1. The $\delta v/v$ measurement is a tree of choices
 
 A $\delta v/v$ value is not measured; it is *computed* from a stack of repeated
-coda waves through a pipeline. Each fork is a defensible choice, and different
+coda waves through a pipeline. Each fork is a reasonable choice, and different
 groups fork differently — so the same raw data yields different $\delta v/v(t)$.
 
 ```{mermaid}
@@ -120,7 +120,7 @@ plt.tight_layout(); plt.show()
 ## 3. The methodological spread over choices
 
 The floor assumes the configuration is *the* configuration. It is not. Run the
-same data through several defensible pipelines and you get an **ensemble** of
+same data through several reasonable pipelines and you get an **ensemble** of
 $\delta v/v(t)$ curves whose spread is a genuine, usually dominant, uncertainty.
 We simulate that here: a common truth seen through stretching, MWCS, a wavelet
 estimator, and two window/band variants — each with its own bias and
@@ -351,7 +351,7 @@ consumes it. Reported the old way — one method, one reference, a diagonal
 `dvv_err` — a $\delta v/v$ study quietly discards both the methodological spread
 and the temporal correlation, and over-reports its own confidence. Carrying
 $C_d$ through is what makes the stress posterior on the [inference page](theory-uq.qmd)
-defensible.
+reasonable.
 
 ## 8. The survey: how 103 studies report (or don't) their measurement error
 

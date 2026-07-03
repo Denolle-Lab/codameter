@@ -335,7 +335,7 @@ window.Quarto = {
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">1 · Measurement · error in δv/v</span></a>
+ <span class="dropdown-text">1 · Measurement · marginal error in δv/v</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
@@ -343,11 +343,15 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">2 · Depth · kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="dropdown-text">2 · Depth · δv/v → δVs(z)/Vs</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-3-stress.html">
- <span class="dropdown-text">3 · Stress &amp; strain</span></a>
+ <span class="dropdown-text">3 · Stress meter · δv/v as a stress meter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./uncertainty-4-attribution.html">
+ <span class="dropdown-text">4 · Attribution · which forcing drives it</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-uq.html">
@@ -478,7 +482,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-measurement-uq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">1 · Measurement — error in δv/v</span></a>
+ <span class="menu-text">1 · Measurement — marginal error in δv/v</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -490,13 +494,19 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./theory-processing-depth.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">2 · Depth — kernels → δVs/Vs &amp; δρ/ρ</span></a>
+ <span class="menu-text">2 · Depth — δv/v → δVs(z)/Vs</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./uncertainty-3-stress.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">3 · Stress &amp; strain</span></a>
+ <span class="menu-text">3 · Stress meter — δv/v as a stress meter</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./uncertainty-4-attribution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Attribution — which forcing drives it</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -634,7 +644,7 @@ window.Quarto = {
 <p><span class="k-title">The experiment</span> We synthesize a <strong>reference coda</strong> cross-correlation function (CCF), repeat it over three years while imposing a <strong>known</strong> ground-truth <span class="math inline">\(\delta v/v(t)\)</span>, and add measurement noise. Then we <em>measure <span class="math inline">\(\delta v/v\)</span> back</em> under different processing choices — and, deliberately, some <strong>deviations from best practice</strong>: the wrong estimator for the signal size, a different way to aggregate a pair’s cross-components, a coda window reused across frequency bands, a moving reference, a station clock error, seasonal noise in the late coda. Because the truth is known, <strong>every gap is an artefact of a choice</strong>, not of nature. The worry is reproducibility: these choices are usually <strong>ad-hoc and undocumented</strong>, yet they move the answer — so two groups analysing the same data can disagree for no physical reason. This is the waveform-level companion to the <a href="./survey-best-practices.html">best-practice survey</a> and its <a href="./survey-references.html">references</a>.</p>
 </div>
 <p>The machinery lives in <a href="https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/synthetic_demo.py"><code>codameter.synthetic_demo</code></a>: a band-limited, multiply-scattered coda (<code>make_coda</code>, and a frequency-dependent-decay variant <code>make_freqdep_coda</code>), a homogeneous velocity change applied by stretching the coda (<code>impose_dvv</code>), daily noisy CCFs (<code>daily_ccfs</code>), artefact injectors (<code>add_clock_drift</code>, <code>add_seasonal_late_noise</code>), and the estimators below. A noiseless self-check confirms recovery to <span class="math inline">\(\sim\!10^{-6}\)</span>.</p>
-<div id="38189e60" class="cell" data-execution_count="1">
+<div id="788c02d4" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Set up — imports, style, self-check, and the coda waveform</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -663,7 +673,7 @@ window.Quarto = {
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-2-output-2.png" width="1050" height="321" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-2-output-2.png" width="1051" height="322" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -679,7 +689,7 @@ window.Quarto = {
 <li><strong>Warping methods</strong> (DTW, WTDTW) track but <strong>under-shoot</strong> the largest strains (a discretized-warp bias).</li>
 </ul>
 <p>No method is simply “right”; the point is that an <strong>ad-hoc estimator choice</strong> — or even a sub-choice like whether to unwrap — silently changes the answer once the signal leaves the small-amplitude regime.</p>
-<div id="79be470b" class="cell" data-execution_count="2">
+<div id="b9ffa2ef" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>sd.fig_methods()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -687,7 +697,7 @@ window.Quarto = {
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-3-output-1.png" width="1496" height="565" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-3-output-1.png" width="1404" height="566" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -701,8 +711,8 @@ window.Quarto = {
 <li><strong>A — average the dv/v.</strong> Peak-pick each component’s stretching curve <span class="math inline">\(\mathrm{CC}(\varepsilon, t)\)</span>, then <strong>average the per-component dv/v</strong>. Its uncertainty is the <em>ensemble spread</em> of the picks. <em>Unweighted</em>, a few poor components drag the mean around; <strong>CC-weighted</strong>, they are suppressed.</li>
 <li><strong>B — average the images.</strong> Stack the <span class="math inline">\(\mathrm{CC}(\varepsilon, t)\)</span> images across components <strong>first</strong>, then peak-pick once. Its uncertainty is the <em>width of the averaged CC peak</em> — a different statistical object entirely.</li>
 </ul>
-<p>All three are defensible and appear in the literature (including NoisePy). On the same station pair they give visibly different time series — A-unweighted swings with the poor components while CC-weighted-A and image-stack-B track — and they propagate uncertainty along <strong>incompatible pathways</strong>, so two studies using different recipes are simply not comparable.</p>
-<div id="7a514770" class="cell" data-execution_count="3">
+<p>All three are reasonable and appear in the literature (including NoisePy). On the same station pair they give visibly different time series — A-unweighted swings with the poor components while CC-weighted-A and image-stack-B track — and they propagate uncertainty along <strong>incompatible pathways</strong>, so two studies using different recipes are simply not comparable.</p>
+<div id="0681b383" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sd.fig_aggregation()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -710,7 +720,7 @@ window.Quarto = {
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-4-output-1.png" width="1424" height="565" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-4-output-1.png" width="1415" height="566" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -727,7 +737,7 @@ window.Quarto = {
 <li><strong>standard deviation</strong> — report the between-pair <em>scatter</em>, not divided by <span class="math inline">\(\sqrt{N}\)</span>.</li>
 </ul>
 <p>On the same network the <strong>means nearly coincide</strong>, but the reported <span class="math inline">\(1\sigma\)</span> spans a factor of <span class="math inline">\(\sim\!\sqrt{N}\)</span> (panel b). A velocity change that is “<span class="math inline">\(3\sigma\)</span> significant” under the tight convention is “<span class="math inline">\(1\sigma\)</span>, not significant” under the conservative one — from the <em>same data</em>. Error bars are not comparable across studies unless the aggregation and the SE-vs-SD convention are both stated.</p>
-<div id="3eed1e7a" class="cell" data-execution_count="4">
+<div id="9988cab0" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sd.fig_uncertainty()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -735,7 +745,7 @@ window.Quarto = {
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-5-output-1.png" width="1425" height="565" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-5-output-1.png" width="1415" height="566" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -745,7 +755,7 @@ window.Quarto = {
 <section id="frequency-band-selects-the-depth-and-the-signal" class="level2">
 <h2 class="anchored" data-anchor-id="frequency-band-selects-the-depth-and-the-signal">4. Frequency band selects the depth and the signal</h2>
 <p>Give the medium <strong>two layers</strong>: a shallow one with a strong seasonal cycle and a deep one with a multi-year drought trend, each living in a different part of the coda spectrum. Band high → you recover the shallow seasonal signal; band low → the deep trend. <strong>The band is not a free knob — it chooses what you measure</strong> (survey rule 6).</p>
-<div id="b7303158" class="cell" data-execution_count="5">
+<div id="aba539d5" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sd.fig_frequency_depth()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -753,7 +763,7 @@ window.Quarto = {
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-6-output-1.png" width="1136" height="529" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-6-output-1.png" width="1051" height="530" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -764,7 +774,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="the-coda-window-does-not-transfer-across-bands">5. The coda window does not transfer across bands</h2>
 <p>A common deviation: pick one lapse window (say 20–40 s) and reuse it at every frequency. But the coda <strong>decays faster at high frequency</strong> (<span class="math inline">\(A(t)\propto
 e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency is <strong>pure noise</strong> at high frequency (panel a). Measuring the high band in that fixed late window returns garbage; an earlier, SNR-matched window recovers the truth (panel b). The window must scale with the band — ideally set from the coda envelope / a fixed number of mean-free-times, not copied across bands.</p>
-<div id="c498d50d" class="cell" data-execution_count="6">
+<div id="3d8c2e4b" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sd.fig_window_band()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -772,7 +782,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-7-output-1.png" width="1419" height="552" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-7-output-1.png" width="1362" height="553" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -782,7 +792,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <section id="stacking-length-trades-resolution-against-noise" class="level2">
 <h2 class="anchored" data-anchor-id="stacking-length-trades-resolution-against-noise">6. Stacking length trades resolution against noise</h2>
 <p>A coseismic <strong>step</strong> under a seasonal cycle. A 1-day CCF is noisy but captures the step’s timing; a long trailing stack suppresses noise but <strong>rounds off and delays the step</strong> — the resolution/precision trade-off behind stacking choices (survey rule 7).</p>
-<div id="da2b8b1d" class="cell" data-execution_count="7">
+<div id="15087a5f" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sd.fig_stacking()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -790,7 +800,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-8-output-1.png" width="1118" height="529" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-8-output-1.png" width="1051" height="530" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -800,7 +810,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <section id="reference-strategy" class="level2">
 <h2 class="anchored" data-anchor-id="reference-strategy">7. Reference strategy</h2>
 <p>How you define the reference sets what survives. A <strong>total-stack</strong> reference is unbiased but noisy; a <strong>moving</strong> reference re-baselines continuously and so <strong>erases slow trends</strong> (the pre-eruptive decline vanishes); the <strong>Brenguier et al.&nbsp;(2014) joint inversion</strong> measures relative <span class="math inline">\(\delta v/v\)</span> between many short stacks and inverts <code>x_i − x_j = m_{ij}</code> with a smoothness penalty — robust to any single reference <em>and</em> trend-preserving.</p>
-<div id="44c15cfc" class="cell" data-execution_count="8">
+<div id="777343d1" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sd.fig_reference()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -808,7 +818,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-9-output-1.png" width="1276" height="555" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-9-output-1.png" width="1103" height="556" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -822,7 +832,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <li><strong>Station clock error</strong> (panel a). A timing drift delays the whole CCF — a <em>constant</em> lag, independent of lapse — so it appears with <strong>opposite sign on the causal and acausal branches</strong>. A real velocity change moves both the same way, so measuring the two branches separately is the diagnostic.</li>
 <li><strong>Seasonal noise in the late coda</strong> (panel b). A seasonally changing noise-source distribution warps the low-SNR late coda, so a <strong>late</strong> window reports a coherent spurious <em>seasonal</em> <span class="math inline">\(\delta v/v\)</span> many times the real signal, while an <strong>early</strong>, higher-SNR window stays clean (the Zhan 2013 / Daskalakis 2016 warning).</li>
 </ul>
-<div id="17d4e7f5" class="cell" data-execution_count="9">
+<div id="254c43c7" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>sd.fig_artifacts()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -830,7 +840,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-10-output-1.png" width="1402" height="552" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-10-output-1.png" width="1363" height="553" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -839,8 +849,8 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 </section>
 <section id="the-garden-of-forking-paths" class="level2">
 <h2 class="anchored" data-anchor-id="the-garden-of-forking-paths">9. The garden of forking paths</h2>
-<p>Finally, take one volcano dataset and run <strong>27 individually defensible pipelines</strong> (3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The median tracks the truth, but the 10–90 % spread across pipelines fans out <strong>most where it matters</strong> — at the sharp co-eruptive drop. The honest object is a <em>distribution</em> of <span class="math inline">\(\delta v/v\)</span> over processing choices, which is exactly what <a href="https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/uq_processing.py"><code>codameter.uq_processing</code></a> samples and marginalizes.</p>
-<div id="64fc63e5" class="cell" data-execution_count="10">
+<p>Finally, take one volcano dataset and run <strong>27 individually reasonable pipelines</strong> (3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The median tracks the truth, but the 10–90 % spread across pipelines fans out <strong>most where it matters</strong> — at the sharp co-eruptive drop. The honest object is a <em>distribution</em> of <span class="math inline">\(\delta v/v\)</span> over processing choices, which is exactly what <a href="https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/uq_processing.py"><code>codameter.uq_processing</code></a> samples and marginalizes.</p>
+<div id="e962dee2" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sd.fig_multiverse()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -848,7 +858,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="survey-synthetic-demo_files/figure-html/cell-11-output-1.png" width="1102" height="555" class="figure-img"></p>
+<p><img src="survey-synthetic-demo_files/figure-html/cell-11-output-1.png" width="1103" height="556" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1524,7 +1534,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <span id="cb12-113"><a href="#cb12-113" aria-hidden="true" tabindex="-1"></a>  across components **first**, then peak-pick once. Its uncertainty is the *width</span>
 <span id="cb12-114"><a href="#cb12-114" aria-hidden="true" tabindex="-1"></a>  of the averaged CC peak* — a different statistical object entirely.</span>
 <span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-116"><a href="#cb12-116" aria-hidden="true" tabindex="-1"></a>All three are defensible and appear in the literature (including NoisePy). On the</span>
+<span id="cb12-116"><a href="#cb12-116" aria-hidden="true" tabindex="-1"></a>All three are reasonable and appear in the literature (including NoisePy). On the</span>
 <span id="cb12-117"><a href="#cb12-117" aria-hidden="true" tabindex="-1"></a>same station pair they give visibly different time series — A-unweighted swings</span>
 <span id="cb12-118"><a href="#cb12-118" aria-hidden="true" tabindex="-1"></a>with the poor components while CC-weighted-A and image-stack-B track — and they</span>
 <span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a>propagate uncertainty along **incompatible pathways**, so two studies using</span>
@@ -1649,7 +1659,7 @@ e^{-\pi f t/Q_c}\)</span>), so a window that is full of signal at low frequency 
 <span id="cb12-252"><a href="#cb12-252" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-253"><a href="#cb12-253" aria-hidden="true" tabindex="-1"></a><span class="fu">## 9. The garden of forking paths</span></span>
 <span id="cb12-254"><a href="#cb12-254" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-255"><a href="#cb12-255" aria-hidden="true" tabindex="-1"></a>Finally, take one volcano dataset and run **27 individually defensible pipelines**</span>
+<span id="cb12-255"><a href="#cb12-255" aria-hidden="true" tabindex="-1"></a>Finally, take one volcano dataset and run **27 individually reasonable pipelines**</span>
 <span id="cb12-256"><a href="#cb12-256" aria-hidden="true" tabindex="-1"></a>(3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The</span>
 <span id="cb12-257"><a href="#cb12-257" aria-hidden="true" tabindex="-1"></a>median tracks the truth, but the 10–90 % spread across pipelines fans out **most</span>
 <span id="cb12-258"><a href="#cb12-258" aria-hidden="true" tabindex="-1"></a>where it matters** — at the sharp co-eruptive drop. The honest object is a</span>

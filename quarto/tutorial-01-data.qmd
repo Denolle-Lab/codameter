@@ -34,7 +34,7 @@ dvv.head()
 ## The observation and its uncertainty
 
 The single most important column — and the one most datasets omit — is
-`dvv_err`. Without it there is no defensible weighting in the inversion and **no
+`dvv_err`. Without it there is no principled weighting in the inversion and **no
 posterior**: the entire [Bayesian story](theory-uq.qmd) starts from the
 per-sample $\sigma_t$ in [the likelihood](theory-uq.qmd#eq-like). Here it is a constant $1.5\times10^{-4}$.
 

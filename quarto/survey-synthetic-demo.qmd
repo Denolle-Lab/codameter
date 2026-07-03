@@ -109,7 +109,7 @@ uncertainty**:
   across components **first**, then peak-pick once. Its uncertainty is the *width
   of the averaged CC peak* — a different statistical object entirely.
 
-All three are defensible and appear in the literature (including NoisePy). On the
+All three are reasonable and appear in the literature (including NoisePy). On the
 same station pair they give visibly different time series — A-unweighted swings
 with the poor components while CC-weighted-A and image-stack-B track — and they
 propagate uncertainty along **incompatible pathways**, so two studies using
@@ -234,7 +234,7 @@ sd.fig_artifacts();
 
 ## 9. The garden of forking paths
 
-Finally, take one volcano dataset and run **27 individually defensible pipelines**
+Finally, take one volcano dataset and run **27 individually reasonable pipelines**
 (3 bands × 3 windows × 3 stack lengths) with a common pre-eruption reference. The
 median tracks the truth, but the 10–90 % spread across pipelines fans out **most
 where it matters** — at the sharp co-eruptive drop. The honest object is a

@@ -85,7 +85,7 @@ in one place.
 
 This is a reproducibility problem of exactly the "garden of forking paths" type
 identified in the statistical sciences [@Gelman2013; @Steegen2016]: many
-individually defensible analyses of the same data give different answers, and
+individually reasonable analyses of the same data give different answers, and
 without pre-registration or full reporting the reader cannot tell signal from
 choice. Here we make the problem concrete for \dvv\ monitoring. We build a
 synthetic in which the truth is known, push it through the real estimators of an
@@ -159,36 +159,36 @@ value} & \textbf{Effect on the uncertainty} \\
 Estimator & TS, WCC, DTW, MWCS, WCS, WTS, WTDTW (7 in NoisePy) &
 Agree at small \dvv; at large \dvv\ phase methods cycle-skip, warps under-shoot
 (Fig.~\ref{fig:methods}) & Each has its own error model; the inter-method spread
-is itself an uncertainty \\
+is itself an uncertainty \\ \hline
 Phase unwrapping & on / off (phase methods) & Decides whether MWCS/WCS cycle-skip
-(Fig.~\ref{fig:methods}b) & Sets the usable \dvv\ range \\
+(Fig.~\ref{fig:methods}b) & Sets the usable \dvv\ range \\ \hline
 Frequency band $[f_1,f_2]$ & 0.1--2\,Hz (volcano), 2--4\,Hz (aquifer),
 4--12\,Hz (landslide) & Selects the sampled depth, hence \emph{which} signal
-(Fig.~\ref{fig:params}a) & $\sigma$ falls as bandwidth $B$ grows \\
+(Fig.~\ref{fig:params}a) & $\sigma$ falls as bandwidth $B$ grows \\ \hline
 Coda window $[t_1,t_2]$ & a few to tens of mean free times & Later lapse $\to$
 deeper, larger sensitivity & $\sigma\propto(t_2^3-t_1^3)^{-1/2}$, but late coda
-is low-SNR \\
+is low-SNR \\ \hline
 Window--band coupling & fixed vs scaled with $f$ & A fixed late window at high
 $f$ measures noise (Fig.~\ref{fig:params}b) & Inflates $\sigma$ / decorrelation
-at high band \\
+at high band \\ \hline
 Reference & total stack / trailing / joint inversion & Moving reference erases
 slow trends (Fig.~\ref{fig:params}c) & Reference noise propagates; inversion
-lowers it \\
+lowers it \\ \hline
 Stacking / substack & 1--30+ days & Smears and delays transients
 (Fig.~\ref{fig:params}d) & $\sigma$ falls with stack length; resolution falls
-too \\
+too \\ \hline
 Component aggregation & A (average \dvv) vs B (average CC images); weighted vs
 not & Different time series (Fig.~\ref{fig:aggregation}) & Different uncertainty
-object (ensemble spread vs CC-peak width) \\
+object (ensemble spread vs CC-peak width) \\ \hline
 Pair / network weighting & coherence-weighted vs unweighted & Small change in
-value & Changes $N_{\mathrm{eff}}$ \\
+value & Changes $N_{\mathrm{eff}}$ \\ \hline
 Uncertainty definition & within-measurement (Weaver) / SE / SD &
---- & Factor $\sqrt{N}$ or more (Fig.~\ref{fig:uncertainty}) \\
+--- & Factor $\sqrt{N}$ or more (Fig.~\ref{fig:uncertainty}) \\ \hline
 Quality control & min CC, min SNR, max $\delta t$ error & Rejects or keeps
-measurements & Sets the effective $N$ and any selection bias \\
+measurements & Sets the effective $N$ and any selection bias \\ \hline
 Pre-processing & one-bit / running-mean; whitening band & Bias if the noise
 field is non-stationary & Spurious \dvv\ when the noise spectrum drifts
-\citep{Zhan2013} \\
+\citep{Zhan2013} \\ \hline
 Clock / timing & causal vs acausal branch handling & A clock error fabricates
 \dvv\ (Fig.~\ref{fig:artifacts}a) & Branch asymmetry diagnoses it \\
 \bottomrule
@@ -204,7 +204,7 @@ stretching-family estimator for robustness at low SNR and large change
 cross-validation against a second estimator [@Obermann2019] --- yet no two
 studies report the same set, and the uncertainty convention is the least
 standardized of all (Appendix~\ref{app:survey}). The sections below address each
-component in turn and quantify, against a known truth, how far a defensible
+component in turn and quantify, against a known truth, how far a reasonable
 deviation moves the recovered value *and its stated error*. The resulting object
 is a covariance, which every subsequent step in the arc
 (Sections~\ref{sec:depth}--\ref{sec:stress}) consumes.
@@ -363,7 +363,7 @@ nearly as good as the fixed reference and preserves the trend.
 
 The choices do not act in isolation, so we run the **full factorial**: every
 combination of three estimators, two bands, three coda windows, three stack
-lengths and two reference schemes --- 108 individually defensible pipelines ---
+lengths and two reference schemes --- 108 individually reasonable pipelines ---
 on one volcano dataset (Fig.~\ref{fig:multiverse}a). The recovered \dvv\ fans out
 across more than an order of magnitude in RMS error, and the fan is widest
 exactly at the sharp co-eruptive drop. Attributing the variance of the outcome to
@@ -378,7 +378,7 @@ but a distribution of \dvv\ over the processing choices.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{demo_11_multiverse.png}
-  \caption{The ultimate multiverse. (a) 108 defensible pipelines on one dataset,
+  \caption{The ultimate multiverse. (a) 108 reasonable pipelines on one dataset,
   each coloured by its RMS error against the truth (green accurate, red biased;
   the worst run off the clipped axis); the grey band is the 10--90\% inter-pipeline
   spread, widest at the velocity drop. (b) First-order variance attribution: which
@@ -406,22 +406,27 @@ literature survey (Appendix~\ref{app:survey}).}
 \textbf{Choice} & \textbf{Best practice} & \textbf{Common deviation} &
 \textbf{Consequence} \\
 \midrule
-Estimator & Stretching family (TS/WTS/WCC), robust at low SNR and large \dvv &
-Bare MWCS / wrapped phase without 2-D unwrapping & Cycle-skips at large \dvv;
-error inflated $\sim\!10\times$ or catastrophic \\
-Frequency band & Band matched to the target depth & Off-target or single wide
-band & Mixes depths; here mostly sets precision \\
-Coda window & Coda well past the direct arrival, scaled with the band & Fixed
-late window reused across bands & Measures noise at high $f$; bias and inflated
-$\sigma$ \\
-Stack length & Short enough to resolve the transient ($\sim$10\,d) & Over-long
-stack ($\sim$45\,d) & Smears and delays a step; distorts the recovered drop \\
-Reference & Long fixed stack or joint inversion [@Brenguier2014] & Moving /
-trailing reference & Erases slow trends \\
-Coherence gating & Discard low-coherence epochs & No gating & Keeps corrupted
-epochs; changes the effective $N$ \\
-Uncertainty definition & State it: within-measurement / SE / SD & Left unstated &
-Factor $\sqrt{N}$ ambiguity in significance (Fig.~\ref{fig:uncertainty}) \\
+Estimator & Stretching family (TS/WTS/WCC), robust at low SNR and large \dvv\
+[@Mikesell2015; @Yuan2021] & Bare MWCS / wrapped phase [@Clarke2011] without 2-D
+unwrapping [@Mao2020] & Cycle-skips at large \dvv; error inflated
+$\sim\!10\times$ or catastrophic \\ \hline
+Frequency band & Matched to the target depth: $\sim$0.1--2\,Hz (volcano, crust),
+2--4\,Hz (aquifer), 4--12\,Hz (shallow damage) [@Obermann2013; @Obermann2016] &
+Off-target or a single wide band & Mixes depths; here mostly sets precision \\ \hline
+Coda window & Lapse window past the direct arrival, scaled with the band:
+$\sim$5--30\,s (crustal) up to $\sim$100\,s (station pairs) [@Obermann2013] &
+Fixed late window reused across bands & Measures noise at high $f$; bias and
+inflated $\sigma$ \\ \hline
+Stack length & Short enough to resolve the transient ($\sim$10\,d), on a long,
+stable reference span [@Wang2017] & Over-long stack ($\sim$45\,d) & Smears and
+delays a step; distorts the recovered drop \\ \hline
+Reference & Long fixed stack or all-to-all joint inversion [@Brenguier2014;
+@Wang2017] & Moving / trailing reference & Erases slow trends \\ \hline
+Coherence gating & Discard low-coherence epochs (CC / SNR threshold)
+[@Clarke2011] & No gating & Keeps corrupted epochs; changes the effective $N$ \\ \hline
+Uncertainty definition & State it explicitly: within-measurement
+[@Weaver2011; @Clarke2011] / SE / SD & Left unstated & Factor $\sqrt{N}$
+ambiguity in significance (Fig.~\ref{fig:uncertainty}) \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -432,7 +437,7 @@ If the processing choice controls the answer, the principled response is not to
 crown one pipeline but to treat the choice as a **nuisance parameter** with a
 prior and marginalise it out. We propose this as the new best practice for the
 \dvv\ *measurement*, and implement it as a Bayesian hierarchical inversion. For
-configuration $k$ drawn from a prior over defensible pipelines we obtain a
+configuration $k$ drawn from a prior over reasonable pipelines we obtain a
 measured series $m_k(t)$ with a coherence-limited within-method floor
 $\sigma_k(t)$ [@Weaver2011; @Clarke2011], and posit
 \begin{equation}
@@ -552,14 +557,14 @@ per-band \dvv\ to a depth profile, and the consequence for the interpretation.}
 \textbf{Consequence} \\
 \midrule
 Depth assignment & Invert several bands against sensitivity kernels &
-Read one band as one depth & No depth resolution and no depth error \\
+Read one band as one depth & No depth resolution and no depth error \\ \hline
 Band selection & Bands where the kernels resolve (no half-space leak, coherent
-coda) & Convenience band & Kernel leaks; unstable inversion \\
+coda) & Convenience band & Kernel leaks; unstable inversion \\ \hline
 Measurement error & Propagate the per-band $C_d$ into the profile & Plot a profile
-with no covariance & Overconfident depth attribution \\
+with no covariance & Overconfident depth attribution \\ \hline
 Saturation & Separate $\delta V_S/V_S$ and $\delta\rho/\rho$ with a petrophysical
 model in partly saturated ground & Assume a pure $\delta V_S/V_S$ change & Biased
-velocity change and stress in hydrological and cryospheric targets \\
+velocity change and stress in hydrological and cryospheric targets \\ \hline
 Velocity model & State the reference $V_P,V_S(z)$ and its uncertainty & Fixed,
 unstated model & Hidden systematic in the kernels and the moduli \\
 \bottomrule
@@ -577,7 +582,7 @@ poroelastic or thermoelastic model and separate the two by their seasonal phase
 lag [@Tsai2011; @Wang2017; @Clements2018]; and a growing body quantifies stress
 sensitivity through an acoustoelastic coefficient [@Brenguier2008; @Nakata2011].
 What is largely absent is the *uncertainty* on that final quantity and a
-defensible apportionment of it among the competing forcings. Because the material
+reasonable apportionment of it among the competing forcings. Because the material
 properties entering the conversion are poorly constrained, the stress uncertainty
 is dominated by *epistemic* prior uncertainty rather than by the measurement, so a
 stress value reported without it is the least constrained quantity in the chain,
@@ -633,13 +638,13 @@ framework's step and is not tabulated here.}
 \midrule
 Stress conversion & Acoustoelastic meter $\Delta\sigma_{ij}=\beta_{ij}(z)\,\delta V_S/V_S$
 with layered $\beta_{ij},\mu'(z)$ priors & Single scalar coefficient, no prior &
-Understated (epistemic) stress error \\
+Understated (epistemic) stress error \\ \hline
 Stress component & Identify the fabric-selected component (isotropic vs deviatoric)
 before inverting & Assume the isotropic $\delta v/v=\beta\varepsilon_{kk}$
-everywhere & Wrong sign and magnitude under deviatoric load \\
+everywhere & Wrong sign and magnitude under deviatoric load \\ \hline
 Uncertainty budget & Merge the aleatoric depth covariance with the epistemic
 material priors & Report the measurement error only & Stress error too small by
-its dominant term \\
+its dominant term \\ \hline
 Stress measure & Report effective stress (poroelastically clean); flag any
 total-stress assumptions & Conflate effective and total stress &
 Non-comparable, ambiguous stress \\
@@ -676,29 +681,29 @@ makes error bars comparable across studies.}
 \textbf{Step} & \textbf{What to report} \\
 \midrule
 Pre-processing & Time-domain normalization (one-bit / running-mean), spectral
-whitening band, sampling rate \\
+whitening band, sampling rate \\ \hline
 Correlation \& stacking & Components computed, segment length, daily/sub-stack
-length, total reference span \\
+length, total reference span \\ \hline
 Estimator & Method (TS / WCC / DTW / MWCS / WCS / WTS / WTDTW), its parameters
 ($\varepsilon$-grid, or sub-window length and step), and whether the phase is
-unwrapped \\
-Frequency band(s) & $[f_1,f_2]$ for every reported measurement \\
+unwrapped \\ \hline
+Frequency band(s) & $[f_1,f_2]$ for every reported measurement \\ \hline
 Coda window(s) & $[t_1,t_2]$, the branch(es) used, and \emph{how} $t_1,t_2$ were
-set relative to the band \\
-Reference & Scheme (total stack / trailing / inversion) and period \\
-Component aggregation & Approach A or B; weighted (by what) or unweighted \\
-Pair / network aggregation & Spatial averaging and weighting scheme \\
+set relative to the band \\ \hline
+Reference & Scheme (total stack / trailing / inversion) and period \\ \hline
+Component aggregation & Approach A or B; weighted (by what) or unweighted \\ \hline
+Pair / network aggregation & Spatial averaging and weighting scheme \\ \hline
 Uncertainty & The exact definition of the quoted error: within-measurement
-(e.g.\ Weaver), between-component/pair standard error, or standard deviation \\
+(e.g.\ Weaver), between-component/pair standard error, or standard deviation \\ \hline
 Quality control & CC / SNR thresholds, rejection criteria, resulting effective
-$N$ \\
+$N$ \\ \hline
 Software & Package, version, and the parameter file or its DOI \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 **Quantify the choice-induced uncertainty.** Where a choice is not forced by the
-physics, it can be sampled. Pushing a distribution of defensible processing
+physics, it can be sampled. Pushing a distribution of reasonable processing
 choices through the measurement-error floors of @Clarke2011 [@Weaver2011] yields,
 by the law of total variance, a marginal \dvv\ uncertainty that includes the
 processing-choice spread --- a more honest error bar than any single pipeline
@@ -720,7 +725,7 @@ shear-velocity and density contributions where the ground is partially saturated
 and push the depth posterior through layered petrophysical priors to effective
 stress and strain at depth, which a companion framework then attributes to a
 forcing mechanism. At each step the honest error bar depends on the one before it,
-which is why a defensible stress at depth begins with a defensible $C_d$. Building
+which is why a reliable stress at depth begins with a reliable $C_d$. Building
 and testing those propagation stages on truth-known synthetics is the natural
 continuation of this work, and is under way in the open codameter framework.
 
@@ -738,7 +743,7 @@ pipeline as executable code. The same discipline extends down the inference
 chain: the measurement covariance is the input a depth inversion consumes, that
 depth profile the input a stress conversion consumes, and only a pipeline that
 carries the covariance to the end can attach an honest uncertainty to a stress or
-strain change at depth --- and hand a defensible posterior to the companion
+strain change at depth --- and hand a reliable posterior to the companion
 framework that attributes it to a forcing. We offer codameter as one such record,
 and as the package in which the depth and stress stages are being built.
 
