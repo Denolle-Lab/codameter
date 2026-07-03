@@ -1,33 +1,57 @@
 ---
 title: "codameter"
 subtitle: "Seismic velocity changes as **Bayesian** stress & strain meters"
-toc: false
+toc: true
 ---
 
 ::: {.keyidea}
-[The one-sentence pitch]{.k-title}
-We turn a noisy $\delta v/v$ time series into **depth-resolved stress with a
-full posterior** — and we are the first in ambient-noise seismology to carry
-uncertainty all the way from measurement noise and material-property priors
-through to the interpreted stress, rather than reporting a single number.
+[In one sentence]{.k-title}
+`codameter` turns a noisy $\delta v/v$ time series into **depth-resolved stress
+with a full posterior**, carrying uncertainty from measurement noise and
+material-property priors through to the interpreted stress rather than reporting a
+single number.
 :::
 
-`codameter` is the executable companion to **Denolle (in prep, *JGR Solid
-Earth*)**. It implements a six-phase workflow that reads a relative
-seismic-velocity-change ($\delta v / v$) time series plus the environmental
-forcings that drive it (temperature, precipitation, earthquakes, surface
-load) and returns:
+`codameter` is a research method and open-source package — the executable
+companion to **Denolle (in prep, *JGR Solid Earth*)**. It reads a relative
+seismic-velocity-change ($\delta v/v$) time series plus the environmental forcings
+that drive it (temperature, precipitation, earthquakes, surface load) and returns:
 
 - depth-resolved **stress** estimates with *propagated* uncertainties,
 - **water-table / saturation** inversions (v0.2+),
-- **coupling-tier diagnostics** that flag when simple linear superposition
-  fails, and
-- **anomaly classifications** for residual signal the physics does not
-  explain.
+- **coupling diagnostics** that flag when linear superposition fails, and
+- **anomaly flags** for residual signal the physics does not explain.
 
-This site is a *narrative* companion to the API docs. It exists to show the
-**reasoning** — the theory, the equations, and the life of each figure — not
-just the function signatures.
+This site is the *narrative* companion to the API docs: it shows the
+**reasoning** — the theory, the equations, and the life of each figure — not just
+the function signatures.
+
+## Overview
+
+Two ideas motivate the whole project.
+
+**1 · Reproducibility, turned into uncertainty quantification.** Turning
+cross-correlations into a $\delta v/v$ series takes a long sequence of
+signal-processing choices — estimator, frequency band, coda window, reference,
+stacking, coherence gating — made *ad hoc* and seldom reported. Because reasonable
+analysts choose differently, the same data yields different $\delta v/v$, and even
+different *stated* uncertainties: a reproducibility problem. Rather than crown one
+pipeline, codameter treats the choice as a nuisance parameter and **marginalises**
+it, so the spread across reasonable choices becomes a structured measurement
+covariance $C_d$. The diversity of processing choices, usually a weakness, becomes
+the raw material for an honest, propagatable uncertainty.
+
+**2 · Making $\delta v/v$ interpretable — which stress, and what rheology.** A
+$\delta v/v$ value is only useful once it is tied to a mechanism. codameter
+propagates $C_d$ through depth-sensitivity kernels to a profile of shear-velocity
+change, then through a petrophysical model to **stress**, so one can ask *which
+component* of the stress explains the observations. Along the way it tests whether
+the rheology behaves **linearly** — the forcings superpose and a closed-form
+posterior holds — or **nonlinearly**, where drainage and damage couple and the
+inference must be sampled. The connection is the acoustoelastic **bridge relation**
+$\Delta\sigma_{ij}(z,t)=\beta_{ij}(z)\,\delta V_S/V_S$, which links the *stress* and
+*strain* representations of $\delta v/v$ and lets a velocity change be read as a
+named, depth-resolved stress or strain component.
 
 ---
 
@@ -37,7 +61,7 @@ There are two distinct halves, and they are written in two different voices.
 
 ### ① The uncertainty arc in four steps
 
-The theory pages lay out the **novel** contribution: a forward chain that carries
+The theory pages lay out the **core** contribution: a forward chain that carries
 uncertainty from the raw measurement to stress at depth and its attribution. Each
 step consumes the previous step's covariance.
 

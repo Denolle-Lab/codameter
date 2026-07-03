@@ -117,6 +117,12 @@ format:
     toc: true
     toc-depth: 3
     toc-title: "On this page"
+    toc-location: right
+    grid:                 # reserve room for the right-margin TOC so it stays visible
+      sidebar-width: 240px
+      body-width: 760px
+      margin-width: 260px
+      gutter-width: 1.4rem
     code-fold: show
     code-tools: true
     code-copy: true

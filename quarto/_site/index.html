@@ -79,9 +79,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-b1cbdb3c7cc7440c614a61479eed037f.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-fe51ba719ff736b1e9fed2935e4c1e0f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-af50361543bdc15837c98d19f9912a76.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-fe51ba719ff736b1e9fed2935e4c1e0f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-a3d4ef5d3edf4a76a99a86bcc665906f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-9799ddac40a5dc1ce694184bdffaecbe.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-a3d4ef5d3edf4a76a99a86bcc665906f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -147,7 +147,7 @@ window.Quarto = {
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="nav-sidebar docked nav-fixed fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+<body class="nav-sidebar docked nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
       const bodyEl = window.document.querySelector("body");
@@ -600,7 +600,22 @@ window.Quarto = {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#how-to-read-this-site" id="toc-how-to-read-this-site" class="nav-link" data-scroll-target="#how-to-read-this-site">How to read this site</a>
+  <ul class="collapse">
+  <li><a href="#the-uncertainty-arc-in-four-steps" id="toc-the-uncertainty-arc-in-four-steps" class="nav-link" data-scroll-target="#the-uncertainty-arc-in-four-steps">① The uncertainty arc in four steps</a></li>
+  <li><a href="#the-implementation-tutorial" id="toc-the-implementation-tutorial" class="nav-link" data-scroll-target="#the-implementation-tutorial">② The implementation tutorial</a></li>
+  </ul></li>
+  <li><a href="#the-scientific-arc-in-one-figure" id="toc-the-scientific-arc-in-one-figure" class="nav-link" data-scroll-target="#the-scientific-arc-in-one-figure">The scientific arc in one figure</a></li>
+  <li><a href="#status-v0.1" id="toc-status-v0.1" class="nav-link" data-scroll-target="#status-v0.1">Status — v0.1</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/Denolle-Lab/codameter/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/Denolle-Lab/codameter/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
@@ -626,23 +641,29 @@ window.Quarto = {
 
 
 <div class="keyidea">
-<p><span class="k-title">The one-sentence pitch</span> We turn a noisy <span class="math inline">\(\delta v/v\)</span> time series into <strong>depth-resolved stress with a full posterior</strong> — and we are the first in ambient-noise seismology to carry uncertainty all the way from measurement noise and material-property priors through to the interpreted stress, rather than reporting a single number.</p>
+<p><span class="k-title">In one sentence</span> <code>codameter</code> turns a noisy <span class="math inline">\(\delta v/v\)</span> time series into <strong>depth-resolved stress with a full posterior</strong>, carrying uncertainty from measurement noise and material-property priors through to the interpreted stress rather than reporting a single number.</p>
 </div>
-<p><code>codameter</code> is the executable companion to <strong>Denolle (in prep, <em>JGR Solid Earth</em>)</strong>. It implements a six-phase workflow that reads a relative seismic-velocity-change (<span class="math inline">\(\delta v / v\)</span>) time series plus the environmental forcings that drive it (temperature, precipitation, earthquakes, surface load) and returns:</p>
+<p><code>codameter</code> is a research method and open-source package — the executable companion to <strong>Denolle (in prep, <em>JGR Solid Earth</em>)</strong>. It reads a relative seismic-velocity-change (<span class="math inline">\(\delta v/v\)</span>) time series plus the environmental forcings that drive it (temperature, precipitation, earthquakes, surface load) and returns:</p>
 <ul>
 <li>depth-resolved <strong>stress</strong> estimates with <em>propagated</em> uncertainties,</li>
 <li><strong>water-table / saturation</strong> inversions (v0.2+),</li>
-<li><strong>coupling-tier diagnostics</strong> that flag when simple linear superposition fails, and</li>
-<li><strong>anomaly classifications</strong> for residual signal the physics does not explain.</li>
+<li><strong>coupling diagnostics</strong> that flag when linear superposition fails, and</li>
+<li><strong>anomaly flags</strong> for residual signal the physics does not explain.</li>
 </ul>
-<p>This site is a <em>narrative</em> companion to the API docs. It exists to show the <strong>reasoning</strong> — the theory, the equations, and the life of each figure — not just the function signatures.</p>
+<p>This site is the <em>narrative</em> companion to the API docs: it shows the <strong>reasoning</strong> — the theory, the equations, and the life of each figure — not just the function signatures.</p>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>Two ideas motivate the whole project.</p>
+<p><strong>1 · Reproducibility, turned into uncertainty quantification.</strong> Turning cross-correlations into a <span class="math inline">\(\delta v/v\)</span> series takes a long sequence of signal-processing choices — estimator, frequency band, coda window, reference, stacking, coherence gating — made <em>ad hoc</em> and seldom reported. Because reasonable analysts choose differently, the same data yields different <span class="math inline">\(\delta v/v\)</span>, and even different <em>stated</em> uncertainties: a reproducibility problem. Rather than crown one pipeline, codameter treats the choice as a nuisance parameter and <strong>marginalises</strong> it, so the spread across reasonable choices becomes a structured measurement covariance <span class="math inline">\(C_d\)</span>. The diversity of processing choices, usually a weakness, becomes the raw material for an honest, propagatable uncertainty.</p>
+<p><strong>2 · Making <span class="math inline">\(\delta v/v\)</span> interpretable — which stress, and what rheology.</strong> A <span class="math inline">\(\delta v/v\)</span> value is only useful once it is tied to a mechanism. codameter propagates <span class="math inline">\(C_d\)</span> through depth-sensitivity kernels to a profile of shear-velocity change, then through a petrophysical model to <strong>stress</strong>, so one can ask <em>which component</em> of the stress explains the observations. Along the way it tests whether the rheology behaves <strong>linearly</strong> — the forcings superpose and a closed-form posterior holds — or <strong>nonlinearly</strong>, where drainage and damage couple and the inference must be sampled. The connection is the acoustoelastic <strong>bridge relation</strong> <span class="math inline">\(\Delta\sigma_{ij}(z,t)=\beta_{ij}(z)\,\delta V_S/V_S\)</span>, which links the <em>stress</em> and <em>strain</em> representations of <span class="math inline">\(\delta v/v\)</span> and lets a velocity change be read as a named, depth-resolved stress or strain component.</p>
 <hr>
+</section>
 <section id="how-to-read-this-site" class="level2">
 <h2 class="anchored" data-anchor-id="how-to-read-this-site">How to read this site</h2>
 <p>There are two distinct halves, and they are written in two different voices.</p>
 <section id="the-uncertainty-arc-in-four-steps" class="level3">
 <h3 class="anchored" data-anchor-id="the-uncertainty-arc-in-four-steps">① The uncertainty arc in four steps</h3>
-<p>The theory pages lay out the <strong>novel</strong> contribution: a forward chain that carries uncertainty from the raw measurement to stress at depth and its attribution. Each step consumes the previous step’s covariance.</p>
+<p>The theory pages lay out the <strong>core</strong> contribution: a forward chain that carries uncertainty from the raw measurement to stress at depth and its attribution. Each step consumes the previous step’s covariance.</p>
 <ul>
 <li><strong>1 · Measurement — the marginal error in <span class="math inline">\(\delta v/v\)</span>.</strong> The error in the measurement <em>itself</em>, marginalised over processing choices (method, window, stacking, gating, and the <strong>reference</strong>, including the Brenguier (2014) all-to-all scheme). Two pages: first <a href="./theory-measurement-uq.html">the marginal errors, and how they differ</a> — the within-method floor, the methodological spread, temporal correlation, and reference choice; then <a href="./theory-bayesian-measurement.html">turning them into a Bayesian measurement</a> — a posterior <span class="math inline">\(\delta v/v(t)\)</span> and the structured data covariance <span class="math inline">\(C_d\)</span>.</li>
 <li><strong>2 · Depth — <span class="math inline">\(\delta v/v \to \delta V_S(z)/V_S\)</span>.</strong> Invert the per-band <span class="math inline">\(C_d\)</span> through sensitivity kernels for a profile of shear-velocity change <span class="math inline">\(\delta V_S/V_S(z)\)</span> and, in partially saturated ground, a density change <span class="math inline">\(\delta\rho/\rho(z)\)</span> that needs a petrophysical model to separate. See <a href="./theory-processing-depth.html">propagating to depth</a>.</li>
@@ -1322,155 +1343,179 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "codameter"</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Seismic velocity changes as **Bayesian** stress &amp; strain meters"</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="an">toc:</span><span class="co"> false</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="an">toc:</span><span class="co"> true</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>::: {.keyidea}</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">The one-sentence pitch</span><span class="co">]</span>{.k-title}</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>We turn a noisy $\delta v/v$ time series into **depth-resolved stress with a</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>full posterior** — and we are the first in ambient-noise seismology to carry</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>uncertainty all the way from measurement noise and material-property priors</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>through to the interpreted stress, rather than reporting a single number.</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">In one sentence</span><span class="co">]</span>{.k-title}</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="in">`codameter`</span> turns a noisy $\delta v/v$ time series into **depth-resolved stress</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>with a full posterior**, carrying uncertainty from measurement noise and</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>material-property priors through to the interpreted stress rather than reporting a</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>single number.</span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="in">`codameter`</span> is the executable companion to **Denolle (in prep, *JGR Solid</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>Earth*)**. It implements a six-phase workflow that reads a relative</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>seismic-velocity-change ($\delta v / v$) time series plus the environmental</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>forcings that drive it (temperature, precipitation, earthquakes, surface</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>load) and returns:</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>depth-resolved **stress** estimates with *propagated* uncertainties,</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**water-table / saturation** inversions (v0.2+),</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**coupling-tier diagnostics** that flag when simple linear superposition</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  fails, and</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**anomaly classifications** for residual signal the physics does not</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  explain.</span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>This site is a *narrative* companion to the API docs. It exists to show the</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>**reasoning** — the theory, the equations, and the life of each figure — not</span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>just the function signatures.</span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="fu">## How to read this site</span></span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>There are two distinct halves, and they are written in two different voices.</span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="fu">### ① The uncertainty arc in four steps</span></span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>The theory pages lay out the **novel** contribution: a forward chain that carries</span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>uncertainty from the raw measurement to stress at depth and its attribution. Each</span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>step consumes the previous step's covariance.</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="in">`codameter`</span> is a research method and open-source package — the executable</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>companion to **Denolle (in prep, *JGR Solid Earth*)**. It reads a relative</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>seismic-velocity-change ($\delta v/v$) time series plus the environmental forcings</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>that drive it (temperature, precipitation, earthquakes, surface load) and returns:</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>depth-resolved **stress** estimates with *propagated* uncertainties,</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**water-table / saturation** inversions (v0.2+),</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**coupling diagnostics** that flag when linear superposition fails, and</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**anomaly flags** for residual signal the physics does not explain.</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>This site is the *narrative* companion to the API docs: it shows the</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>**reasoning** — the theory, the equations, and the life of each figure — not just</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>the function signatures.</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overview</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>Two ideas motivate the whole project.</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>**1 · Reproducibility, turned into uncertainty quantification.** Turning</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>cross-correlations into a $\delta v/v$ series takes a long sequence of</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>signal-processing choices — estimator, frequency band, coda window, reference,</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>stacking, coherence gating — made *ad hoc* and seldom reported. Because reasonable</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>analysts choose differently, the same data yields different $\delta v/v$, and even</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>different *stated* uncertainties: a reproducibility problem. Rather than crown one</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>pipeline, codameter treats the choice as a nuisance parameter and **marginalises**</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>it, so the spread across reasonable choices becomes a structured measurement</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>covariance $C_d$. The diversity of processing choices, usually a weakness, becomes</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>the raw material for an honest, propagatable uncertainty.</span>
 <span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**1 · Measurement — the marginal error in $\delta v/v$.** The error in the</span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>  measurement *itself*, marginalised over processing choices (method, window,</span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>  stacking, gating, and the **reference**, including the Brenguier (2014)</span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>  all-to-all scheme). Two pages: first</span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">the marginal errors, and how they differ</span><span class="co">](theory-measurement-uq.qmd)</span> — the</span>
-<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>  within-method floor, the methodological spread, temporal correlation, and</span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>  reference choice; then</span>
-<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">turning them into a Bayesian measurement</span><span class="co">](theory-bayesian-measurement.qmd)</span> — a</span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>  posterior $\delta v/v(t)$ and the structured data covariance $C_d$.</span>
-<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**2 · Depth — $\delta v/v \to \delta V_S(z)/V_S$.** Invert the per-band $C_d$</span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>  through sensitivity kernels for a profile of shear-velocity change</span>
-<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>  $\delta V_S/V_S(z)$ and, in partially saturated ground, a density change</span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>  $\delta\rho/\rho(z)$ that needs a petrophysical model to separate. See</span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">propagating to depth</span><span class="co">](theory-processing-depth.qmd)</span>.</span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**3 · Stress meter — $\delta v/v$ as a stress meter.** Push the depth posterior</span>
-<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>  through layered acoustoelastic priors to stress and strain at depth,</span>
-<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>  $\Delta\sigma_{ij}(z,t)=\beta_{ij}(z)\,\delta V_S/V_S$, with a posterior. See</span>
-<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">stress meter</span><span class="co">](uncertainty-3-stress.qmd)</span>; the companion</span>
-<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">inference UQ</span><span class="co">](theory-uq.qmd)</span> page holds the Bayesian machinery.</span>
-<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**4 · Attribution — which forcing drives it.** Decompose the stress into the</span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>  physical terms that can each act in isolation (thermoelastic, poroelastic,</span>
-<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>  damage, tectonic) and quantify each share with uncertainty. See</span>
-<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">process attribution</span><span class="co">](uncertainty-4-attribution.qmd)</span>; the forward physics and</span>
-<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>  the module live in the companion</span>
-<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">coupling-framework project</span><span class="co">](https://github.com/mdenolle/dvv-coupling-framework)</span>.</span>
-<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 👉 Read them in order: **[1 · Measurement](theory-measurement-uq.qmd)** →</span></span>
-<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **[2 · Depth](theory-processing-depth.qmd)** →</span></span>
-<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **[3 · Stress meter](uncertainty-3-stress.qmd)** →</span></span>
-<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **[4 · Attribution](uncertainty-4-attribution.qmd)**.</span></span>
-<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a><span class="fu">### ② The implementation tutorial</span></span>
-<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>A dynamic, runnable walkthrough that follows the scientific arc from</span>
-<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>**completely decoupled** forcings — thermoelastic, hydrological, loading,</span>
-<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>damage, each treated as an independent stress source — to **identifying</span>
-<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>coupled mechanisms** where that independence breaks down. Every figure on</span>
-<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>these pages is generated live from the package.</span>
-<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Step <span class="pp">|</span> Page <span class="pp">|</span> Phase <span class="pp">|</span></span>
-<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
-<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1 <span class="pp">|</span> <span class="co">[</span><span class="ot">Data &amp; site readiness</span><span class="co">](tutorial-01-data.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>0–1<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2 <span class="pp">|</span> <span class="co">[</span><span class="ot">Decoupled forward models</span><span class="co">](tutorial-02-forward.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>forward<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 3 <span class="pp">|</span> <span class="co">[</span><span class="ot">Linear superposition &amp; inversion</span><span class="co">](tutorial-03-inversion.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>3–4<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 4 <span class="pp">|</span> <span class="co">[</span><span class="ot">When decoupling breaks: coupling diagnostics</span><span class="co">](tutorial-04-coupling.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>2<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 5 <span class="pp">|</span> <span class="co">[</span><span class="ot">Interpretation: stress at depth</span><span class="co">](tutorial-05-interpretation.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>6<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 6 <span class="pp">|</span> <span class="co">[</span><span class="ot">End-to-end Parkfield walkthrough</span><span class="co">](tutorial-06-endtoend.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>0–6<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>**2 · Making $\delta v/v$ interpretable — which stress, and what rheology.** A</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>$\delta v/v$ value is only useful once it is tied to a mechanism. codameter</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>propagates $C_d$ through depth-sensitivity kernels to a profile of shear-velocity</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>change, then through a petrophysical model to **stress**, so one can ask *which</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>component* of the stress explains the observations. Along the way it tests whether</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>the rheology behaves **linearly** — the forcings superpose and a closed-form</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>posterior holds — or **nonlinearly**, where drainage and damage couple and the</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>inference must be sampled. The connection is the acoustoelastic **bridge relation**</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>$\Delta\sigma_{ij}(z,t)=\beta_{ij}(z)\,\delta V_S/V_S$, which links the *stress* and</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>*strain* representations of $\delta v/v$ and lets a velocity change be read as a</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>named, depth-resolved stress or strain component.</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a><span class="fu">## How to read this site</span></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>There are two distinct halves, and they are written in two different voices.</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a><span class="fu">### ① The uncertainty arc in four steps</span></span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>The theory pages lay out the **core** contribution: a forward chain that carries</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>uncertainty from the raw measurement to stress at depth and its attribution. Each</span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>step consumes the previous step's covariance.</span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**1 · Measurement — the marginal error in $\delta v/v$.** The error in the</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>  measurement *itself*, marginalised over processing choices (method, window,</span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>  stacking, gating, and the **reference**, including the Brenguier (2014)</span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>  all-to-all scheme). Two pages: first</span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">the marginal errors, and how they differ</span><span class="co">](theory-measurement-uq.qmd)</span> — the</span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>  within-method floor, the methodological spread, temporal correlation, and</span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>  reference choice; then</span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">turning them into a Bayesian measurement</span><span class="co">](theory-bayesian-measurement.qmd)</span> — a</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>  posterior $\delta v/v(t)$ and the structured data covariance $C_d$.</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**2 · Depth — $\delta v/v \to \delta V_S(z)/V_S$.** Invert the per-band $C_d$</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>  through sensitivity kernels for a profile of shear-velocity change</span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>  $\delta V_S/V_S(z)$ and, in partially saturated ground, a density change</span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>  $\delta\rho/\rho(z)$ that needs a petrophysical model to separate. See</span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">propagating to depth</span><span class="co">](theory-processing-depth.qmd)</span>.</span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**3 · Stress meter — $\delta v/v$ as a stress meter.** Push the depth posterior</span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>  through layered acoustoelastic priors to stress and strain at depth,</span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>  $\Delta\sigma_{ij}(z,t)=\beta_{ij}(z)\,\delta V_S/V_S$, with a posterior. See</span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">stress meter</span><span class="co">](uncertainty-3-stress.qmd)</span>; the companion</span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">inference UQ</span><span class="co">](theory-uq.qmd)</span> page holds the Bayesian machinery.</span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**4 · Attribution — which forcing drives it.** Decompose the stress into the</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>  physical terms that can each act in isolation (thermoelastic, poroelastic,</span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a>  damage, tectonic) and quantify each share with uncertainty. See</span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">process attribution</span><span class="co">](uncertainty-4-attribution.qmd)</span>; the forward physics and</span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>  the module live in the companion</span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">coupling-framework project</span><span class="co">](https://github.com/mdenolle/dvv-coupling-framework)</span>.</span>
 <span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a><span class="fu">## The scientific arc in one figure</span></span>
-<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>The whole project runs along one axis: **how strongly are the stress</span>
-<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>sources coupled?** On the left, the forcings add linearly and a closed-form</span>
-<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>Gaussian posterior is exact. On the right, pore pressure, damage, and</span>
-<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>saturation feed back on each other, the posterior goes non-Gaussian, and we</span>
-<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a>need the coupled MCMC machinery.</span>
-<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
-<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
-<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>    A[<span class="ot">"</span><span class="st">&lt;b&gt;Decoupled regime&lt;/b&gt;&lt;br/&gt;thermoelastic ⟂ hydrological ⟂ damage&lt;br/&gt;Eq. 6 linear superposition</span><span class="ot">"</span>]</span>
-<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a>    B[<span class="ot">"</span><span class="st">&lt;b&gt;Coupling diagnostics&lt;/b&gt;&lt;br/&gt;drainage Péclet number&lt;br/&gt;β&lt;sub&gt;eff&lt;/sub&gt;(ω)</span><span class="ot">"</span>]</span>
-<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a>    C[<span class="ot">"</span><span class="st">&lt;b&gt;Coupled regime&lt;/b&gt;&lt;br/&gt;state-dependent forward operator&lt;br/&gt;Eq. 19 · MCMC posterior</span><span class="ot">"</span>]</span>
-<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>    A -- <span class="ot">"</span><span class="st">Pe&lt;sub&gt;d&lt;/sub&gt; safe</span><span class="ot">"</span> --&gt; D[<span class="ot">"</span><span class="st">Linear-Gaussian&lt;br/&gt;posterior (exact)</span><span class="ot">"</span>]</span>
-<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>    A -- <span class="ot">"</span><span class="st">Pe&lt;sub&gt;d&lt;/sub&gt; marginal</span><span class="ot">"</span> --&gt; B</span>
-<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>    B -- <span class="ot">"</span><span class="st">escalate</span><span class="ot">"</span> --&gt; C</span>
-<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>    C --&gt; E[<span class="ot">"</span><span class="st">Non-Gaussian&lt;br/&gt;posterior (sampled)</span><span class="ot">"</span>]</span>
-<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a>    D --&gt; F[<span class="ot">"</span><span class="st">Stress at depth&lt;br/&gt;+ full uncertainty</span><span class="ot">"</span>]</span>
-<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>    E --&gt; F</span>
-<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>    style A fill:<span class="co">#ede7f6,stroke:#5e35b1</span></span>
-<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>    style C fill:<span class="co">#fce4ec,stroke:#c62828</span></span>
-<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>    style F fill:<span class="co">#e8f5e9,stroke:#2e7d32</span></span>
-<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 👉 Read them in order: **[1 · Measurement](theory-measurement-uq.qmd)** →</span></span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **[2 · Depth](theory-processing-depth.qmd)** →</span></span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **[3 · Stress meter](uncertainty-3-stress.qmd)** →</span></span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **[4 · Attribution](uncertainty-4-attribution.qmd)**.</span></span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a><span class="fu">### ② The implementation tutorial</span></span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a>A dynamic, runnable walkthrough that follows the scientific arc from</span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a>**completely decoupled** forcings — thermoelastic, hydrological, loading,</span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a>damage, each treated as an independent stress source — to **identifying</span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>coupled mechanisms** where that independence breaks down. Every figure on</span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>these pages is generated live from the package.</span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Step <span class="pp">|</span> Page <span class="pp">|</span> Phase <span class="pp">|</span></span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1 <span class="pp">|</span> <span class="co">[</span><span class="ot">Data &amp; site readiness</span><span class="co">](tutorial-01-data.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>0–1<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2 <span class="pp">|</span> <span class="co">[</span><span class="ot">Decoupled forward models</span><span class="co">](tutorial-02-forward.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>forward<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 3 <span class="pp">|</span> <span class="co">[</span><span class="ot">Linear superposition &amp; inversion</span><span class="co">](tutorial-03-inversion.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>3–4<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 4 <span class="pp">|</span> <span class="co">[</span><span class="ot">When decoupling breaks: coupling diagnostics</span><span class="co">](tutorial-04-coupling.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>2<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 5 <span class="pp">|</span> <span class="co">[</span><span class="ot">Interpretation: stress at depth</span><span class="co">](tutorial-05-interpretation.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>6<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 6 <span class="pp">|</span> <span class="co">[</span><span class="ot">End-to-end Parkfield walkthrough</span><span class="co">](tutorial-06-endtoend.qmd)</span> <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"phase-badge"</span><span class="dt">&gt;</span>0–6<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a><span class="fu">## The scientific arc in one figure</span></span>
 <span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>Both regimes funnel into the same destination — **stress at depth with a</span>
-<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>quantified posterior** — which is exactly what makes the Bayesian framing the</span>
-<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>unifying idea of the whole package.</span>
-<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>The whole project runs along one axis: **how strongly are the stress</span>
+<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>sources coupled?** On the left, the forcings add linearly and a closed-form</span>
+<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>Gaussian posterior is exact. On the right, pore pressure, damage, and</span>
+<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a>saturation feed back on each other, the posterior goes non-Gaussian, and we</span>
+<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a>need the coupled MCMC machinery.</span>
 <span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a><span class="fu">## Status — v0.1</span></span>
-<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Phase <span class="pp">|</span> What it does <span class="pp">|</span> v0.1 <span class="pp">|</span></span>
-<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
-<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 0 <span class="pp">|</span> Data ingestion + QC <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-131"><a href="#cb3-131" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1 <span class="pp">|</span> Site characterisation; depth–frequency table <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-132"><a href="#cb3-132" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2 <span class="pp">|</span> Coupling diagnostics — Tier 1 (poroelastic) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-133"><a href="#cb3-133" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 3 <span class="pp">|</span> Linear-superposition design matrix (Eq. 6) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-134"><a href="#cb3-134" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 4 <span class="pp">|</span> Linear inversion (WLS, closed-form Gaussian posterior) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-135"><a href="#cb3-135" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 5 <span class="pp">|</span> Anomaly detection (posterior predictive checks) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-136"><a href="#cb3-136" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 6 <span class="pp">|</span> β-bridge stress at depth (uncertainty propagated) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 4 <span class="pp">|</span> Coupled inversion (MCMC) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-todo"</span><span class="dt">&gt;</span>v0.2<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 6 <span class="pp">|</span> Water-table inversion <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-todo"</span><span class="dt">&gt;</span>v0.2<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2 <span class="pp">|</span> Tiers 2–4 (damage, saturation, thermo-capillary) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-todo"</span><span class="dt">&gt;</span>v0.3<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
-<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-141"><a href="#cb3-141" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-142"><a href="#cb3-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-143"><a href="#cb3-143" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb3-144"><a href="#cb3-144" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducing this site locally</span></span>
-<span id="cb3-145"><a href="#cb3-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-146"><a href="#cb3-146" aria-hidden="true" tabindex="-1"></a><span class="in">```bash</span></span>
-<span id="cb3-147"><a href="#cb3-147" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> install</span>
-<span id="cb3-148"><a href="#cb3-148" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run quarto render quarto/</span>
-<span id="cb3-149"><a href="#cb3-149" aria-hidden="true" tabindex="-1"></a><span class="co"># open quarto/_site/index.html</span></span>
-<span id="cb3-150"><a href="#cb3-150" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
+<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a>    A[<span class="ot">"</span><span class="st">&lt;b&gt;Decoupled regime&lt;/b&gt;&lt;br/&gt;thermoelastic ⟂ hydrological ⟂ damage&lt;br/&gt;Eq. 6 linear superposition</span><span class="ot">"</span>]</span>
+<span id="cb3-131"><a href="#cb3-131" aria-hidden="true" tabindex="-1"></a>    B[<span class="ot">"</span><span class="st">&lt;b&gt;Coupling diagnostics&lt;/b&gt;&lt;br/&gt;drainage Péclet number&lt;br/&gt;β&lt;sub&gt;eff&lt;/sub&gt;(ω)</span><span class="ot">"</span>]</span>
+<span id="cb3-132"><a href="#cb3-132" aria-hidden="true" tabindex="-1"></a>    C[<span class="ot">"</span><span class="st">&lt;b&gt;Coupled regime&lt;/b&gt;&lt;br/&gt;state-dependent forward operator&lt;br/&gt;Eq. 19 · MCMC posterior</span><span class="ot">"</span>]</span>
+<span id="cb3-133"><a href="#cb3-133" aria-hidden="true" tabindex="-1"></a>    A -- <span class="ot">"</span><span class="st">Pe&lt;sub&gt;d&lt;/sub&gt; safe</span><span class="ot">"</span> --&gt; D[<span class="ot">"</span><span class="st">Linear-Gaussian&lt;br/&gt;posterior (exact)</span><span class="ot">"</span>]</span>
+<span id="cb3-134"><a href="#cb3-134" aria-hidden="true" tabindex="-1"></a>    A -- <span class="ot">"</span><span class="st">Pe&lt;sub&gt;d&lt;/sub&gt; marginal</span><span class="ot">"</span> --&gt; B</span>
+<span id="cb3-135"><a href="#cb3-135" aria-hidden="true" tabindex="-1"></a>    B -- <span class="ot">"</span><span class="st">escalate</span><span class="ot">"</span> --&gt; C</span>
+<span id="cb3-136"><a href="#cb3-136" aria-hidden="true" tabindex="-1"></a>    C --&gt; E[<span class="ot">"</span><span class="st">Non-Gaussian&lt;br/&gt;posterior (sampled)</span><span class="ot">"</span>]</span>
+<span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a>    D --&gt; F[<span class="ot">"</span><span class="st">Stress at depth&lt;br/&gt;+ full uncertainty</span><span class="ot">"</span>]</span>
+<span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a>    E --&gt; F</span>
+<span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a>    style A fill:<span class="co">#ede7f6,stroke:#5e35b1</span></span>
+<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a>    style C fill:<span class="co">#fce4ec,stroke:#c62828</span></span>
+<span id="cb3-141"><a href="#cb3-141" aria-hidden="true" tabindex="-1"></a>    style F fill:<span class="co">#e8f5e9,stroke:#2e7d32</span></span>
+<span id="cb3-142"><a href="#cb3-142" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-143"><a href="#cb3-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-144"><a href="#cb3-144" aria-hidden="true" tabindex="-1"></a>Both regimes funnel into the same destination — **stress at depth with a</span>
+<span id="cb3-145"><a href="#cb3-145" aria-hidden="true" tabindex="-1"></a>quantified posterior** — which is exactly what makes the Bayesian framing the</span>
+<span id="cb3-146"><a href="#cb3-146" aria-hidden="true" tabindex="-1"></a>unifying idea of the whole package.</span>
+<span id="cb3-147"><a href="#cb3-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-148"><a href="#cb3-148" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-149"><a href="#cb3-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-150"><a href="#cb3-150" aria-hidden="true" tabindex="-1"></a><span class="fu">## Status — v0.1</span></span>
 <span id="cb3-151"><a href="#cb3-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-152"><a href="#cb3-152" aria-hidden="true" tabindex="-1"></a>Every code cell runs against the installed <span class="in">`codameter`</span> package, so the</span>
-<span id="cb3-153"><a href="#cb3-153" aria-hidden="true" tabindex="-1"></a>figures regenerate from source.</span>
-<span id="cb3-154"><a href="#cb3-154" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-152"><a href="#cb3-152" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Phase <span class="pp">|</span> What it does <span class="pp">|</span> v0.1 <span class="pp">|</span></span>
+<span id="cb3-153"><a href="#cb3-153" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb3-154"><a href="#cb3-154" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 0 <span class="pp">|</span> Data ingestion + QC <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-155"><a href="#cb3-155" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1 <span class="pp">|</span> Site characterisation; depth–frequency table <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-156"><a href="#cb3-156" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2 <span class="pp">|</span> Coupling diagnostics — Tier 1 (poroelastic) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-157"><a href="#cb3-157" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 3 <span class="pp">|</span> Linear-superposition design matrix (Eq. 6) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-158"><a href="#cb3-158" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 4 <span class="pp">|</span> Linear inversion (WLS, closed-form Gaussian posterior) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-159"><a href="#cb3-159" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 5 <span class="pp">|</span> Anomaly detection (posterior predictive checks) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-160"><a href="#cb3-160" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 6 <span class="pp">|</span> β-bridge stress at depth (uncertainty propagated) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-ok"</span><span class="dt">&gt;</span>✅<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-161"><a href="#cb3-161" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 4 <span class="pp">|</span> Coupled inversion (MCMC) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-todo"</span><span class="dt">&gt;</span>v0.2<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-162"><a href="#cb3-162" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 6 <span class="pp">|</span> Water-table inversion <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-todo"</span><span class="dt">&gt;</span>v0.2<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-163"><a href="#cb3-163" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2 <span class="pp">|</span> Tiers 2–4 (damage, saturation, thermo-capillary) <span class="pp">|</span> <span class="dt">&lt;</span><span class="kw">span</span><span class="ot"> class</span><span class="op">=</span><span class="st">"pill-todo"</span><span class="dt">&gt;</span>v0.3<span class="dt">&lt;/</span><span class="kw">span</span><span class="dt">&gt;</span> <span class="pp">|</span></span>
+<span id="cb3-164"><a href="#cb3-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-165"><a href="#cb3-165" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb3-166"><a href="#cb3-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-167"><a href="#cb3-167" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb3-168"><a href="#cb3-168" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducing this site locally</span></span>
+<span id="cb3-169"><a href="#cb3-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-170"><a href="#cb3-170" aria-hidden="true" tabindex="-1"></a><span class="in">```bash</span></span>
+<span id="cb3-171"><a href="#cb3-171" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> install</span>
+<span id="cb3-172"><a href="#cb3-172" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run quarto render quarto/</span>
+<span id="cb3-173"><a href="#cb3-173" aria-hidden="true" tabindex="-1"></a><span class="co"># open quarto/_site/index.html</span></span>
+<span id="cb3-174"><a href="#cb3-174" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-175"><a href="#cb3-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-176"><a href="#cb3-176" aria-hidden="true" tabindex="-1"></a>Every code cell runs against the installed <span class="in">`codameter`</span> package, so the</span>
+<span id="cb3-177"><a href="#cb3-177" aria-hidden="true" tabindex="-1"></a>figures regenerate from source.</span>
+<span id="cb3-178"><a href="#cb3-178" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
@@ -1481,7 +1526,7 @@ window.Quarto = {
 </div>   
     <div class="nav-footer-center">
       &nbsp;
-    <div class="toc-actions"><ul><li><a href="https://github.com/Denolle-Lab/codameter/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/Denolle-Lab/codameter/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/Denolle-Lab/codameter/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/Denolle-Lab/codameter/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
 <p>Built with <a href="https://quarto.org">Quarto</a></p>
 </div>
