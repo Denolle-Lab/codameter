@@ -25,9 +25,8 @@ into a single Bayesian measurement.
 
 The community agrees on the components of a well-posed measurement — a
 stretching-family estimator for robustness at low SNR and large change
-(Mikesell et al. 2015; Yuan et al. 2021), a coherence-based error model
-(Clarke et al. 2011; Weaver et al. 2011), a long stable reference (Wang et al.
-2017), and cross-validation against a second estimator (Obermann et al. 2019) —
+[@Mikesell2015; @Yuan2021], a coherence-based error model
+[@Clarke2011; @Weaver2011], a long stable reference [@Wang2017], and cross-validation against a second estimator [@Obermann2019] —
 yet no two studies report the same set, and the uncertainty convention is the
 least standardized of all
 ([literature survey](survey-best-practices.qmd)). Propagating the measurement
@@ -42,7 +41,7 @@ the source the executable `codameter.deviations` menu draws from.
 | Frequency band | Band matched to the target depth | Off-target or single wide band | Mixes depths; mostly sets precision |
 | Coda window | Past the direct arrival, scaled with the band | Fixed late window reused across bands | Noise at high *f*; bias, inflated σ |
 | Stack length | Short enough to resolve the transient (~10 d) | Over-long stack (~45 d) | Smears and delays a step |
-| Reference | Long fixed stack or joint inversion (Brenguier et al. 2014) | Moving / trailing reference | Erases slow trends |
+| Reference | Long fixed stack or joint inversion [@Brenguier2014] | Moving / trailing reference | Erases slow trends |
 | Coherence gating | Discard low-coherence epochs | No gating | Keeps corrupted epochs; changes *N*~eff~ |
 | Uncertainty definition | State it: within-measurement / SE / SD | Left unstated | Factor √*N* ambiguity in significance |
 
@@ -85,7 +84,7 @@ things a diagonal `dvv_err` cannot express: a **within-method floor**, a
 ## 2. The coherence-limited within-method floor
 
 For a *fixed* configuration there is an irreducible scatter set by the coda
-coherence. Weaver et al. (2011) and Clarke et al. (2011) give the standard
+coherence. @Weaver2011 and @Clarke2011 give the standard
 error of a stretching/MWCS estimate over a coda window $[t_1,t_2]$ with mean
 correlation $CC$ at central frequency $f_c$:
 
@@ -208,7 +207,7 @@ for i, v in enumerate([neff_diag, neff_corr]):
 plt.tight_layout(); plt.show()
 ```
 
-## 5. Reference choice and the Brenguier (2014) all-to-all cure
+## 5. Reference choice and the @Brenguier2014 all-to-all cure
 
 The most consequential — and least examined — fork is the **reference**.
 Referencing every epoch to one stack makes the reference's own noise a

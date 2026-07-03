@@ -111,3 +111,8 @@ instinct that motivates the [Bayesian uncertainty treatment](theory-uq.qmd).
 
 → Next: [Decoupled forward models](tutorial-02-forward.qmd) — turning each
 forcing into a predicted $\delta v/v$.
+
+### References {.unnumbered}
+
+::: {#refs}
+:::

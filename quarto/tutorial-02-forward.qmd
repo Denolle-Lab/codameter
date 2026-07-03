@@ -35,7 +35,7 @@ t = comp["times"]
 
 Surface temperature diffuses downward, and the thermal strain it induces at the
 sensing depth lags the surface by a **phase shift** $t_{\text{shift}}$ (here 50
-days). The forward model `thermoelastic_dvv` implements the Okubo et al. (2024)
+days). The forward model `thermoelastic_dvv` implements the @Okubo2024
 phase-shift form [@Berger1975; @Okubo2024].
 
 ```{python}
@@ -119,3 +119,8 @@ plt.show()
 
 → Next: [Linear superposition & inversion](tutorial-03-inversion.qmd) — recover
 the amplitudes *and their covariance* from the data.
+
+### References {.unnumbered}
+
+::: {#refs}
+:::

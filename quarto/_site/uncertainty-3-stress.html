@@ -354,27 +354,27 @@ window.Quarto = {
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">1 · Measurement · the marginal errors, and how they differ</span></a>
+ <span class="dropdown-text">1 · Measurement · Community survey</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
- <span class="dropdown-text">1 · Measurement · into a Bayesian measurement</span></a>
+ <span class="dropdown-text">2 · Measurement · UQ</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">2 · Depth · δv/v → δVs(z)/Vs</span></a>
+ <span class="dropdown-text">3 · Depth migration · UQ</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-3-stress.html">
- <span class="dropdown-text">3 · Stress meter · δv/v as a stress meter</span></a>
+ <span class="dropdown-text">4 · Stress meter · δv/v as a stress meter</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-4-attribution.html">
- <span class="dropdown-text">4 · Attribution · which forcing drives it</span></a>
+ <span class="dropdown-text">5 · Stress meter · Force attribution</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-uq.html">
- <span class="dropdown-text">Companion · inference UQ (stress inversion)</span></a>
+ <span class="dropdown-text">5 · Stress meter · UQ</span></a>
   </li>  
     </ul>
   </li>
@@ -661,7 +661,7 @@ window.Quarto = {
 </div>
 <section id="where-the-field-stands" class="level2">
 <h2 class="anchored" data-anchor-id="where-the-field-stands">Where the field stands</h2>
-<p>The quantity of interest is rarely the velocity change itself but the stress, strain, or pore-pressure change that produces it. Here the literature remains fragmented. Volcano and fault studies often interpret the velocity change qualitatively (a pre-eruptive pressurization, coseismic damage); hydrological studies fit an explicit poroelastic or thermoelastic model and separate the two by their seasonal phase lag (Tsai 2011; Wang 2017; Clements &amp; Denolle 2018); and a growing body quantifies stress sensitivity through an acoustoelastic coefficient (Brenguier et al.&nbsp;2008; Nakata &amp; Snieder 2011). What is largely absent is the <em>uncertainty</em> on that final quantity — the number most often quoted as a result.</p>
+<p>The quantity of interest is rarely the velocity change itself but the stress, strain, or pore-pressure change that produces it. Here the literature remains fragmented. Volcano and fault studies often interpret the velocity change qualitatively (a pre-eruptive pressurization, coseismic damage); hydrological studies fit an explicit poroelastic or thermoelastic model and separate the two by their seasonal phase lag <span class="citation" data-cites="Tsai2011 Wang2017 Clements2018">(<a href="#ref-Tsai2011" role="doc-biblioref">Tsai 2011</a>; <a href="#ref-Wang2017" role="doc-biblioref">Wang et al. 2017</a>; <a href="#ref-Clements2018" role="doc-biblioref">Clements and Denolle 2018</a>)</span>; and a growing body quantifies stress sensitivity through an acoustoelastic coefficient <span class="citation" data-cites="Brenguier2008 Nakata2011">(<a href="#ref-Brenguier2008" role="doc-biblioref">Brenguier et al. 2008</a>; <a href="#ref-Nakata2011" role="doc-biblioref">Nakata and Snieder 2011</a>)</span>. What is largely absent is the <em>uncertainty</em> on that final quantity — the number most often quoted as a result.</p>
 </section>
 <section id="from-velocity-change-to-stress" class="level2">
 <h2 class="anchored" data-anchor-id="from-velocity-change-to-stress">From velocity change to stress</h2>
@@ -669,7 +669,7 @@ window.Quarto = {
 <p><span class="math display">\[
 \boxed{\;\Delta\sigma_{ij}(z,t) = \beta_{ij}(z)\,\frac{\delta V_S}{V_S}(z,t)\;}
 \]</span></p>
-<p>with <span class="math inline">\(\beta_{ij}\)</span> built from the layered moduli <span class="math inline">\(\mu(z)=\rho V_S^2\)</span>, <span class="math inline">\(\kappa(z)=\rho\,(V_P^2-\tfrac43 V_S^2)\)</span> and the nonlinear sensitivity <span class="math inline">\(\mu'(z)\)</span>. The forward physics — the third-order elasticity behind <span class="math inline">\(\beta_{ij}\)</span>, the drained/undrained regimes, and the fabric diagnostic that decides isotropic versus deviatoric — is the subject of the companion framework (Denolle, in prep., Eqs. 3–7). The isotropic bridge is the special case <span class="math inline">\(ij=kk\)</span>; the deviatoric cases (e.g. strike-slip Parkfield, radial Kīlauea) need the tensor form and are exactly where the scalar bridge fails.</p>
+<p>with <span class="math inline">\(\beta_{ij}\)</span> built from the layered moduli <span class="math inline">\(\mu(z)=\rho V_S^2\)</span>, <span class="math inline">\(\kappa(z)=\rho\,(V_P^2-\tfrac43 V_S^2)\)</span> and the nonlinear sensitivity <span class="math inline">\(\mu'(z)\)</span>. The forward physics — the third-order elasticity behind <span class="math inline">\(\beta_{ij}\)</span>, the drained/undrained regimes, and the fabric diagnostic that decides isotropic versus deviatoric — is the subject of the companion framework <span class="citation" data-cites="Denolle2026dvv">(<a href="#ref-Denolle2026dvv" role="doc-biblioref">Denolle 2026</a>, Eqs. 3–7)</span>. The isotropic bridge is the special case <span class="math inline">\(ij=kk\)</span>; the deviatoric cases (e.g. strike-slip Parkfield, radial Kīlauea) need the tensor form and are exactly where the scalar bridge fails.</p>
 <p>The coefficients <span class="math inline">\(\beta_{ij}(z),\mu'(z)\)</span> are <strong>layered</strong> and weakly constrained — sometimes inferred from a tomographic <span class="math inline">\(V_P,V_S\)</span> model — so they enter as <strong>per-layer priors</strong>. The honest stress covariance is the Monte-Carlo pushforward of the depth posterior <span class="math inline">\(C_m(z)\)</span> <em>through</em> those priors: this is where the aleatoric measurement chain and the epistemic material priors <strong>merge</strong>, and taking either alone understates the stress uncertainty. It is the depth-resolved analogue of the scalar pushforward already shown in <a href="./tutorial-05-interpretation.html">tutorial 5</a>. Effective stress (<span class="math inline">\(\Delta\sigma'=\kappa\,\varepsilon_{\rm vol}\)</span> under isotropic load, poroelastically clean) is the headline; total stress adds a poroelastic term <span class="math inline">\(\alpha_B\,\Delta p\)</span> and is an optional extension.</p>
 </section>
 <section id="next-process-attribution" class="level2">
@@ -736,8 +736,25 @@ window.Quarto = {
 </div>
 <section id="references" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="references">References</h3>
-<div id="refs" role="list">
-
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-Brenguier2008" class="csl-entry" role="listitem">
+Brenguier, Florent, Nikolai M. Shapiro, Michel Campillo, et al. 2008. <span>“Towards Forecasting Volcanic Eruptions Using Seismic Noise.”</span> <em>Nature Geoscience</em> 1: 126–30. <a href="https://doi.org/10.1038/ngeo104">https://doi.org/10.1038/ngeo104</a>.
+</div>
+<div id="ref-Clements2018" class="csl-entry" role="listitem">
+Clements, Timothy, and Marine A. Denolle. 2018. <span>“Tracking Groundwater Levels Using the Ambient Seismic Field.”</span> <em>Geophysical Research Letters</em> 45 (13): 6459–65. <a href="https://doi.org/10.1029/2018GL077706">https://doi.org/10.1029/2018GL077706</a>.
+</div>
+<div id="ref-Denolle2026dvv" class="csl-entry" role="listitem">
+Denolle, Marine A. 2026. <span>“Seismic Velocity Changes as Stress and Strain Meters: A Unified Framework for Forcing, Coupling, and Inversion.”</span> <em>Journal of Geophysical Research: Solid Earth</em>.
+</div>
+<div id="ref-Nakata2011" class="csl-entry" role="listitem">
+Nakata, N., and R. Snieder. 2011. <span>“Near-Surface Weakening in Japan After the 2011 Tohoku-Oki Earthquake.”</span> <em>Geophysical Research Letters</em> 38: n/a–. <a href="https://doi.org/10.1029/2011gl048800">https://doi.org/10.1029/2011gl048800</a>.
+</div>
+<div id="ref-Tsai2011" class="csl-entry" role="listitem">
+Tsai, Victor C. 2011. <span>“A Model for Seasonal Changes in GPS Positions and Seismic Wave Speeds Due to Thermoelastic and Hydrologic Variations.”</span> <em>Journal of Geophysical Research</em> 116. <a href="https://doi.org/10.1029/2010jb008156">https://doi.org/10.1029/2010jb008156</a>.
+</div>
+<div id="ref-Wang2017" class="csl-entry" role="listitem">
+Wang, QingYu, Florent Brenguier, Michel Campillo, Albanne Lecointre, Tetsuya Takeda, and Yosuke Aoki. 2017. <span>“Seasonal Crustal Seismic Velocity Changes Throughout Japan.”</span> <em>Journal of Geophysical Research: Solid Earth</em> 122: 7987–8002. <a href="https://doi.org/10.1002/2017jb014307">https://doi.org/10.1002/2017jb014307</a>.
+</div>
 </div>
 
 
@@ -1256,9 +1273,9 @@ window.Quarto = {
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>fragmented. Volcano and fault studies often interpret the velocity change</span>
 <span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>qualitatively (a pre-eruptive pressurization, coseismic damage); hydrological</span>
 <span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>studies fit an explicit poroelastic or thermoelastic model and separate the two by</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>their seasonal phase lag (Tsai 2011; Wang 2017; Clements &amp; Denolle 2018); and a</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>their seasonal phase lag <span class="co">[</span><span class="ot">@Tsai2011; @Wang2017; @Clements2018</span><span class="co">]</span>; and a</span>
 <span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>growing body quantifies stress sensitivity through an acoustoelastic coefficient</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>(Brenguier et al. 2008; Nakata &amp; Snieder 2011). What is largely absent is the</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">@Brenguier2008; @Nakata2011</span><span class="co">]</span>. What is largely absent is the</span>
 <span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>*uncertainty* on that final quantity — the number most often quoted as a result.</span>
 <span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="fu">## From velocity change to stress</span></span>
@@ -1279,59 +1296,58 @@ window.Quarto = {
 <span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>$\kappa(z)=\rho\,(V_P^2-\tfrac43 V_S^2)$ and the nonlinear sensitivity $\mu'(z)$.</span>
 <span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>The forward physics — the third-order elasticity behind $\beta_{ij}$, the</span>
 <span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>drained/undrained regimes, and the fabric diagnostic that decides isotropic versus</span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>deviatoric — is the subject of the companion framework (Denolle, in prep., Eqs.</span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>3–7). The isotropic bridge is the special case $ij=kk$; the deviatoric cases (e.g.</span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>strike-slip Parkfield, radial Kīlauea) need the tensor form and are exactly where</span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>the scalar bridge fails.</span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>The coefficients $\beta_{ij}(z),\mu'(z)$ are **layered** and weakly constrained —</span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>sometimes inferred from a tomographic $V_P,V_S$ model — so they enter as</span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>**per-layer priors**. The honest stress covariance is the Monte-Carlo pushforward</span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>of the depth posterior $C_m(z)$ *through* those priors: this is where the aleatoric</span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>measurement chain and the epistemic material priors **merge**, and taking either</span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>alone understates the stress uncertainty. It is the depth-resolved analogue of the</span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>scalar pushforward already shown in <span class="co">[</span><span class="ot">tutorial 5</span><span class="co">](tutorial-05-interpretation.qmd)</span>.</span>
-<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>Effective stress ($\Delta\sigma'=\kappa\,\varepsilon_{\rm vol}$ under isotropic</span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>load, poroelastically clean) is the headline; total stress adds a poroelastic term</span>
-<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>$\alpha_B\,\Delta p$ and is an optional extension.</span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="fu">## Next: process attribution</span></span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>Producing $\Delta\sigma_{ij}(z,t)$ with a posterior is where codameter's job ends.</span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>Deciding **which forcing** drives that stress — thermoelastic, poroelastic, load,</span>
-<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>damage, or tectonic — is <span class="co">[</span><span class="ot">step 4 of the arc</span><span class="co">](uncertainty-4-attribution.qmd)</span>. The</span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>division of labour is clean: this project owns the measurement covariance and its</span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>propagation to stress; the forward physics that turns that stress into a named</span>
-<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>mechanism lives in the companion</span>
-<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">coupling-framework project</span><span class="co">](https://github.com/mdenolle/dvv-coupling-framework)</span>.</span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="fu">## Best practice versus deviation</span></span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Choice <span class="pp">|</span> Best practice <span class="pp">|</span> Common deviation <span class="pp">|</span> Consequence <span class="pp">|</span></span>
-<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stress conversion <span class="pp">|</span> Acoustoelastic meter $\Delta\sigma_{ij}=\beta_{ij}(z)\,\delta V_S/V_S$ with layered $\beta_{ij},\mu'(z)$ priors <span class="pp">|</span> Single scalar coefficient, no prior <span class="pp">|</span> Understated (epistemic) stress error <span class="pp">|</span></span>
-<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stress component <span class="pp">|</span> Identify the fabric-selected component (isotropic vs deviatoric) before inverting <span class="pp">|</span> Assume the isotropic $\delta v/v=\beta\varepsilon_{kk}$ everywhere <span class="pp">|</span> Wrong sign and magnitude under deviatoric load <span class="pp">|</span></span>
-<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Uncertainty budget <span class="pp">|</span> Merge the aleatoric depth covariance with the epistemic material priors <span class="pp">|</span> Report the measurement error only <span class="pp">|</span> Stress error too small by its dominant term <span class="pp">|</span></span>
-<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stress measure <span class="pp">|</span> Report effective stress; flag any total-stress assumptions <span class="pp">|</span> Conflate effective and total stress <span class="pp">|</span> Non-comparable, ambiguous stress <span class="pp">|</span></span>
-<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a><span class="fu">## Status — framework, implementation in progress</span></span>
-<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>This page is the design for step 3. The executable module — a depth-resolved</span>
-<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a><span class="in">`uq_stress_depth`</span> (strain, stress, and their covariance from a $\delta V_S/V_S(z)$</span>
-<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>posterior and layered acoustoelastic priors) — is tracked in the repository issues.</span>
-<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>Its inputs are a real $C_d$ (step 1) and an honest depth posterior (step 2), which</span>
-<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>is why the arc has to be built in order. **Attribution** (the forcing decomposition</span>
-<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>and its <span class="in">`uq_attribution`</span> module) lives in the companion</span>
-<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">coupling-framework project</span><span class="co">](https://github.com/mdenolle/dvv-coupling-framework)</span>,</span>
-<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>which consumes the $\Delta\sigma_{ij}(z,t)$ this step delivers.</span>
-<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
-<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
-<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>deviatoric — is the subject of the companion framework <span class="co">[</span><span class="ot">@Denolle2026dvv, Eqs. 3–7</span><span class="co">]</span>. The isotropic bridge is the special case $ij=kk$; the deviatoric cases (e.g.</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>strike-slip Parkfield, radial Kīlauea) need the tensor form and are exactly where</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>the scalar bridge fails.</span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>The coefficients $\beta_{ij}(z),\mu'(z)$ are **layered** and weakly constrained —</span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>sometimes inferred from a tomographic $V_P,V_S$ model — so they enter as</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>**per-layer priors**. The honest stress covariance is the Monte-Carlo pushforward</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>of the depth posterior $C_m(z)$ *through* those priors: this is where the aleatoric</span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>measurement chain and the epistemic material priors **merge**, and taking either</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>alone understates the stress uncertainty. It is the depth-resolved analogue of the</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>scalar pushforward already shown in <span class="co">[</span><span class="ot">tutorial 5</span><span class="co">](tutorial-05-interpretation.qmd)</span>.</span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>Effective stress ($\Delta\sigma'=\kappa\,\varepsilon_{\rm vol}$ under isotropic</span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>load, poroelastically clean) is the headline; total stress adds a poroelastic term</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>$\alpha_B\,\Delta p$ and is an optional extension.</span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a><span class="fu">## Next: process attribution</span></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>Producing $\Delta\sigma_{ij}(z,t)$ with a posterior is where codameter's job ends.</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>Deciding **which forcing** drives that stress — thermoelastic, poroelastic, load,</span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>damage, or tectonic — is <span class="co">[</span><span class="ot">step 4 of the arc</span><span class="co">](uncertainty-4-attribution.qmd)</span>. The</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>division of labour is clean: this project owns the measurement covariance and its</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>propagation to stress; the forward physics that turns that stress into a named</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>mechanism lives in the companion</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">coupling-framework project</span><span class="co">](https://github.com/mdenolle/dvv-coupling-framework)</span>.</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a><span class="fu">## Best practice versus deviation</span></span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Choice <span class="pp">|</span> Best practice <span class="pp">|</span> Common deviation <span class="pp">|</span> Consequence <span class="pp">|</span></span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stress conversion <span class="pp">|</span> Acoustoelastic meter $\Delta\sigma_{ij}=\beta_{ij}(z)\,\delta V_S/V_S$ with layered $\beta_{ij},\mu'(z)$ priors <span class="pp">|</span> Single scalar coefficient, no prior <span class="pp">|</span> Understated (epistemic) stress error <span class="pp">|</span></span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stress component <span class="pp">|</span> Identify the fabric-selected component (isotropic vs deviatoric) before inverting <span class="pp">|</span> Assume the isotropic $\delta v/v=\beta\varepsilon_{kk}$ everywhere <span class="pp">|</span> Wrong sign and magnitude under deviatoric load <span class="pp">|</span></span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Uncertainty budget <span class="pp">|</span> Merge the aleatoric depth covariance with the epistemic material priors <span class="pp">|</span> Report the measurement error only <span class="pp">|</span> Stress error too small by its dominant term <span class="pp">|</span></span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stress measure <span class="pp">|</span> Report effective stress; flag any total-stress assumptions <span class="pp">|</span> Conflate effective and total stress <span class="pp">|</span> Non-comparable, ambiguous stress <span class="pp">|</span></span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="fu">## Status — framework, implementation in progress</span></span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a>This page is the design for step 3. The executable module — a depth-resolved</span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="in">`uq_stress_depth`</span> (strain, stress, and their covariance from a $\delta V_S/V_S(z)$</span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a>posterior and layered acoustoelastic priors) — is tracked in the repository issues.</span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>Its inputs are a real $C_d$ (step 1) and an honest depth posterior (step 2), which</span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>is why the arc has to be built in order. **Attribution** (the forcing decomposition</span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>and its <span class="in">`uq_attribution`</span> module) lives in the companion</span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">coupling-framework project</span><span class="co">](https://github.com/mdenolle/dvv-coupling-framework)</span>,</span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a>which consumes the $\Delta\sigma_{ij}(z,t)$ this step delivers.</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">

@@ -357,27 +357,27 @@ window.Quarto = {
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">1 · Measurement · the marginal errors, and how they differ</span></a>
+ <span class="dropdown-text">1 · Measurement · Community survey</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
- <span class="dropdown-text">1 · Measurement · into a Bayesian measurement</span></a>
+ <span class="dropdown-text">2 · Measurement · UQ</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">2 · Depth · δv/v → δVs(z)/Vs</span></a>
+ <span class="dropdown-text">3 · Depth migration · UQ</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-3-stress.html">
- <span class="dropdown-text">3 · Stress meter · δv/v as a stress meter</span></a>
+ <span class="dropdown-text">4 · Stress meter · δv/v as a stress meter</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-4-attribution.html">
- <span class="dropdown-text">4 · Attribution · which forcing drives it</span></a>
+ <span class="dropdown-text">5 · Stress meter · Force attribution</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-uq.html">
- <span class="dropdown-text">Companion · inference UQ (stress inversion)</span></a>
+ <span class="dropdown-text">5 · Stress meter · UQ</span></a>
   </li>  
     </ul>
   </li>
@@ -628,7 +628,10 @@ window.Quarto = {
   <li><a href="#the-observation-and-its-uncertainty" id="toc-the-observation-and-its-uncertainty" class="nav-link active" data-scroll-target="#the-observation-and-its-uncertainty">The observation and its uncertainty</a></li>
   <li><a href="#what-is-driving-it-the-raw-forcings" id="toc-what-is-driving-it-the-raw-forcings" class="nav-link" data-scroll-target="#what-is-driving-it-the-raw-forcings">What is driving it? The raw forcings</a></li>
   <li><a href="#phase-1-at-what-depth-are-we-sensing" id="toc-phase-1-at-what-depth-are-we-sensing" class="nav-link" data-scroll-target="#phase-1-at-what-depth-are-we-sensing">Phase 1 — at what depth are we sensing?</a></li>
-  <li><a href="#readiness-gate" id="toc-readiness-gate" class="nav-link" data-scroll-target="#readiness-gate">Readiness gate</a></li>
+  <li><a href="#readiness-gate" id="toc-readiness-gate" class="nav-link" data-scroll-target="#readiness-gate">Readiness gate</a>
+  <ul class="collapse">
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/Denolle-Lab/codameter/edit/main/tutorial-01-data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/Denolle-Lab/codameter/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -777,7 +780,7 @@ Figure&nbsp;2: The raw environmental forcings. Temperature is a clean seasonal c
 </section>
 <section id="phase-1-at-what-depth-are-we-sensing" class="level2">
 <h2 class="anchored" data-anchor-id="phase-1-at-what-depth-are-we-sensing">Phase 1 — at what depth are we sensing?</h2>
-<p>A <span class="math inline">\(\delta v/v\)</span> measured in a frequency band does not sense a point; it senses a <strong>depth kernel</strong>. Phase 1 either computes the Rayleigh-wave sensitivity kernel (if <code>disba</code> is installed) or falls back to the <span class="math inline">\(z_{\text{peak}}\approx V_S/3f\)</span> rule of thumb <span class="citation" data-cites="Hillers2015">(<a href="#ref-Hillers2015" role="doc-biblioref"><span class="nocase">Hillers et al.</span> 2015</a>)</span>. The peak depth sets <em>where</em> the stress estimate in <a href="./tutorial-05-interpretation.html">step 5</a> applies, and the elastic moduli at that depth enter the bridge relation <a href="./theory-uq.html#eq-chain">the bridge chain</a>.</p>
+<p>A <span class="math inline">\(\delta v/v\)</span> measured in a frequency band does not sense a point; it senses a <strong>depth kernel</strong>. Phase 1 either computes the Rayleigh-wave sensitivity kernel (if <code>disba</code> is installed) or falls back to the <span class="math inline">\(z_{\text{peak}}\approx V_S/3f\)</span> rule of thumb <span class="citation" data-cites="Hillers2015">(<a href="#ref-Hillers2015" role="doc-biblioref">Hillers et al. 2015</a>)</span>. The peak depth sets <em>where</em> the stress estimate in <a href="./tutorial-05-interpretation.html">step 5</a> applies, and the elastic moduli at that depth enter the bridge relation <a href="./theory-uq.html#eq-chain">the bridge chain</a>.</p>
 <div id="cell-phase1" class="cell" data-execution_count="4">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -837,18 +840,21 @@ bulk modulus   κ  : 9.53 GPa</code></pre>
 <h2 class="anchored" data-anchor-id="readiness-gate">Readiness gate</h2>
 <p><code>codameter</code> ships a <code>data-check</code> that converts all of this into a go / no-go report per scientific goal (groundwater, stress, coupling). The rule it encodes is blunt and worth repeating: <strong>precipitation + δv/v supports a <em>relative</em> storage proxy; absolute groundwater or stress needs independent calibration.</strong> That honesty about what the data cannot support is the same instinct that motivates the <a href="./theory-uq.html">Bayesian uncertainty treatment</a>.</p>
 <p>→ Next: <a href="./tutorial-02-forward.html">Decoupled forward models</a> — turning each forcing into a predicted <span class="math inline">\(\delta v/v\)</span>.</p>
+<section id="references" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="references">References</h3>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-Hillers2015" class="csl-entry" role="listitem">
+Hillers, Gregor, Stephan Husen, Anne Obermann, Thomas Planès, Eric Larose, and Michel Campillo. 2015. <span>“Noise-Based Monitoring and Imaging of Aseismic Transient Deformation Induced by the 2006 Basel Reservoir Stimulation.”</span> <em>Geophysics</em> 80: KS51–68. <a href="https://doi.org/10.1190/geo2014-0455.1">https://doi.org/10.1190/geo2014-0455.1</a>.
+</div>
+</div>
 
 
 <!-- -->
 
-
+</section>
 </section>
 
-<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
-<div id="ref-Hillers2015" class="csl-entry" role="listitem">
-<span class="nocase">Hillers, G. et al.</span> 2015. <span>“Seasonal Variations of Seismic Velocities in the San Jacinto Fault Area.”</span> <em>Geophysical Journal International</em>.
-</div>
-</div></section></div></main> <!-- /main -->
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
@@ -1443,6 +1449,11 @@ bulk modulus   κ  : 9.53 GPa</code></pre>
 <span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a>→ Next: <span class="co">[</span><span class="ot">Decoupled forward models</span><span class="co">](tutorial-02-forward.qmd)</span> — turning each</span>
 <span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a>forcing into a predicted $\delta v/v$.</span>
+<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
+<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

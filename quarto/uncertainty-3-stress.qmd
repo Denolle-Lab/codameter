@@ -26,9 +26,9 @@ strain, or pore-pressure change that produces it. Here the literature remains
 fragmented. Volcano and fault studies often interpret the velocity change
 qualitatively (a pre-eruptive pressurization, coseismic damage); hydrological
 studies fit an explicit poroelastic or thermoelastic model and separate the two by
-their seasonal phase lag (Tsai 2011; Wang 2017; Clements & Denolle 2018); and a
+their seasonal phase lag [@Tsai2011; @Wang2017; @Clements2018]; and a
 growing body quantifies stress sensitivity through an acoustoelastic coefficient
-(Brenguier et al. 2008; Nakata & Snieder 2011). What is largely absent is the
+[@Brenguier2008; @Nakata2011]. What is largely absent is the
 *uncertainty* on that final quantity — the number most often quoted as a result.
 
 ## From velocity change to stress
@@ -49,8 +49,7 @@ with $\beta_{ij}$ built from the layered moduli $\mu(z)=\rho V_S^2$,
 $\kappa(z)=\rho\,(V_P^2-\tfrac43 V_S^2)$ and the nonlinear sensitivity $\mu'(z)$.
 The forward physics — the third-order elasticity behind $\beta_{ij}$, the
 drained/undrained regimes, and the fabric diagnostic that decides isotropic versus
-deviatoric — is the subject of the companion framework (Denolle, in prep., Eqs.
-3–7). The isotropic bridge is the special case $ij=kk$; the deviatoric cases (e.g.
+deviatoric — is the subject of the companion framework [@Denolle2026dvv, Eqs. 3–7]. The isotropic bridge is the special case $ij=kk$; the deviatoric cases (e.g.
 strike-slip Parkfield, radial Kīlauea) need the tensor form and are exactly where
 the scalar bridge fails.
 

@@ -27,17 +27,17 @@ website:
         file: index.qmd
       - text: "Theory"
         menu:
-          - text: "1 · Measurement · the marginal errors, and how they differ"
+          - text: "1 · Measurement · Community survey"
             file: theory-measurement-uq.qmd
-          - text: "1 · Measurement · into a Bayesian measurement"
+          - text: "2 · Measurement · UQ"
             file: theory-bayesian-measurement.qmd
-          - text: "2 · Depth · δv/v → δVs(z)/Vs"
+          - text: "3 · Depth migration · UQ"
             file: theory-processing-depth.qmd
-          - text: "3 · Stress meter · δv/v as a stress meter"
+          - text: "4 · Stress meter · δv/v as a stress meter"
             file: uncertainty-3-stress.qmd
-          - text: "4 · Attribution · which forcing drives it"
+          - text: "5 · Stress meter · Force attribution"
             file: uncertainty-4-attribution.qmd
-          - text: "Companion · inference UQ (stress inversion)"
+          - text: "5 · Stress meter · UQ"
             file: theory-uq.qmd
       - text: "Tutorial"
         menu:
@@ -132,3 +132,6 @@ format:
     css: styles.css
 
 bibliography: references.bib
+link-citations: true      # in-text @cites link to the reference list
+citations-hover: true     # hover a citation to preview the full reference
+link-bibliography: true   # DOIs/URLs in the reference list are clickable

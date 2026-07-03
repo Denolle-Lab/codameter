@@ -23,14 +23,13 @@ consumes.
 ### Where the field stands
 
 The field has converged on one physical rule for depth — *depth is set by the
-frequency band and the coda lapse time, not assumed* (Obermann et al. 2013, 2016)
-— and, increasingly, on multi-band measurement to resolve it (Takano et al. 2017;
-Feng et al. 2020; Mao et al. 2022). The step from per-band $\delta v/v$ to a depth
+frequency band and the coda lapse time, not assumed* [@Obermann2013; @Obermann2016]
+— and, increasingly, on multi-band measurement to resolve it [@Takano2017; @Feng2020; @Mao2022]. The step from per-band $\delta v/v$ to a depth
 profile is where reporting is least consistent: many studies read one band as one
 depth, only a few invert several bands against sensitivity kernels, and the
 measurement error is seldom propagated into the depth estimate. The depth
 assignment is frequently the scientific claim itself — whether the change lies in
-the aquifer or the overlying soil (Rubinstein & Beroza 2005) — so a depth reported
+the aquifer or the overlying soil [@Rubinstein2005] — so a depth reported
 without its uncertainty cannot support that claim.
 
 | Choice | Best practice | Common deviation | Consequence |
@@ -302,10 +301,10 @@ $$
 
 and velocity alone cannot separate them. A petrophysical model — Gassmann fluid
 substitution for the modulus and a porosity–saturation relation for the density
-(Gassmann 1951; Mavko et al. 2009) — is what breaks the degeneracy, at the cost
+[@Gassmann1951; @Mavko2009] — is what breaks the degeneracy, at the cost
 of its own prior uncertainty on porosity, fluid modulus, and the saturation path.
 Hydrological and cryospheric targets, where saturation swings are large
-(Clements & Denolle 2018; James et al. 2019), are precisely where neglecting the
+[@Clements2018; @James2019], are precisely where neglecting the
 density term biases the inferred velocity change and, downstream, the stress.
 
 The planned extension carries $\delta\rho/\rho$ as a **second inverted field**

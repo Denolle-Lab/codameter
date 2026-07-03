@@ -354,27 +354,27 @@ window.Quarto = {
     <ul class="dropdown-menu" aria-labelledby="nav-menu-theory">    
         <li>
     <a class="dropdown-item" href="./theory-measurement-uq.html">
- <span class="dropdown-text">1 · Measurement · the marginal errors, and how they differ</span></a>
+ <span class="dropdown-text">1 · Measurement · Community survey</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-bayesian-measurement.html">
- <span class="dropdown-text">1 · Measurement · into a Bayesian measurement</span></a>
+ <span class="dropdown-text">2 · Measurement · UQ</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-processing-depth.html">
- <span class="dropdown-text">2 · Depth · δv/v → δVs(z)/Vs</span></a>
+ <span class="dropdown-text">3 · Depth migration · UQ</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-3-stress.html">
- <span class="dropdown-text">3 · Stress meter · δv/v as a stress meter</span></a>
+ <span class="dropdown-text">4 · Stress meter · δv/v as a stress meter</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./uncertainty-4-attribution.html">
- <span class="dropdown-text">4 · Attribution · which forcing drives it</span></a>
+ <span class="dropdown-text">5 · Stress meter · Force attribution</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./theory-uq.html">
- <span class="dropdown-text">Companion · inference UQ (stress inversion)</span></a>
+ <span class="dropdown-text">5 · Stress meter · UQ</span></a>
   </li>  
     </ul>
   </li>
@@ -625,7 +625,10 @@ window.Quarto = {
   <li><a href="#thermoelastic-berger-okubo-phase-shift" id="toc-thermoelastic-berger-okubo-phase-shift" class="nav-link active" data-scroll-target="#thermoelastic-berger-okubo-phase-shift">① Thermoelastic — Berger / Okubo phase-shift</a></li>
   <li><a href="#hydrological-baseflow-recharge-proxy" id="toc-hydrological-baseflow-recharge-proxy" class="nav-link" data-scroll-target="#hydrological-baseflow-recharge-proxy">② Hydrological — baseflow recharge proxy</a></li>
   <li><a href="#damage-healing-snieder-logarithmic-recovery" id="toc-damage-healing-snieder-logarithmic-recovery" class="nav-link" data-scroll-target="#damage-healing-snieder-logarithmic-recovery">③ Damage &amp; healing — Snieder logarithmic recovery</a></li>
-  <li><a href="#superposition-the-decoupled-model" id="toc-superposition-the-decoupled-model" class="nav-link" data-scroll-target="#superposition-the-decoupled-model">Superposition: the decoupled model</a></li>
+  <li><a href="#superposition-the-decoupled-model" id="toc-superposition-the-decoupled-model" class="nav-link" data-scroll-target="#superposition-the-decoupled-model">Superposition: the decoupled model</a>
+  <ul class="collapse">
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/Denolle-Lab/codameter/edit/main/tutorial-02-forward.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/Denolle-Lab/codameter/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -673,7 +676,7 @@ window.Quarto = {
 </div>
 <section id="thermoelastic-berger-okubo-phase-shift" class="level2">
 <h2 class="anchored" data-anchor-id="thermoelastic-berger-okubo-phase-shift">① Thermoelastic — Berger / Okubo phase-shift</h2>
-<p>Surface temperature diffuses downward, and the thermal strain it induces at the sensing depth lags the surface by a <strong>phase shift</strong> <span class="math inline">\(t_{\text{shift}}\)</span> (here 50 days). The forward model <code>thermoelastic_dvv</code> implements the Okubo et al.&nbsp;(2024) phase-shift form <span class="citation" data-cites="Berger1975 Okubo2024">(<a href="#ref-Berger1975" role="doc-biblioref">Berger 1975</a>; <a href="#ref-Okubo2024" role="doc-biblioref"><span class="nocase">Okubo et al.</span> 2024</a>)</span>.</p>
+<p>Surface temperature diffuses downward, and the thermal strain it induces at the sensing depth lags the surface by a <strong>phase shift</strong> <span class="math inline">\(t_{\text{shift}}\)</span> (here 50 days). The forward model <code>thermoelastic_dvv</code> implements the <span class="citation" data-cites="Okubo2024"><span class="nocase">Okubo et al.</span> (<a href="#ref-Okubo2024" role="doc-biblioref">2024</a>)</span> phase-shift form <span class="citation" data-cites="Berger1975 Okubo2024">(<a href="#ref-Berger1975" role="doc-biblioref">Berger 1975</a>; <a href="#ref-Okubo2024" role="doc-biblioref"><span class="nocase">Okubo et al.</span> 2024</a>)</span>.</p>
 <div id="cell-fig-thermo" class="cell" data-execution_count="2">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -692,7 +695,7 @@ window.Quarto = {
 <div id="fig-thermo" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-thermo-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="tutorial-02-forward_files/figure-html/fig-thermo-output-1.png" width="1049" height="314" class="figure-img">
+<img src="tutorial-02-forward_files/figure-html/fig-thermo-output-1.png" width="1033" height="314" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-thermo-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: Thermoelastic footprint. The δv/v response (red) is a phase-shifted, scaled copy of surface temperature (grey) — the 50-day lag is the downward thermal-diffusion delay.
@@ -723,7 +726,7 @@ Figure&nbsp;1: Thermoelastic footprint. The δv/v response (red) is a phase-shif
 <div id="fig-hydro" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-hydro-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="tutorial-02-forward_files/figure-html/fig-hydro-output-1.png" width="990" height="312" class="figure-img">
+<img src="tutorial-02-forward_files/figure-html/fig-hydro-output-1.png" width="982" height="313" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hydro-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;2: Hydrological footprint. Sparse winter storms (blue bars) integrate into a smooth seasonal-to-interannual groundwater signal (blue line). This is the term that becomes water-table depth in Phase 6.
@@ -752,7 +755,7 @@ Figure&nbsp;2: Hydrological footprint. Sparse winter storms (blue bars) integrat
 <div id="fig-damage" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-damage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="tutorial-02-forward_files/figure-html/fig-damage-output-1.png" width="965" height="344" class="figure-img">
+<img src="tutorial-02-forward_files/figure-html/fig-damage-output-1.png" width="955" height="345" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-damage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;3: Damage footprint. A co-seismic velocity drop at the 2014 event followed by logarithmic healing — the transient that anomaly detection (Phase 5) must not mistake for unmodelled physics.
@@ -782,7 +785,7 @@ Figure&nbsp;3: Damage footprint. A co-seismic velocity drop at the 2014 event fo
 <div id="fig-stack" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-stack-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="tutorial-02-forward_files/figure-html/fig-stack-output-1.png" width="942" height="393" class="figure-img">
+<img src="tutorial-02-forward_files/figure-html/fig-stack-output-1.png" width="935" height="394" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-stack-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;4: The decoupled decomposition. Three independent forward models stack to reproduce the observed series. Step 3 inverts this picture; step 4 asks when the ‘independent’ assumption fails.
@@ -792,22 +795,17 @@ Figure&nbsp;4: The decoupled decomposition. Three independent forward models sta
 </div>
 </div>
 <p>→ Next: <a href="./tutorial-03-inversion.html">Linear superposition &amp; inversion</a> — recover the amplitudes <em>and their covariance</em> from the data.</p>
-
-
-<!-- -->
-
-
-</section>
-
-<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<section id="references" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="references">References</h3>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-Berger1975" class="csl-entry" role="listitem">
-Berger, Jon. 1975. <span>“A Note on Thermoelastic Strains and Tilts.”</span> <em>Journal of Geophysical Research</em>.
+Berger, Jon. 1975. <span>“A Note on Thermoelastic Strains and Tilts.”</span> <em>Journal of Geophysical Research</em>, ahead of print. <a href="https://doi.org/10.1029/jb080i002p00274">https://doi.org/10.1029/jb080i002p00274</a>.
 </div>
 <div id="ref-Okubo2024" class="csl-entry" role="listitem">
 <span class="nocase">Okubo, Kurama, Marine A. Denolle, Ehsan Behboudi, et al.</span> 2024. <span>“Hydroseismicity Controls on Seismic Velocity Changes at Parkfield.”</span> <em>Journal of Geophysical Research: Solid Earth</em>.
 </div>
 <div id="ref-Roeloffs1988" class="csl-entry" role="listitem">
-Roeloffs, Evelyn A. 1988. <span>“Hydrologic Precursors to Earthquakes: A Review.”</span> <em>Pure and Applied Geophysics</em>.
+Roeloffs, Evelyn A. 1988. <span>“Hydrologic Precursors to Earthquakes: A Review.”</span> <em>Pure and Applied Geophysics</em>, ahead of print. <a href="https://doi.org/10.1007/bf00878996">https://doi.org/10.1007/bf00878996</a>.
 </div>
 <div id="ref-Snieder2017" class="csl-entry" role="listitem">
 <span class="nocase">Snieder, Roel et al.</span> 2017. <span>“Monitoring Change in Volcanic and Fault Systems with Seismic Interferometry.”</span> <em>Reviews of Geophysics</em>.
@@ -815,7 +813,15 @@ Roeloffs, Evelyn A. 1988. <span>“Hydrologic Precursors to Earthquakes: A Revie
 <div id="ref-Talwani2007" class="csl-entry" role="listitem">
 Talwani, Pradeep, Lily Chen, and Kalpna Gahalaut. 2007. <span>“Seismogenic Permeability.”</span> <em>Journal of Geophysical Research</em>.
 </div>
-</div></section></div></main> <!-- /main -->
+</div>
+
+
+<!-- -->
+
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
@@ -1334,7 +1340,7 @@ Talwani, Pradeep, Lily Chen, and Kalpna Gahalaut. 2007. <span>“Seismogenic Per
 <span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>Surface temperature diffuses downward, and the thermal strain it induces at the</span>
 <span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>sensing depth lags the surface by a **phase shift** $t_{\text{shift}}$ (here 50</span>
-<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>days). The forward model <span class="in">`thermoelastic_dvv`</span> implements the Okubo et al. (2024)</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>days). The forward model <span class="in">`thermoelastic_dvv`</span> implements the @Okubo2024</span>
 <span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>phase-shift form <span class="co">[</span><span class="ot">@Berger1975; @Okubo2024</span><span class="co">]</span>.</span>
 <span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
@@ -1418,6 +1424,11 @@ Talwani, Pradeep, Lily Chen, and Kalpna Gahalaut. 2007. <span>“Seismogenic Per
 <span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a>→ Next: <span class="co">[</span><span class="ot">Linear superposition &amp; inversion</span><span class="co">](tutorial-03-inversion.qmd)</span> — recover</span>
 <span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a>the amplitudes *and their covariance* from the data.</span>
+<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a><span class="fu">### References {.unnumbered}</span></span>
+<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

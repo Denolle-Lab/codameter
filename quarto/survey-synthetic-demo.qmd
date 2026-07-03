@@ -68,7 +68,7 @@ NoisePy's `monitoring_methods` ships **seven** dv/v estimators, and we reproduce
 cross-correlation), `dtw_dvv` (dynamic time warping), `mwcs_dvv` (moving-window
 cross-spectrum), and the wavelet-domain `wxs_dvv` (**WCS**, the popular wavelet
 cross-spectrum), `wts_dvv` (wavelet stretching), and `wtdtw_dvv` (wavelet DTW).
-**Yuan et al. (2021)** benchmark the suite numerically.
+**@Yuan2021** benchmark the suite numerically.
 
 On **small, clean** $\delta v/v$ they all sit on the 1:1 line (panel a) — so the
 *choice does not matter and the result is reproducible*. The choice bites at
@@ -78,7 +78,7 @@ On **small, clean** $\delta v/v$ they all sit on the 1:1 line (panel a) — so t
   stay accurate;
 - **Phase methods** read delays from a wrapped phase. **MWCS** wraps at half a
   period and **cycle-skips**; **WCS** *would* too, but here it **unwraps the phase
-  in 2-D** (Mao et al. 2020) — so the very same family succeeds or fails purely on
+  in 2-D** [@Mao2020] — so the very same family succeeds or fails purely on
   the **unwrapping choice**;
 - **Warping methods** (DTW, WTDTW) track but **under-shoot** the largest strains
   (a discretized-warp bias).
@@ -222,8 +222,7 @@ artefacts inject **spurious** $\delta v/v$:
 - **Seasonal noise in the late coda** (panel b). A seasonally changing
   noise-source distribution warps the low-SNR late coda, so a **late** window
   reports a coherent spurious *seasonal* $\delta v/v$ many times the real signal,
-  while an **early**, higher-SNR window stays clean (the Zhan 2013 /
-  Daskalakis 2016 warning).
+  while an **early**, higher-SNR window stays clean (the [@Zhan2013; @Daskalakis2016] warning).
 
 ```{python}
 #| code-fold: true
@@ -253,7 +252,7 @@ sd.fig_multiverse();
 
 | Choice / deviation | Shown with | Consequence of deviating |
 | --- | --- | --- |
-| Estimator — all 7 NoisePy methods | Yuan 2021 suite | At large dv/v: MWCS cycle-skips, 2-D-unwrapped WCS recovers, warps (DTW, WTDTW) under-shoot |
+| Estimator — all 7 NoisePy methods | @Yuan2021 suite | At large dv/v: MWCS cycle-skips, 2-D-unwrapped WCS recovers, warps (DTW, WTDTW) under-shoot |
 | Cross-component aggregation | Station pair, 6 components | Avg-dv/v vs avg-CC-images, weighted vs not → different value *and* uncertainty |
 | Station-pair aggregation & σ | 9-pair network | Same mean, but reported 1σ differs ~√N (SE vs SD, weighted vs not) |
 | Frequency band | Groundwater 2-layer | Band selects depth → a *different* signal |
@@ -272,3 +271,8 @@ weight by SNR, and — when in doubt — **sample the choices and report the
 marginal**.
 
 *Reproduce locally:* `pixi run python literature/synthetic_dvv_demo.py`.
+
+### References {.unnumbered}
+
+::: {#refs}
+:::
