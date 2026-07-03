@@ -1,8 +1,7 @@
 ---
 title: "dv/v monitoring literature references"
 subtitle: "Full citations for the processing-parameter survey, with DOI & links"
-toc: true
-toc-depth: 2
+toc: false
 ---
 
 Full citations for the **103 studies** in the [processing-parameter survey](survey-best-practices.qmd). 101 enriched with title/journal metadata via [Crossref](https://www.crossref.org); the remainder show the short citation. Each entry links to its DOI (or source URL).

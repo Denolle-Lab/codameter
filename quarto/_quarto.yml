@@ -27,17 +27,17 @@ website:
         file: index.qmd
       - text: "Theory"
         menu:
-          - text: "1 · Measurement · Community survey"
+          - text: "1 · Measurement — marginal errors"
             file: theory-measurement-uq.qmd
-          - text: "2 · Measurement · UQ"
+          - text: "2 · Measurement — Bayesian measurement"
             file: theory-bayesian-measurement.qmd
-          - text: "3 · Depth migration · UQ"
+          - text: "3 · Depth — δv/v → δVs(z)/Vs"
             file: theory-processing-depth.qmd
-          - text: "4 · Stress meter · δv/v as a stress meter"
+          - text: "4 · Stress meter — δv/v as a stress meter"
             file: uncertainty-3-stress.qmd
-          - text: "5 · Stress meter · Force attribution"
+          - text: "5 · Stress meter — process attribution"
             file: uncertainty-4-attribution.qmd
-          - text: "5 · Stress meter · UQ"
+          - text: "Companion — inference UQ"
             file: theory-uq.qmd
       - text: "Tutorial"
         menu:
@@ -76,17 +76,17 @@ website:
           - index.qmd
       - section: "The uncertainty arc"
         contents:
-          - text: "1 · Measurement — the marginal errors, and how they differ"
+          - text: "1 · Measurement — marginal errors"
             file: theory-measurement-uq.qmd
-          - text: "1 · Measurement — into a Bayesian measurement"
+          - text: "2 · Measurement — Bayesian measurement"
             file: theory-bayesian-measurement.qmd
-          - text: "2 · Depth — δv/v → δVs(z)/Vs"
+          - text: "3 · Depth — δv/v → δVs(z)/Vs"
             file: theory-processing-depth.qmd
-          - text: "3 · Stress meter — δv/v as a stress meter"
+          - text: "4 · Stress meter — δv/v as a stress meter"
             file: uncertainty-3-stress.qmd
-          - text: "4 · Attribution — which forcing drives it"
+          - text: "5 · Stress meter — process attribution"
             file: uncertainty-4-attribution.qmd
-          - text: "Companion — inference UQ (stress inversion)"
+          - text: "Companion — inference UQ"
             file: theory-uq.qmd
       - section: "Implementation tutorial"
         contents:
@@ -114,15 +114,7 @@ format:
     theme:
       light: [cosmo, theme.scss]
       dark: [darkly, theme-dark.scss]
-    toc: true
-    toc-depth: 3
-    toc-title: "On this page"
-    toc-location: right
-    grid:                 # reserve room for the right-margin TOC so it stays visible
-      sidebar-width: 240px
-      body-width: 760px
-      margin-width: 260px
-      gutter-width: 1.4rem
+    toc: false            # the docked sidebar is the navigation; no right-margin TOC
     code-fold: show
     code-tools: true
     code-copy: true

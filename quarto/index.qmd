@@ -1,7 +1,7 @@
 ---
 title: "codameter"
 subtitle: "Seismic velocity changes as **Bayesian** stress & strain meters"
-toc: true
+toc: false
 ---
 
 ::: {.keyidea}

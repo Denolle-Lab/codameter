@@ -3,8 +3,7 @@ title: "dv/v processing parameters and best practices by application"
 subtitle: "A community-literature survey of how the dv/v knobs are set, and why"
 execute:
   enabled: false
-toc: true
-toc-depth: 2
+toc: false
 ---
 
 ::: {.keyidea}

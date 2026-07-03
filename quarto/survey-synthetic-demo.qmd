@@ -5,8 +5,7 @@ jupyter: codameter-pixi
 execute:
   warning: false
   echo: true
-toc: true
-toc-depth: 2
+toc: false
 ---
 
 ::: {.keyidea}
