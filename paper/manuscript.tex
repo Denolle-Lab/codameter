@@ -132,6 +132,39 @@
 \graphicspath{{../literature/figs/}{figs/}}
 
 \providecommand{\dvv}{\ensuremath{\delta v/v}}
+
+% --- GJI (Geophysical Journal International) initial-submission formatting ----
+% GJI calls the abstract the "Summary", asks for key words beneath it, and wants
+% double-spaced, continuously line-numbered text for review. For production the
+% emitted manuscript.tex can be dropped into the official gji.cls.
+\renewcommand{\abstractname}{SUMMARY}
+
+% Continuous line numbers, patched to survive amsmath display environments.
+\usepackage{lineno}
+\newcommand*\patchAmsForLineno[1]{%
+  \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
+  \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
+  \renewenvironment{#1}%
+    {\linenomath\csname old#1\endcsname}%
+    {\csname oldend#1\endcsname\endlinenomath}}%
+\newcommand*\patchBothAmsForLineno[1]{\patchAmsForLineno{#1}\patchAmsForLineno{#1*}}%
+\AtBeginDocument{%
+  \patchBothAmsForLineno{equation}%
+  \patchBothAmsForLineno{align}%
+  \patchBothAmsForLineno{gather}%
+  \patchBothAmsForLineno{multline}%
+  \patchBothAmsForLineno{flalign}%
+  \patchBothAmsForLineno{alignat}%
+}
+\linenumbers
+
+% Double-spaced text (GJI review), tables kept single-spaced for legibility.
+\usepackage{setspace}
+\doublespacing
+\usepackage{etoolbox}
+\AtBeginEnvironment{tabular}{\singlespacing}
+\AtBeginEnvironment{tabularx}{\singlespacing}
+\AtBeginEnvironment{longtable}{\singlespacing}
 \makeatletter
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \AtBeginDocument{%
@@ -190,48 +223,39 @@
 \title{The reproducibility cost of ad-hoc processing choices in
 ambient-noise seismic velocity-change monitoring}
 \author{M. A. Denolle \and {[}co-authors TBD{]}}
-\date{2026-07-02}
+\date{2026-07-04}
 \begin{document}
 \maketitle
 \begin{abstract}
-Relative seismic velocity changes (δv/v) measured from the ambient
-seismic field are now a standard monitoring observable for volcanoes,
-faults, landslides, aquifers and the cryosphere. Yet the pipeline that
-turns cross-correlation functions into a δv/v time series involves a
-long sequence of choices --- the estimator, the frequency band, the coda
-window, the reference, the stacking, and how cross-components and
-station pairs are aggregated and weighted --- that are made \emph{ad
-hoc} and are seldom reported in full. Using a controlled synthetic in
-which the ground-truth δv/v is known exactly, we quantify how much each
-choice moves the recovered value \emph{and its stated uncertainty}. We
-reproduce all seven estimators of the NoisePy monitoring toolbox and
-show that, at large δv/v, methods split by family with distinct failure
-modes; that the same station pair yields different δv/v time series
-depending only on whether one averages the per-component δv/v or the
-correlation-coefficient images; and, most consequentially, that the
-reported 1σ on a network-averaged δv/v varies by a factor of ∼√N purely
-from the standard-error-versus-standard-deviation and weighting
-conventions --- so a change that is ``3σ significant'' in one study is
-``not significant'' in another, from identical data. We then run the
-full \emph{multiverse} of best-practice and deviation choices on one
-synthetic dataset, ranking each choice by the bias and the error-bar
-change it induces, and we propose a Bayesian measurement model in which
-the processing-choice ensemble is marginalised into a single
-time-dependent data covariance \(C_d\) --- the honest object a
-downstream stress or depth inversion actually needs. We argue that these
-undocumented choices, not the physics, are the leading obstacle to
-intercomparing δv/v studies, and we release an open, executable
-framework (codameter) that makes every choice explicit and its effect
-reproducible. The measurement covariance is the first link in a longer
-chain, so we close by setting out --- as a roadmap grounded in the
-monitoring literature --- how it propagates through frequency-dependent
-sensitivity kernels to a depth profile of shear-velocity change (and, in
-partially saturated ground, a density change that a petrophysical model
-must separate), and onward to effective stress and strain at depth ---
-the honest input a companion framework needs to attribute the change to
-its forcing.
+Relative seismic velocity changes (δv/v) from the ambient seismic field
+are a standard observable for volcanoes, faults, landslides, aquifers
+and the cryosphere. Yet turning cross-correlation functions into a δv/v
+time series involves a long sequence of choices --- the estimator, the
+frequency band, the coda window, the reference, the stacking, and how
+cross-components and station pairs are aggregated and weighted --- made
+\emph{ad hoc} and seldom reported in full. Using a controlled synthetic
+in which the ground-truth δv/v is known exactly, we quantify how much
+each choice moves the recovered value \emph{and its stated uncertainty}.
+Reproducing the seven NoisePy estimators, we show that at large δv/v
+methods split by family with distinct failure modes; that the same
+station pair yields different δv/v depending only on whether one
+averages the per-component δv/v or the correlation-coefficient images;
+and, most consequentially, that the reported 1σ on a network-averaged
+δv/v varies by ∼√N from the standard-error-versus-standard-deviation and
+weighting conventions --- so a change that is ``3σ significant'' in one
+study is ``not significant'' in another, from identical data. Running
+the full \emph{multiverse} of choices, we rank each by the bias and
+error-bar change it induces, and propose a Bayesian measurement model
+that marginalises the ensemble into a single time-dependent data
+covariance \(C_d\) --- the honest object a downstream depth or stress
+inversion needs. We argue that these undocumented choices, not the
+physics, are the leading obstacle to intercomparing δv/v studies, and
+release an open framework (codameter) that makes every choice explicit
+and reproducible.
 \end{abstract}
 
+
+\vspace{0.5em}\noindent\textbf{Key words:} Time-series analysis; Interferometry; Seismic noise; Coda waves; Inverse theory; Statistical methods.\vspace{0.5em}
 
 \section{Introduction}\label{sec:intro}
 

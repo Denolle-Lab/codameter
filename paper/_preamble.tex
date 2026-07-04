@@ -20,3 +20,36 @@
 \graphicspath{{../literature/figs/}{figs/}}
 
 \providecommand{\dvv}{\ensuremath{\delta v/v}}
+
+% --- GJI (Geophysical Journal International) initial-submission formatting ----
+% GJI calls the abstract the "Summary", asks for key words beneath it, and wants
+% double-spaced, continuously line-numbered text for review. For production the
+% emitted manuscript.tex can be dropped into the official gji.cls.
+\renewcommand{\abstractname}{SUMMARY}
+
+% Continuous line numbers, patched to survive amsmath display environments.
+\usepackage{lineno}
+\newcommand*\patchAmsForLineno[1]{%
+  \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
+  \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
+  \renewenvironment{#1}%
+    {\linenomath\csname old#1\endcsname}%
+    {\csname oldend#1\endcsname\endlinenomath}}%
+\newcommand*\patchBothAmsForLineno[1]{\patchAmsForLineno{#1}\patchAmsForLineno{#1*}}%
+\AtBeginDocument{%
+  \patchBothAmsForLineno{equation}%
+  \patchBothAmsForLineno{align}%
+  \patchBothAmsForLineno{gather}%
+  \patchBothAmsForLineno{multline}%
+  \patchBothAmsForLineno{flalign}%
+  \patchBothAmsForLineno{alignat}%
+}
+\linenumbers
+
+% Double-spaced text (GJI review), tables kept single-spaced for legibility.
+\usepackage{setspace}
+\doublespacing
+\usepackage{etoolbox}
+\AtBeginEnvironment{tabular}{\singlespacing}
+\AtBeginEnvironment{tabularx}{\singlespacing}
+\AtBeginEnvironment{longtable}{\singlespacing}

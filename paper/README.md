@@ -1,11 +1,29 @@
 # Short paper draft (GJI)
 
-Draft manuscript: **"Processing choices, not physics: the reproducibility cost of
-ad-hoc decisions in ambient-noise seismic velocity-change monitoring."**
+Draft manuscript: **"The reproducibility cost of ad-hoc processing choices in
+ambient-noise seismic velocity-change monitoring."**
 
 A short *Geophysical Journal International* paper built on the
 [`literature/`](../literature) survey and the executable
 [`codameter.synthetic_demo`](../src/codameter/synthetic_demo.py) framework.
+
+## GJI submission format
+
+The manuscript is prepared for a GJI **initial submission** (set in
+[`_preamble.tex`](_preamble.tex)):
+
+- the abstract is labelled **SUMMARY** and is ≤ 250 words;
+- a **Key words** line (from the GJI controlled list) follows the summary;
+- text is **double-spaced** with continuous **line numbers** (tables kept
+  single-spaced; the `lineno` patch keeps amsmath display equations intact);
+- a **Data Availability** statement and Acknowledgements are included;
+- references are author–year (`natbib`), close to GJI house style.
+
+For production/acceptance, the emitted **`manuscript.tex`** can be dropped into
+the official **`gji.cls`** template (from the GJI author resources) and the
+reference style switched to `gji.bst`; the content is already structured for it.
+Co-authors, author contributions, and a competing-interests statement remain to
+be filled before submission.
 
 ## Edit in Markdown, get TeX + PDF
 
