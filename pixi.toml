@@ -65,6 +65,9 @@ lab = { cmd = "jupyter lab", description = "Launch JupyterLab" }
 # Run the full test suite
 test = { cmd = "pytest -ra --cov=src/codameter --cov-report=term", description = "Run pytest" }
 
+# Regenerate the golden synthetic-CCF manifest (recipes + expected metrics)
+golden = { cmd = "python -m codameter.golden", description = "Regenerate tests/data/golden/manifest.json" }
+
 # Run only the Parkfield notebook-friendly example
 parkfield = { cmd = "python examples/01_parkfield_synthetic.py", description = "Synthetic Parkfield demo" }
 
