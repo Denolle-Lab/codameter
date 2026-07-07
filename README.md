@@ -189,6 +189,15 @@ frequency-dependent shallow+deep media, sparse cadence + decorrelation). They ar
 both a pytest regression oracle and the advisor's validation corpus. Regenerate
 with `pixi run golden`.
 
+The same golden cases are exposed as a
+[FrugalMind](https://github.com/mdenolle/frugalmind) benchmark via
+`codameter.frugalmind`, with two suites: `param_recommendation` (the agent
+returns a processing config; scored by running it and grading dv/v recovery) and
+`dvv_series` (the agent returns the recovered dv/v(t); scored by regression
+against the known truth). Export the JSONL with `pixi run frugalmind-export`; the
+drop-in FrugalMind suite lives in
+[`integrations/frugalmind/`](integrations/frugalmind).
+
 ---
 
 ## Models, hyperparameters, and physical bounds

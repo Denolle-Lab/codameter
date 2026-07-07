@@ -56,3 +56,14 @@ for c in m['cases']:
 If a genuine estimator improvement shifts an RMS beyond its `rms_rel_tol`,
 regenerate the manifest in the same commit and note why in the message. The
 tolerance is a drift guard, not a target.
+
+## FrugalMind benchmark view
+
+The same cases are exposed as a FrugalMind benchmark through
+`codameter.frugalmind`: `build_rows(task)` emits `BenchmarkRow`-shaped dicts and
+`make_scorer_from_spec` returns the deterministic scorers. Two tasks:
+`param_recommendation` (agent returns a config; scored by dv/v recovery via
+`run_pipeline`) and `dvv_series` (agent returns the recovered dv/v(t); scored by
+regression vs truth). Export with `pixi run frugalmind-export`; the drop-in
+suite is in `integrations/frugalmind/`. Adding or changing a golden case updates
+the FrugalMind rows automatically, since both read `golden.CASES`.

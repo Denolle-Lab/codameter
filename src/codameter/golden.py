@@ -152,6 +152,19 @@ MAINSTREAM_BY_USE_CASE = {
 }
 
 
+def case_split(recipe: dict) -> str:
+    """Benchmark split for a case: mainstream -> validation, edge -> test.
+
+    (These are the frugalmind splits; a recipe may override with a ``split`` key.)
+    """
+    return recipe.get("split", "validation" if recipe["kind"] == "mainstream" else "test")
+
+
+def case_visibility(recipe: dict) -> str:
+    """Benchmark visibility. Synthetic and seed-reproducible, so public by default."""
+    return recipe.get("visibility", "public")
+
+
 # ---------------------------------------------------------------------------
 # Synthesis
 # ---------------------------------------------------------------------------
@@ -312,6 +325,7 @@ def regenerate_manifest() -> dict:
         m = compute_metrics(c["id"], d)
         entry = {
             "id": c["id"], "kind": c["kind"], "use_case": c["use_case"],
+            "split": case_split(c), "visibility": case_visibility(c),
             "years": c["years"], "snr": c["snr"], "seed": c["seed"],
             "cadence": c.get("cadence", 1), "decorr": c.get("decorr", 0.0),
             "rms_rel_tol": c["rms_rel_tol"], "n_days": int(len(d["days"])),
