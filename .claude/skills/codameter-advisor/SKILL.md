@@ -20,7 +20,7 @@ description: >
   (that is pre-submission-reviewer).
 ---
 
-# codameter Advisor — Orchestrator
+# codameter Advisor: Orchestrator
 
 You are the **orchestrator** of a dv/v processing-parameter recommendation. You
 do not answer from memory. You elicit the user's monitoring use case, map it to a
@@ -60,7 +60,7 @@ installed editable). Show the user the numbers you get; do not paraphrase them.
 
 ---
 
-## STEP 0 — LOAD
+## STEP 0: LOAD
 
 Read `references/parameter_map.md` and confirm the use-case keys by running:
 
@@ -71,7 +71,7 @@ pixi run python -c "from codameter import use_cases as uc; print(list(uc.USE_CAS
 If the user asked to build or regenerate golden datasets rather than get a
 recommendation, skip to **Golden datasets** (bottom) and stop.
 
-## STEP 1 — ELICIT THE USE CASE
+## STEP 1: ELICIT THE USE CASE
 
 Use `references/use_case_elicitation.md`. Ask the questions in
 `codameter.use_cases.ELICITATION` with `AskUserQuestion` (batch related ones).
@@ -86,7 +86,7 @@ Step 3 has something to compare against.
 Do not force answers. If the user does not know a field, take the use-case
 default. Infer the application with `codameter.use_cases.resolve(text)`.
 
-## STEP 2 — MAP TO A RECOMMENDED CONFIG
+## STEP 2: MAP TO A RECOMMENDED CONFIG
 
 Follow `references/parameter_map.md`. Call
 `codameter.use_cases.recommend(use_case, **overrides)` where `overrides` carry
@@ -95,7 +95,7 @@ plain language with its citation from the module's `USE_CASES[key]`
 (`ranges`, `depth_note`, `key_rule`, `citations`). Name the one or two axes that
 matter most for this use case.
 
-## STEP 3 — VALIDATE LIVE
+## STEP 3: VALIDATE LIVE
 
 Follow `references/validation_loop.md`. Synthesize a matched scenario (reuse a
 golden case when the application maps to one, else `codameter.golden.generate`),
@@ -112,7 +112,7 @@ the user's current or a deliberately naive config. Report:
 State the numbers you actually got. If the user's choice is within noise of the
 recommendation, say so; do not manufacture a difference.
 
-## STEP 4 — REPORT
+## STEP 4: REPORT
 
 Use `references/report_format.md`. Emit: the final config as a dict and a YAML
 block, the per-axis rationale with citations, the validation numbers from Step 3,

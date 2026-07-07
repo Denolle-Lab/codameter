@@ -6,12 +6,12 @@ regression oracle (`tests/test_golden.py`) and this advisor's live validation.
 
 ## Layout
 
-- `tests/data/golden/manifest.json` — the committed oracle: one entry per case
+- `tests/data/golden/manifest.json`: the committed oracle: one entry per case
   with its recipe (use case, years, snr, seed, cadence, decorr) and the frozen
   expected metrics (baseline-aligned RMS, plus any probes). Version-controlled.
-- `tests/data/golden/cache/*.npz` — the regenerated arrays. Deterministic from
+- `tests/data/golden/cache/*.npz`: the regenerated arrays. Deterministic from
   the seed, so they are gitignored, not committed.
-- `codameter.golden` — the generator. `CASES` is the recipe list; `generate(id)`
+- `codameter.golden`: the generator. `CASES` is the recipe list; `generate(id)`
   rebuilds arrays; `regenerate_manifest()` recomputes the expected metrics.
 
 ## The cases
@@ -21,14 +21,14 @@ Mainstream (one per application): `volcano_mainstream`, `earthquake_mainstream`,
 `geothermal_mainstream`. Each should recover its truth to well under 0.2 % RMS.
 
 Edge:
-- `low_snr_large_dvv` — SNR ~2 with a several-percent pre-failure drop; the
+- `low_snr_large_dvv`: SNR ~2 with a several-percent pre-failure drop; the
   cycle-skipping regime that splits stretching from cross-spectral methods.
-- `clock_drift_seasonal` — a growing clock error plus a seasonal late-coda warp;
+- `clock_drift_seasonal`: a growing clock error plus a seasonal late-coda warp;
   injects a spurious dv/v (Zhan 2013 / Daskalakis 2016).
-- `freqdep_shallow_deep` — shallow (high-freq) and deep (low-freq) layers carry
+- `freqdep_shallow_deep`: shallow (high-freq) and deep (low-freq) layers carry
   different dv/v; the band selects which one you recover. Has a probe proving the
   deep band recovers the deep layer.
-- `sparse_decorr` — every-third-day sampling with 30 % waveform decorrelation;
+- `sparse_decorr`: every-third-day sampling with 30 % waveform decorrelation;
   stresses the reference and stacking warm-up.
 
 ## Inspect

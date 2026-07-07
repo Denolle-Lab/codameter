@@ -257,6 +257,19 @@
         "eps_max": 0.06,
         "rms": 0.0009051145478551642
       },
+      "artifacts": [
+        {
+          "kind": "clock_drift",
+          "drift_s_per_day": 0.0002,
+          "onset_day": 200
+        },
+        {
+          "kind": "seasonal_late_noise",
+          "onset_s": 20.0,
+          "dvv_amp": 0.004,
+          "jitter": 0.06
+        }
+      ],
       "note": "A growing clock error plus a seasonal late-coda warp inject a spurious dv/v (Zhan 2013 / Daskalakis 2016)."
     },
     {
@@ -288,7 +301,7 @@
           "gate": true
         },
         "eps_max": 0.03,
-        "rms": 0.00010740989359977863,
+        "rms": 0.00010868054317771904,
         "probes": [
           {
             "label": "deep_band_recovers_deep",
@@ -307,8 +320,19 @@
               "gate": true
             },
             "truth": "deep",
-            "rms": 0.0003507134629889401
+            "rms": 0.0002856315920472662
           }
+        ]
+      },
+      "two_layer": true,
+      "config": {
+        "band": [
+          4.0,
+          10.0
+        ],
+        "window": [
+          2.0,
+          8.0
         ]
       },
       "note": "Shallow (high-freq) and deep (low-freq) layers carry different dv/v; the band selects which one you recover."

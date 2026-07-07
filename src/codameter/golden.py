@@ -190,14 +190,19 @@ def _build(recipe: dict) -> dict:
 
     if recipe.get("two_layer"):
         # Two band-separated layers so the frequency band selects the depth.
-        t, shallow = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=(3.0, 11.0),
+        shallow_band, deep_band = (3.0, 11.0), (0.2, 1.1)
+        t, shallow = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=shallow_band,
                                t_coda_s=sp["t_coda_s"], seed=0)
-        _, deep = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=(0.2, 1.1),
+        _, deep = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=deep_band,
                             t_coda_s=sp["t_coda_s"], seed=1)
         truth_s = TRUTH["groundwater_shallow"](days)
         truth_d = TRUTH["groundwater_deep"](days)
+        # Noise (and any decorrelation coda) must be broadband across BOTH layer
+        # bands, or the SNR would be frequency-dependent and confound the
+        # band-selects-depth test. Span deep_band low to shallow_band high.
+        two_layer_band = (deep_band[0] * 0.5, shallow_band[1] * 1.1)
         ccfs = daily_ccfs(t, [shallow, deep], [truth_s, truth_d], fs=fs,
-                          snr=snr, decorr=decorr, gen_band=gen_band, seed=seed)
+                          snr=snr, decorr=decorr, gen_band=two_layer_band, seed=seed)
         out.update(t=t, ccfs=ccfs, truth=truth_s, truth_deep=truth_d)
     else:
         t, ref, _ = _synth_reference(use_case)
@@ -233,14 +238,25 @@ def _build(recipe: dict) -> dict:
     return out
 
 
+def _recipe_hash(recipe: dict) -> str:
+    """Short digest of a recipe, so editing it invalidates the cached arrays."""
+    import hashlib
+
+    blob = json.dumps(recipe, sort_keys=True, default=str)
+    return hashlib.sha1(blob.encode()).hexdigest()[:8]
+
+
 def generate(case_id: str, *, cache: bool = True) -> dict:
     """Return ``{ccfs, t, days, truth[, truth_deep], fs, use_case}`` for a case.
 
     Deterministic in the recipe seed. When ``cache`` is set the arrays are read
-    from / written to ``tests/data/golden/cache/<id>.npz`` to avoid recomputing.
+    from / written to ``tests/data/golden/cache/<id>-<recipe_hash>.npz``. The
+    recipe hash in the filename means a changed recipe misses the stale cache and
+    rebuilds; a change to the synthesis *code* is not captured by the hash, so
+    ``regenerate_manifest`` bypasses the cache entirely (``cache=False``).
     """
     recipe = CASES_BY_ID[case_id]
-    cache_file = CACHE_DIR / f"{case_id}.npz"
+    cache_file = CACHE_DIR / f"{case_id}-{_recipe_hash(recipe)}.npz"
     if cache and cache_file.exists():
         z = np.load(cache_file, allow_pickle=False)
         d = {k: z[k] for k in z.files}
@@ -321,7 +337,8 @@ def regenerate_manifest() -> dict:
     """Recompute every case's expected metrics and rewrite ``manifest.json``."""
     cases = []
     for c in CASES:
-        d = generate(c["id"])
+        # Always rebuild from current code, never from a possibly stale cache.
+        d = generate(c["id"], cache=False)
         m = compute_metrics(c["id"], d)
         entry = {
             "id": c["id"], "kind": c["kind"], "use_case": c["use_case"],
@@ -331,6 +348,14 @@ def regenerate_manifest() -> dict:
             "rms_rel_tol": c["rms_rel_tol"], "n_days": int(len(d["days"])),
             "expected": m,
         }
+        # Record the remaining recipe fields so the oracle is auditable from the
+        # manifest alone (not only by reading golden.CASES).
+        if c.get("two_layer"):
+            entry["two_layer"] = True
+        if "artifacts" in c:
+            entry["artifacts"] = c["artifacts"]
+        if "config" in c:
+            entry["config"] = _jsonable(c["config"])
         if "note" in c:
             entry["note"] = c["note"]
         cases.append(entry)

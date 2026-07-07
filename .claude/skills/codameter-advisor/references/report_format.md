@@ -6,10 +6,10 @@ difference or invent one that is not there.
 
 ## Structure
 
-1. **Use case** — one line naming the resolved application and the key fields the
+1. **Use case**: one line naming the resolved application and the key fields the
    user gave.
 
-2. **Recommended config** — the dict and a YAML block:
+2. **Recommended config**: the dict and a YAML block:
 
    ```yaml
    estimator: stretching (TS)
@@ -21,10 +21,10 @@ difference or invent one that is not there.
    eps_max: 0.06           # stretching search half-width
    ```
 
-3. **Why** — one line per axis, each with its driver and a citation from
+3. **Why**: one line per axis, each with its driver and a citation from
    `USE_CASES[key]`. Name the one or two axes that matter most for this use case.
 
-4. **Validation** — the table from Step 3:
+4. **Validation**: the table from Step 3:
 
    | Config | RMS vs truth | Recovered signal |
    | --- | --- | --- |
@@ -34,7 +34,7 @@ difference or invent one that is not there.
    State the ratio and what it means in one sentence. If a factorial was run, add
    the top variance-driving axis.
 
-5. **Reproduce** — a short snippet the user can paste:
+5. **Reproduce**: a short snippet the user can paste:
 
    ```python
    from codameter import use_cases as uc, golden
@@ -45,7 +45,7 @@ difference or invent one that is not there.
                              uc.recommend(key), eps_max=uc.eps_max(key))
    ```
 
-6. **One caveat** — the `key_rule` for this use case, verbatim in substance (for
+6. **One caveat**: the `key_rule` for this use case, verbatim in substance (for
    example, for a volcano: correct for rainfall before reading a pre-eruptive
    signal).
 
