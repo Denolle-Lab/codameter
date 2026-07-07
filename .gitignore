@@ -68,3 +68,7 @@ docs/_build/
 # Full-text access — secrets and downloaded PDFs are never committed
 literature/.secrets.env
 literature/pdfs/
+
+# FrugalMind JSONL export is a derived artifact (regenerate: pixi run frugalmind-export).
+# The frozen, hash-pinned copy lives in the FrugalMind repo / a HuggingFace mirror.
+/datasets/

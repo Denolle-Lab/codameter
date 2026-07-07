@@ -1,0 +1,374 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "volcano_mainstream",
+      "kind": "mainstream",
+      "use_case": "volcano",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 7.0,
+      "seed": 11,
+      "cadence": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.3,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.4,
+            1.0
+          ],
+          "window": [
+            10,
+            30
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.06,
+        "rms": 0.00024045031681258644
+      }
+    },
+    {
+      "id": "earthquake_mainstream",
+      "kind": "mainstream",
+      "use_case": "earthquake_fault",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 7.0,
+      "seed": 12,
+      "cadence": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.3,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.5,
+            1.5
+          ],
+          "window": [
+            8,
+            25
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.05,
+        "rms": 0.00014156185178993663
+      }
+    },
+    {
+      "id": "landslide_mainstream",
+      "kind": "mainstream",
+      "use_case": "landslide",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 8.0,
+      "seed": 13,
+      "cadence": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.3,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            4.0,
+            12.0
+          ],
+          "window": [
+            0.2,
+            1.5
+          ],
+          "stack": 5,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.09,
+        "rms": 0.0006342923685591622
+      }
+    },
+    {
+      "id": "groundwater_mainstream",
+      "kind": "mainstream",
+      "use_case": "groundwater",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 8.0,
+      "seed": 14,
+      "cadence": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.3,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            2.0,
+            4.0
+          ],
+          "window": [
+            2.0,
+            8.0
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.03,
+        "rms": 0.00011149748859488201
+      }
+    },
+    {
+      "id": "cryosphere_mainstream",
+      "kind": "mainstream",
+      "use_case": "cryosphere",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 8.0,
+      "seed": 15,
+      "cadence": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.3,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            4.0,
+            14.0
+          ],
+          "window": [
+            0.3,
+            0.8
+          ],
+          "stack": 5,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.11,
+        "rms": 0.0013733676670769366
+      }
+    },
+    {
+      "id": "geothermal_mainstream",
+      "kind": "mainstream",
+      "use_case": "geothermal",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 7.0,
+      "seed": 16,
+      "cadence": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.3,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.5,
+            2.0
+          ],
+          "window": [
+            10.0,
+            25.0
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.03,
+        "rms": 7.499932473111218e-05
+      }
+    },
+    {
+      "id": "low_snr_large_dvv",
+      "kind": "edge",
+      "use_case": "landslide",
+      "split": "test",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 2.0,
+      "seed": 21,
+      "cadence": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.35,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            4.0,
+            12.0
+          ],
+          "window": [
+            0.2,
+            1.5
+          ],
+          "stack": 5,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.09,
+        "rms": 0.0008136899296025077
+      },
+      "note": "SNR~2 with a several-percent pre-failure drop: the regime that splits stretching from cross-spectral methods."
+    },
+    {
+      "id": "clock_drift_seasonal",
+      "kind": "edge",
+      "use_case": "volcano",
+      "split": "test",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 7.0,
+      "seed": 22,
+      "cadence": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.35,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.4,
+            1.0
+          ],
+          "window": [
+            10,
+            30
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.06,
+        "rms": 0.0009051145478551642
+      },
+      "artifacts": [
+        {
+          "kind": "clock_drift",
+          "drift_s_per_day": 0.0002,
+          "onset_day": 200
+        },
+        {
+          "kind": "seasonal_late_noise",
+          "onset_s": 20.0,
+          "dvv_amp": 0.004,
+          "jitter": 0.06
+        }
+      ],
+      "note": "A growing clock error plus a seasonal late-coda warp inject a spurious dv/v (Zhan 2013 / Daskalakis 2016)."
+    },
+    {
+      "id": "freqdep_shallow_deep",
+      "kind": "edge",
+      "use_case": "groundwater",
+      "split": "test",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 9.0,
+      "seed": 23,
+      "cadence": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.35,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            4.0,
+            10.0
+          ],
+          "window": [
+            2.0,
+            8.0
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.03,
+        "rms": 0.00010868054317771904,
+        "probes": [
+          {
+            "label": "deep_band_recovers_deep",
+            "config": {
+              "estimator": "stretching (TS)",
+              "band": [
+                0.2,
+                1.0
+              ],
+              "window": [
+                8.0,
+                25.0
+              ],
+              "stack": 10,
+              "reference": "fixed",
+              "gate": true
+            },
+            "truth": "deep",
+            "rms": 0.0002856315920472662
+          }
+        ]
+      },
+      "two_layer": true,
+      "config": {
+        "band": [
+          4.0,
+          10.0
+        ],
+        "window": [
+          2.0,
+          8.0
+        ]
+      },
+      "note": "Shallow (high-freq) and deep (low-freq) layers carry different dv/v; the band selects which one you recover."
+    },
+    {
+      "id": "sparse_decorr",
+      "kind": "edge",
+      "use_case": "volcano",
+      "split": "test",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 6.0,
+      "seed": 24,
+      "cadence": 3,
+      "decorr": 0.3,
+      "rms_rel_tol": 0.35,
+      "n_days": 365,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.4,
+            1.0
+          ],
+          "window": [
+            10,
+            30
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.06,
+        "rms": 0.0004359819565566644
+      },
+      "note": "Every-third-day sampling with 30 % waveform decorrelation stresses the reference/stacking warm-up."
+    }
+  ]
+}
