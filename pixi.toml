@@ -71,6 +71,9 @@ golden = { cmd = "python -m codameter.golden", description = "Regenerate tests/d
 # Export the golden dv/v datasets as FrugalMind-compatible JSONL + manifest
 frugalmind-export = { cmd = "python -m codameter.frugalmind --out datasets", description = "Export dv/v benchmark rows as JSONL (FrugalMind format)" }
 
+# Shardable config-sweep benchmark (plan / sweep / aggregate); scales to Fargate
+bench = { cmd = "python -m codameter.bench", description = "Config-sweep benchmark over case x config grids" }
+
 # Run only the Parkfield notebook-friendly example
 parkfield = { cmd = "python examples/01_parkfield_synthetic.py", description = "Synthetic Parkfield demo" }
 
