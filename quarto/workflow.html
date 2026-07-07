@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codameter workflow: pipeline, agent steps, evaluation breakdown</title>
+<style>
+  :root{
+    --ink:#181c26; --muted:#5b6472; --paper:#eef1f5; --card:#ffffff; --line:#d7dde5;
+    --steel:#35597d; --steel-bg:#e7edf4;
+    --amber:#9c5d0d; --amber-bg:#f7e8cf;
+    --teal:#0e7a70;  --teal-bg:#d6efea;
+    --plum:#5f4a94;  --plum-bg:#e8e2f4;
+    --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sp:clamp(16px,2.4vw,30px);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+    line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1120px;margin:0 auto;padding:var(--sp);}
+  a{color:var(--steel)}
+
+  /* ---- header ---- */
+  header{padding:calc(var(--sp)*1.1) 0 var(--sp);border-bottom:1px solid var(--line);}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--steel);margin:0 0 10px;}
+  h1{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;text-wrap:balance;
+    font-size:clamp(26px,4.4vw,42px);line-height:1.08;margin:0 0 12px;}
+  .lede{max-width:66ch;color:var(--muted);font-size:clamp(15px,1.6vw,17px);margin:0;}
+  .lede b{color:var(--ink);font-weight:600;}
+
+  /* ---- legend ---- */
+  .legend{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:22px;}
+  .lg{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);}
+  .chip{width:13px;height:13px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.15);}
+  .c-agent{background:var(--amber)} .c-compute{background:var(--steel)}
+  .c-data{background:var(--teal)}  .c-human{background:var(--plum)}
+
+  /* ---- sections ---- */
+  section{padding:calc(var(--sp)*1.15) 0;border-bottom:1px solid var(--line);}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 4px;}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(20px,2.6vw,27px);margin:0 0 6px;
+    letter-spacing:-.01em;}
+  .sub{color:var(--muted);max-width:70ch;margin:0 0 20px;font-size:15px;}
+
+  /* ---- horizontal flow (scrolls inside its own box) ---- */
+  .scroll{overflow-x:auto;padding-bottom:6px;}
+  .flow{display:flex;align-items:stretch;gap:0;min-width:min-content;}
+  .arrow{flex:none;align-self:center;color:#9aa4b2;font-size:20px;padding:0 10px;user-select:none;}
+  .arrow.loop{color:var(--amber);}
+
+  /* ---- node card ---- */
+  .node{flex:none;width:200px;background:var(--card);border:1px solid var(--line);
+    border-radius:7px;padding:13px 14px;display:flex;flex-direction:column;gap:7px;
+    box-shadow:0 1px 0 rgba(24,28,38,.03);}
+  .node .top{display:flex;align-items:center;gap:8px;}
+  .dot{width:10px;height:10px;border-radius:3px;flex:none;}
+  .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    padding:2px 6px;border-radius:4px;font-weight:600;white-space:nowrap;}
+  .node h3{font-size:14.5px;margin:0;line-height:1.25;font-weight:650;}
+  .node p{margin:0;font-size:12.6px;color:var(--muted);line-height:1.4;}
+  .mod{font-family:var(--mono);font-size:11.5px;color:var(--steel);word-break:break-word;margin-top:auto;}
+
+  /* type tints */
+  .t-agent{background:linear-gradient(var(--card),var(--card)) padding-box;}
+  .t-agent .dot{background:var(--amber)} .t-agent .tag{background:var(--amber-bg);color:var(--amber)}
+  .t-compute .dot{background:var(--steel)} .t-compute .tag{background:var(--steel-bg);color:var(--steel)}
+  .t-data .dot{background:var(--teal)} .t-data .tag{background:var(--teal-bg);color:var(--teal)}
+  .t-human .dot{background:var(--plum)} .t-human .tag{background:var(--plum-bg);color:var(--plum)}
+  .t-data{background:#fbfdfc;} .t-agent{background:#fffdf9;}
+
+  .note{font-size:13px;color:var(--muted);margin:14px 0 0;}
+  .note b{color:var(--amber);font-weight:600;}
+
+  /* ---- principle strip ---- */
+  .principle{background:var(--ink);color:#eef1f5;border-radius:9px;padding:18px 20px;
+    display:flex;gap:16px;align-items:baseline;flex-wrap:wrap;margin:2px 0 0;}
+  .principle .p-k{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:#8fb0d6;}
+  .principle p{margin:0;font-family:var(--serif);font-size:clamp(16px,2vw,20px);}
+  .principle b{color:#f0c98a;font-weight:600;}
+
+  /* ---- evaluation lanes: numbered vertical steps ---- */
+  .lanes{display:grid;grid-template-columns:1fr 1fr;gap:26px;}
+  @media(max-width:760px){.lanes{grid-template-columns:1fr}}
+  .lane h3.lane-t{font-family:var(--sans);font-size:15px;margin:0 0 3px;font-weight:700;}
+  .lane .lane-s{font-size:12.8px;color:var(--muted);margin:0 0 14px;}
+  .steps{list-style:none;margin:0;padding:0;position:relative;}
+  .steps::before{content:"";position:absolute;left:15px;top:6px;bottom:14px;width:2px;background:var(--line);}
+  .step{position:relative;padding:0 0 15px 42px;}
+  .num{position:absolute;left:0;top:-1px;width:32px;height:32px;border-radius:50%;
+    display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:600;
+    color:#fff;background:var(--steel);border:3px solid var(--paper);z-index:1;}
+  .num.n-agent{background:var(--amber)} .num.n-data{background:var(--teal)} .num.n-human{background:var(--plum)}
+  .step h4{margin:0 0 2px;font-size:14.5px;font-weight:650;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .step .stag{font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;
+    padding:2px 6px;border-radius:4px;font-weight:600;}
+  .s-agent{background:var(--amber-bg);color:var(--amber)} .s-compute{background:var(--steel-bg);color:var(--steel)}
+  .s-data{background:var(--teal-bg);color:var(--teal)} .s-human{background:var(--plum-bg);color:var(--plum)}
+  .step p{margin:2px 0 0;font-size:12.8px;color:var(--muted);}
+  .step .mod{font-size:11px;margin-top:3px;}
+
+  /* ---- table ---- */
+  .tbl-wrap{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;min-width:620px;font-size:13.5px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+    font-weight:600;border-bottom:1.5px solid var(--line);}
+  td .mono{font-family:var(--mono);font-size:12px;color:var(--steel);}
+  .pill{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+    padding:2px 7px;border-radius:20px;font-weight:600;}
+  .p-a{background:var(--amber-bg);color:var(--amber)} .p-h{background:var(--plum-bg);color:var(--plum)}
+  .status{font-size:12px;color:var(--muted);}
+  .status b{color:var(--teal);font-weight:600;}
+
+  footer{padding:22px 0 40px;color:var(--muted);font-size:12.5px;}
+  @media(prefers-reduced-motion:no-preference){
+    .node,.step{transition:transform .15s ease;}
+    .node:hover{transform:translateY(-2px);}
+  }
+
+  .sitebar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px;
+    background:var(--ink);color:#eef1f5;padding:9px 18px;font-family:var(--mono);font-size:12.5px;
+    letter-spacing:.03em;border-bottom:1px solid rgba(255,255,255,.08);}
+  .sitebar a{color:#cfe0f2;text-decoration:none;}
+  .sitebar a:hover{color:#fff;text-decoration:underline;}
+  .sitebar .mid{color:#8fb0d6;}
+  .sitebar .sp{flex:1}
+  .sitebar a:focus-visible{outline:2px solid #f0c98a;outline-offset:3px;border-radius:3px;}
+</style>
+</head>
+<body>
+<header class="sitebar"><a href="index.html">&larr; codameter</a><span class="mid">/ workflow</span><span class="sp"></span><a href="https://github.com/Denolle-Lab/codameter">GitHub</a></header>
+<div class="wrap">
+  <header>
+    <p class="kicker">codameter · ambient-noise dv/v monitoring</p>
+    <h1>From raw coda to stress at depth &mdash; and where agents fit</h1>
+    <p class="lede">codameter turns cross-correlation functions into a relative velocity-change
+      (<b>&delta;v/v</b>) time series, propagates its uncertainty, and inverts it for depth and stress.
+      This chart maps that pipeline, marks the steps an <b>agent</b> can drive, and decomposes the
+      <b>evaluation</b> loop into its smallest reproducible parts.</p>
+    <div class="legend">
+      <span class="lg"><span class="chip c-agent"></span>Agent-amenable &mdash; an LLM can do or drive it</span>
+      <span class="lg"><span class="chip c-compute"></span>Deterministic compute &mdash; pure code, reproducible</span>
+      <span class="lg"><span class="chip c-data"></span>Data artifact &mdash; a dataset or output object</span>
+      <span class="lg"><span class="chip c-human"></span>Human-in-the-loop &mdash; needs a scientist's call</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="principle">
+      <span class="p-k">design rule</span>
+      <p><b>Agents propose; deterministic oracles score.</b> Every agent step is bounded by
+        code that regenerates a known truth and measures the result &mdash; so trust never rests on the model.</p>
+    </div>
+  </section>
+
+  <!-- A. Scientific pipeline -->
+  <section>
+    <p class="eyebrow">A · the scientific pipeline</p>
+    <h2>Measurement to interpretation</h2>
+    <p class="sub">The core dv/v arc. The processing at stage 2 is a long chain of choices; the whole
+      point of the advisor and the golden set is to make those choices explicit and testable.</p>
+    <div class="scroll">
+      <div class="flow">
+        <div class="node t-compute">
+          <div class="top"><span class="dot"></span><span class="tag">compute + human QC</span></div>
+          <h3>1. Ingest &amp; QC</h3>
+          <p>Raw noise / CCFs, gap detection, time alignment, SNR gating.</p>
+          <span class="mod">data.loaders · qc · readiness (Phase&nbsp;0)</span>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="node t-compute">
+          <div class="top"><span class="dot"></span><span class="tag">compute · choice=agent</span></div>
+          <h3>2. Measure &delta;v/v</h3>
+          <p>Estimator, band, coda window, reference, stacking, aggregation &rarr; &delta;v/v(t).</p>
+          <span class="mod">synthetic_demo · deviations.run_pipeline</span>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="node t-compute">
+          <div class="top"><span class="dot"></span><span class="tag">compute</span></div>
+          <h3>3. Uncertainty &rarr; C&#8202;<sub>d</sub></h3>
+          <p>Aleatoric floor + processing multiverse, marginalized into one covariance.</p>
+          <span class="mod">uq_measurement · uq_processing · uq_bayes</span>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="node t-compute">
+          <div class="top"><span class="dot"></span><span class="tag">compute</span></div>
+          <h3>4. Depth inversion</h3>
+          <p>Frequency-dependent kernels &rarr; a shear-velocity change vs depth.</p>
+          <span class="mod">uq_depth · kernels (disba)</span>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="node t-human">
+          <div class="top"><span class="dot"></span><span class="tag">compute + human</span></div>
+          <h3>5. Stress &amp; strain</h3>
+          <p>Petrophysical &beta;-bridge from velocity change to stress at depth.</p>
+          <span class="mod">interpretation · forward · coupling</span>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="node t-human">
+          <div class="top"><span class="dot"></span><span class="tag">compute · draft=agent</span></div>
+          <h3>6. Anomaly &amp; attribution</h3>
+          <p>Detect residual transients; attribute to a forcing mechanism.</p>
+          <span class="mod">anomaly · forcing_models</span>
+        </div>
+      </div>
+    </div>
+    <p class="note"><b>Agent openings:</b> stage 2's choices come from the advisor; stages 5&ndash;6
+      benefit from agent-drafted interpretation, but the numbers stay code-owned.</p>
+  </section>
+
+  <!-- B. Advisor loop -->
+  <section>
+    <p class="eyebrow">B · the parameter advisor</p>
+    <h2>Elicit &rarr; map &rarr; validate &rarr; report</h2>
+    <p class="sub">The <span class="mono" style="font-family:var(--mono);color:var(--steel)">codameter-advisor</span>
+      skill front-ends stage 2. It never invents parameters: it maps a use case to a config, then proves
+      it on a matched synthetic before recommending.</p>
+    <div class="scroll">
+      <div class="flow">
+        <div class="node t-agent">
+          <div class="top"><span class="dot"></span><span class="tag">agent + human</span></div>
+          <h3>1. Elicit use case</h3>
+          <p>Ask the monitoring target, band, geometry, expected amplitude, data problems.</p>
+          <span class="mod">use_cases.ELICITATION · AskUserQuestion</span>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="node t-compute">
+          <div class="top"><span class="dot"></span><span class="tag">compute · surfaced by agent</span></div>
+          <h3>2. Map to config</h3>
+          <p>Look up the recommended choice set with cited rationale.</p>
+          <span class="mod">use_cases.recommend()</span>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="node t-compute">
+          <div class="top"><span class="dot"></span><span class="tag">compute · agent-invoked</span></div>
+          <h3>3. Validate live</h3>
+          <p>Run recommended vs naive on a matched golden case; report the RMS cost.</p>
+          <span class="mod">golden.generate · run_pipeline · multiverse</span>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="node t-agent">
+          <div class="top"><span class="dot"></span><span class="tag">agent</span></div>
+          <h3>4. Report</h3>
+          <p>Config + YAML + numbers + the one caveat that matters for this case.</p>
+          <span class="mod">references/report_format.md</span>
+        </div>
+        <span class="arrow loop">&#8630;</span>
+      </div>
+    </div>
+    <p class="note"><b>Loop:</b> if the user pins an axis, re-map and re-validate. The report carries the
+      measured contrast, not an opinion.</p>
+  </section>
+
+  <!-- C. Evaluation breakdown -->
+  <section>
+    <p class="eyebrow">C · evaluation, decomposed</p>
+    <h2>Two lanes of small, checkable steps</h2>
+    <p class="sub">"Evaluation" is really two pipelines. The left lane scores a <em>pipeline</em> against a
+      known truth (the regression oracle). The right lane scores an <em>agent</em> against that same oracle
+      (the FrugalMind benchmark). They share their scoring core, so an agent is judged by the same code that
+      guards the pipeline.</p>
+    <div class="lanes">
+
+      <div class="lane">
+        <h3 class="lane-t">Lane 1 &middot; Pipeline scoring (deterministic oracle)</h3>
+        <p class="lane-s">Reproducible from seeds. Runs in CI and fans out on Fargate.</p>
+        <ol class="steps">
+          <li class="step">
+            <span class="num n-human">1</span>
+            <h4>Define the case <span class="stag s-human">human / agent</span></h4>
+            <p>Pick a use case and regime (mainstream or an edge: low-SNR, clock drift, freq-dependent, sparse).</p>
+            <span class="mod">golden.CASES</span>
+          </li>
+          <li class="step">
+            <span class="num n-data">2</span>
+            <h4>Generate golden synthetic <span class="stag s-data">data</span></h4>
+            <p>Seed &rarr; daily CCFs with an exactly known &delta;v/v(t). Deterministic; cached, hash-keyed.</p>
+            <span class="mod">golden.generate()</span>
+          </li>
+          <li class="step">
+            <span class="num n-agent">3</span>
+            <h4>Produce a config <span class="stag s-agent">agent or code</span></h4>
+            <p>The recommended config, or a candidate to test. This is the only lever under study.</p>
+            <span class="mod">use_cases.recommend()</span>
+          </li>
+          <li class="step">
+            <span class="num">4</span>
+            <h4>Run the pipeline <span class="stag s-compute">compute</span></h4>
+            <p>Recover &delta;v/v(t) under that config, with the estimator, reference and stacking it names.</p>
+            <span class="mod">deviations.run_pipeline()</span>
+          </li>
+          <li class="step">
+            <span class="num">5</span>
+            <h4>Score recovery <span class="stag s-compute">compute</span></h4>
+            <p>Baseline-aligned RMS of recovered vs true &delta;v/v (the DC offset is unobservable, so removed).</p>
+            <span class="mod">golden._rms()</span>
+          </li>
+          <li class="step">
+            <span class="num">6</span>
+            <h4>Sweep &amp; shard <span class="stag s-compute">compute · scale</span></h4>
+            <p>Every case &times; every config in a grid; round-robin shards across an array of tasks.</p>
+            <span class="mod">bench.sweep &middot; --shard k/N</span>
+          </li>
+          <li class="step">
+            <span class="num n-data">7</span>
+            <h4>Aggregate &amp; drift-guard <span class="stag s-data">data</span></h4>
+            <p>Merge shards, pick best config per case, and lock expected RMS in the committed manifest.</p>
+            <span class="mod">bench.aggregate &middot; manifest.json</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="lane">
+        <h3 class="lane-t">Lane 2 &middot; Agent scoring (FrugalMind benchmark)</h3>
+        <p class="lane-s">Judges a model, cost-aware. Reuses Lane 1's steps 4&ndash;5 as its scorer.</p>
+        <ol class="steps">
+          <li class="step">
+            <span class="num n-data">1</span>
+            <h4>Build rows <span class="stag s-data">data</span></h4>
+            <p>Each case &rarr; a prompt + gold (case id + tolerances) + a scorer spec. No arrays leak.</p>
+            <span class="mod">frugalmind.build_rows()</span>
+          </li>
+          <li class="step">
+            <span class="num n-agent">2</span>
+            <h4>Model answers <span class="stag s-agent">agent · under test</span></h4>
+            <p>Returns a config (JSON) for <span class="mod" style="font-size:11px">param_recommendation</span>,
+              or the recovered series for <span class="mod" style="font-size:11px">dvv_series</span>.</p>
+            <span class="mod">EvalRunner &rarr; adapter.generate()</span>
+          </li>
+          <li class="step">
+            <span class="num">3</span>
+            <h4>Rebuild scorer <span class="stag s-compute">compute</span></h4>
+            <p>Reconstruct the deterministic scorer from the JSON spec &mdash; portable, no hidden state.</p>
+            <span class="mod">make_scorer_from_spec()</span>
+          </li>
+          <li class="step">
+            <span class="num">4</span>
+            <h4>Score in [0,1] <span class="stag s-compute">compute</span></h4>
+            <p>Run the answer through Lane 1 (steps 4&ndash;5). Wrong band or cycle-skip &rarr; near 0;
+              a no-change series is null-anchored to 0.</p>
+            <span class="mod">dvv_recovery · dvv_series_regression</span>
+          </li>
+          <li class="step">
+            <span class="num">5</span>
+            <h4>Route on budget <span class="stag s-compute">compute</span></h4>
+            <p>Track spend per model; stop cleanly at the cap. Cheapest model that clears the quality floor wins.</p>
+            <span class="mod">EvalRunner · BudgetGuard</span>
+          </li>
+          <li class="step">
+            <span class="num n-agent">6</span>
+            <h4>Adversarial cross-check <span class="stag s-agent">agent · optional</span></h4>
+            <p>A panel re-derives &delta;v/v with independent estimators; agreement gates the result.</p>
+            <span class="mod">multi-estimator verify (proposed)</span>
+          </li>
+          <li class="step">
+            <span class="num n-human">7</span>
+            <h4>Leaderboard <span class="stag s-human">data · human reads</span></h4>
+            <p>Score &times; cost per model and suite; skill-lift over the no-skill baseline.</p>
+            <span class="mod">leaderboard · skill_lift</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- D. Agent opportunity table -->
+  <section style="border-bottom:none">
+    <p class="eyebrow">D · where agents plug in</p>
+    <h2>Agent opportunities, ranked by leverage</h2>
+    <p class="sub">The steps worth agentifying, what the agent actually does, and where each stands today.
+      Everything else stays deterministic on purpose.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Step</th><th>Agent role</th><th>Tooling</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Use-case elicitation</td>
+            <td><span class="pill p-a">drives</span> asks &amp; infers the monitoring setting</td>
+            <td><span class="mono">codameter-advisor</span></td>
+            <td class="status"><b>built</b></td>
+          </tr>
+          <tr>
+            <td>Recommend &amp; report</td>
+            <td><span class="pill p-a">drafts</span> surfaces config + cited rationale + numbers</td>
+            <td><span class="mono">advisor · report_format</span></td>
+            <td class="status"><b>built</b></td>
+          </tr>
+          <tr>
+            <td>Config under test</td>
+            <td><span class="pill p-a">is tested</span> picks a processing config for a scenario</td>
+            <td><span class="mono">param_recommendation</span></td>
+            <td class="status"><b>built</b> (benchmark)</td>
+          </tr>
+          <tr>
+            <td>End-to-end series</td>
+            <td><span class="pill p-a">is tested</span> runs codameter in a sandbox, returns &delta;v/v(t)</td>
+            <td><span class="mono">dvv_series</span></td>
+            <td class="status"><b>built</b>; needs sandbox</td>
+          </tr>
+          <tr>
+            <td>Interpretation draft</td>
+            <td><span class="pill p-a">assists</span> narrates stress / anomaly attribution</td>
+            <td><span class="mono">interpretation · anomaly</span></td>
+            <td class="status">candidate</td>
+          </tr>
+          <tr>
+            <td>Adversarial verify</td>
+            <td><span class="pill p-a">panel</span> cross-checks with independent estimators</td>
+            <td><span class="mono">multi-estimator</span></td>
+            <td class="status">proposed</td>
+          </tr>
+          <tr>
+            <td>Eval orchestration</td>
+            <td><span class="pill p-h">meta</span> chooses sweeps, reads leaderboards, flags drift</td>
+            <td><span class="mono">bench · frugalmind</span></td>
+            <td class="status">candidate</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Node type is encoded in color and label. Module names are the real codameter / frugalmind entry points.
+    Scoring is deterministic end to end; agents supply choices and prose, never the numbers.
+  </footer>
+</div>
+
+</body>
+</html>
