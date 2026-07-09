@@ -51,7 +51,7 @@ def plot_case(case_id: str, outdir: Path = OUTDIR) -> Path:
     app = recipe["use_case"]
     d = golden.generate(case_id)                      # materialize arrays
     t, days, ccfs, fs = d["t"], d["days"], d["ccfs"], d["fs"]
-    cfg = uc.recommend(app)
+    cfg = uc.recommend(app, **recipe.get("config", {}))   # target band for depth cases
     band, window = cfg["band"], cfg["window"]
 
     fig = plt.figure(figsize=(11, 7.2))
@@ -79,9 +79,15 @@ def plot_case(case_id: str, outdir: Path = OUTDIR) -> Path:
 
     dvv, valid = golden.recover(d, cfg, uc.eps_max(app))
     rec = _align(dvv, d["truth"], days, valid)
-    axC.plot(days, d["truth"] * PCT, color=C["truth"], lw=1.8, label="ground-truth dv/v")
+    tgt = recipe.get("target")
+    truth_label = f"ground-truth dv/v ({tgt} layer)" if tgt else "ground-truth dv/v"
+    if "truth_other" in d:
+        other = "deep" if tgt == "shallow" else "shallow"
+        axC.plot(days, d["truth_other"] * PCT, color="#9aa4b2", lw=1.2, ls="--",
+                 label=f"other layer ({other}, not targeted)")
+    axC.plot(days, d["truth"] * PCT, color=C["truth"], lw=1.8, label=truth_label)
     axC.plot(days, rec * PCT, ".", ms=2.6, color=C["rec"],
-             label="recovered (recommended config)")
+             label="recovered (target band)")
     axC.axhline(0, color="#aaa", lw=0.6)
     rms = golden._rms(dvv, d["truth"], days, valid)
     axC.set(xlabel="day", ylabel="dv/v (%)",

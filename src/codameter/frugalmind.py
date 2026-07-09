@@ -137,6 +137,11 @@ def _thresholds(case_id: str) -> dict:
     tol = float(entry["rms_rel_tol"])
     good = max(target * (1.0 + tol), target + 5e-5)
     bad = max(target * 6.0, 3.0e-3)
+    # Depth-targeted cases: anchor "clearly wrong" to the wrong-layer error, so
+    # choosing a band that recovers the other depth scores near zero.
+    wrong = entry["expected"].get("rms_wrong_layer")
+    if wrong and np.isfinite(wrong) and wrong > good:
+        bad = max(good * 1.5, float(wrong))
     return {"rms_target": target, "rms_ceiling": good, "rms_bad": bad}
 
 

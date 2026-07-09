@@ -7,10 +7,12 @@ applications so a grade covers a realistic range rather than one scenario:
   (best-practice) config should recover it cleanly.
 - **medium** -- a transient (coseismic-style) drop with logarithmic, only partial
   recovery, plus more measurement noise (lower SNR).
-- **hard** -- a *multi-channel* cross-correlation problem whose truth combines a
-  transient drop-and-heal, a full hydrological seasonal cycle, and a long-term
-  trend, at low SNR with waveform decorrelation. The channels are measured
-  independently and aggregated to a network dv/v (per-channel measure, then mean).
+- **hard** -- a *multi-channel*, *depth- and frequency-dependent* problem. A
+  shallow (high-frequency) layer carries a coseismic drop-and-heal plus a full
+  hydrological seasonal cycle; a deep (low-frequency) layer carries a long-term
+  trend. Each case targets one depth, so the measurement band must match it: the
+  band selects the depth. Low SNR with waveform decorrelation; the channels are
+  measured independently and aggregated to a network dv/v.
 
 Every case has an exactly known ground-truth dv/v(t) (imposed by stretching a
 band-limited decaying coda in lapse time), so any departure of a recovered series
@@ -90,6 +92,34 @@ MOTIF = {"seasonal": _motif_seasonal, "transient": _motif_transient,
 
 
 # ---------------------------------------------------------------------------
+# Depth- and frequency-dependent medium (the hard grade). The shallow layer
+# carries the near-surface response (coseismic drop + heal + full hydrological
+# seasonal); the deep layer carries the long-term trend with a muted seasonal.
+# The two layers live in separated frequency bands, so the measurement *band
+# selects the depth*: a shallow (high-frequency) band recovers the shallow truth,
+# a deep (low-frequency) band recovers the deep truth.
+# ---------------------------------------------------------------------------
+def _truth_shallow(days: np.ndarray, app: str) -> np.ndarray:
+    return _step_heal(days, app) + _motif_seasonal(days, app)
+
+
+def _truth_deep(days: np.ndarray, app: str) -> np.ndarray:
+    a = AMP[app]
+    trend = a["trend"] * np.clip((days - 0.15 * days[-1]) / (0.8 * days[-1]), 0, 1)
+    return trend + 0.3 * _motif_seasonal(days, app)
+
+
+def _depth_bands(app: str) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Split an application's coda band into separated shallow (high) / deep (low)
+    sub-bands, each safely inside the generated content."""
+    glo, ghi = uc.synth_params(app)["gen_band"]
+    gm = (glo * ghi) ** 0.5
+    shallow = (round(gm * 1.6, 3), round(ghi * 0.9, 3))
+    deep = (round(glo * 1.1, 3), round(gm * 0.6, 3))
+    return shallow, deep
+
+
+# ---------------------------------------------------------------------------
 # Grades and case construction. Each grade cycles through the applications so it
 # spans volcano / fault / aquifer / glacier / reservoir at that difficulty.
 # ---------------------------------------------------------------------------
@@ -98,7 +128,7 @@ GRADES = {
                "years": 3.0, "split": "validation", "rms_rel_tol": 0.35},
     "medium": {"motif": "transient", "snr": (3.0, 5.0),  "channels": 1, "decorr": 0.05,
                "years": 3.0, "split": "validation", "rms_rel_tol": 0.45},
-    "hard":   {"motif": "composite", "snr": (2.0, 4.0),  "channels": 4, "decorr": 0.20,
+    "hard":   {"motif": "depth", "snr": (2.0, 4.0),  "channels": 4, "decorr": 0.20,
                "years": 2.5, "split": "test", "rms_rel_tol": 0.60},
 }
 
@@ -116,14 +146,32 @@ def _build_cases() -> list[dict]:
         snr_lo, snr_hi = spec["snr"]
         for i, app in enumerate(APP_CYCLE):
             snr = round(float(np.interp(i, [0, len(APP_CYCLE) - 1], [snr_hi, snr_lo])), 2)
-            cases.append({
+            case = {
                 "id": f"{grade}-{app}-{i + 1:02d}",
                 "grade": grade, "use_case": app, "motif": spec["motif"],
                 "snr": snr, "seed": _SEED_BASE[grade] + i,
                 "channels": spec["channels"], "decorr": spec["decorr"],
                 "years": spec["years"], "split": spec["split"],
                 "rms_rel_tol": spec["rms_rel_tol"],
-            })
+            }
+            if grade == "hard":
+                # Depth- and frequency-dependent: the case targets one depth, and
+                # the recommended config's band must match it. Targets alternate.
+                shallow_band, deep_band = _depth_bands(app)
+                target = "shallow" if i % 2 == 0 else "deep"
+                case["two_layer"] = True
+                case["target"] = target
+                case["config"] = {"band": shallow_band if target == "shallow" else deep_band}
+                case["note"] = (
+                    "The medium is depth-dependent: a shallow near-surface layer "
+                    "(coseismic drop + hydrological seasonal) sits above a deep layer "
+                    "(long-term trend). "
+                    + ("You must resolve the SHALLOW near-surface response."
+                       if target == "shallow" else
+                       "You must resolve the DEEP long-term trend.")
+                    + " The band selects the depth."
+                )
+            cases.append(case)
     return cases
 
 
@@ -174,13 +222,37 @@ def _build(recipe: dict) -> dict:
     seed, snr = recipe["seed"], recipe["snr"]
     decorr = recipe.get("decorr", 0.0)
     nchan = int(recipe.get("channels", 1))
-    truth = MOTIF[recipe["motif"]](days, app)
 
     t, coda0 = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=gen,
                          t_coda_s=sp["t_coda_s"], seed=0)
     out: dict = {"fs": fs, "days": days, "use_case": app, "grade": recipe["grade"],
-                 "t": t, "truth": truth}
+                 "t": t}
 
+    if recipe.get("two_layer"):
+        # Depth-dependent medium: shallow (high-freq) and deep (low-freq) layers,
+        # each carrying its own dv/v. Every channel sums both layers; the band
+        # (set by the recommended config) selects which depth is recovered. The
+        # scored truth is the targeted layer.
+        shallow_band, deep_band = _depth_bands(app)
+        truth_shallow = _truth_shallow(days, app)
+        truth_deep = _truth_deep(days, app)
+        chans = []
+        for c in range(nchan):
+            _, cod_s = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=shallow_band,
+                                 t_coda_s=sp["t_coda_s"], seed=2 * c)
+            _, cod_d = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=deep_band,
+                                 t_coda_s=sp["t_coda_s"], seed=2 * c + 1)
+            chans.append(daily_ccfs(t, [cod_s, cod_d], [truth_shallow, truth_deep],
+                                    fs=fs, snr=snr, decorr=decorr, gen_band=gen,
+                                    seed=seed + 7 * c))
+        out["channels"] = np.stack(chans)
+        out["ccfs"] = out["channels"].mean(axis=0)
+        out["truth"] = truth_shallow if recipe["target"] == "shallow" else truth_deep
+        out["truth_other"] = truth_deep if recipe["target"] == "shallow" else truth_shallow
+        return out
+
+    truth = MOTIF[recipe["motif"]](days, app)
+    out["truth"] = truth
     if nchan > 1:
         # Independent cross-component channels: distinct coda + distinct noise,
         # sharing the medium's truth. Measured per channel, aggregated later.
@@ -259,6 +331,8 @@ def generate(case_id: str, *, cache: bool = True) -> dict:
                    "grade": np.asarray(d["grade"])}
         if "channels" in d:
             payload["channels"] = np.asarray(d["channels"], np.float32)
+        if "truth_other" in d:
+            payload["truth_other"] = d["truth_other"]
         np.savez_compressed(cache_file, **payload)
     return d
 
@@ -300,8 +374,14 @@ def compute_metrics(case_id: str, data: dict | None = None) -> dict:
     cfg = uc.recommend(app, **recipe.get("config", {}))
     eps = uc.eps_max(app)
     dvv, valid = recover(d, cfg, eps)
-    return {"config": _jsonable(cfg), "eps_max": eps,
-            "rms": _rms(dvv, d["truth"], d["days"], valid)}
+    res = {"config": _jsonable(cfg), "eps_max": eps,
+           "rms": _rms(dvv, d["truth"], d["days"], valid)}
+    if "truth_other" in d:
+        # The error a config would incur by recovering the WRONG depth layer:
+        # the "clearly wrong" anchor for scoring depth-band selection.
+        allv = np.ones(len(d["days"]), bool)
+        res["rms_wrong_layer"] = _rms(d["truth_other"], d["truth"], d["days"], allv)
+    return res
 
 
 # ---------------------------------------------------------------------------
@@ -313,14 +393,18 @@ def regenerate_manifest() -> dict:
     for c in CASES:
         d = generate(c["id"], cache=False)          # always from current code
         m = compute_metrics(c["id"], d)
-        cases.append({
+        entry = {
             "id": c["id"], "grade": c["grade"], "use_case": c["use_case"],
             "motif": c["motif"], "split": case_split(c),
             "visibility": case_visibility(c), "years": c["years"], "snr": c["snr"],
             "seed": c["seed"], "channels": c["channels"], "decorr": c["decorr"],
             "rms_rel_tol": c["rms_rel_tol"], "n_days": int(len(d["days"])),
             "expected": m,
-        })
+        }
+        if c.get("two_layer"):
+            entry["two_layer"] = True
+            entry["target"] = c["target"]
+        cases.append(entry)
         print(f"  {c['id']:<26} ch={c['channels']} snr={c['snr']:<4} "
               f"rms={m['rms']:.5f}")
     manifest = {"version": MANIFEST_VERSION, "grades": list(GRADES),

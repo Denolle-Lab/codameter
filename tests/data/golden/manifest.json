@@ -670,7 +670,7 @@
       "id": "hard-volcano-01",
       "grade": "hard",
       "use_case": "volcano",
-      "motif": "composite",
+      "motif": "depth",
       "split": "test",
       "visibility": "public",
       "years": 2.5,
@@ -684,8 +684,8 @@
         "config": {
           "estimator": "stretching (TS)",
           "band": [
-            0.4,
-            1.0
+            1.131,
+            9.0
           ],
           "window": [
             10,
@@ -696,14 +696,17 @@
           "gate": true
         },
         "eps_max": 0.06,
-        "rms": 0.00026356217881596736
-      }
+        "rms": 0.00025212395764457387,
+        "rms_wrong_layer": 0.000930391397212034
+      },
+      "two_layer": true,
+      "target": "shallow"
     },
     {
       "id": "hard-earthquake_fault-02",
       "grade": "hard",
       "use_case": "earthquake_fault",
-      "motif": "composite",
+      "motif": "depth",
       "split": "test",
       "visibility": "public",
       "years": 2.5,
@@ -717,8 +720,8 @@
         "config": {
           "estimator": "stretching (TS)",
           "band": [
-            0.5,
-            1.5
+            0.055,
+            0.424
           ],
           "window": [
             8,
@@ -729,14 +732,17 @@
           "gate": true
         },
         "eps_max": 0.05,
-        "rms": 0.00015763246578731757
-      }
+        "rms": 0.00012877251474255628,
+        "rms_wrong_layer": 0.0007607270475765937
+      },
+      "two_layer": true,
+      "target": "deep"
     },
     {
       "id": "hard-landslide-03",
       "grade": "hard",
       "use_case": "landslide",
-      "motif": "composite",
+      "motif": "depth",
       "split": "test",
       "visibility": "public",
       "years": 2.5,
@@ -750,8 +756,8 @@
         "config": {
           "estimator": "stretching (TS)",
           "band": [
-            4.0,
-            12.0
+            7.155,
+            18.0
           ],
           "window": [
             0.2,
@@ -762,14 +768,17 @@
           "gate": true
         },
         "eps_max": 0.09,
-        "rms": 0.001207971655195018
-      }
+        "rms": 0.0012734011077726465,
+        "rms_wrong_layer": 0.007530894565057449
+      },
+      "two_layer": true,
+      "target": "shallow"
     },
     {
       "id": "hard-groundwater-04",
       "grade": "hard",
       "use_case": "groundwater",
-      "motif": "composite",
+      "motif": "depth",
       "split": "test",
       "visibility": "public",
       "years": 2.5,
@@ -783,8 +792,8 @@
         "config": {
           "estimator": "stretching (TS)",
           "band": [
-            2.0,
-            4.0
+            0.55,
+            1.2
           ],
           "window": [
             2.0,
@@ -795,14 +804,17 @@
           "gate": true
         },
         "eps_max": 0.03,
-        "rms": 0.00019152716187270316
-      }
+        "rms": 0.00022902404646362183,
+        "rms_wrong_layer": 0.0010007890743546153
+      },
+      "two_layer": true,
+      "target": "deep"
     },
     {
       "id": "hard-cryosphere-05",
       "grade": "hard",
       "use_case": "cryosphere",
-      "motif": "composite",
+      "motif": "depth",
       "split": "test",
       "visibility": "public",
       "years": 2.5,
@@ -816,8 +828,8 @@
         "config": {
           "estimator": "stretching (TS)",
           "band": [
-            4.0,
-            14.0
+            11.314,
+            22.5
           ],
           "window": [
             0.3,
@@ -828,14 +840,17 @@
           "gate": true
         },
         "eps_max": 0.11,
-        "rms": 0.0014250912049133585
-      }
+        "rms": 0.0010750047910110425,
+        "rms_wrong_layer": 0.017753287172458793
+      },
+      "two_layer": true,
+      "target": "shallow"
     },
     {
       "id": "hard-geothermal-06",
       "grade": "hard",
       "use_case": "geothermal",
-      "motif": "composite",
+      "motif": "depth",
       "split": "test",
       "visibility": "public",
       "years": 2.5,
@@ -849,8 +864,8 @@
         "config": {
           "estimator": "stretching (TS)",
           "band": [
-            0.5,
-            2.0
+            0.11,
+            0.537
           ],
           "window": [
             10.0,
@@ -861,14 +876,17 @@
           "gate": true
         },
         "eps_max": 0.03,
-        "rms": 0.0003501958538763985
-      }
+        "rms": 0.00035681825048443534,
+        "rms_wrong_layer": 0.0037482773313763365
+      },
+      "two_layer": true,
+      "target": "deep"
     },
     {
       "id": "hard-volcano-07",
       "grade": "hard",
       "use_case": "volcano",
-      "motif": "composite",
+      "motif": "depth",
       "split": "test",
       "visibility": "public",
       "years": 2.5,
@@ -882,8 +900,8 @@
         "config": {
           "estimator": "stretching (TS)",
           "band": [
-            0.4,
-            1.0
+            1.131,
+            9.0
           ],
           "window": [
             10,
@@ -894,14 +912,17 @@
           "gate": true
         },
         "eps_max": 0.06,
-        "rms": 0.00032773731442452806
-      }
+        "rms": 0.00025180197315354186,
+        "rms_wrong_layer": 0.000930391397212034
+      },
+      "two_layer": true,
+      "target": "shallow"
     },
     {
       "id": "hard-groundwater-08",
       "grade": "hard",
       "use_case": "groundwater",
-      "motif": "composite",
+      "motif": "depth",
       "split": "test",
       "visibility": "public",
       "years": 2.5,
@@ -915,8 +936,8 @@
         "config": {
           "estimator": "stretching (TS)",
           "band": [
-            2.0,
-            4.0
+            0.55,
+            1.2
           ],
           "window": [
             2.0,
@@ -927,14 +948,17 @@
           "gate": true
         },
         "eps_max": 0.03,
-        "rms": 0.00020391435312739175
-      }
+        "rms": 0.00031478238532623977,
+        "rms_wrong_layer": 0.0010007890743546153
+      },
+      "two_layer": true,
+      "target": "deep"
     },
     {
       "id": "hard-landslide-09",
       "grade": "hard",
       "use_case": "landslide",
-      "motif": "composite",
+      "motif": "depth",
       "split": "test",
       "visibility": "public",
       "years": 2.5,
@@ -948,8 +972,8 @@
         "config": {
           "estimator": "stretching (TS)",
           "band": [
-            4.0,
-            12.0
+            7.155,
+            18.0
           ],
           "window": [
             0.2,
@@ -960,14 +984,17 @@
           "gate": true
         },
         "eps_max": 0.09,
-        "rms": 0.0012465392609767101
-      }
+        "rms": 0.0012432270713038142,
+        "rms_wrong_layer": 0.007530894565057449
+      },
+      "two_layer": true,
+      "target": "shallow"
     },
     {
       "id": "hard-earthquake_fault-10",
       "grade": "hard",
       "use_case": "earthquake_fault",
-      "motif": "composite",
+      "motif": "depth",
       "split": "test",
       "visibility": "public",
       "years": 2.5,
@@ -981,8 +1008,8 @@
         "config": {
           "estimator": "stretching (TS)",
           "band": [
-            0.5,
-            1.5
+            0.055,
+            0.424
           ],
           "window": [
             8,
@@ -993,8 +1020,11 @@
           "gate": true
         },
         "eps_max": 0.05,
-        "rms": 0.00020047248208209103
-      }
+        "rms": 0.00021111898027523828,
+        "rms_wrong_layer": 0.0007607270475765937
+      },
+      "two_layer": true,
+      "target": "deep"
     }
   ]
 }

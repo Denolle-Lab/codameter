@@ -81,6 +81,36 @@ def test_recover_handles_single_and_multichannel():
     assert val2.sum() > 10 and np.isfinite(golden._rms(dvv2, d2["truth"], d2["days"], val2))
 
 
+def test_hard_grade_band_selects_depth():
+    # The hard grade is depth-dependent: the target band recovers the targeted
+    # layer, a wrong band recovers the other layer and scores clearly worse.
+    from codameter import use_cases as uc
+
+    hard = next(c for c in golden.CASES if c["grade"] == "hard")
+    assert hard["two_layer"] and hard["target"] in ("shallow", "deep")
+    d = golden.generate(hard["id"])
+    app = hard["use_case"]
+    eps = uc.eps_max(app)
+    shallow, deep = golden._depth_bands(app)
+    wrong_band = deep if hard["target"] == "shallow" else shallow
+
+    dvv_t, vt = golden.recover(d, uc.recommend(app, **hard["config"]), eps)
+    dvv_w, vw = golden.recover(d, uc.recommend(app, band=wrong_band), eps)
+    rms_target = golden._rms(dvv_t, d["truth"], d["days"], vt)
+    rms_wrong = golden._rms(dvv_w, d["truth"], d["days"], vw)
+    rms_target_on_other = golden._rms(dvv_t, d["truth_other"], d["days"], vt)
+
+    assert rms_wrong > 2 * rms_target          # wrong band is clearly worse
+    assert rms_target < rms_target_on_other    # target band tracks the target layer
+
+
+def test_hard_manifest_records_depth_target():
+    for entry in MANIFEST["cases"]:
+        if entry["grade"] == "hard":
+            assert entry.get("two_layer") and entry["target"] in ("shallow", "deep")
+            assert "rms_wrong_layer" in entry["expected"]
+
+
 def test_generate_is_deterministic():
     a = golden.generate("easy-volcano-01", cache=False)
     b = golden.generate("easy-volcano-01", cache=False)
