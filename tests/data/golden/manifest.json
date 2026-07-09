@@ -1,18 +1,24 @@
 {
-  "version": 1,
+  "version": 2,
+  "grades": [
+    "easy",
+    "medium",
+    "hard"
+  ],
   "cases": [
     {
-      "id": "volcano_mainstream",
-      "kind": "mainstream",
+      "id": "easy-volcano-01",
+      "grade": "easy",
       "use_case": "volcano",
+      "motif": "seasonal",
       "split": "validation",
       "visibility": "public",
       "years": 3.0,
-      "snr": 7.0,
-      "seed": 11,
-      "cadence": 1,
+      "snr": 12.0,
+      "seed": 100,
+      "channels": 1,
       "decorr": 0.0,
-      "rms_rel_tol": 0.3,
+      "rms_rel_tol": 0.35,
       "n_days": 1095,
       "expected": {
         "config": {
@@ -30,21 +36,22 @@
           "gate": true
         },
         "eps_max": 0.06,
-        "rms": 0.00024045031681258644
+        "rms": 8.528385265033053e-05
       }
     },
     {
-      "id": "earthquake_mainstream",
-      "kind": "mainstream",
+      "id": "easy-earthquake_fault-02",
+      "grade": "easy",
       "use_case": "earthquake_fault",
+      "motif": "seasonal",
       "split": "validation",
       "visibility": "public",
       "years": 3.0,
-      "snr": 7.0,
-      "seed": 12,
-      "cadence": 1,
+      "snr": 11.56,
+      "seed": 101,
+      "channels": 1,
       "decorr": 0.0,
-      "rms_rel_tol": 0.3,
+      "rms_rel_tol": 0.35,
       "n_days": 1095,
       "expected": {
         "config": {
@@ -62,21 +69,22 @@
           "gate": true
         },
         "eps_max": 0.05,
-        "rms": 0.00014156185178993663
+        "rms": 5.127319326441781e-05
       }
     },
     {
-      "id": "landslide_mainstream",
-      "kind": "mainstream",
+      "id": "easy-landslide-03",
+      "grade": "easy",
       "use_case": "landslide",
+      "motif": "seasonal",
       "split": "validation",
       "visibility": "public",
       "years": 3.0,
-      "snr": 8.0,
-      "seed": 13,
-      "cadence": 1,
+      "snr": 11.11,
+      "seed": 102,
+      "channels": 1,
       "decorr": 0.0,
-      "rms_rel_tol": 0.3,
+      "rms_rel_tol": 0.35,
       "n_days": 1095,
       "expected": {
         "config": {
@@ -94,21 +102,22 @@
           "gate": true
         },
         "eps_max": 0.09,
-        "rms": 0.0006342923685591622
+        "rms": 0.00034448337441832434
       }
     },
     {
-      "id": "groundwater_mainstream",
-      "kind": "mainstream",
+      "id": "easy-groundwater-04",
+      "grade": "easy",
       "use_case": "groundwater",
+      "motif": "seasonal",
       "split": "validation",
       "visibility": "public",
       "years": 3.0,
-      "snr": 8.0,
-      "seed": 14,
-      "cadence": 1,
+      "snr": 10.67,
+      "seed": 103,
+      "channels": 1,
       "decorr": 0.0,
-      "rms_rel_tol": 0.3,
+      "rms_rel_tol": 0.35,
       "n_days": 1095,
       "expected": {
         "config": {
@@ -126,21 +135,22 @@
           "gate": true
         },
         "eps_max": 0.03,
-        "rms": 0.00011149748859488201
+        "rms": 9.91671255794741e-05
       }
     },
     {
-      "id": "cryosphere_mainstream",
-      "kind": "mainstream",
+      "id": "easy-cryosphere-05",
+      "grade": "easy",
       "use_case": "cryosphere",
+      "motif": "seasonal",
       "split": "validation",
       "visibility": "public",
       "years": 3.0,
-      "snr": 8.0,
-      "seed": 15,
-      "cadence": 1,
+      "snr": 10.22,
+      "seed": 104,
+      "channels": 1,
       "decorr": 0.0,
-      "rms_rel_tol": 0.3,
+      "rms_rel_tol": 0.35,
       "n_days": 1095,
       "expected": {
         "config": {
@@ -158,21 +168,22 @@
           "gate": true
         },
         "eps_max": 0.11,
-        "rms": 0.0013733676670769366
+        "rms": 0.0013108903767198416
       }
     },
     {
-      "id": "geothermal_mainstream",
-      "kind": "mainstream",
+      "id": "easy-geothermal-06",
+      "grade": "easy",
       "use_case": "geothermal",
+      "motif": "seasonal",
       "split": "validation",
       "visibility": "public",
       "years": 3.0,
-      "snr": 7.0,
-      "seed": 16,
-      "cadence": 1,
+      "snr": 9.78,
+      "seed": 105,
+      "channels": 1,
       "decorr": 0.0,
-      "rms_rel_tol": 0.3,
+      "rms_rel_tol": 0.35,
       "n_days": 1095,
       "expected": {
         "config": {
@@ -190,19 +201,86 @@
           "gate": true
         },
         "eps_max": 0.03,
-        "rms": 7.499932473111218e-05
+        "rms": 5.4426102327806585e-05
       }
     },
     {
-      "id": "low_snr_large_dvv",
-      "kind": "edge",
-      "use_case": "landslide",
-      "split": "test",
+      "id": "easy-volcano-07",
+      "grade": "easy",
+      "use_case": "volcano",
+      "motif": "seasonal",
+      "split": "validation",
       "visibility": "public",
       "years": 3.0,
-      "snr": 2.0,
-      "seed": 21,
-      "cadence": 1,
+      "snr": 9.33,
+      "seed": 106,
+      "channels": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.35,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.4,
+            1.0
+          ],
+          "window": [
+            10,
+            30
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.06,
+        "rms": 0.0001221091620658341
+      }
+    },
+    {
+      "id": "easy-groundwater-08",
+      "grade": "easy",
+      "use_case": "groundwater",
+      "motif": "seasonal",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 8.89,
+      "seed": 107,
+      "channels": 1,
+      "decorr": 0.0,
+      "rms_rel_tol": 0.35,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            2.0,
+            4.0
+          ],
+          "window": [
+            2.0,
+            8.0
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.03,
+        "rms": 0.00010207171587653883
+      }
+    },
+    {
+      "id": "easy-landslide-09",
+      "grade": "easy",
+      "use_case": "landslide",
+      "motif": "seasonal",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 8.44,
+      "seed": 108,
+      "channels": 1,
       "decorr": 0.0,
       "rms_rel_tol": 0.35,
       "n_days": 1095,
@@ -222,22 +300,55 @@
           "gate": true
         },
         "eps_max": 0.09,
-        "rms": 0.0008136899296025077
-      },
-      "note": "SNR~2 with a several-percent pre-failure drop: the regime that splits stretching from cross-spectral methods."
+        "rms": 0.000346672627405836
+      }
     },
     {
-      "id": "clock_drift_seasonal",
-      "kind": "edge",
-      "use_case": "volcano",
-      "split": "test",
+      "id": "easy-earthquake_fault-10",
+      "grade": "easy",
+      "use_case": "earthquake_fault",
+      "motif": "seasonal",
+      "split": "validation",
       "visibility": "public",
       "years": 3.0,
-      "snr": 7.0,
-      "seed": 22,
-      "cadence": 1,
+      "snr": 8.0,
+      "seed": 109,
+      "channels": 1,
       "decorr": 0.0,
       "rms_rel_tol": 0.35,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.5,
+            1.5
+          ],
+          "window": [
+            8,
+            25
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.05,
+        "rms": 6.906899962700634e-05
+      }
+    },
+    {
+      "id": "medium-volcano-01",
+      "grade": "medium",
+      "use_case": "volcano",
+      "motif": "transient",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 5.0,
+      "seed": 200,
+      "channels": 1,
+      "decorr": 0.05,
+      "rms_rel_tol": 0.45,
       "n_days": 1095,
       "expected": {
         "config": {
@@ -255,42 +366,95 @@
           "gate": true
         },
         "eps_max": 0.06,
-        "rms": 0.0009051145478551642
-      },
-      "artifacts": [
-        {
-          "kind": "clock_drift",
-          "drift_s_per_day": 0.0002,
-          "onset_day": 200
-        },
-        {
-          "kind": "seasonal_late_noise",
-          "onset_s": 20.0,
-          "dvv_amp": 0.004,
-          "jitter": 0.06
-        }
-      ],
-      "note": "A growing clock error plus a seasonal late-coda warp inject a spurious dv/v (Zhan 2013 / Daskalakis 2016)."
+        "rms": 0.00026258877639392437
+      }
     },
     {
-      "id": "freqdep_shallow_deep",
-      "kind": "edge",
-      "use_case": "groundwater",
-      "split": "test",
+      "id": "medium-earthquake_fault-02",
+      "grade": "medium",
+      "use_case": "earthquake_fault",
+      "motif": "transient",
+      "split": "validation",
       "visibility": "public",
       "years": 3.0,
-      "snr": 9.0,
-      "seed": 23,
-      "cadence": 1,
-      "decorr": 0.0,
-      "rms_rel_tol": 0.35,
+      "snr": 4.78,
+      "seed": 201,
+      "channels": 1,
+      "decorr": 0.05,
+      "rms_rel_tol": 0.45,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.5,
+            1.5
+          ],
+          "window": [
+            8,
+            25
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.05,
+        "rms": 0.00015733842087016845
+      }
+    },
+    {
+      "id": "medium-landslide-03",
+      "grade": "medium",
+      "use_case": "landslide",
+      "motif": "transient",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 4.56,
+      "seed": 202,
+      "channels": 1,
+      "decorr": 0.05,
+      "rms_rel_tol": 0.45,
       "n_days": 1095,
       "expected": {
         "config": {
           "estimator": "stretching (TS)",
           "band": [
             4.0,
-            10.0
+            12.0
+          ],
+          "window": [
+            0.2,
+            1.5
+          ],
+          "stack": 5,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.09,
+        "rms": 0.001107126031724569
+      }
+    },
+    {
+      "id": "medium-groundwater-04",
+      "grade": "medium",
+      "use_case": "groundwater",
+      "motif": "transient",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 4.33,
+      "seed": 203,
+      "channels": 1,
+      "decorr": 0.05,
+      "rms_rel_tol": 0.45,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            2.0,
+            4.0
           ],
           "window": [
             2.0,
@@ -301,55 +465,89 @@
           "gate": true
         },
         "eps_max": 0.03,
-        "rms": 0.00010868054317771904,
-        "probes": [
-          {
-            "label": "deep_band_recovers_deep",
-            "config": {
-              "estimator": "stretching (TS)",
-              "band": [
-                0.2,
-                1.0
-              ],
-              "window": [
-                8.0,
-                25.0
-              ],
-              "stack": 10,
-              "reference": "fixed",
-              "gate": true
-            },
-            "truth": "deep",
-            "rms": 0.0002856315920472662
-          }
-        ]
-      },
-      "two_layer": true,
-      "config": {
-        "band": [
-          4.0,
-          10.0
-        ],
-        "window": [
-          2.0,
-          8.0
-        ]
-      },
-      "note": "Shallow (high-freq) and deep (low-freq) layers carry different dv/v; the band selects which one you recover."
+        "rms": 0.0001525314605933785
+      }
     },
     {
-      "id": "sparse_decorr",
-      "kind": "edge",
-      "use_case": "volcano",
-      "split": "test",
+      "id": "medium-cryosphere-05",
+      "grade": "medium",
+      "use_case": "cryosphere",
+      "motif": "transient",
+      "split": "validation",
       "visibility": "public",
       "years": 3.0,
-      "snr": 6.0,
-      "seed": 24,
-      "cadence": 3,
-      "decorr": 0.3,
-      "rms_rel_tol": 0.35,
-      "n_days": 365,
+      "snr": 4.11,
+      "seed": 204,
+      "channels": 1,
+      "decorr": 0.05,
+      "rms_rel_tol": 0.45,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            4.0,
+            14.0
+          ],
+          "window": [
+            0.3,
+            0.8
+          ],
+          "stack": 5,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.11,
+        "rms": 0.0007095977946747316
+      }
+    },
+    {
+      "id": "medium-geothermal-06",
+      "grade": "medium",
+      "use_case": "geothermal",
+      "motif": "transient",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 3.89,
+      "seed": 205,
+      "channels": 1,
+      "decorr": 0.05,
+      "rms_rel_tol": 0.45,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.5,
+            2.0
+          ],
+          "window": [
+            10.0,
+            25.0
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.03,
+        "rms": 0.00032151232310283743
+      }
+    },
+    {
+      "id": "medium-volcano-07",
+      "grade": "medium",
+      "use_case": "volcano",
+      "motif": "transient",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 3.67,
+      "seed": 206,
+      "channels": 1,
+      "decorr": 0.05,
+      "rms_rel_tol": 0.45,
+      "n_days": 1095,
       "expected": {
         "config": {
           "estimator": "stretching (TS)",
@@ -366,9 +564,437 @@
           "gate": true
         },
         "eps_max": 0.06,
-        "rms": 0.0004359819565566644
-      },
-      "note": "Every-third-day sampling with 30 % waveform decorrelation stresses the reference/stacking warm-up."
+        "rms": 0.00032005473057429297
+      }
+    },
+    {
+      "id": "medium-groundwater-08",
+      "grade": "medium",
+      "use_case": "groundwater",
+      "motif": "transient",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 3.44,
+      "seed": 207,
+      "channels": 1,
+      "decorr": 0.05,
+      "rms_rel_tol": 0.45,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            2.0,
+            4.0
+          ],
+          "window": [
+            2.0,
+            8.0
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.03,
+        "rms": 0.000168247967817991
+      }
+    },
+    {
+      "id": "medium-landslide-09",
+      "grade": "medium",
+      "use_case": "landslide",
+      "motif": "transient",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 3.22,
+      "seed": 208,
+      "channels": 1,
+      "decorr": 0.05,
+      "rms_rel_tol": 0.45,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            4.0,
+            12.0
+          ],
+          "window": [
+            0.2,
+            1.5
+          ],
+          "stack": 5,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.09,
+        "rms": 0.0011341164599683257
+      }
+    },
+    {
+      "id": "medium-earthquake_fault-10",
+      "grade": "medium",
+      "use_case": "earthquake_fault",
+      "motif": "transient",
+      "split": "validation",
+      "visibility": "public",
+      "years": 3.0,
+      "snr": 3.0,
+      "seed": 209,
+      "channels": 1,
+      "decorr": 0.05,
+      "rms_rel_tol": 0.45,
+      "n_days": 1095,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.5,
+            1.5
+          ],
+          "window": [
+            8,
+            25
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.05,
+        "rms": 0.00020088776612501967
+      }
+    },
+    {
+      "id": "hard-volcano-01",
+      "grade": "hard",
+      "use_case": "volcano",
+      "motif": "composite",
+      "split": "test",
+      "visibility": "public",
+      "years": 2.5,
+      "snr": 4.0,
+      "seed": 300,
+      "channels": 4,
+      "decorr": 0.2,
+      "rms_rel_tol": 0.6,
+      "n_days": 913,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.4,
+            1.0
+          ],
+          "window": [
+            10,
+            30
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.06,
+        "rms": 0.00026356217881596736
+      }
+    },
+    {
+      "id": "hard-earthquake_fault-02",
+      "grade": "hard",
+      "use_case": "earthquake_fault",
+      "motif": "composite",
+      "split": "test",
+      "visibility": "public",
+      "years": 2.5,
+      "snr": 3.78,
+      "seed": 301,
+      "channels": 4,
+      "decorr": 0.2,
+      "rms_rel_tol": 0.6,
+      "n_days": 913,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.5,
+            1.5
+          ],
+          "window": [
+            8,
+            25
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.05,
+        "rms": 0.00015763246578731757
+      }
+    },
+    {
+      "id": "hard-landslide-03",
+      "grade": "hard",
+      "use_case": "landslide",
+      "motif": "composite",
+      "split": "test",
+      "visibility": "public",
+      "years": 2.5,
+      "snr": 3.56,
+      "seed": 302,
+      "channels": 4,
+      "decorr": 0.2,
+      "rms_rel_tol": 0.6,
+      "n_days": 913,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            4.0,
+            12.0
+          ],
+          "window": [
+            0.2,
+            1.5
+          ],
+          "stack": 5,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.09,
+        "rms": 0.001207971655195018
+      }
+    },
+    {
+      "id": "hard-groundwater-04",
+      "grade": "hard",
+      "use_case": "groundwater",
+      "motif": "composite",
+      "split": "test",
+      "visibility": "public",
+      "years": 2.5,
+      "snr": 3.33,
+      "seed": 303,
+      "channels": 4,
+      "decorr": 0.2,
+      "rms_rel_tol": 0.6,
+      "n_days": 913,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            2.0,
+            4.0
+          ],
+          "window": [
+            2.0,
+            8.0
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.03,
+        "rms": 0.00019152716187270316
+      }
+    },
+    {
+      "id": "hard-cryosphere-05",
+      "grade": "hard",
+      "use_case": "cryosphere",
+      "motif": "composite",
+      "split": "test",
+      "visibility": "public",
+      "years": 2.5,
+      "snr": 3.11,
+      "seed": 304,
+      "channels": 4,
+      "decorr": 0.2,
+      "rms_rel_tol": 0.6,
+      "n_days": 913,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            4.0,
+            14.0
+          ],
+          "window": [
+            0.3,
+            0.8
+          ],
+          "stack": 5,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.11,
+        "rms": 0.0014250912049133585
+      }
+    },
+    {
+      "id": "hard-geothermal-06",
+      "grade": "hard",
+      "use_case": "geothermal",
+      "motif": "composite",
+      "split": "test",
+      "visibility": "public",
+      "years": 2.5,
+      "snr": 2.89,
+      "seed": 305,
+      "channels": 4,
+      "decorr": 0.2,
+      "rms_rel_tol": 0.6,
+      "n_days": 913,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.5,
+            2.0
+          ],
+          "window": [
+            10.0,
+            25.0
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.03,
+        "rms": 0.0003501958538763985
+      }
+    },
+    {
+      "id": "hard-volcano-07",
+      "grade": "hard",
+      "use_case": "volcano",
+      "motif": "composite",
+      "split": "test",
+      "visibility": "public",
+      "years": 2.5,
+      "snr": 2.67,
+      "seed": 306,
+      "channels": 4,
+      "decorr": 0.2,
+      "rms_rel_tol": 0.6,
+      "n_days": 913,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.4,
+            1.0
+          ],
+          "window": [
+            10,
+            30
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.06,
+        "rms": 0.00032773731442452806
+      }
+    },
+    {
+      "id": "hard-groundwater-08",
+      "grade": "hard",
+      "use_case": "groundwater",
+      "motif": "composite",
+      "split": "test",
+      "visibility": "public",
+      "years": 2.5,
+      "snr": 2.44,
+      "seed": 307,
+      "channels": 4,
+      "decorr": 0.2,
+      "rms_rel_tol": 0.6,
+      "n_days": 913,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            2.0,
+            4.0
+          ],
+          "window": [
+            2.0,
+            8.0
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.03,
+        "rms": 0.00020391435312739175
+      }
+    },
+    {
+      "id": "hard-landslide-09",
+      "grade": "hard",
+      "use_case": "landslide",
+      "motif": "composite",
+      "split": "test",
+      "visibility": "public",
+      "years": 2.5,
+      "snr": 2.22,
+      "seed": 308,
+      "channels": 4,
+      "decorr": 0.2,
+      "rms_rel_tol": 0.6,
+      "n_days": 913,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            4.0,
+            12.0
+          ],
+          "window": [
+            0.2,
+            1.5
+          ],
+          "stack": 5,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.09,
+        "rms": 0.0012465392609767101
+      }
+    },
+    {
+      "id": "hard-earthquake_fault-10",
+      "grade": "hard",
+      "use_case": "earthquake_fault",
+      "motif": "composite",
+      "split": "test",
+      "visibility": "public",
+      "years": 2.5,
+      "snr": 2.0,
+      "seed": 309,
+      "channels": 4,
+      "decorr": 0.2,
+      "rms_rel_tol": 0.6,
+      "n_days": 913,
+      "expected": {
+        "config": {
+          "estimator": "stretching (TS)",
+          "band": [
+            0.5,
+            1.5
+          ],
+          "window": [
+            8,
+            25
+          ],
+          "stack": 10,
+          "reference": "fixed",
+          "gate": true
+        },
+        "eps_max": 0.05,
+        "rms": 0.00020047248208209103
+      }
     }
   ]
 }

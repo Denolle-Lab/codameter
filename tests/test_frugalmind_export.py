@@ -43,7 +43,7 @@ def test_split_filter():
 
 def test_param_scorer_rewards_recovery_and_punishes_wrong_choice():
     scorer = fm.make_scorer_from_spec({"name": "dvv_recovery"})
-    case = golden.CASES_BY_ID["landslide_mainstream"]
+    case = golden.CASES_BY_ID["easy-landslide-03"]
     gold = fm._gold(case, "param_recommendation")
 
     good = json.dumps(golden._jsonable(uc.recommend("landslide")))
@@ -61,7 +61,7 @@ def test_param_scorer_rewards_recovery_and_punishes_wrong_choice():
 
 def test_param_scorer_accepts_partial_config_filling_noncore_axes():
     scorer = fm.make_scorer_from_spec({"name": "dvv_recovery"})
-    case = golden.CASES_BY_ID["volcano_mainstream"]
+    case = golden.CASES_BY_ID["easy-volcano-01"]
     gold = fm._gold(case, "param_recommendation")
     # Only the three scientific choices; stack/reference/gate fall back to the
     # use-case default and the pipeline still recovers.
@@ -72,9 +72,9 @@ def test_param_scorer_accepts_partial_config_filling_noncore_axes():
 
 def test_series_scorer_truth_vs_null():
     scorer = fm.make_scorer_from_spec({"name": "dvv_series_regression"})
-    case = golden.CASES_BY_ID["volcano_mainstream"]
+    case = golden.CASES_BY_ID["easy-volcano-01"]
     gold = fm._gold(case, "dvv_series")
-    d = golden.generate("volcano_mainstream")
+    d = golden.generate("easy-volcano-01")
 
     truth_txt = json.dumps(list(map(float, d["truth"])))
     zeros_txt = json.dumps([0.0] * int(gold["n_days"]))

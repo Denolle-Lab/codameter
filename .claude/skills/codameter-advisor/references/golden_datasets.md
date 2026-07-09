@@ -1,35 +1,40 @@
 # Golden datasets
 
-Seeded synthetic CCF suites with known ground-truth dv/v(t), covering the
-mainstream per-application cases and four edge regimes. Two consumers: the pytest
-regression oracle (`tests/test_golden.py`) and this advisor's live validation.
+Seeded synthetic CCF suites with known ground-truth dv/v(t), organised as a
+**graded benchmark**: 30 cases, 10 per difficulty grade, spanning the monitoring
+applications. Two consumers: the pytest regression oracle
+(`tests/test_golden.py`) and this advisor's live validation.
 
 ## Layout
 
 - `tests/data/golden/manifest.json`: the committed oracle: one entry per case
-  with its recipe (use case, years, snr, seed, cadence, decorr) and the frozen
-  expected metrics (baseline-aligned RMS, plus any probes). Version-controlled.
+  with its recipe (grade, use case, motif, snr, seed, channels, decorr) and the
+  frozen expected metrics (baseline-aligned RMS). Version-controlled.
 - `tests/data/golden/cache/*.npz`: the regenerated arrays. Deterministic from
   the seed, so they are gitignored, not committed.
 - `codameter.golden`: the generator. `CASES` is the recipe list; `generate(id)`
-  rebuilds arrays; `regenerate_manifest()` recomputes the expected metrics.
+  rebuilds arrays; `recover(d, cfg, eps)` runs the pipeline (aggregating channels
+  for multi-channel cases); `regenerate_manifest()` recomputes expected metrics.
 
-## The cases
+## The grades
 
-Mainstream (one per application): `volcano_mainstream`, `earthquake_mainstream`,
-`landslide_mainstream`, `groundwater_mainstream`, `cryosphere_mainstream`,
-`geothermal_mainstream`. Each should recover its truth to well under 0.2 % RMS.
+Case ids are `{grade}-{application}-{nn}`, e.g. `easy-volcano-01`,
+`hard-groundwater-08`. Each grade cycles through the applications (volcano,
+earthquake/fault, landslide, groundwater, cryosphere, geothermal).
 
-Edge:
-- `low_snr_large_dvv`: SNR ~2 with a several-percent pre-failure drop; the
-  cycle-skipping regime that splits stretching from cross-spectral methods.
-- `clock_drift_seasonal`: a growing clock error plus a seasonal late-coda warp;
-  injects a spurious dv/v (Zhan 2013 / Daskalakis 2016).
-- `freqdep_shallow_deep`: shallow (high-freq) and deep (low-freq) layers carry
-  different dv/v; the band selects which one you recover. Has a probe proving the
-  deep band recovers the deep layer.
-- `sparse_decorr`: every-third-day sampling with 30 % waveform decorrelation;
-  stresses the reference and stacking warm-up.
+- **easy** (split `validation`): a pure seasonal signal at high SNR (8-12),
+  single channel. Best-practice recovery should be well under 0.2 % RMS.
+- **medium** (split `validation`): a transient coseismic-style drop with
+  logarithmic partial healing, plus more measurement noise (SNR 3-5).
+- **hard** (split `test`): a **multi-channel** (4-channel) problem whose truth
+  combines a transient drop-and-heal, a full hydrological seasonal cycle, and a
+  long-term trend, at low SNR (2-4) with waveform decorrelation. Channels are
+  measured independently and aggregated (`golden.recover`).
+
+Note: these synthetics impose a spatially homogeneous dv/v, so recovery is
+insensitive to the band/window as long as the band overlaps the coda's content.
+The benchmark grades estimator, reference, stacking, and aggregation robustness
+under noise and complexity, not depth-band selection.
 
 ## Inspect
 

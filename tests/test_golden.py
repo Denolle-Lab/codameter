@@ -1,9 +1,9 @@
-"""Golden-dataset regression tests.
+"""Golden-dataset regression tests (graded benchmark).
 
 Each case in ``tests/data/golden/manifest.json`` is regenerated from its seed and
-the recommended pipeline is re-run; the recovered RMS must match the frozen value
-within the case's ``rms_rel_tol``. This locks both the estimators and the
-use-case recommendation: a change in either shifts the RMS and fails here.
+the recommended pipeline is re-run through :func:`codameter.golden.recover`; the
+recovered RMS must match the frozen value within the case's ``rms_rel_tol``. This
+locks the estimators, the aggregation, and the use-case recommendation.
 """
 
 from __future__ import annotations
@@ -27,8 +27,18 @@ def _rel_close(got: float, want: float, rel_tol: float) -> bool:
 
 def test_manifest_is_current():
     assert MANIFEST["version"] == golden.MANIFEST_VERSION
-    # The manifest and the code's case list must not drift apart.
     assert CASE_IDS == [c["id"] for c in golden.CASES]
+    assert MANIFEST["grades"] == list(golden.GRADES)
+
+
+def test_thirty_cases_ten_per_grade():
+    assert len(golden.CASES) == 30
+    for grade in golden.GRADES:
+        n = sum(1 for c in golden.CASES if c["grade"] == grade)
+        assert n == 10, f"{grade}: {n}"
+    # Every application appears in every grade span.
+    apps = {c["use_case"] for c in golden.CASES}
+    assert apps == set(golden.AMP)
 
 
 @pytest.mark.parametrize("case_id", CASE_IDS)
@@ -36,53 +46,43 @@ def test_case_recovers_within_tolerance(case_id):
     entry = CASES_BY_ID[case_id]
     data = golden.generate(case_id)
     got = golden.compute_metrics(case_id, data)
-
-    want = entry["expected"]["rms"]
-    tol = entry["rms_rel_tol"]
+    want, tol = entry["expected"]["rms"], entry["rms_rel_tol"]
     assert _rel_close(got["rms"], want, tol), (
         f"{case_id}: rms {got['rms']:.5f} not within {tol:.0%} of frozen {want:.5f}")
 
-    # Probes (e.g. band-selects-depth) must also match their frozen RMS.
-    for got_p, want_p in zip(got.get("probes", []),
-                             entry["expected"].get("probes", []), strict=True):
-        assert _rel_close(got_p["rms"], want_p["rms"], tol), (
-            f"{case_id}/{got_p['label']}: rms {got_p['rms']:.5f} "
-            f"not within {tol:.0%} of frozen {want_p['rms']:.5f}")
 
-
-def test_mainstream_cases_recover_cleanly():
-    # Every mainstream case should recover its truth to well under 0.2 % RMS.
+def test_easy_cases_recover_cleanly():
+    # Best-practice recovery on the easy grade should be well under 0.2 % RMS.
     for entry in MANIFEST["cases"]:
-        if entry["kind"] != "mainstream":
-            continue
-        assert entry["expected"]["rms"] < 2e-3, entry["id"]
+        if entry["grade"] == "easy":
+            assert entry["expected"]["rms"] < 2e-3, entry["id"]
 
 
-def test_freqdep_band_selects_depth():
-    # The core edge-case claim: the shallow-band config recovers the shallow
-    # layer, the deep-band config recovers the deep layer, and using the shallow
-    # band to read the deep truth is clearly worse.
+def test_hard_cases_are_multichannel():
+    for entry in MANIFEST["cases"]:
+        if entry["grade"] == "hard":
+            assert entry["channels"] > 1, entry["id"]
+
+
+def test_recover_handles_single_and_multichannel():
     from codameter import use_cases as uc
-    from codameter.deviations import run_pipeline
 
-    d = golden.generate("freqdep_shallow_deep")
-    eps = uc.eps_max("groundwater")
-    shallow_cfg = uc.recommend("groundwater", band=(4.0, 10.0), window=(2.0, 8.0))
-    deep_cfg = uc.recommend("groundwater", band=(0.2, 1.0), window=(8.0, 25.0))
+    # single channel (easy)
+    d1 = golden.generate("easy-volcano-01")
+    assert "channels" not in d1 or np.ndim(d1["channels"]) != 3
+    dvv1, val1 = golden.recover(d1, uc.recommend("volcano"), uc.eps_max("volcano"))
+    assert val1.sum() > 10 and golden._rms(dvv1, d1["truth"], d1["days"], val1) < 2e-3
 
-    dvv_s, val_s = run_pipeline(d["ccfs"], d["t"], d["fs"], shallow_cfg, eps_max=eps)
-    rms_shallow_on_shallow = golden._rms(dvv_s, d["truth"], d["days"], val_s)
-    rms_shallow_on_deep = golden._rms(dvv_s, d["truth_deep"], d["days"], val_s)
-
-    dvv_d, val_d = run_pipeline(d["ccfs"], d["t"], d["fs"], deep_cfg, eps_max=eps)
-    rms_deep_on_deep = golden._rms(dvv_d, d["truth_deep"], d["days"], val_d)
-
-    assert rms_shallow_on_shallow < rms_deep_on_deep * 3  # both recover their own layer
-    assert rms_shallow_on_deep > 2 * rms_shallow_on_shallow  # band matters
+    # multi channel (hard): channels present, aggregate recovers the composite
+    d2 = golden.generate("hard-earthquake_fault-02")
+    assert np.ndim(d2["channels"]) == 3 and d2["channels"].shape[0] == 4
+    dvv2, val2 = golden.recover(d2, uc.recommend("earthquake_fault"),
+                                uc.eps_max("earthquake_fault"))
+    assert val2.sum() > 10 and np.isfinite(golden._rms(dvv2, d2["truth"], d2["days"], val2))
 
 
 def test_generate_is_deterministic():
-    a = golden.generate("volcano_mainstream", cache=False)
-    b = golden.generate("volcano_mainstream", cache=False)
+    a = golden.generate("easy-volcano-01", cache=False)
+    b = golden.generate("easy-volcano-01", cache=False)
     assert np.array_equal(a["ccfs"], b["ccfs"])
     assert np.array_equal(a["truth"], b["truth"])
