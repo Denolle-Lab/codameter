@@ -1,3 +1,6 @@
 # Regenerable synthetic CCF arrays (deterministic from manifest seeds).
 # The committed oracle is manifest.json; the arrays are rebuilt on demand.
 cache/
+
+# Verification figures (regenerate: python scripts/plot_golden.py)
+figs/

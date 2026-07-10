@@ -1,243 +1,298 @@
-r"""Golden synthetic datasets for dv/v processing: a seeded, reproducible corpus.
+r"""Golden synthetic datasets for dv/v processing: a graded, seeded corpus.
 
-Two consumers share one source of truth:
+Three difficulty **grades**, ten cases each (30 total), spanning the monitoring
+applications so a grade covers a realistic range rather than one scenario:
 
-- **CI** -- :mod:`tests.test_golden` regenerates each case from its seed and
-  asserts that the recommended pipeline recovers the known dv/v within the
-  frozen tolerance, so a regression in any estimator or in ``run_pipeline`` is
-  caught.
-- **The advisor** -- the ``codameter-advisor`` skill loads a matched case to
-  quantify, live, the bias and error-bar cost of a user's processing choices.
+- **easy** -- a pure seasonal signal at high SNR, single channel. The recommended
+  (best-practice) config should recover it cleanly.
+- **medium** -- a transient (coseismic-style) drop with logarithmic, only partial
+  recovery, plus more measurement noise (lower SNR).
+- **hard** -- a *multi-channel*, *depth- and frequency-dependent* problem. A
+  shallow (high-frequency) layer carries a coseismic drop-and-heal plus a full
+  hydrological seasonal cycle; a deep (low-frequency) layer carries a long-term
+  trend. Each case targets one depth, so the measurement band must match it: the
+  band selects the depth. Low SNR with waveform decorrelation; the channels are
+  measured independently and aggregated to a network dv/v.
 
-Design: the committed artifact is ``tests/data/golden/manifest.json`` -- the
-**recipes plus expected metrics**, not the arrays. A full multi-year daily CCF
-stack is tens of MB and is fully determined by its seed, so the arrays are
-regenerated on demand and cached under ``tests/data/golden/cache/`` (gitignored).
+Every case has an exactly known ground-truth dv/v(t) (imposed by stretching a
+band-limited decaying coda in lapse time), so any departure of a recovered series
+is an artefact of the processing, not of nature.
 
-Two families of case:
+Design: the committed artefact is ``tests/data/golden/manifest.json`` -- the
+recipes plus expected metrics, not the arrays. A multi-year (multi-channel) CCF
+stack is large and fully determined by its seed, so arrays are regenerated on
+demand and cached under ``tests/data/golden/cache/`` (gitignored).
 
-- **mainstream** -- one per application in :data:`codameter.use_cases.USE_CASES`,
-  synthesized with that application's matched geometry and typical SNR. The
-  recommended config should recover the truth cleanly (low RMS).
-- **edge** -- the four failure regimes the survey warns about: low SNR with a
-  large (cycle-skipping) dv/v; clock drift plus seasonal late-coda noise; a
-  frequency-dependent shallow+deep medium where the band selects the depth; and
-  sparse cadence with waveform decorrelation. For these the oracle pins the
-  *magnitude of the artifact* (RMS within a band around the frozen value), so
-  the deterministic failure mode cannot silently change.
+Consumers: :mod:`tests.test_golden` (regression oracle), the ``codameter-advisor``
+skill (live validation), and the FrugalMind ``dvv_processing`` suites
+(:mod:`codameter.frugalmind`). All score through :func:`recover`, so a single
+code path handles both single- and multi-channel cases.
 """
 from __future__ import annotations
 
 import json
+import warnings
 from pathlib import Path
 
 import numpy as np
 
 from . import use_cases as uc
 from .deviations import run_pipeline
-from .synthetic_demo import (
-    YEAR_D, _days, _seasonal, add_clock_drift, add_seasonal_late_noise,
-    daily_ccfs, earthquake_truth, groundwater_truth, landslide_truth,
-    make_coda, volcano_truth,
-)
+from .synthetic_demo import YEAR_D, _days, _seasonal, daily_ccfs, make_coda
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "tests" / "data" / "golden"
 MANIFEST = DATA_DIR / "manifest.json"
 CACHE_DIR = DATA_DIR / "cache"
-MANIFEST_VERSION = 1
+MANIFEST_VERSION = 2
 
 
 # ---------------------------------------------------------------------------
-# Ground-truth generators, resolved by name from use_cases[...]["dvv"].
-# Volcano/earthquake/landslide/groundwater reuse synthetic_demo; cryosphere and
-# geothermal get local builders (adjusted amplitude) until dedicated ones exist.
+# Per-application signal amplitudes (fractional dv/v) and timescales. These set
+# the physical scale of each motif; they stay within the application's eps_max.
 # ---------------------------------------------------------------------------
-def _cryosphere_truth(days: np.ndarray) -> np.ndarray:
-    """Sharp seasonal freeze-thaw swing (~ +/-3.5 %), summer velocity minimum."""
-    return _seasonal(days, 0.035, 200.0)
-
-
-def _geothermal_truth(days: np.ndarray) -> np.ndarray:
-    """Slow injection-driven decline (~ -1 %) with a muted seasonal overlay."""
-    ramp = -0.010 * np.clip((days - 0.3 * YEAR_D) / (2.0 * YEAR_D), 0, 1)
-    return ramp + _seasonal(days, 0.0004, 30.0)
-
-
-TRUTH = {
-    "volcano": volcano_truth,
-    "earthquake": earthquake_truth,
-    "landslide": landslide_truth,
-    "groundwater_shallow": lambda days: groundwater_truth(days)[0],
-    "groundwater_deep": lambda days: groundwater_truth(days)[1],
-    "cryosphere": _cryosphere_truth,
-    "geothermal": _geothermal_truth,
+AMP = {
+    "volcano":          {"seasonal": 0.0010, "drop": -0.0040, "trend": -0.0015, "tau": 90.0,  "phase": 60.0},
+    "earthquake_fault": {"seasonal": 0.0006, "drop": -0.0025, "trend": -0.0010, "tau": 160.0, "phase": 30.0},
+    "landslide":        {"seasonal": 0.0100, "drop": -0.0300, "trend": -0.0050, "tau": 60.0,  "phase": 120.0},
+    "groundwater":      {"seasonal": 0.0015, "drop": -0.0020, "trend": -0.0012, "tau": 120.0, "phase": 250.0},
+    "cryosphere":       {"seasonal": 0.0300, "drop": -0.0150, "trend": -0.0040, "tau": 45.0,  "phase": 200.0},
+    "geothermal":       {"seasonal": 0.0005, "drop": -0.0060, "trend": -0.0100, "tau": 120.0, "phase": 30.0},
 }
 
 
+def _step_heal(days: np.ndarray, app: str, onset_frac: float = 0.5) -> np.ndarray:
+    """A sharp drop at ~``onset_frac`` of the record with logarithmic partial heal."""
+    a = AMP[app]
+    onset = onset_frac * float(days[-1])
+    co = days >= onset
+    dt = (days[co] - onset).astype(float)
+    out = np.zeros(len(days), float)
+    out[co] = a["drop"] * (0.35 + 0.65 * np.exp(-dt / a["tau"]))
+    return out
+
+
+def _motif_seasonal(days: np.ndarray, app: str) -> np.ndarray:
+    return _seasonal(days, AMP[app]["seasonal"], AMP[app]["phase"])
+
+
+def _motif_transient(days: np.ndarray, app: str) -> np.ndarray:
+    # drop + heal, plus a muted seasonal so it is not unrealistically flat.
+    return _step_heal(days, app) + 0.25 * _motif_seasonal(days, app)
+
+
+def _motif_composite(days: np.ndarray, app: str) -> np.ndarray:
+    # transient + full hydrological seasonal + a long-term linear trend.
+    a = AMP[app]
+    trend = a["trend"] * np.clip((days - 0.15 * days[-1]) / (0.8 * days[-1]), 0, 1)
+    return _step_heal(days, app) + _motif_seasonal(days, app) + trend
+
+
+MOTIF = {"seasonal": _motif_seasonal, "transient": _motif_transient,
+         "composite": _motif_composite}
+
+
 # ---------------------------------------------------------------------------
-# Case recipes. Each is a plain dict (no computed metrics); the manifest adds
-# the expected metrics at regeneration time.
-#
-#   id          : unique case identifier / cache key.
-#   kind        : "mainstream" | "edge".
-#   use_case    : USE_CASES key; sets config, synth geometry, eps_max, truth.
-#   years, snr, seed : synthesis controls.
-#   decorr      : waveform-decorrelation fraction (daily_ccfs).
-#   cadence     : keep every Nth day (sparse sampling); default 1.
-#   artifacts   : list of injectors applied after daily_ccfs.
-#   config      : optional per-axis overrides on the recommended config.
-#   probes      : optional [{label, config-overrides, truth}] extra measurements
-#                 whose RMS is also frozen (used to prove band-selects-depth).
-#   rms_rel_tol : allowed fractional drift of RMS around the frozen value.
+# Depth- and frequency-dependent medium (the hard grade). The shallow layer
+# carries the near-surface response (coseismic drop + heal + full hydrological
+# seasonal); the deep layer carries the long-term trend with a muted seasonal.
+# The two layers live in separated frequency bands, so the measurement *band
+# selects the depth*: a shallow (high-frequency) band recovers the shallow truth,
+# a deep (low-frequency) band recovers the deep truth.
 # ---------------------------------------------------------------------------
-CASES: list[dict] = [
-    # ---- mainstream: one per application -------------------------------
-    {"id": "volcano_mainstream", "kind": "mainstream", "use_case": "volcano",
-     "years": 3.0, "snr": 7.0, "seed": 11, "rms_rel_tol": 0.30},
-    {"id": "earthquake_mainstream", "kind": "mainstream", "use_case": "earthquake_fault",
-     "years": 3.0, "snr": 7.0, "seed": 12, "rms_rel_tol": 0.30},
-    {"id": "landslide_mainstream", "kind": "mainstream", "use_case": "landslide",
-     "years": 3.0, "snr": 8.0, "seed": 13, "rms_rel_tol": 0.30},
-    {"id": "groundwater_mainstream", "kind": "mainstream", "use_case": "groundwater",
-     "years": 3.0, "snr": 8.0, "seed": 14, "rms_rel_tol": 0.30},
-    {"id": "cryosphere_mainstream", "kind": "mainstream", "use_case": "cryosphere",
-     "years": 3.0, "snr": 8.0, "seed": 15, "rms_rel_tol": 0.30},
-    {"id": "geothermal_mainstream", "kind": "mainstream", "use_case": "geothermal",
-     "years": 3.0, "snr": 7.0, "seed": 16, "rms_rel_tol": 0.30},
+def _truth_shallow(days: np.ndarray, app: str) -> np.ndarray:
+    return _step_heal(days, app) + _motif_seasonal(days, app)
 
-    # ---- edge: low SNR + large (cycle-skipping) dv/v -------------------
-    {"id": "low_snr_large_dvv", "kind": "edge", "use_case": "landslide",
-     "years": 3.0, "snr": 2.0, "seed": 21, "rms_rel_tol": 0.35,
-     "note": "SNR~2 with a several-percent pre-failure drop: the regime that "
-             "splits stretching from cross-spectral methods."},
 
-    # ---- edge: clock drift + seasonal late-coda noise ------------------
-    {"id": "clock_drift_seasonal", "kind": "edge", "use_case": "volcano",
-     "years": 3.0, "snr": 7.0, "seed": 22, "rms_rel_tol": 0.35,
-     "artifacts": [
-         {"kind": "clock_drift", "drift_s_per_day": 2.0e-4, "onset_day": 200},
-         {"kind": "seasonal_late_noise", "onset_s": 20.0, "dvv_amp": 0.004,
-          "jitter": 0.06},
-     ],
-     "note": "A growing clock error plus a seasonal late-coda warp inject a "
-             "spurious dv/v (Zhan 2013 / Daskalakis 2016)."},
+def _truth_deep(days: np.ndarray, app: str) -> np.ndarray:
+    a = AMP[app]
+    trend = a["trend"] * np.clip((days - 0.15 * days[-1]) / (0.8 * days[-1]), 0, 1)
+    return trend + 0.3 * _motif_seasonal(days, app)
 
-    # ---- edge: frequency-dependent shallow + deep medium ---------------
-    {"id": "freqdep_shallow_deep", "kind": "edge", "use_case": "groundwater",
-     "years": 3.0, "snr": 9.0, "seed": 23, "rms_rel_tol": 0.35,
-     "two_layer": True,
-     "config": {"band": (4.0, 10.0), "window": (2.0, 8.0)},
-     "probes": [
-         {"label": "deep_band_recovers_deep",
-          "config": {"band": (0.2, 1.0), "window": (8.0, 25.0)},
-          "truth": "deep"},
-     ],
-     "note": "Shallow (high-freq) and deep (low-freq) layers carry different "
-             "dv/v; the band selects which one you recover."},
 
-    # ---- edge: sparse cadence + waveform decorrelation -----------------
-    {"id": "sparse_decorr", "kind": "edge", "use_case": "volcano",
-     "years": 3.0, "snr": 6.0, "seed": 24, "cadence": 3, "decorr": 0.30,
-     "rms_rel_tol": 0.35,
-     "note": "Every-third-day sampling with 30 % waveform decorrelation stresses "
-             "the reference/stacking warm-up."},
-]
+def _depth_bands(app: str) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Split an application's coda band into separated shallow (high) / deep (low)
+    sub-bands, each safely inside the generated content."""
+    glo, ghi = uc.synth_params(app)["gen_band"]
+    gm = (glo * ghi) ** 0.5
+    shallow = (round(gm * 1.6, 3), round(ghi * 0.9, 3))
+    deep = (round(glo * 1.1, 3), round(gm * 0.6, 3))
+    return shallow, deep
 
+
+# ---------------------------------------------------------------------------
+# Grades and case construction. Each grade cycles through the applications so it
+# spans volcano / fault / aquifer / glacier / reservoir at that difficulty.
+# ---------------------------------------------------------------------------
+GRADES = {
+    "easy":   {"motif": "seasonal",  "snr": (8.0, 12.0), "channels": 1, "decorr": 0.00,
+               "years": 3.0, "split": "validation", "rms_rel_tol": 0.35},
+    "medium": {"motif": "transient", "snr": (3.0, 5.0),  "channels": 1, "decorr": 0.05,
+               "years": 3.0, "split": "validation", "rms_rel_tol": 0.45},
+    "hard":   {"motif": "depth", "snr": (2.0, 4.0),  "channels": 4, "decorr": 0.20,
+               "years": 2.5, "split": "test", "rms_rel_tol": 0.60},
+}
+
+# 10 application slots per grade (the 6 applications, some repeated).
+APP_CYCLE = ["volcano", "earthquake_fault", "landslide", "groundwater",
+             "cryosphere", "geothermal", "volcano", "groundwater",
+             "landslide", "earthquake_fault"]
+
+_SEED_BASE = {"easy": 100, "medium": 200, "hard": 300}
+
+
+def _build_cases() -> list[dict]:
+    cases = []
+    for grade, spec in GRADES.items():
+        snr_lo, snr_hi = spec["snr"]
+        for i, app in enumerate(APP_CYCLE):
+            snr = round(float(np.interp(i, [0, len(APP_CYCLE) - 1], [snr_hi, snr_lo])), 2)
+            case = {
+                "id": f"{grade}-{app}-{i + 1:02d}",
+                "grade": grade, "use_case": app, "motif": spec["motif"],
+                "snr": snr, "seed": _SEED_BASE[grade] + i,
+                "channels": spec["channels"], "decorr": spec["decorr"],
+                "years": spec["years"], "split": spec["split"],
+                "rms_rel_tol": spec["rms_rel_tol"],
+            }
+            if grade == "hard":
+                # Depth- and frequency-dependent: the case targets one depth, and
+                # the recommended config's band must match it. Targets alternate.
+                shallow_band, deep_band = _depth_bands(app)
+                target = "shallow" if i % 2 == 0 else "deep"
+                case["two_layer"] = True
+                case["target"] = target
+                case["config"] = {"band": shallow_band if target == "shallow" else deep_band}
+                case["note"] = (
+                    "The medium is depth-dependent: a shallow near-surface layer "
+                    "(coseismic drop + hydrological seasonal) sits above a deep layer "
+                    "(long-term trend). "
+                    + ("You must resolve the SHALLOW near-surface response."
+                       if target == "shallow" else
+                       "You must resolve the DEEP long-term trend.")
+                    + " The band selects the depth."
+                )
+            cases.append(case)
+    return cases
+
+
+CASES: list[dict] = _build_cases()
 CASES_BY_ID = {c["id"]: c for c in CASES}
 
-# Application -> its mainstream golden case, so the advisor can pull a matched
-# synthetic for any use case without hardcoding ids.
+
+def representative_case(use_case: str, grade: str = "easy") -> str:
+    """A matched case id for an application (default the first easy case).
+
+    Used by the advisor and the sweep to pull a synthetic that matches a user's
+    application without hardcoding ids.
+    """
+    key = uc.resolve(use_case)
+    for c in CASES:
+        if c["use_case"] == key and c["grade"] == grade:
+            return c["id"]
+    for c in CASES:                       # fall back to any grade
+        if c["use_case"] == key:
+            return c["id"]
+    raise KeyError(f"no golden case for use case {use_case!r}")
+
+
+# Back-compat alias: application -> a representative (easy) case.
 MAINSTREAM_BY_USE_CASE = {
-    c["use_case"]: c["id"] for c in CASES if c["kind"] == "mainstream"
+    app: representative_case(app) for app in {c["use_case"] for c in CASES}
 }
 
 
 def case_split(recipe: dict) -> str:
-    """Benchmark split for a case: mainstream -> validation, edge -> test.
-
-    (These are the frugalmind splits; a recipe may override with a ``split`` key.)
-    """
-    return recipe.get("split", "validation" if recipe["kind"] == "mainstream" else "test")
+    return recipe.get("split", "validation")
 
 
 def case_visibility(recipe: dict) -> str:
-    """Benchmark visibility. Synthetic and seed-reproducible, so public by default."""
+    """Synthetic and seed-reproducible, so public by default."""
     return recipe.get("visibility", "public")
 
 
 # ---------------------------------------------------------------------------
 # Synthesis
 # ---------------------------------------------------------------------------
-def _synth_reference(use_case: str):
-    """One reference coda + its lapse axis, matched to the use case geometry."""
-    sp = uc.synth_params(use_case)
-    t, ref = make_coda(maxlag_s=sp["maxlag_s"], fs=sp["fs"],
-                       band=sp["gen_band"], t_coda_s=sp["t_coda_s"], seed=0)
-    return t, ref, sp
-
-
 def _build(recipe: dict) -> dict:
     """Regenerate the arrays for one case deterministically from its recipe."""
-    use_case = recipe["use_case"]
-    sp = uc.synth_params(use_case)
-    fs, gen_band = sp["fs"], sp["gen_band"]
+    app = recipe["use_case"]
+    sp = uc.synth_params(app)
+    fs, gen = sp["fs"], sp["gen_band"]
     days = _days(recipe["years"])
-    seed = recipe["seed"]
-    snr = recipe["snr"]
+    seed, snr = recipe["seed"], recipe["snr"]
     decorr = recipe.get("decorr", 0.0)
+    nchan = int(recipe.get("channels", 1))
 
-    out: dict = {"fs": fs, "days": days, "use_case": use_case}
+    t, coda0 = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=gen,
+                         t_coda_s=sp["t_coda_s"], seed=0)
+    out: dict = {"fs": fs, "days": days, "use_case": app, "grade": recipe["grade"],
+                 "t": t}
 
     if recipe.get("two_layer"):
-        # Two band-separated layers so the frequency band selects the depth.
-        shallow_band, deep_band = (3.0, 11.0), (0.2, 1.1)
-        t, shallow = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=shallow_band,
-                               t_coda_s=sp["t_coda_s"], seed=0)
-        _, deep = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=deep_band,
-                            t_coda_s=sp["t_coda_s"], seed=1)
-        truth_s = TRUTH["groundwater_shallow"](days)
-        truth_d = TRUTH["groundwater_deep"](days)
-        # Noise (and any decorrelation coda) must be broadband across BOTH layer
-        # bands, or the SNR would be frequency-dependent and confound the
-        # band-selects-depth test. Span deep_band low to shallow_band high.
-        two_layer_band = (deep_band[0] * 0.5, shallow_band[1] * 1.1)
-        ccfs = daily_ccfs(t, [shallow, deep], [truth_s, truth_d], fs=fs,
-                          snr=snr, decorr=decorr, gen_band=two_layer_band, seed=seed)
-        out.update(t=t, ccfs=ccfs, truth=truth_s, truth_deep=truth_d)
+        # Depth-dependent medium: shallow (high-freq) and deep (low-freq) layers,
+        # each carrying its own dv/v. Every channel sums both layers; the band
+        # (set by the recommended config) selects which depth is recovered. The
+        # scored truth is the targeted layer.
+        shallow_band, deep_band = _depth_bands(app)
+        truth_shallow = _truth_shallow(days, app)
+        truth_deep = _truth_deep(days, app)
+        chans = []
+        for c in range(nchan):
+            _, cod_s = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=shallow_band,
+                                 t_coda_s=sp["t_coda_s"], seed=2 * c)
+            _, cod_d = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=deep_band,
+                                 t_coda_s=sp["t_coda_s"], seed=2 * c + 1)
+            chans.append(daily_ccfs(t, [cod_s, cod_d], [truth_shallow, truth_deep],
+                                    fs=fs, snr=snr, decorr=decorr, gen_band=gen,
+                                    seed=seed + 7 * c))
+        out["channels"] = np.stack(chans)
+        out["ccfs"] = out["channels"].mean(axis=0)
+        out["truth"] = truth_shallow if recipe["target"] == "shallow" else truth_deep
+        out["truth_other"] = truth_deep if recipe["target"] == "shallow" else truth_shallow
+        return out
+
+    truth = MOTIF[recipe["motif"]](days, app)
+    out["truth"] = truth
+    if nchan > 1:
+        # Independent cross-component channels: distinct coda + distinct noise,
+        # sharing the medium's truth. Measured per channel, aggregated later.
+        codas = [coda0] + [make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=gen,
+                                     t_coda_s=sp["t_coda_s"], seed=c)[1]
+                           for c in range(1, nchan)]
+        chans = [daily_ccfs(t, [cod], [truth], fs=fs, snr=snr, decorr=decorr,
+                            gen_band=gen, seed=seed + 7 * c)
+                 for c, cod in enumerate(codas)]
+        out["channels"] = np.stack(chans)
+        out["ccfs"] = out["channels"].mean(axis=0)  # a 2D view for plotting
     else:
-        t, ref, _ = _synth_reference(use_case)
-        truth = TRUTH[uc.USE_CASES[use_case]["dvv"]](days)
-        ccfs = daily_ccfs(t, [ref], [truth], fs=fs, snr=snr, decorr=decorr,
-                          gen_band=gen_band, seed=seed)
-        out.update(t=t, ccfs=ccfs, truth=truth)
-
-    for art in recipe.get("artifacts", []):
-        ccfs = out["ccfs"]
-        if art["kind"] == "clock_drift":
-            ccfs = add_clock_drift(ccfs, out["t"],
-                                   drift_s_per_day=art["drift_s_per_day"],
-                                   onset_day=art.get("onset_day", 0))
-        elif art["kind"] == "seasonal_late_noise":
-            ccfs = add_seasonal_late_noise(
-                ccfs, out["t"], out["days"], fs=fs, onset_s=art["onset_s"],
-                dvv_amp=art.get("dvv_amp", 0.004), jitter=art.get("jitter", 0.06),
-                band=gen_band, seed=seed + 100)
-        else:
-            raise ValueError(f"unknown artifact {art['kind']!r}")
-        out["ccfs"] = ccfs
-
-    # Sparse sampling last, so injectors see the full daily record.
-    cadence = recipe.get("cadence", 1)
-    if cadence > 1:
-        idx = np.arange(0, len(out["days"]), cadence)
-        out["days"] = out["days"][idx]
-        out["ccfs"] = out["ccfs"][idx]
-        out["truth"] = out["truth"][idx]
-        if "truth_deep" in out:
-            out["truth_deep"] = out["truth_deep"][idx]
+        out["ccfs"] = daily_ccfs(t, [coda0], [truth], fs=fs, snr=snr,
+                                 decorr=decorr, gen_band=gen, seed=seed)
     return out
 
 
+def recover(d: dict, cfg: dict, eps_max: float):
+    """Recover dv/v(t) for a case under ``cfg``; the single scoring entry point.
+
+    Single-channel cases run the pipeline directly. Multi-channel cases run the
+    pipeline on each channel and aggregate to a network dv/v by averaging the
+    per-channel series (the "average the per-component dv/v" convention).
+    """
+    if "channels" in d and np.ndim(d["channels"]) == 3:
+        per = []
+        for c in range(d["channels"].shape[0]):
+            dvv_c, val_c = run_pipeline(d["channels"][c], d["t"], d["fs"], cfg,
+                                        eps_max=eps_max)
+            per.append(np.where(val_c, dvv_c, np.nan))
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN columns
+            dvv = np.nanmean(np.vstack(per), axis=0)
+        return dvv, np.isfinite(dvv)
+    return run_pipeline(d["ccfs"], d["t"], d["fs"], cfg, eps_max=eps_max)
+
+
+# ---------------------------------------------------------------------------
+# Cache
+# ---------------------------------------------------------------------------
 def _recipe_hash(recipe: dict) -> str:
     """Short digest of a recipe, so editing it invalidates the cached arrays."""
     import hashlib
@@ -247,13 +302,13 @@ def _recipe_hash(recipe: dict) -> str:
 
 
 def generate(case_id: str, *, cache: bool = True) -> dict:
-    """Return ``{ccfs, t, days, truth[, truth_deep], fs, use_case}`` for a case.
+    """Return the arrays for a case: ``{ccfs, t, days, truth, fs, use_case, grade}``
+    plus ``channels`` (3D) for multi-channel cases.
 
-    Deterministic in the recipe seed. When ``cache`` is set the arrays are read
-    from / written to ``tests/data/golden/cache/<id>-<recipe_hash>.npz``. The
-    recipe hash in the filename means a changed recipe misses the stale cache and
-    rebuilds; a change to the synthesis *code* is not captured by the hash, so
-    ``regenerate_manifest`` bypasses the cache entirely (``cache=False``).
+    Deterministic in the seed. Cached to ``cache/<id>-<recipe_hash>.npz`` (the hash
+    busts the cache when a recipe changes). ``regenerate_manifest`` uses
+    ``cache=False`` so a synthesis-*code* change (not captured by the hash) never
+    scores against stale arrays.
     """
     recipe = CASES_BY_ID[case_id]
     cache_file = CACHE_DIR / f"{case_id}-{_recipe_hash(recipe)}.npz"
@@ -262,15 +317,23 @@ def generate(case_id: str, *, cache: bool = True) -> dict:
         d = {k: z[k] for k in z.files}
         d["fs"] = float(d["fs"])
         d["use_case"] = str(d["use_case"])
+        d["grade"] = str(d["grade"])
         return d
     d = _build(recipe)
     if cache:
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(
-            cache_file,
-            **{k: np.asarray(v) for k, v in d.items()
-               if k in ("ccfs", "t", "days", "truth", "truth_deep")},
-            fs=np.asarray(d["fs"]), use_case=np.asarray(d["use_case"]))
+        # Downcast the large CCF arrays to float32 to keep the cache small; the
+        # lapse/day/truth axes stay float64.
+        payload = {"t": d["t"], "days": d["days"], "truth": d["truth"],
+                   "ccfs": np.asarray(d["ccfs"], np.float32),
+                   "fs": np.asarray(d["fs"]),
+                   "use_case": np.asarray(d["use_case"]),
+                   "grade": np.asarray(d["grade"])}
+        if "channels" in d:
+            payload["channels"] = np.asarray(d["channels"], np.float32)
+        if "truth_other" in d:
+            payload["truth_other"] = d["truth_other"]
+        np.savez_compressed(cache_file, **payload)
     return d
 
 
@@ -278,14 +341,12 @@ def generate(case_id: str, *, cache: bool = True) -> dict:
 # Metrics oracle
 # ---------------------------------------------------------------------------
 def _rms(dvv, truth, days, valid, baseline_frac: float = 0.2) -> float:
-    """Baseline-aligned RMS error of a recovered dv/v series against the truth.
+    """Baseline-aligned RMS error of a recovered dv/v against the truth.
 
-    A dv/v estimate is relative to a reference epoch, so its absolute level (the
-    DC offset) is not observable: a fixed reference measures change *since the
-    baseline window*, not since zero. We therefore remove, from both the
-    recovered and the true series, their mean over the earliest ``baseline_frac``
-    of valid epochs -- the reference epoch -- before taking the RMS. Without this
-    a pure monotonic trend would show a spurious error equal to the trend's mean.
+    A dv/v estimate is relative to a reference epoch, so its DC offset is not
+    observable. We remove, from both series, their mean over the earliest
+    ``baseline_frac`` of valid epochs before taking the RMS, or a pure trend would
+    show a spurious error equal to its mean.
     """
     v = valid & np.isfinite(dvv)
     if v.sum() < 10:
@@ -300,34 +361,27 @@ def _rms(dvv, truth, days, valid, baseline_frac: float = 0.2) -> float:
     return float(np.sqrt(np.mean((d0 - tr0) ** 2)))
 
 
-def compute_metrics(case_id: str, data: dict | None = None) -> dict:
-    """Run the recommended pipeline (+ any probes) and return the RMS oracle."""
-    recipe = CASES_BY_ID[case_id]
-    d = data if data is not None else generate(case_id)
-    use_case = recipe["use_case"]
-    cfg = uc.recommend(use_case, **recipe.get("config", {}))
-    eps = uc.eps_max(use_case)
-
-    dvv, valid = run_pipeline(d["ccfs"], d["t"], d["fs"], cfg, eps_max=eps)
-    res = {"config": _jsonable(cfg), "eps_max": eps,
-           "rms": _rms(dvv, d["truth"], d["days"], valid)}
-
-    probes = []
-    for p in recipe.get("probes", []):
-        pcfg = uc.recommend(use_case, **p.get("config", {}))
-        truth = d["truth_deep"] if p.get("truth") == "deep" else d["truth"]
-        pdvv, pvalid = run_pipeline(d["ccfs"], d["t"], d["fs"], pcfg, eps_max=eps)
-        probes.append({"label": p["label"], "config": _jsonable(pcfg),
-                       "truth": p.get("truth", "shallow"),
-                       "rms": _rms(pdvv, truth, d["days"], pvalid)})
-    if probes:
-        res["probes"] = probes
-    return res
-
-
 def _jsonable(cfg: dict) -> dict:
     """Tuples (band, window) -> lists so the config round-trips through JSON."""
     return {k: (list(v) if isinstance(v, tuple) else v) for k, v in cfg.items()}
+
+
+def compute_metrics(case_id: str, data: dict | None = None) -> dict:
+    """Recover with the recommended config and return the RMS oracle."""
+    recipe = CASES_BY_ID[case_id]
+    d = data if data is not None else generate(case_id)
+    app = recipe["use_case"]
+    cfg = uc.recommend(app, **recipe.get("config", {}))
+    eps = uc.eps_max(app)
+    dvv, valid = recover(d, cfg, eps)
+    res = {"config": _jsonable(cfg), "eps_max": eps,
+           "rms": _rms(dvv, d["truth"], d["days"], valid)}
+    if "truth_other" in d:
+        # The error a config would incur by recovering the WRONG depth layer:
+        # the "clearly wrong" anchor for scoring depth-band selection.
+        allv = np.ones(len(d["days"]), bool)
+        res["rms_wrong_layer"] = _rms(d["truth_other"], d["truth"], d["days"], allv)
+    return res
 
 
 # ---------------------------------------------------------------------------
@@ -337,31 +391,24 @@ def regenerate_manifest() -> dict:
     """Recompute every case's expected metrics and rewrite ``manifest.json``."""
     cases = []
     for c in CASES:
-        # Always rebuild from current code, never from a possibly stale cache.
-        d = generate(c["id"], cache=False)
+        d = generate(c["id"], cache=False)          # always from current code
         m = compute_metrics(c["id"], d)
         entry = {
-            "id": c["id"], "kind": c["kind"], "use_case": c["use_case"],
-            "split": case_split(c), "visibility": case_visibility(c),
-            "years": c["years"], "snr": c["snr"], "seed": c["seed"],
-            "cadence": c.get("cadence", 1), "decorr": c.get("decorr", 0.0),
+            "id": c["id"], "grade": c["grade"], "use_case": c["use_case"],
+            "motif": c["motif"], "split": case_split(c),
+            "visibility": case_visibility(c), "years": c["years"], "snr": c["snr"],
+            "seed": c["seed"], "channels": c["channels"], "decorr": c["decorr"],
             "rms_rel_tol": c["rms_rel_tol"], "n_days": int(len(d["days"])),
             "expected": m,
         }
-        # Record the remaining recipe fields so the oracle is auditable from the
-        # manifest alone (not only by reading golden.CASES).
         if c.get("two_layer"):
             entry["two_layer"] = True
-        if "artifacts" in c:
-            entry["artifacts"] = c["artifacts"]
-        if "config" in c:
-            entry["config"] = _jsonable(c["config"])
-        if "note" in c:
-            entry["note"] = c["note"]
+            entry["target"] = c["target"]
         cases.append(entry)
-        print(f"  {c['id']:<24} rms={m['rms']:.5f}"
-              + (f"  (+{len(m['probes'])} probe)" if "probes" in m else ""))
-    manifest = {"version": MANIFEST_VERSION, "cases": cases}
+        print(f"  {c['id']:<26} ch={c['channels']} snr={c['snr']:<4} "
+              f"rms={m['rms']:.5f}")
+    manifest = {"version": MANIFEST_VERSION, "grades": list(GRADES),
+                "cases": cases}
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
     return manifest
@@ -379,7 +426,8 @@ def expected_metrics(case_id: str) -> dict:
 
 
 def main() -> int:
-    print(f"Regenerating golden manifest ({len(CASES)} cases) -> {MANIFEST}")
+    print(f"Regenerating golden manifest ({len(CASES)} cases, "
+          f"{len(GRADES)} grades) -> {MANIFEST}")
     regenerate_manifest()
     print("done.")
     return 0

@@ -41,7 +41,6 @@ import numpy as np
 
 from . import golden
 from . import use_cases as uc
-from .deviations import run_pipeline
 
 DATASET_ID = "dvv_processing"
 VERSION = "v0.1"
@@ -138,6 +137,11 @@ def _thresholds(case_id: str) -> dict:
     tol = float(entry["rms_rel_tol"])
     good = max(target * (1.0 + tol), target + 5e-5)
     bad = max(target * 6.0, 3.0e-3)
+    # Depth-targeted cases: anchor "clearly wrong" to the wrong-layer error, so
+    # choosing a band that recovers the other depth scores near zero.
+    wrong = entry["expected"].get("rms_wrong_layer")
+    if wrong and np.isfinite(wrong) and wrong > good:
+        bad = max(good * 1.5, float(wrong))
     return {"rms_target": target, "rms_ceiling": good, "rms_bad": bad}
 
 
@@ -187,7 +191,7 @@ def build_rows(task: str, *, split: str | None = None,
             "scorer_spec": {"name": scorer_name, "config": {}},
             "metadata": {
                 "case_id": case["id"], "use_case": case["use_case"],
-                "kind": case["kind"],
+                "grade": case["grade"],
                 "recommended_config": golden._jsonable(uc.recommend(case["use_case"])),
             },
         })
@@ -284,8 +288,7 @@ def score_param_recommendation(output_text: str, gold: dict) -> float:
     cfg["band"], cfg["window"] = band, window
     d = golden.generate(gold["case_id"])
     try:
-        dvv, valid = run_pipeline(d["ccfs"], d["t"], d["fs"], cfg,
-                                  eps_max=uc.eps_max(gold["use_case"]))
+        dvv, valid = golden.recover(d, cfg, uc.eps_max(gold["use_case"]))
     except Exception:
         return 0.0
     rms = golden._rms(dvv, d["truth"], d["days"], valid)

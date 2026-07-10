@@ -8,8 +8,8 @@ every difference is an artifact of the processing choice, not of nature.
 ## The primitives
 
 - `codameter.golden.generate(case_id)` returns `{ccfs, t, days, truth, fs, ...}`
-  for a seeded case. `codameter.golden.MAINSTREAM_BY_USE_CASE[use_case]` gives the
-  matched mainstream case id.
+  for a seeded case. `codameter.golden.MAINSTREAM_BY_USE_CASE[use_case]` gives a matched
+  (easy-grade) case id for an application.
 - `codameter.deviations.run_pipeline(ccfs, t, fs, cfg, eps_max=...)` returns
   `(dvv, valid)` for one config.
 - `codameter.golden._rms(dvv, truth, days, valid)` is the baseline-aligned RMS
@@ -79,7 +79,7 @@ bar comes from marginalising the processing choice:
 pixi run python - <<'PY'
 from codameter import golden
 from codameter.uq_bayes import bayes_dvv_from_ccfs
-d = golden.generate("volcano_mainstream")
+d = golden.generate("easy-volcano-01")
 res, ens = bayes_dvv_from_ccfs(d["ccfs"], d["t"], d["fs"],
                                truth=d["truth"], days=d["days"], cadence=4)
 import numpy as np
@@ -95,7 +95,7 @@ it when the user cares about the propagated uncertainty, and say it is running.
 - A lower RMS is better recovery; state the percentage, not an adjective.
 - A `moving` reference erases the slow trend, so on a trend case it shows a large
   RMS by design. That is the point, not a bug.
-- Edge cases (low SNR, clock drift, freqdep, sparse) are in the golden manifest.
-  Pull the matching one with `golden.generate(<id>)` if the user's situation is
-  an edge case rather than a mainstream one; ids are in
-  `golden.CASES_BY_ID`.
+- Harder cases (medium = transient + noise; hard = multi-channel composite)
+  are in the golden manifest; pull one with `golden.generate("<grade>-<app>-<nn>")`
+  when the user's situation is noisier or more complex than a clean seasonal one.
+  Ids are in `golden.CASES_BY_ID`.
