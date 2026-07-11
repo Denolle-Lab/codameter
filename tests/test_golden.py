@@ -110,6 +110,37 @@ def test_load_manifest_does_not_overwrite_stale_source(monkeypatch, tmp_path):
     assert called["n"] == 0
 
 
+def test_load_manifest_reraises_on_corrupt_source(monkeypatch, tmp_path):
+    # A corrupt authoritative source must re-raise (so CI flags it), never be
+    # silently regenerated over.
+    mpath = tmp_path / "manifest.json"
+    mpath.write_text("{ not valid json")
+    monkeypatch.setattr(golden, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(golden, "MANIFEST", mpath)
+    monkeypatch.setattr(golden, "_DATA_DIR_IS_CACHE", False)
+    called = {"n": 0}
+    monkeypatch.setattr(golden, "regenerate_manifest",
+                        lambda: called.__setitem__("n", called["n"] + 1))
+    with pytest.raises(json.JSONDecodeError):
+        golden.load_manifest()
+    assert called["n"] == 0
+
+
+def test_load_manifest_regenerates_corrupt_cache(monkeypatch, tmp_path):
+    # A corrupt per-user cache self-heals (regen spied for speed).
+    mpath = tmp_path / "manifest.json"
+    mpath.write_text("{ not valid json")
+    monkeypatch.setattr(golden, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(golden, "MANIFEST", mpath)
+    monkeypatch.setattr(golden, "_DATA_DIR_IS_CACHE", True)
+    calls = {"n": 0}
+    monkeypatch.setattr(golden, "regenerate_manifest",
+                        lambda: (calls.__setitem__("n", calls["n"] + 1),
+                                 mpath.write_text(json.dumps(_current_manifest_stub())))[0])
+    m = golden.load_manifest()
+    assert calls["n"] == 1 and m["version"] == golden.MANIFEST_VERSION
+
+
 @pytest.mark.parametrize("case_id", CASE_IDS)
 def test_case_recovers_within_tolerance(case_id):
     entry = CASES_BY_ID[case_id]

@@ -470,17 +470,25 @@ def load_manifest() -> dict:
     cached manifest from silently supplying wrong expected metrics.
 
     An authoritative committed source (a checkout) or a ``CODAMETER_GOLDEN_DIR``
-    set is never silently overwritten: a stale one is returned as-is so the
-    version check in the tests flags it loudly instead.
+    set is never silently overwritten: a stale one is returned as-is, and a
+    corrupt/unreadable one re-raises, so the tests / CI flag it loudly rather than
+    the source being rewritten.
     """
-    manifest = None
-    if MANIFEST.exists():
-        try:
-            manifest = json.loads(MANIFEST.read_text())
-        except (json.JSONDecodeError, OSError):
-            manifest = None
+    if not MANIFEST.exists():
+        regenerate_manifest()
+        return json.loads(MANIFEST.read_text())
 
-    if manifest is None or (_DATA_DIR_IS_CACHE and not _manifest_is_current(manifest)):
+    try:
+        manifest = json.loads(MANIFEST.read_text())
+    except (json.JSONDecodeError, OSError):
+        # A broken manifest self-heals only in the regenerable per-user cache; an
+        # authoritative source/hosted set re-raises so it is not silently rewritten.
+        if not _DATA_DIR_IS_CACHE:
+            raise
+        regenerate_manifest()
+        return json.loads(MANIFEST.read_text())
+
+    if _DATA_DIR_IS_CACHE and not _manifest_is_current(manifest):
         regenerate_manifest()
         manifest = json.loads(MANIFEST.read_text())
     return manifest
