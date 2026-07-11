@@ -31,6 +31,7 @@ code path handles both single- and multi-channel cases.
 from __future__ import annotations
 
 import json
+import os
 import warnings
 from pathlib import Path
 
@@ -40,7 +41,34 @@ from . import use_cases as uc
 from .deviations import run_pipeline
 from .synthetic_demo import YEAR_D, _days, _seasonal, daily_ccfs, make_coda
 
-DATA_DIR = Path(__file__).resolve().parents[2] / "tests" / "data" / "golden"
+
+def _default_data_dir() -> Path:
+    """Resolve the golden data directory so it works installed *and* in a checkout.
+
+    Priority:
+      1. ``$CODAMETER_GOLDEN_DIR`` — explicit override (e.g. a hosted/cached set).
+      2. ``<repo>/tests/data/golden`` — a source checkout, which ships the
+         committed manifest.
+      3. a writable per-user cache (``$XDG_CACHE_HOME`` or ``~/.cache``) — used
+         when codameter is pip-installed and the source tree is absent. The
+         golden is regenerated on demand there (see ``load_manifest``), so this
+         needs no packaged data files.
+
+    The old code hard-coded (2) via ``parents[2]``, which resolves *inside*
+    site-packages once installed and raises ``FileNotFoundError``.
+    """
+    env = os.environ.get("CODAMETER_GOLDEN_DIR")
+    if env:
+        return Path(env).expanduser()
+    src = Path(__file__).resolve().parents[2] / "tests" / "data" / "golden"
+    if src.exists():
+        return src
+    cache_root = os.environ.get("XDG_CACHE_HOME")
+    base = Path(cache_root) if cache_root else Path.home() / ".cache"
+    return base / "codameter" / "golden"
+
+
+DATA_DIR = _default_data_dir()
 MANIFEST = DATA_DIR / "manifest.json"
 CACHE_DIR = DATA_DIR / "cache"
 MANIFEST_VERSION = 2
@@ -415,6 +443,15 @@ def regenerate_manifest() -> dict:
 
 
 def load_manifest() -> dict:
+    """Load the golden manifest, regenerating it on first use if absent.
+
+    Regeneration is deterministic (``regenerate_manifest`` recomputes every case
+    from the current code), so an installed copy with no committed manifest —
+    e.g. under the per-user cache from ``_default_data_dir`` — self-heals instead
+    of raising ``FileNotFoundError``.
+    """
+    if not MANIFEST.exists():
+        regenerate_manifest()
     return json.loads(MANIFEST.read_text())
 
 

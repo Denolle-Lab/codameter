@@ -41,6 +41,34 @@ def test_thirty_cases_ten_per_grade():
     assert apps == set(golden.AMP)
 
 
+def test_default_data_dir_honours_env_override(monkeypatch, tmp_path):
+    monkeypatch.setenv("CODAMETER_GOLDEN_DIR", str(tmp_path / "gold"))
+    assert golden._default_data_dir() == tmp_path / "gold"
+
+
+def test_default_data_dir_prefers_source_checkout(monkeypatch):
+    # In this repo the committed golden exists, so the checkout path wins over
+    # the per-user cache fallback (which is only for pip-installed copies).
+    monkeypatch.delenv("CODAMETER_GOLDEN_DIR", raising=False)
+    resolved = golden._default_data_dir()
+    assert resolved.name == "golden"
+    assert (resolved / "manifest.json").exists()
+
+
+def test_load_manifest_regenerates_when_missing(monkeypatch, tmp_path):
+    # Simulate a pip-installed copy with no committed manifest: load_manifest
+    # must self-heal via regenerate_manifest instead of FileNotFoundError.
+    data_dir = tmp_path / "gold"
+    data_dir.mkdir()
+    monkeypatch.setattr(golden, "DATA_DIR", data_dir)
+    monkeypatch.setattr(golden, "MANIFEST", data_dir / "manifest.json")
+    assert not (data_dir / "manifest.json").exists()
+    manifest = golden.load_manifest()
+    assert (data_dir / "manifest.json").exists()
+    assert manifest["version"] == golden.MANIFEST_VERSION
+    assert len(manifest["cases"]) == len(golden.CASES)
+
+
 @pytest.mark.parametrize("case_id", CASE_IDS)
 def test_case_recovers_within_tolerance(case_id):
     entry = CASES_BY_ID[case_id]
