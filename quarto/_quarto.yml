@@ -3,6 +3,10 @@ project:
   output-dir: _site
   render:
     - "*.qmd"
+  resources:
+    # Standalone workflow chart (self-contained design; served verbatim and
+    # linked from the navbar). Kept as raw HTML so its CSS never fights the theme.
+    - workflow.html
 
 execute:
   freeze: auto      # cache executed cells; re-run only when the .qmd changes
@@ -25,6 +29,8 @@ website:
     left:
       - text: "Home"
         file: index.qmd
+      - text: "Workflow"
+        href: workflow.html
       - text: "Theory"
         menu:
           - text: "1 · Measurement — marginal errors"
