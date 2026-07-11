@@ -73,6 +73,15 @@ MANIFEST = DATA_DIR / "manifest.json"
 CACHE_DIR = DATA_DIR / "cache"
 MANIFEST_VERSION = 2
 
+# Whether DATA_DIR is the regenerable per-user cache (pip-installed, no source
+# tree, no explicit override) as opposed to an authoritative committed source or
+# a hosted set pointed to by CODAMETER_GOLDEN_DIR. Only the cache is safe to
+# silently (re)generate; a source/hosted manifest is never overwritten.
+_SOURCE_DATA_DIR = Path(__file__).resolve().parents[2] / "tests" / "data" / "golden"
+_DATA_DIR_IS_CACHE = (
+    not os.environ.get("CODAMETER_GOLDEN_DIR") and DATA_DIR != _SOURCE_DATA_DIR
+)
+
 
 # ---------------------------------------------------------------------------
 # Per-application signal amplitudes (fractional dv/v) and timescales. These set
@@ -442,17 +451,39 @@ def regenerate_manifest() -> dict:
     return manifest
 
 
+def _manifest_is_current(manifest: dict) -> bool:
+    """True if an on-disk manifest matches the current code (version + case ids)."""
+    return (
+        manifest.get("version") == MANIFEST_VERSION
+        and [c["id"] for c in manifest.get("cases", [])] == [c["id"] for c in CASES]
+    )
+
+
 def load_manifest() -> dict:
-    """Load the golden manifest, regenerating it on first use if absent.
+    """Load the golden manifest, regenerating a *stale or missing* cache on demand.
 
     Regeneration is deterministic (``regenerate_manifest`` recomputes every case
-    from the current code), so an installed copy with no committed manifest —
-    e.g. under the per-user cache from ``_default_data_dir`` — self-heals instead
-    of raising ``FileNotFoundError``.
+    from the current code). We regenerate when the manifest is absent, and — for
+    the regenerable per-user cache only — when it is stale: its ``version`` no
+    longer matches :data:`MANIFEST_VERSION`, or its case list has drifted from
+    :data:`CASES` (e.g. after a release bumps either). This prevents an outdated
+    cached manifest from silently supplying wrong expected metrics.
+
+    An authoritative committed source (a checkout) or a ``CODAMETER_GOLDEN_DIR``
+    set is never silently overwritten: a stale one is returned as-is so the
+    version check in the tests flags it loudly instead.
     """
-    if not MANIFEST.exists():
+    manifest = None
+    if MANIFEST.exists():
+        try:
+            manifest = json.loads(MANIFEST.read_text())
+        except (json.JSONDecodeError, OSError):
+            manifest = None
+
+    if manifest is None or (_DATA_DIR_IS_CACHE and not _manifest_is_current(manifest)):
         regenerate_manifest()
-    return json.loads(MANIFEST.read_text())
+        manifest = json.loads(MANIFEST.read_text())
+    return manifest
 
 
 def expected_metrics(case_id: str) -> dict:

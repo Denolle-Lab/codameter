@@ -8,6 +8,8 @@ locks the estimators, the aggregation, and the use-case recommendation.
 
 from __future__ import annotations
 
+import json
+
 import numpy as np
 import pytest
 
@@ -67,6 +69,45 @@ def test_load_manifest_regenerates_when_missing(monkeypatch, tmp_path):
     assert (data_dir / "manifest.json").exists()
     assert manifest["version"] == golden.MANIFEST_VERSION
     assert len(manifest["cases"]) == len(golden.CASES)
+
+
+def _current_manifest_stub() -> dict:
+    return {"version": golden.MANIFEST_VERSION, "grades": list(golden.GRADES),
+            "cases": [{"id": c["id"]} for c in golden.CASES]}
+
+
+def test_load_manifest_regenerates_stale_cache(monkeypatch, tmp_path):
+    # A per-user cache whose manifest predates a MANIFEST_VERSION bump must be
+    # regenerated, not silently accepted (regen is spied to keep the test fast).
+    mpath = tmp_path / "manifest.json"
+    mpath.write_text(json.dumps({"version": golden.MANIFEST_VERSION - 1, "cases": []}))
+    monkeypatch.setattr(golden, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(golden, "MANIFEST", mpath)
+    monkeypatch.setattr(golden, "_DATA_DIR_IS_CACHE", True)
+    calls = {"n": 0}
+    monkeypatch.setattr(golden, "regenerate_manifest",
+                        lambda: (calls.__setitem__("n", calls["n"] + 1),
+                                 mpath.write_text(json.dumps(_current_manifest_stub())))[0])
+    m = golden.load_manifest()
+    assert calls["n"] == 1
+    assert m["version"] == golden.MANIFEST_VERSION
+    assert [c["id"] for c in m["cases"]] == [c["id"] for c in golden.CASES]
+
+
+def test_load_manifest_does_not_overwrite_stale_source(monkeypatch, tmp_path):
+    # A stale committed/hosted source (not the regenerable cache) is returned
+    # as-is; the version check in tests flags it rather than an overwrite.
+    stale = {"version": golden.MANIFEST_VERSION - 1, "cases": []}
+    mpath = tmp_path / "manifest.json"
+    mpath.write_text(json.dumps(stale))
+    monkeypatch.setattr(golden, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(golden, "MANIFEST", mpath)
+    monkeypatch.setattr(golden, "_DATA_DIR_IS_CACHE", False)
+    called = {"n": 0}
+    monkeypatch.setattr(golden, "regenerate_manifest",
+                        lambda: called.__setitem__("n", called["n"] + 1))
+    assert golden.load_manifest() == stale
+    assert called["n"] == 0
 
 
 @pytest.mark.parametrize("case_id", CASE_IDS)
