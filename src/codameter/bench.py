@@ -3,9 +3,10 @@ r"""Shardable config-sweep benchmark: recovery RMS over case x config grids.
 The scientific payload is embarrassingly parallel and deterministic: for every
 golden case (:mod:`codameter.golden`) and every processing config in a grid
 built around that case's recommended choice (:mod:`codameter.use_cases`), run the
-pipeline (:func:`codameter.deviations.run_pipeline`) on the known synthetic and
-record how well the recovered dv/v tracks the truth. The result is one row per
-``(case, config)`` cell: a sensitivity map of which deviations cost how much.
+pipeline on the known synthetic via :func:`codameter.golden.recover` (which
+aggregates the channels of a multi-channel case) and record how well the
+recovered dv/v tracks the truth. The result is one row per ``(case, config)``
+cell: a sensitivity map of which deviations cost how much.
 
 This module is built to fan out across a cluster (AWS Batch array on Fargate, or
 any array runner):
@@ -36,7 +37,7 @@ import numpy as np
 
 from . import golden
 from . import use_cases as uc
-from .deviations import metrics, run_pipeline
+from .deviations import metrics
 
 # ---------------------------------------------------------------------------
 # Config grids, built relative to each case's recommended config.
@@ -90,13 +91,27 @@ def _axis_values(rec_value, mode, generator) -> list:
     return list(mode)  # explicit list
 
 
-def build_grid(use_case: str, grid: str = "multiverse") -> list[dict]:
-    """Return the list of configs to score for one use case under ``grid``."""
+def build_grid(case: dict, grid: str = "multiverse") -> list[dict]:
+    """Return the list of configs to score for one golden ``case`` under ``grid``.
+
+    The grid is built around that case's recommended config, so each application
+    keeps a physical band/window. For a depth-targeted (``two_layer``) case the
+    band axis is the two *depth* bands rather than variants around one: the whole
+    question there is whether a config selects the right depth, so the sweep must
+    be able to choose either layer (and be scored for choosing wrong).
+    """
     if grid not in GRIDS:
         raise ValueError(f"unknown grid {grid!r}; known: {sorted(GRIDS)}")
     spec = GRIDS[grid]
-    rec = uc.recommend(use_case)
-    bands = _axis_values(rec["band"], spec["band"], _band_variants)
+    use_case = case["use_case"]
+    # For a depth case, `config` carries the target band, so `rec` is the correct
+    # answer for this case rather than the application default.
+    rec = uc.recommend(use_case, **case.get("config", {}))
+    if case.get("two_layer"):
+        shallow, deep = golden._depth_bands(use_case)
+        bands = [shallow, deep]
+    else:
+        bands = _axis_values(rec["band"], spec["band"], _band_variants)
     windows = _axis_values(rec["window"], spec["window"], _window_variants)
     stacks = [rec["stack"] if s is None else s for s in
               _axis_values(rec["stack"], spec["stack"], None)]
@@ -117,8 +132,7 @@ def work_items(case_ids: list[str], grid: str) -> list[tuple[str, int, dict]]:
     """Every ``(case_id, config_index, config)`` cell, in a stable order."""
     items = []
     for cid in case_ids:
-        use_case = golden.CASES_BY_ID[cid]["use_case"]
-        for i, cfg in enumerate(build_grid(use_case, grid)):
+        for i, cfg in enumerate(build_grid(golden.CASES_BY_ID[cid], grid)):
             items.append((cid, i, cfg))
     return items
 
@@ -158,18 +172,23 @@ def _case(case_id: str) -> dict:
 
 def score_cell(case_id: str, config_index: int, cfg: dict) -> dict:
     """Score one ``(case, config)`` cell into a JSON-serializable row."""
-    use_case = golden.CASES_BY_ID[case_id]["use_case"]
+    case = golden.CASES_BY_ID[case_id]
+    use_case = case["use_case"]
     row = {
-        "case_id": case_id, "use_case": use_case, "config_index": config_index,
+        "case_id": case_id, "use_case": use_case, "grade": case["grade"],
+        "config_index": config_index,
         "estimator": cfg["estimator"], "band": list(cfg["band"]),
         "window": list(cfg["window"]), "stack": cfg["stack"],
         "reference": cfg["reference"], "gate": cfg["gate"],
+        "target": case.get("target"),
         "eps_max": uc.eps_max(use_case),
     }
     try:
         d = _case(case_id)
-        dvv, valid = run_pipeline(d["ccfs"], d["t"], d["fs"], cfg,
-                                  eps_max=row["eps_max"])
+        # golden.recover is the single scoring path: it runs the pipeline per
+        # channel and aggregates for multi-channel (hard) cases, and falls back
+        # to the plain pipeline for single-channel ones.
+        dvv, valid = golden.recover(d, cfg, row["eps_max"])
         m = metrics(dvv, d["truth"], d["days"], valid)
         row.update(rms=golden._rms(dvv, d["truth"], d["days"], valid),
                    drop_err=m["drop_err"], n_valid=int(np.sum(valid)), ok=True,
@@ -273,7 +292,7 @@ def _cmd_plan(args) -> int:
     k, n = parse_shard(args.shard)
     per = [len(shard(items, i, n)) for i in range(n)]
     print(f"grid={args.grid}  cases={len(case_ids)}  configs/case="
-          f"{len(build_grid(golden.CASES_BY_ID[case_ids[0]]['use_case'], args.grid))}")
+          f"{len(build_grid(golden.CASES_BY_ID[case_ids[0]], args.grid))}")
     print(f"total cells={len(items)}  shards={n}  "
           f"cells/shard: min={min(per)} max={max(per)}")
     return 0

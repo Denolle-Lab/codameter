@@ -9,8 +9,8 @@ so it fans out cleanly across an array of Fargate tasks: each task runs one
 
 ```bash
 codameter-bench plan --grid multiverse --shard 0/64
-# grid=multiverse  cases=10  configs/case=648
-# total cells=6480  shards=64  cells/shard: min=101 max=102
+# grid=multiverse  cases=30  configs/case=648
+# total cells=17280  shards=64  cells/shard: min=270 max=270
 ```
 
 `plan` needs no compute; use it to pick the array size and vCPUs per task. Grids:
