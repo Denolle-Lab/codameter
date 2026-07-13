@@ -9,9 +9,14 @@ so it fans out cleanly across an array of Fargate tasks: each task runs one
 
 ```bash
 codameter-bench plan --grid multiverse --shard 0/64
-# grid=multiverse  cases=30  configs/case=648
-# total cells=17280  shards=64  cells/shard: min=270 max=270
+# grid=multiverse  cases=3  configs/case=648
+# total cells=1728  shards=64  cells/shard: min=27 max=27
 ```
+
+The case count is whatever corpus is loaded: the 3-case public sample by default,
+or the full hidden corpus when `CODAMETER_GOLDEN_DIR` points at one (27 cases ->
+17280 cells). Always run `plan` for the corpus you are actually sweeping rather
+than trusting a number from a doc.
 
 `plan` needs no compute; use it to pick the array size and vCPUs per task. Grids:
 `compact` (smoke), `multiverse` (default), `wide` (overnight).
