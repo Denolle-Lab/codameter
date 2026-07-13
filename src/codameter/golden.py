@@ -24,7 +24,7 @@ stack is large and fully determined by its seed, so arrays are regenerated on
 demand and cached under ``tests/data/golden/cache/`` (gitignored).
 
 Consumers: :mod:`tests.test_golden` (regression oracle), the ``codameter-advisor``
-skill (live validation), and the FrugalMind ``dvv_processing`` suites
+skill (live validation), and the FrugalMind ``codameter`` suites
 (:mod:`codameter.frugalmind`). All score through :func:`recover`, so a single
 code path handles both single- and multi-channel cases.
 """
@@ -97,31 +97,43 @@ AMP = {
 }
 
 
-def _step_heal(days: np.ndarray, app: str, onset_frac: float = 0.5) -> np.ndarray:
+def amp_for(case: dict) -> dict:
+    """Truth parameters for a case: the public :data:`AMP` table for its
+    application, overridden by any per-case ``amp`` block.
+
+    The ``amp`` override is what makes a *private* case unreconstructible. Every
+    truth builder below is a pure function of these numbers, so if they are only
+    the public table the ground truth can be regenerated from public source alone
+    (no seed needed - the seed randomizes the coda and the noise, not the truth).
+    A hidden case therefore ships secret ``amp`` values in its recipe.
+    """
+    return {**AMP[case["use_case"]], **case.get("amp", {})}
+
+
+def _step_heal(days: np.ndarray, amp: dict, onset_frac: float | None = None) -> np.ndarray:
     """A sharp drop at ~``onset_frac`` of the record with logarithmic partial heal."""
-    a = AMP[app]
+    onset_frac = amp.get("onset_frac", 0.5) if onset_frac is None else onset_frac
     onset = onset_frac * float(days[-1])
     co = days >= onset
     dt = (days[co] - onset).astype(float)
     out = np.zeros(len(days), float)
-    out[co] = a["drop"] * (0.35 + 0.65 * np.exp(-dt / a["tau"]))
+    out[co] = amp["drop"] * (0.35 + 0.65 * np.exp(-dt / amp["tau"]))
     return out
 
 
-def _motif_seasonal(days: np.ndarray, app: str) -> np.ndarray:
-    return _seasonal(days, AMP[app]["seasonal"], AMP[app]["phase"])
+def _motif_seasonal(days: np.ndarray, amp: dict) -> np.ndarray:
+    return _seasonal(days, amp["seasonal"], amp["phase"])
 
 
-def _motif_transient(days: np.ndarray, app: str) -> np.ndarray:
+def _motif_transient(days: np.ndarray, amp: dict) -> np.ndarray:
     # drop + heal, plus a muted seasonal so it is not unrealistically flat.
-    return _step_heal(days, app) + 0.25 * _motif_seasonal(days, app)
+    return _step_heal(days, amp) + 0.25 * _motif_seasonal(days, amp)
 
 
-def _motif_composite(days: np.ndarray, app: str) -> np.ndarray:
+def _motif_composite(days: np.ndarray, amp: dict) -> np.ndarray:
     # transient + full hydrological seasonal + a long-term linear trend.
-    a = AMP[app]
-    trend = a["trend"] * np.clip((days - 0.15 * days[-1]) / (0.8 * days[-1]), 0, 1)
-    return _step_heal(days, app) + _motif_seasonal(days, app) + trend
+    trend = amp["trend"] * np.clip((days - 0.15 * days[-1]) / (0.8 * days[-1]), 0, 1)
+    return _step_heal(days, amp) + _motif_seasonal(days, amp) + trend
 
 
 MOTIF = {"seasonal": _motif_seasonal, "transient": _motif_transient,
@@ -136,14 +148,13 @@ MOTIF = {"seasonal": _motif_seasonal, "transient": _motif_transient,
 # selects the depth*: a shallow (high-frequency) band recovers the shallow truth,
 # a deep (low-frequency) band recovers the deep truth.
 # ---------------------------------------------------------------------------
-def _truth_shallow(days: np.ndarray, app: str) -> np.ndarray:
-    return _step_heal(days, app) + _motif_seasonal(days, app)
+def _truth_shallow(days: np.ndarray, amp: dict) -> np.ndarray:
+    return _step_heal(days, amp) + _motif_seasonal(days, amp)
 
 
-def _truth_deep(days: np.ndarray, app: str) -> np.ndarray:
-    a = AMP[app]
-    trend = a["trend"] * np.clip((days - 0.15 * days[-1]) / (0.8 * days[-1]), 0, 1)
-    return trend + 0.3 * _motif_seasonal(days, app)
+def _truth_deep(days: np.ndarray, amp: dict) -> np.ndarray:
+    trend = amp["trend"] * np.clip((days - 0.15 * days[-1]) / (0.8 * days[-1]), 0, 1)
+    return trend + 0.3 * _motif_seasonal(days, amp)
 
 
 def _depth_bands(app: str) -> tuple[tuple[float, float], tuple[float, float]]:
@@ -212,8 +223,35 @@ def _build_cases() -> list[dict]:
     return cases
 
 
-CASES: list[dict] = _build_cases()
+# The public sample: one case per grade, shipped in the repo for development,
+# tests, tutorials and the paper figures. The full evaluation corpus is *hidden*
+# (see load_cases): its recipes carry secret `amp` truth parameters, so it cannot
+# be reconstructed from this source.
+PUBLIC_SAMPLE_IDS = ("easy-volcano-01", "medium-earthquake_fault-02",
+                     "hard-groundwater-04")
+
+CASES_FILE = "cases.json"
+
+
+def load_cases() -> list[dict]:
+    """The case list: a hidden corpus if one is present, else the public sample.
+
+    If ``<DATA_DIR>/cases.json`` exists (i.e. ``CODAMETER_GOLDEN_DIR`` points at a
+    private/hidden golden set), its recipes are used verbatim. Otherwise only
+    :data:`PUBLIC_SAMPLE_IDS` are exposed. This is the seam that keeps the hidden
+    evaluation set out of the public repo: the recipes *are* the dataset.
+    """
+    path = DATA_DIR / CASES_FILE
+    if path.exists():
+        cases = json.loads(path.read_text())
+        return cases["cases"] if isinstance(cases, dict) else cases
+    sample = set(PUBLIC_SAMPLE_IDS)
+    return [c for c in _build_cases() if c["id"] in sample]
+
+
+CASES: list[dict] = load_cases()
 CASES_BY_ID = {c["id"]: c for c in CASES}
+IS_HIDDEN_SET = (DATA_DIR / CASES_FILE).exists()
 
 
 def representative_case(use_case: str, grade: str = "easy") -> str:
@@ -259,6 +297,7 @@ def _build(recipe: dict) -> dict:
     seed, snr = recipe["seed"], recipe["snr"]
     decorr = recipe.get("decorr", 0.0)
     nchan = int(recipe.get("channels", 1))
+    amp = amp_for(recipe)          # public table, or the case's secret override
 
     t, coda0 = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=gen,
                          t_coda_s=sp["t_coda_s"], seed=0)
@@ -271,8 +310,8 @@ def _build(recipe: dict) -> dict:
         # (set by the recommended config) selects which depth is recovered. The
         # scored truth is the targeted layer.
         shallow_band, deep_band = _depth_bands(app)
-        truth_shallow = _truth_shallow(days, app)
-        truth_deep = _truth_deep(days, app)
+        truth_shallow = _truth_shallow(days, amp)
+        truth_deep = _truth_deep(days, amp)
         chans = []
         for c in range(nchan):
             _, cod_s = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=shallow_band,
@@ -288,7 +327,7 @@ def _build(recipe: dict) -> dict:
         out["truth_other"] = truth_deep if recipe["target"] == "shallow" else truth_shallow
         return out
 
-    truth = MOTIF[recipe["motif"]](days, app)
+    truth = MOTIF[recipe["motif"]](days, amp)
     out["truth"] = truth
     if nchan > 1:
         # Independent cross-component channels: distinct coda + distinct noise,
@@ -372,6 +411,24 @@ def generate(case_id: str, *, cache: bool = True) -> dict:
             payload["truth_other"] = d["truth_other"]
         np.savez_compressed(cache_file, **payload)
     return d
+
+
+# Keys that carry the answer. Never hand these to a model under evaluation.
+TRUTH_KEYS = ("truth", "truth_other")
+
+
+def observed(case_id: str, *, cache: bool = True) -> dict:
+    """The **agent-facing** view of a case: the observables only, no ground truth.
+
+    Returns ``{ccfs, t, days, fs, use_case, grade}`` (plus ``channels``) with the
+    :data:`TRUTH_KEYS` stripped. :func:`generate` returns the truth alongside the
+    data, which is correct for the scorer and for plotting but must never be given
+    to a model being evaluated: on the ``dvv_series`` task an agent handed
+    ``generate()`` can simply return ``d["truth"]`` and score a perfect 1.0.
+    Anything the agent touches should go through this function.
+    """
+    return {k: v for k, v in generate(case_id, cache=cache).items()
+            if k not in TRUTH_KEYS}
 
 
 # ---------------------------------------------------------------------------
