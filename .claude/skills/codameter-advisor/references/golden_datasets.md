@@ -26,15 +26,18 @@ earthquake/fault, landslide, groundwater, cryosphere, geothermal).
   single channel. Best-practice recovery should be well under 0.2 % RMS.
 - **medium** (split `validation`): a transient coseismic-style drop with
   logarithmic partial healing, plus more measurement noise (SNR 3-5).
-- **hard** (split `test`): a **multi-channel** (4-channel) problem whose truth
-  combines a transient drop-and-heal, a full hydrological seasonal cycle, and a
-  long-term trend, at low SNR (2-4) with waveform decorrelation. Channels are
+- **hard** (split `test`): a **multi-channel** (4-channel) *and*
+  **depth/frequency-dependent** problem. A shallow (high-frequency) layer carries
+  a coseismic drop-and-heal plus a full hydrological seasonal cycle; a deep
+  (low-frequency) layer carries a long-term trend. Each case targets one depth
+  (`target: shallow|deep`), so the measurement **band selects the depth** and must
+  match the target. Low SNR (2-4) with waveform decorrelation; channels are
   measured independently and aggregated (`golden.recover`).
 
-Note: these synthetics impose a spatially homogeneous dv/v, so recovery is
-insensitive to the band/window as long as the band overlaps the coda's content.
-The benchmark grades estimator, reference, stacking, and aggregation robustness
-under noise and complexity, not depth-band selection.
+The benchmark therefore grades estimator, reference, stacking, aggregation *and*
+depth-band selection: on a hard case, a band that recovers the wrong layer scores
+near zero (the "clearly wrong" anchor is the wrong-layer error,
+`expected.rms_wrong_layer`).
 
 ## Inspect
 
@@ -43,7 +46,7 @@ pixi run python -c "
 import json
 m = json.load(open('tests/data/golden/manifest.json'))
 for c in m['cases']:
-    print(f\"{c['id']:<24} {c['kind']:<10} rms={c['expected']['rms']:.5f}\")"
+    print(f\"{c['id']:<26} {c['grade']:<7} ch={c['channels']} rms={c['expected']['rms']:.5f}\")"
 ```
 
 ## Add or change a case
