@@ -1,0 +1,28 @@
+{
+  "_comment": "Example AWS Batch job definition for the codameter sweep on Fargate. Replace <ACCOUNT>, <REGION>, <BUCKET>, and the role ARNs. Register with: aws batch register-job-definition --cli-input-json file://aws-batch-job-def.json. Submit an array of N tasks with: aws batch submit-job --job-name codameter-sweep --job-queue <QUEUE> --job-definition codameter-sweep --array-properties size=64 . Batch sets AWS_BATCH_JOB_ARRAY_INDEX on each task; CODAMETER_SHARDS below must equal the array size.",
+  "jobDefinitionName": "codameter-sweep",
+  "type": "container",
+  "platformCapabilities": ["FARGATE"],
+  "containerProperties": {
+    "image": "<ACCOUNT>.dkr.ecr.<REGION>.amazonaws.com/codameter-bench:latest",
+    "command": [
+      "sweep",
+      "--grid", "multiverse",
+      "--out", "s3://<BUCKET>/codameter-sweep/run-001/",
+      "--jobs", "4"
+    ],
+    "environment": [
+      { "name": "CODAMETER_SHARDS", "value": "64" }
+    ],
+    "resourceRequirements": [
+      { "type": "VCPU", "value": "4" },
+      { "type": "MEMORY", "value": "8192" }
+    ],
+    "executionRoleArn": "arn:aws:iam::<ACCOUNT>:role/ecsTaskExecutionRole",
+    "jobRoleArn": "arn:aws:iam::<ACCOUNT>:role/codameter-sweep-task-role",
+    "fargatePlatformConfiguration": { "platformVersion": "LATEST" },
+    "networkConfiguration": { "assignPublicIp": "ENABLED" }
+  },
+  "retryStrategy": { "attempts": 2 },
+  "timeout": { "attemptDurationSeconds": 3600 }
+}

@@ -198,6 +198,25 @@ against the known truth). Export the JSONL with `pixi run frugalmind-export`; th
 drop-in FrugalMind suite lives in
 [`integrations/frugalmind/`](integrations/frugalmind).
 
+### Scaling the sweep (Fargate / AWS Batch)
+
+`codameter-bench` scores a grid of processing configs against every golden case
+and records recovery RMS. The work is deterministic and embarrassingly parallel,
+so it shards cleanly across an array of tasks:
+
+```bash
+codameter-bench plan  --grid multiverse --shard 0/64      # size the job (no compute)
+codameter-bench sweep --grid multiverse --shard 0/64 --jobs 4 --out s3://bucket/run/
+codameter-bench aggregate --src s3://bucket/run/ --out s3://bucket/run/agg/
+```
+
+Each task writes one `shard-<k>-of-<N>.jsonl`, so retries are idempotent and no
+coordination is needed. On AWS Batch the shard is read from
+`AWS_BATCH_JOB_ARRAY_INDEX` + `CODAMETER_SHARDS`, so one image runs every array
+task. Container image and a Batch job definition are in
+[`docker/`](docker); `s3://` output needs the `aws` extra
+(`pip install "codameter[aws]"`).
+
 ---
 
 ## Models, hyperparameters, and physical bounds
