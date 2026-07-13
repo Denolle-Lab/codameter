@@ -9,7 +9,7 @@ the other's internals.
 
 ## What it provides
 
-Two suites under `dataset_id = "dvv_processing"`, one per output type:
+Two suites under `dataset_id = "codameter"`, one per output type:
 
 | suite_id | task_kind | model returns | scorer |
 | --- | --- | --- | --- |
@@ -50,7 +50,7 @@ cycle-skipping estimator scores near zero. Ten cases per suite: six mainstream
 4. Export the frozen JSONL through FrugalMind's standard exporter:
 
    ```bash
-   pixi run export-suite --suite dvv_processing.param_recommendation --out datasets/
+   pixi run export-suite --suite codameter.param_recommendation --out datasets/
    ```
 
    FrugalMind's `export_rows()` and codameter's own `export_jsonl` (below)
@@ -63,7 +63,7 @@ HuggingFace mirror:
 
 ```bash
 pixi run frugalmind-export --out datasets/
-# -> datasets/dvv_processing/v0.1/{param_recommendation,dvv_series}.jsonl + manifest.json
+# -> datasets/codameter/v0.1/{param_recommendation,dvv_series}.jsonl + manifest.json
 ```
 
 ## Notes

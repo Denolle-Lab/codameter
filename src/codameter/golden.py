@@ -24,7 +24,7 @@ stack is large and fully determined by its seed, so arrays are regenerated on
 demand and cached under ``tests/data/golden/cache/`` (gitignored).
 
 Consumers: :mod:`tests.test_golden` (regression oracle), the ``codameter-advisor``
-skill (live validation), and the FrugalMind ``dvv_processing`` suites
+skill (live validation), and the FrugalMind ``codameter`` suites
 (:mod:`codameter.frugalmind`). All score through :func:`recover`, so a single
 code path handles both single- and multi-channel cases.
 """

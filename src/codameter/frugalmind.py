@@ -42,7 +42,7 @@ import numpy as np
 from . import golden
 from . import use_cases as uc
 
-DATASET_ID = "dvv_processing"
+DATASET_ID = "codameter"   # the name the suites appear under in FrugalMind
 VERSION = "v0.1"
 TASKS = ("param_recommendation", "dvv_series")
 
