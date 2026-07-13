@@ -76,8 +76,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, required=True, help="output directory")
     ap.add_argument("--jitter", type=float, default=0.35,
                     help="multiplicative spread on the truth amplitudes (default 0.35)")
-    ap.add_argument("--exclude-public", action="store_true", default=True,
-                    help="drop the public sample ids from the hidden set")
+    ap.add_argument("--exclude-public", action=argparse.BooleanOptionalAction,
+                    default=True,
+                    help="drop the public sample ids from the hidden set "
+                         "(--no-exclude-public keeps them)")
     args = ap.parse_args(argv)
 
     cases = [dict(c) for c in golden._build_cases()]
@@ -89,8 +91,12 @@ def main(argv: list[str] | None = None) -> int:
         c["visibility"] = "private"
 
     args.out.mkdir(parents=True, exist_ok=True)
+    # No `default=`: a value json cannot serialize must fail loudly rather than be
+    # silently stringified into something that will not round-trip. (Tuples are
+    # fine - json encodes them as arrays - so a hard case's `config["band"]` comes
+    # back as a list and feeds straight into uc.recommend(**config).)
     (args.out / "cases.json").write_text(
-        json.dumps({"cases": cases}, indent=2, default=str) + "\n")
+        json.dumps({"cases": cases}, indent=2) + "\n")
     print(f"wrote {len(cases)} hidden cases -> {args.out/'cases.json'}")
 
     # Freeze the oracle for exactly these recipes, by pointing golden at the new
