@@ -120,9 +120,10 @@ def _series_prompt(case: dict) -> str:
         "change) time series for the following setting.\n\n"
         f"{_scenario_text(case)}\n\n"
         "The daily cross-correlation functions for this case are available in "
-        f'codameter as golden.generate("{case["id"]}") -> {{"ccfs", "t", "days", '
-        '"fs", ...}}. Choose an appropriate pipeline, recover the dv/v(t) series, '
-        f'and return ONLY a JSON array of {golden.generate(case["id"])["days"].size} '
+        f'codameter as golden.observed("{case["id"]}") -> {{"ccfs", "t", "days", '
+        '"fs", ...}}. (That is the observables-only view; it does not contain the '
+        "answer.) Choose an appropriate pipeline, recover the dv/v(t) series, "
+        f'and return ONLY a JSON array of {golden.observed(case["id"])["days"].size} '
         "floats: the fractional dv/v for each day in order. No prose."
     )
 
