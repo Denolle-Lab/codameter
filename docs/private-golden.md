@@ -1,7 +1,7 @@
 # Hiding the golden set (private evaluation corpus)
 
-The golden dv/v benchmark is **generated**, not stored. That has a consequence
-most benchmark-privacy advice gets wrong here:
+The golden dv/v benchmark is **generated**, not stored. That single fact drives
+everything below, and it cuts against the usual advice about private datasets.
 
 > Hiding the arrays, or the seeds, hides nothing.
 
@@ -12,12 +12,14 @@ reconstructible from public source alone. The seed only randomizes the coda and
 the measurement noise:
 
 ```python
-days = golden._days(case["years"])
+days  = golden._days(case["years"])
 guess = golden.MOTIF[case["motif"]](days, golden.AMP[case["use_case"]])
 np.allclose(guess, golden.generate(case["id"])["truth"])   # True, no seed used
 ```
 
-So privacy rests on three things, in this order.
+Privacy therefore rests on three things, in this order.
+
+---
 
 ## 1. Never hand the truth to the model
 
@@ -43,58 +45,122 @@ overrides the public table (`golden.amp_for`). Then the reconstruction above
 fails and the agent has to actually measure dv/v.
 
 ```bash
-python scripts/make_private_golden.py \
+python -m codameter.private_golden \
     --secret "$CODAMETER_GOLDEN_SECRET" \
     --out ./hidden-golden
 # -> hidden-golden/cases.json      (recipes, each with its secret `amp`)
 # -> hidden-golden/manifest.json   (frozen expected metrics for those recipes)
 ```
 
-The secret is the only thing you must protect: the same secret reproduces the
-same hidden corpus, a different one gives a different corpus. `--jitter` sets the
-spread on the amplitudes; the seasonal phase and the event onset are fully
-randomized, so even *when* the earthquake happens is unknown.
+`--jitter` sets the spread on the amplitudes; the seasonal phase and the event
+onset are fully randomized, so even *when* the earthquake happens is unknown.
 
 ## 3. Keep the recipes out of the public repo
 
 The recipes **are** the dataset. The repo ships only a small public sample
 (`golden.PUBLIC_SAMPLE_IDS`: one case per grade) for development, tests,
-tutorials and the paper figures. The evaluation corpus lives elsewhere and is
-swapped in by pointing codameter at it:
+tutorials and the paper figures. `load_cases()` uses
+`<CODAMETER_GOLDEN_DIR>/cases.json` when present, else the public sample.
 
-```bash
-huggingface-cli download <org>/codameter-golden-private \
-    --repo-type dataset --local-dir ./hidden-golden
-export CODAMETER_GOLDEN_DIR=$PWD/hidden-golden
+---
 
-python -c "from codameter import golden; print(len(golden.CASES), golden.IS_HIDDEN_SET)"
-# 27 True
+# Store the secret, not the dataset
+
+Because the corpus is a **pure function of the secret**, you do not need to host
+it at all. Regenerate it inside the eval job:
+
+```yaml
+# .github/workflows/eval.yml  (excerpt)
+on:
+  workflow_dispatch:          # never `pull_request` from forks: secrets are
+  schedule: [{cron: "0 6 * * 1"}]   # withheld there, and rightly so
+  push: {branches: [main]}
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install "codameter>=0.3"
+
+      - name: Materialize the hidden golden set
+        env:
+          CODAMETER_GOLDEN_SECRET: ${{ secrets.CODAMETER_GOLDEN_SECRET }}
+        run: |
+          python -m codameter.private_golden \
+              --secret "$CODAMETER_GOLDEN_SECRET" \
+              --out "$RUNNER_TEMP/hidden-golden"
+          echo "CODAMETER_GOLDEN_DIR=$RUNNER_TEMP/hidden-golden" >> "$GITHUB_ENV"
+
+      - name: Run the eval
+        run: ...        # the scorer picks up CODAMETER_GOLDEN_DIR
 ```
 
-`load_cases()` uses `<CODAMETER_GOLDEN_DIR>/cases.json` when present, else the
-public sample. No new dependency: the HF CLI does the fetch, codameter just reads
-a directory. A private S3 prefix or a private git repo works identically -- sync
-it to a directory and set the variable.
+One repository secret. No dataset repo, no access token, no bucket.
 
-## Where to publish what
+## Why this is reproducible
 
-| Artifact | Where | Why |
+`corpus = f(secret, codameter_version)` — a deterministic function, with no
+network and no mutable state:
+
+- **Byte-identical.** The same secret and the same codameter version regenerate
+  the same `cases.json` and the same expected metrics, on any machine, forever.
+  Scores are comparable across runs because the corpus cannot drift.
+- **Verifiable, and publishable as a commitment.** You can publish the SHA-256 of
+  `cases.json` in the repo *without publishing its contents*. That pins the
+  benchmark cryptographically: anyone holding the secret can check you did not
+  quietly change the corpus after seeing a model's results. A hosted file gives
+  you no such proof unless you separately pin its revision.
+- **Version-coupled by construction.** If codameter's synthesis code changes, the
+  expected metrics are recomputed in the same job, so the oracle can never go
+  stale against the code. A hosted `manifest.json` silently can.
+
+A hosted artifact is reproducible only if it is *immutable and pinned*. Pull it
+from `main` and it can change under you without anyone noticing.
+
+## Why this is safe
+
+- **Nothing at rest.** The corpus exists only in the runner's temp directory for
+  the life of the job. There is no bucket to misconfigure, no repo to
+  accidentally flip public, no `--local-dir` copy left on a laptop.
+- **One credential, not two artifacts.** The attack surface is a single secret,
+  versus (a long-lived read token) x (a hosted artifact) x (its ACL).
+- **Rotation is free.** Change the secret and the corpus is new. With hosting you
+  must regenerate, re-upload, and invalidate the old copy and its token.
+- **Nothing to cache.** Which is good, because you must **not** cache it (below).
+
+### The rules that matter more than the token scope
+
+1. **Never let the credential into the agent sandbox.** This is the real leak
+   vector. A model that can read `CODAMETER_GOLDEN_SECRET` (or an HF token) can
+   regenerate or download the hidden corpus and read the truth. The credential
+   belongs to the **scorer/orchestrator** process; the sandbox gets only the
+   truth-free arrays from `golden.observed()`.
+2. **Never run the secret-bearing workflow on untrusted fork PRs.** GitHub
+   withholds secrets from fork `pull_request` runs on purpose. Do not "fix" that
+   with `pull_request_target`. Gate the eval on `workflow_dispatch`, `schedule`,
+   or `push` to a protected branch.
+3. **Never cache the generated corpus.** Actions caches are reachable across
+   branches, so caching secret-derived data undoes the whole scheme. Regenerating
+   costs a few minutes; an eval's model calls cost far more.
+
+## The cost, stated plainly
+
+Regenerating the hidden manifest runs the full pipeline over the hidden cases:
+**~2-3 minutes** per eval run. That is the entire price of not hosting anything.
+
+## When you *do* need to host it
+
+The secret-only flow works because this corpus is **cheap to generate and fully
+determined by code + secret**. Host the data instead when that stops being true:
+
+| Situation | Why deriving fails | What to do |
 | --- | --- | --- |
-| Public sample (3 cases) + its manifest | in-repo, and Zenodo for a DOI | citable for the paper; enough to develop and run the tests against |
-| Hidden corpus (`cases.json` + `manifest.json`) | **private** HF dataset (token-gated) | the recipes are the dataset; token in CI secrets |
-| The secret | a secrets manager / CI secret | reproduces the corpus; losing it means regenerating it |
+| The golden data is **real** (field recordings, human labels) | It is not a function of any seed | Host it; pin a revision |
+| Generation is **expensive** (long simulations, huge corpora) | Regenerating per run is wasteful or infeasible | Host it; pin a revision |
+| The eval runs **outside GitHub** (e.g. AWS Batch) | No Actions secret | Still a *secret*, just in AWS Secrets Manager -- not a hosted dataset |
+| **External parties** submit models you score | Someone must hold the corpus | Private HF dataset + a read-only, repo-scoped token |
 
-Do **not** put the hidden corpus on Zenodo: it is an open archive, and its
-restricted-access mode is awkward to consume from CI.
-
-## Caveats, stated plainly
-
-- The 30 cases released in **v0.2.1 are already public**, seeds and `AMP` table
-  included. They cannot be made private retroactively. A genuinely hidden set
-  must be a *fresh* corpus with secret parameters, which is what
-  `make_private_golden.py` builds.
-- Secret parameters stop reconstruction, not exfiltration. If the agent can run
-  arbitrary code with the private dir mounted, it can read `cases.json`. Isolate
-  the sandbox from the golden dir.
-- The *structure* stays public (motifs, depth bands, the grade taxonomy). That is
-  intentional: the task is to measure dv/v well, not to guess the corpus.
+If you host, the same invariants apply, plus one: **pin the revision**
+(`huggingface-cli download --revision <sha>`), or your benchmark can move under
+you. See FrugalMind's `docs/golden_data_provisioning.md` for that path.

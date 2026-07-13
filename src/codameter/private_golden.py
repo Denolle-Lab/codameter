@@ -21,11 +21,11 @@ Output (write it somewhere private; never commit it):
 Use it by pointing codameter at the directory::
 
     export CODAMETER_GOLDEN_DIR=/path/to/hidden-golden
-    python -c "from codameter import golden; print(len(golden.CASES))"
+    python -c "from . import golden; print(len(golden.CASES))"
 
-Usage::
+Usage (works from a pip install, which is how the eval CI regenerates it)::
 
-    python scripts/make_private_golden.py --secret "$CODAMETER_GOLDEN_SECRET" \
+    python -m codameter.private_golden --secret "$CODAMETER_GOLDEN_SECRET" \
         --out ./hidden-golden [--jitter 0.35]
 
 The secret is the only thing you must keep safe: the same secret reproduces the
@@ -40,7 +40,7 @@ from pathlib import Path
 
 import numpy as np
 
-from codameter import golden
+from . import golden
 
 # Truth parameters that get randomized. `onset_frac` moves the coseismic step, so
 # even the event time is unknown; `phase` moves the seasonal peak.

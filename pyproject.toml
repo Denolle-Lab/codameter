@@ -66,6 +66,7 @@ all = ["codameter[kernels,mcmc]"]
 
 [project.scripts]
 codameter = "codameter.cli:main"
+codameter-private-golden = "codameter.private_golden:main"
 
 [project.urls]
 Homepage = "https://github.com/Denolle-Lab/codameter"
