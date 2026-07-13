@@ -62,10 +62,12 @@ dev = [
     "mypy>=1.6",
     "pre-commit>=3.5",
 ]
+aws = ["boto3>=1.28"]  # s3:// output for codameter-bench (Fargate/Batch)
 all = ["codameter[kernels,mcmc]"]
 
 [project.scripts]
 codameter = "codameter.cli:main"
+codameter-bench = "codameter.bench:main"
 codameter-private-golden = "codameter.private_golden:main"
 
 [project.urls]
