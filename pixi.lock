@@ -3881,7 +3881,7 @@ packages:
 - pypi: ./
   name: codameter
   version: 0.2.1
-  sha256: ac5d7c1b4ef2157b593efa0c6b7d7f83417aedcedcde7528b59f592ba4870486
+  sha256: 02f037fb92f571eabdc666c8696f23782fd902ddfe1fc72fc85f622bc01abff5
   requires_dist:
   - matplotlib>=3.7
   - numpy>=1.24

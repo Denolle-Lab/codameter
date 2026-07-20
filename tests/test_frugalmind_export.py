@@ -42,20 +42,24 @@ def test_split_filter():
 
 
 def test_param_scorer_rewards_recovery_and_punishes_wrong_choice():
+    # Use the depth-targeted hard case: there a wrong band recovers the *other*
+    # layer and must score ~0. (On a homogeneous single-layer case the band barely
+    # matters, so it is the wrong place to assert that a wrong band is punished.)
     scorer = fm.make_scorer_from_spec({"name": "dvv_recovery"})
-    case = golden.CASES_BY_ID["easy-landslide-03"]
+    case = golden.CASES_BY_ID["hard-groundwater-04"]
+    app = case["use_case"]
     gold = fm._gold(case, "param_recommendation")
 
-    good = json.dumps(golden._jsonable(uc.recommend("landslide")))
-    # A volcano-style low band on a 4-12 Hz landslide target cannot recover it.
-    bad = json.dumps({"estimator": "stretching (TS)", "band": [0.4, 1.0],
-                      "window": [10, 30]})
+    shallow, deep = golden._depth_bands(app)
+    wrong_band = deep if case["target"] == "shallow" else shallow
+    good = json.dumps(golden._jsonable(uc.recommend(app, **case["config"])))
+    bad = json.dumps(golden._jsonable(uc.recommend(app, band=wrong_band)))
 
     assert scorer(good, gold) == pytest.approx(1.0)
-    assert scorer(bad, gold) < 0.2
+    assert scorer(bad, gold) < 0.2           # wrong depth -> near zero
     assert scorer("sorry, no idea", gold) == 0.0
     # Missing a core scientific choice (band) scores zero, not a default freebie.
-    assert scorer(json.dumps({"estimator": "stretching (TS)", "window": [0.2, 1.5]}),
+    assert scorer(json.dumps({"estimator": "stretching (TS)", "window": [2.0, 8.0]}),
                   gold) == 0.0
 
 

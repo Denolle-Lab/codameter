@@ -72,3 +72,7 @@ literature/pdfs/
 # FrugalMind JSONL export is a derived artifact (regenerate: pixi run frugalmind-export).
 # The frozen, hash-pinned copy lives in the FrugalMind repo / a HuggingFace mirror.
 /datasets/
+
+# Hidden golden evaluation corpus: the recipes ARE the dataset. Never commit.
+/hidden-golden/
+cases.json

@@ -33,14 +33,22 @@ def test_manifest_is_current():
     assert MANIFEST["grades"] == list(golden.GRADES)
 
 
-def test_thirty_cases_ten_per_grade():
-    assert len(golden.CASES) == 30
+def test_public_default_is_the_sample_one_case_per_grade():
+    # The repo ships only a small public sample; the full evaluation corpus is
+    # hidden (loaded from cases.json via CODAMETER_GOLDEN_DIR).
+    assert not golden.IS_HIDDEN_SET
+    assert [c["id"] for c in golden.CASES] == list(golden.PUBLIC_SAMPLE_IDS)
+    assert {c["grade"] for c in golden.CASES} == set(golden.GRADES)
+
+
+def test_full_corpus_is_thirty_ten_per_grade():
+    # The generator still produces the full graded corpus (used to build the
+    # hidden set); it is just not exposed by default.
+    allc = golden._build_cases()
+    assert len(allc) == 30
     for grade in golden.GRADES:
-        n = sum(1 for c in golden.CASES if c["grade"] == grade)
-        assert n == 10, f"{grade}: {n}"
-    # Every application appears in every grade span.
-    apps = {c["use_case"] for c in golden.CASES}
-    assert apps == set(golden.AMP)
+        assert sum(1 for c in allc if c["grade"] == grade) == 10
+    assert {c["use_case"] for c in allc} == set(golden.AMP)
 
 
 def test_default_data_dir_honours_env_override(monkeypatch, tmp_path):
@@ -174,10 +182,10 @@ def test_recover_handles_single_and_multichannel():
     assert val1.sum() > 10 and golden._rms(dvv1, d1["truth"], d1["days"], val1) < 2e-3
 
     # multi channel (hard): channels present, aggregate recovers the composite
-    d2 = golden.generate("hard-earthquake_fault-02")
+    d2 = golden.generate("hard-groundwater-04")
     assert np.ndim(d2["channels"]) == 3 and d2["channels"].shape[0] == 4
-    dvv2, val2 = golden.recover(d2, uc.recommend("earthquake_fault"),
-                                uc.eps_max("earthquake_fault"))
+    dvv2, val2 = golden.recover(d2, uc.recommend("groundwater"),
+                                uc.eps_max("groundwater"))
     assert val2.sum() > 10 and np.isfinite(golden._rms(dvv2, d2["truth"], d2["days"], val2))
 
 
@@ -216,3 +224,44 @@ def test_generate_is_deterministic():
     b = golden.generate("easy-volcano-01", cache=False)
     assert np.array_equal(a["ccfs"], b["ccfs"])
     assert np.array_equal(a["truth"], b["truth"])
+
+
+# ---------------------------------------------------------------------------
+# Privacy / benchmark-integrity guarantees
+# ---------------------------------------------------------------------------
+def test_observed_never_leaks_the_truth():
+    # The agent-facing view must not contain the answer: on the dvv_series task an
+    # agent handed generate() could simply return d["truth"] and score 1.0.
+    full = golden.generate("easy-volcano-01")
+    assert "truth" in full                       # scorer-side view has it
+    obs = golden.observed("easy-volcano-01")
+    assert not any(k in obs for k in golden.TRUTH_KEYS)
+    assert {"ccfs", "t", "days", "fs"} <= set(obs)
+
+
+def test_public_truth_is_reconstructible_but_a_secret_amp_is_not():
+    # Why the hidden set needs secret truth parameters: with the published AMP
+    # table the ground truth is a pure function of public data (no seed needed).
+    c = golden.CASES_BY_ID["easy-volcano-01"]
+    days = golden._days(c["years"])
+    d = golden.generate(c["id"])
+    public_guess = golden.MOTIF[c["motif"]](days, golden.AMP[c["use_case"]])
+    assert np.allclose(public_guess, d["truth"])   # public case: fully exposed
+
+    # A case carrying a secret `amp` override is not reconstructible that way.
+    secret = dict(c, amp={**golden.AMP[c["use_case"]], "seasonal": 0.0031,
+                          "phase": 111.0})
+    hidden_truth = golden.MOTIF[c["motif"]](days, golden.amp_for(secret))
+    assert not np.allclose(public_guess, hidden_truth)
+
+
+def test_hidden_cases_json_overrides_the_public_sample(tmp_path, monkeypatch):
+    # CODAMETER_GOLDEN_DIR + cases.json is the seam that swaps in a hidden corpus.
+    case = dict(golden.CASES_BY_ID["easy-volcano-01"])
+    case["id"] = "hidden-x-01"
+    case["amp"] = {**golden.AMP[case["use_case"]], "seasonal": 0.0042}
+    (tmp_path / "cases.json").write_text(json.dumps({"cases": [case]}))
+    monkeypatch.setattr(golden, "DATA_DIR", tmp_path)
+    loaded = golden.load_cases()
+    assert [c["id"] for c in loaded] == ["hidden-x-01"]
+    assert golden.amp_for(loaded[0])["seasonal"] == 0.0042
