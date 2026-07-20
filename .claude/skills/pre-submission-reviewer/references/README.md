@@ -17,6 +17,7 @@ synthesizes the blocks into the 8-criterion rubric.
 | `section_figures_data.md` | S-FD | Figures, tables, captions, equations (cross-cutting) | Kallestinova; GPF 20 best practices |
 | `section_reproducibility.md` | S-RP | Whole computational workflow | NASEM 2019/2022; Tennant & Ross-Hellauer 2020; GPF |
 | `section_citation_diversity.md` | S-CD | Whole reference list — citation & idea diversity | Dworkin/Zurn/Bassett 2020; Zurn/Bassett/Rust 2020 (CDS); Teplitskiy 2022; `cleanBib`, OpenAlex |
+| `section_prose_register.md` | S-PR | Whole manuscript (prose, captions, titles) — scientific-register / colloquialism scan | complements `plain-voice` skill (LLM-tell lexicon); scoped exception to the anti-homogenization voice-guard |
 | `section_author_verification.md` | S-AV | **Interactive examination of the authors** — data/signal-processing choices first, then method, claims, interpretation, limitations, novelty, figures | oral-exam / accountability design; certifies process, not competence |
 | `author_profile.md` | — | Per-author voice profile (persona layer) consumed by all subagents | Doshi & Hauser 2024; Padmakumar & He 2024; Agarwal et al. 2025 |
 | `review_manifest.md` | — | Provenance + iteration-state schema (Issue Ledger, reconciliation verdicts, disclosure stamp, Author Verification log) read at Step 0.5 / written at Steps 5–6 | not a subagent — the state spine for incremental re-review |
@@ -25,7 +26,10 @@ Section subagents are grounded in the ASTA best-practice / evidence-based
 guideline reviews for each section (Best_Practices_* and EvidenceBased_*).
 S-RP owns Criterion 3 and adds the constructive reproduction dry-run. S-CD
 surfaces citation/idea diversity for C6 and the C1 novelty guardrail — it never
-scores or quotas. `author_profile.md` and the `profiles/` folder hold the
+scores or quotas. S-PR feeds C5 by flagging colloquial/non-scientific diction as
+author-facing candidates (never rewrites, never lowers a tier for a few slips); it
+is the one subagent permitted to comment on register, and only from its defined
+lexicon. `author_profile.md` and the `profiles/` folder hold the
 persona layer; every subagent honors it for voice, and it can never override the
 soundness, reproducibility, or evidence checks.
 

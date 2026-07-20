@@ -9,7 +9,8 @@ description: >
   standards. The skill is an orchestrator: it dispatches focused subagents — seven section
   subagents (Abstract, Introduction, Methods, Results, Discussion, Conclusions,
   Figures/Data), a Reproducibility subagent that reconstructs the computational workflow,
-  and a Citation & Idea Diversity subagent — all under a per-author voice profile, then
+  and a Citation & Idea Diversity subagent, and a Scientific-Register subagent that flags
+  colloquial/non-scientific diction — all under a per-author voice profile, then
   synthesizes their findings into the 8-criterion Denolle rubric (AGU, GJI, Seismica, SSA,
   PNAS). It also runs an optional Author Verification pass (S-AV): an interactive,
   oral-exam-style quiz that interrogates the authors on the data-processing,
@@ -45,7 +46,7 @@ submission decision is made. (See Governance, bottom.)
 
 **Two capabilities.** This skill does two different jobs, and you must not
 conflate them:
-- **Review** (Steps 0–5, the default) — the nine subagents critique the *paper*
+- **Review** (Steps 0–5, the default) — the ten subagents critique the *paper*
   and feed the 8-criterion rubric. This is what "review my manuscript" invokes.
 - **Author Verification** (Step 6, optional, interactive) — the `S-AV` pass
   examines the *authors*, oral-exam style, on the choices they must own
@@ -128,10 +129,15 @@ manifest for this manuscript — by default `reviews/<manuscript-id>.review.json
   *Iterative revision* under Special Cases). Increment the iteration; append the
   prior result to `history`.
 
-**The manifest is the provenance record.** It carries skill version, model,
-profile, journal, iteration count, manuscript hash, and per-finding history — it
-is what lets us trace what was reviewed, by which version, and what changed
-between drafts. Never hand-edit the manifest to suppress a finding: an author
+**The manifest is the provenance record.** It carries skill version, skill commit
+(the short git SHA the skill was loaded from), model, profile, journal, iteration
+count, manuscript hash, and per-finding history — it is what lets us trace what
+was reviewed, by which version, and what changed between drafts. Capture
+`skill_commit` at the start of each run: read the `INSTALLED_FROM` file beside
+this skill if present, else `git rev-parse --short HEAD` in the skill's source
+checkout; record `"unknown"` if neither is available (e.g. a stateless browser
+upload). Version says *what* release; commit pins *exactly which bytes*, and the
+two resolve to the release tag `presub-reviewer/v<version>`. Never hand-edit the manifest to suppress a finding: an author
 marking an integrity finding (C2/C3/C4) "resolved" does not make it resolved — the
 reconciliation pass re-checks it against the changed text.
 
@@ -235,6 +241,7 @@ test that the methods subagent does not.
 | `S-FD` | Figures, tables, data presentation (cross-cutting) | `references/section_figures_data.md` | C2, C5 |
 | `S-RP` | **Reproducibility & open-science — whole-workflow** | `references/section_reproducibility.md` | **C3 (primary)** |
 | `S-CD` | **Citation & idea diversity — whole reference list** | `references/section_citation_diversity.md` | C6 (primary), C1 (novelty guardrail) |
+| `S-PR` | **Scientific register — whole-manuscript colloquialism/diction scan** | `references/section_prose_register.md` | C5 (primary) |
 
 `S-ME` and `S-RP` are deliberately complementary: `S-ME` judges whether the
 method is *correct and complete*; `S-RP` judges whether it is *replayable*. A
@@ -246,6 +253,18 @@ spread; reference-combination novelty) and **surfaces** it — it never scores o
 quotas diversity, and it never penalizes heterodoxy. Its output is a Citation
 Diversity Statement-style block plus a novelty read that protects C1 from
 treating unusual framing as a deficiency.
+
+`S-PR` scans the whole manuscript — prose, captions, and section titles — for
+diction whose **register** is wrong for a research article (colloquialisms,
+journalistic nouns, emotional adjectives, unearned metaphor: "the choice *bites*",
+"returns *garbage*", "the *headline*", "*crown* one pipeline"). It is deliberately
+narrow: it flags a defined register-violation lexicon as **candidates only**, offers
+a minimal scientific word-swap for each, and defers to the author. It is the
+scientific-register complement to the `plain-voice` skill (LLM-tell vocabulary), and
+it is the **one authorized exception** to the anti-homogenization voice-guard — it
+may name informal *word choice*, but only from its lexicon, never the author's owned
+voice (`favored_phrasing`, `never_change`), cadence, or clarity, and it never
+rewrites or lowers a tier for a few slips.
 
 > **Not in this registry: `S-AV` (Author Verification).** `S-AV`
 > (`references/section_author_verification.md`) is **not** a parallel section
@@ -274,7 +293,7 @@ synthesis is mechanical.
 - **Mode A — true parallel subagents** (Claude Code Task tool, Cowork
   subagents, agent frameworks): spawn one subagent per registry row, system
   prompt = the reference file + the author profile, in parallel. Collect the
-  nine blocks.
+  ten blocks.
 - **Mode B — sequential focused review** (single-agent claude.ai run): process
   the registry one row at a time. For each: read its reference file, focus on
   that scope *only*, apply only its checklist, emit its block, then move on.
@@ -379,7 +398,7 @@ Manuscript: [title]   Target: [journal + article type]   Date: [date]
 Reviewer: Pre-Submission Orchestrator (9 subagents → 8-criterion synthesis)
 Note: Advisory. All findings require human judgment before submission.
 Profile: [author profile used, or "default"]
-Provenance: Skill v[version] | Model [model id] | Iteration [N] | Manuscript hash [short]
+Provenance: Skill v[version] (commit [skill_commit]) | Model [model id] | Iteration [N] | Manuscript hash [short]
 Mode: [Full first review | Reconciliation — delta vs. iteration N-1]
 
 SUMMARY  — [3–5 sentences; what the paper does, its contribution, overall
@@ -506,7 +525,7 @@ accountability record the group keeps, not a green light.
 - **Major vs. minor.** A missing error bar on one figure is minor; missing error analysis for the central claim is major.
 - **Conditional language for judgment calls.** "appears to overreach the data," not "is wrong."
 - **Never gatekeep on language alone.** Flag grammar that obscures meaning; leave clear non-native phrasing alone.
-- **Anti-homogenization (voice-guard).** You may flag clarity and correctness; you may **not** rewrite toward a house style. Style comments from S-AB/S-RE/S-CO/S-FD are limited to *clarity*, never *register*, *cadence*, or *word choice the author owns*. Honor the author profile's "never change" list. When unsure whether an edit is clarity or taste, leave it.
+- **Anti-homogenization (voice-guard).** You may flag clarity and correctness; you may **not** rewrite toward a house style. Style comments from S-AB/S-RE/S-CO/S-FD are limited to *clarity*, never *register*, *cadence*, or *word choice the author owns*. Honor the author profile's "never change" list. When unsure whether an edit is clarity or taste, leave it. **One scoped exception: `S-PR`** (Scientific Register) may name informal *word choice* — but only from its defined colloquialism lexicon, never the author's owned voice or cadence — and it surfaces candidates for the author to accept, never rewrites and never lowers a tier for a few slips.
 - **Persona cannot override integrity.** The author profile governs voice and citation values, never soundness (C2), reproducibility (C3/S-RP), or evidence–conclusion alignment (C4).
 
 ---
@@ -557,7 +576,8 @@ accountability record the group keeps, not a green light.
 
 ---
 
-*Skill v2.4 | July 2026 | Denolle Group, University of Washington*
+*Skill v2.5 | July 2026 | Denolle Group, University of Washington*
+*v2.5 change (scientific register): added a tenth subagent, `S-PR` (Scientific Register, `references/section_prose_register.md`), a whole-manuscript scan — prose, figure/table captions, and section titles — for diction whose register is wrong for a research article: colloquialisms ("the choice bites", "returns garbage"), journalistic nouns ("the headline", "a menu of options"), emotional/editorializing adjectives, and unearned metaphor/anthropomorphism ("crown one pipeline", "the arc of the analysis"). It feeds C5 (Presentation & Communication) and is deliberately narrow: it flags a defined lexicon as candidates only, offers one minimal scientific word-swap per hit, excludes established terms of art ("honest error bars", "garden of forking paths", "nuisance parameter") and the author's owned voice, and never rewrites or lowers a tier for a few slips. It is the scientific-register complement to the `plain-voice` skill (LLM-tell vocabulary) and the single authorized exception to the anti-homogenization voice-guard (Tone). Dispatch count 9 -> 10 blocks.*
 *v2.4 change (author verification): added an optional, interactive Author Verification pass (`S-AV`, `references/section_author_verification.md`) — an oral-exam-style quiz that interrogates the authors on the choices they must own (data-processing and signal-processing first, then methods, claims, interpretation, limitations, novelty, figures), grounded in the review inventory so questions target the exact places the paper states what but not why (Step 6). It is a separate axis from the rubric — accountability, not quality; it feeds no criterion and gates nothing. It certifies process, not competence: the agent asks and records verbatim answers to a verification log (`reviews/<id>.verification.json`), classifies each answer's engagement (not correctness), and a named human adjudicates; a process-only in-paper Author Verification Statement (wording in `references/review_manifest.md`) records that the examination happened without claiming understanding. Live/oral is the high-integrity mode; typed in-session runs are marked degraded. Governance rules 8–9; a countermeasure to over-reliance that keeps the human in control as the review side strengthens.*
 *v2.3 change (iterative review & provenance): made the reviewer stateful across drafts — a review manifest (`references/review_manifest.md`, `reviews/<id>.review.json`) holding provenance (skill version, model, iteration, manuscript hash) and a persistent Issue Ledger (Step 0.5); a change-detection step that ingests a latexdiff or a before/after `.tex`/`.md` pair via `scripts/detect_changes.py` and re-dispatches only changed scope (Step 1.5); a reconciliation mode where every iteration is a strict improvement — prior findings get RESOLVED/PARTIALLY/NOT/REGRESSED verdicts, new findings are quarantined to changed text (`INTRODUCED-IN-REVISION`, `INTRODUCED-BY-RECALIBRATION`), with a monotonicity rule (rewritten Iterative-revision special case); an in-paper AI-review disclosure stamp and a copy-pasteable Ledger-for-next-iteration (Step 5); governance rules 6–7. Filesystem/CLI tool — not for stateless browser sessions past iteration 1.*
 *v2.2 change (diversity, Phase 1): added a per-author voice profile (Step 0, `references/author_profile.md`, `profiles/`); a Citation & Idea Diversity subagent (`S-CD`); a novelty/interdisciplinarity guardrail (C1); an anti-homogenization voice-guard and persona-cannot-override-integrity rule (Tone). Diversity is surfaced and guarded, never scored as a criterion.*
