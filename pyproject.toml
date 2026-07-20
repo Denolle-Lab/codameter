@@ -118,6 +118,61 @@ ignore_missing_imports = true
 disallow_untyped_defs = false  # gradually typed
 check_untyped_defs = true
 
+# Pre-existing debt, itemized per file/error-code (never a blanket ignore), so the
+# global strict settings above still apply everywhere else and to any *new* error
+# code in these same files. The pre-commit mypy hook was never actually wired up
+# to run locally until 2026-07 (the git hook wasn't installed), so this is the
+# backlog that had accumulated unseen; it is not a deliberate design choice.
+# Shrink this list as each file is brought back under warn_return_any etc.
+[[tool.mypy.overrides]]
+module = [
+    "codameter.forward.damage",
+    "codameter.forward.poroelastic",
+    "codameter.forward.thermoelastic",
+    "codameter.coupling.tier1_poroelastic",
+    "codameter.coupling.tier3_saturation",
+    "codameter.coupling.tier4_thermo_capillary",
+    "codameter.inverse.posterior",
+    "codameter.kernels.velocity_models",
+    "codameter.uq_depth",
+    "codameter.uq_measurement",
+    "codameter.workflow",
+    "codameter.anomaly.detection",
+]
+disable_error_code = ["no-any-return"]
+
+[[tool.mypy.overrides]]
+module = [
+    "codameter.coupling.tier2_damage",
+    "codameter.coupling.decision_tree",
+    "codameter.inverse.linear_fit",
+]
+disable_error_code = ["arg-type"]
+
+[[tool.mypy.overrides]]
+module = "codameter.data.loaders"
+disable_error_code = ["arg-type", "no-any-return"]
+
+[[tool.mypy.overrides]]
+module = "codameter.data.readiness"
+disable_error_code = ["assignment"]
+
+[[tool.mypy.overrides]]
+module = "codameter.anomaly.attribution"
+disable_error_code = ["misc"]
+
+[[tool.mypy.overrides]]
+module = "codameter.deviations"
+disable_error_code = ["attr-defined", "operator", "var-annotated"]
+
+[[tool.mypy.overrides]]
+module = "codameter.synthetic_demo"
+disable_error_code = ["assignment", "attr-defined", "no-any-return", "operator"]
+
+[[tool.mypy.overrides]]
+module = "codameter.uq_bayes"
+disable_error_code = ["arg-type", "assignment"]
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = ["-ra", "--strict-markers", "--strict-config"]

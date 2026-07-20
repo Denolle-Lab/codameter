@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from codameter.synthetic_demo import (
     METHODS,
     Synth,
@@ -12,9 +11,12 @@ from codameter.synthetic_demo import (
     _seasonal,
     add_clock_drift,
     add_seasonal_late_noise,
+    branch_combines,
+    branch_daily_ccfs,
     daily_ccfs,
     earthquake_truth,
     impose_dvv,
+    impose_dvv_branch,
     landslide_truth,
     make_coda,
     make_freqdep_coda,
@@ -24,6 +26,7 @@ from codameter.synthetic_demo import (
     measure_stretching,
     measure_stretching_moving,
     measure_wcc,
+    volcano_truth,
 )
 
 
@@ -47,7 +50,9 @@ def test_stretching_and_mwcs_agree_for_small_dvv(synth: Synth) -> None:
     truth = -0.002
     cur = impose_dvv(synth.ref, synth.t, truth)[None, :]
     band, window = (0.3, 2.0), (8, 35)
-    st, _ = measure_stretching(cur, synth.ref, synth.t, band=band, fs=synth.fs, window=window)
+    st, _ = measure_stretching(
+        cur, synth.ref, synth.t, band=band, fs=synth.fs, window=window
+    )
     mw = measure_mwcs(cur, synth.ref, synth.t, band=band, fs=synth.fs, window=window)
     assert abs(st[0] - truth) < 5e-4
     assert abs(mw[0] - truth) < 1e-3
@@ -58,10 +63,12 @@ def test_mwcs_cycle_skips_when_stretching_does_not(synth: Synth) -> None:
     truth = -0.04
     cur = impose_dvv(synth.ref, synth.t, truth)[None, :]
     band, window = (0.3, 2.0), (8, 35)
-    st, _ = measure_stretching(cur, synth.ref, synth.t, band=band, fs=synth.fs, window=window)
+    st, _ = measure_stretching(
+        cur, synth.ref, synth.t, band=band, fs=synth.fs, window=window
+    )
     mw = measure_mwcs(cur, synth.ref, synth.t, band=band, fs=synth.fs, window=window)
-    assert abs(st[0] - truth) < 1e-3          # stretching stays accurate
-    assert abs(mw[0] - truth) > 1e-2          # MWCS has cycle-skipped
+    assert abs(st[0] - truth) < 1e-3  # stretching stays accurate
+    assert abs(mw[0] - truth) > 1e-2  # MWCS has cycle-skipped
 
 
 def test_noise_increases_scatter_but_not_bias(synth: Synth) -> None:
@@ -71,8 +78,8 @@ def test_noise_increases_scatter_but_not_bias(synth: Synth) -> None:
     rec, _ = measure_stretching(
         ccfs, synth.ref, synth.t, band=(0.5, 2.0), fs=synth.fs, window=(8, 35)
     )
-    assert abs(np.mean(rec) - truth[0]) < 2e-4   # unbiased on average
-    assert np.std(rec) > 1e-5                     # but noisy day to day
+    assert abs(np.mean(rec) - truth[0]) < 2e-4  # unbiased on average
+    assert np.std(rec) > 1e-5  # but noisy day to day
 
 
 def test_moving_reference_removes_constant_offset(synth: Synth) -> None:
@@ -84,7 +91,7 @@ def test_moving_reference_removes_constant_offset(synth: Synth) -> None:
         ccfs, synth.t, band=(0.5, 2.0), fs=synth.fs, window=(8, 35), ref_days=40
     )
     valid = rec[~np.isnan(rec)]
-    assert np.nanmedian(np.abs(valid)) < 5e-4    # slow/constant change erased
+    assert np.nanmedian(np.abs(valid)) < 5e-4  # slow/constant change erased
 
 
 def test_truth_generators_have_expected_shape() -> None:
@@ -102,26 +109,36 @@ def test_all_estimators_agree_on_small_clean_dvv(synth: Synth) -> None:
     trues = np.array([-0.003, 0.0, 0.003])
     cur = np.stack([impose_dvv(synth.ref, synth.t, x) for x in trues])
     for name in METHODS:
-        rec = measure(name, cur, synth.ref, synth.t, band=(0.5, 2.0), fs=synth.fs,
-                      window=(8, 35))
+        rec = measure(
+            name, cur, synth.ref, synth.t, band=(0.5, 2.0), fs=synth.fs, window=(8, 35)
+        )
         assert np.max(np.abs(rec - trues)) < 6e-4, name
 
 
 def test_wcc_recovers_sign_and_magnitude(synth: Synth) -> None:
     cur = impose_dvv(synth.ref, synth.t, -0.003)[None, :]
-    rec = measure_wcc(cur, synth.ref, synth.t, band=(0.5, 2.0), fs=synth.fs, window=(8, 35))
+    rec = measure_wcc(
+        cur, synth.ref, synth.t, band=(0.5, 2.0), fs=synth.fs, window=(8, 35)
+    )
     assert abs(rec[0] - (-0.003)) < 6e-4
 
 
 def test_all_seven_methods_present_and_recover_small_dvv(synth: Synth) -> None:
     """Every NoisePy estimator (incl. wavelet WCS/WTS/WTDTW) is live and works."""
     assert set(METHODS) == {
-        "stretching (TS)", "WCC", "DTW", "MWCS", "WCS", "WTS", "WTDTW",
+        "stretching (TS)",
+        "WCC",
+        "DTW",
+        "MWCS",
+        "WCS",
+        "WTS",
+        "WTDTW",
     }
     cur = impose_dvv(synth.ref, synth.t, -0.003)[None, :]
     for name in METHODS:
-        rec = measure(name, cur, synth.ref, synth.t, band=(0.5, 2.0), fs=synth.fs,
-                      window=(8, 35))
+        rec = measure(
+            name, cur, synth.ref, synth.t, band=(0.5, 2.0), fs=synth.fs, window=(8, 35)
+        )
         assert abs(float(np.ravel(rec)[0]) - (-0.003)) < 1e-3, name
 
 
@@ -143,13 +160,13 @@ def test_large_dvv_failure_modes(synth: Synth) -> None:
     cur = impose_dvv(synth.ref, synth.t, x)[None, :]
     kw = dict(band=(0.5, 2.0), fs=synth.fs, window=(8, 35))
     ts, _ = measure_stretching(cur, synth.ref, synth.t, **kw)
-    assert abs(ts[0] - x) < 1e-3                                    # TS robust
+    assert abs(ts[0] - x) < 1e-3  # TS robust
     assert abs(measure_wts(cur, synth.ref, synth.t, **kw)[0] - x) < 3e-3  # WTS robust
     assert abs(measure_mwcs(cur, synth.ref, synth.t, **kw)[0] - x) > 1e-2  # MWCS skips
     wrapped = measure_wxs(cur, synth.ref, synth.t, unwrap=False, **kw)[0]
     unwrapped = measure_wxs(cur, synth.ref, synth.t, unwrap=True, **kw)[0]
-    assert abs(wrapped - x) > 1e-2                                  # raw phase skips
-    assert abs(unwrapped - x) < abs(wrapped - x) / 2               # unwrapping helps a lot
+    assert abs(wrapped - x) > 1e-2  # raw phase skips
+    assert abs(unwrapped - x) < abs(wrapped - x) / 2  # unwrapping helps a lot
 
 
 def test_aggregation_image_average_beats_unweighted(synth: Synth) -> None:
@@ -203,22 +220,30 @@ def test_freqdep_coda_decays_faster_at_high_frequency(synth: Synth) -> None:
     t, coda = make_freqdep_coda(fs=synth.fs, seed=1)
     late = (np.abs(t) >= 30) & (np.abs(t) <= 45)
     early = (np.abs(t) >= 5) & (np.abs(t) <= 15)
-    ratio_lo = np.sqrt(np.mean(bandpass(coda, synth.fs, 0.3, 0.6)[early] ** 2)) / \
-        np.sqrt(np.mean(bandpass(coda, synth.fs, 0.3, 0.6)[late] ** 2))
-    ratio_hi = np.sqrt(np.mean(bandpass(coda, synth.fs, 3, 6)[early] ** 2)) / \
-        np.sqrt(np.mean(bandpass(coda, synth.fs, 3, 6)[late] ** 2))
+    ratio_lo = np.sqrt(
+        np.mean(bandpass(coda, synth.fs, 0.3, 0.6)[early] ** 2)
+    ) / np.sqrt(np.mean(bandpass(coda, synth.fs, 0.3, 0.6)[late] ** 2))
+    ratio_hi = np.sqrt(np.mean(bandpass(coda, synth.fs, 3, 6)[early] ** 2)) / np.sqrt(
+        np.mean(bandpass(coda, synth.fs, 3, 6)[late] ** 2)
+    )
     assert ratio_hi > 50 * ratio_lo  # high band's late coda is far weaker
 
 
 def test_clock_drift_splits_branches_with_opposite_sign(synth: Synth) -> None:
     days = _days(2.0)
-    ccfs = daily_ccfs(synth.t, [synth.ref], [np.zeros_like(days, float)],
-                      fs=synth.fs, snr=20.0, seed=5)
+    ccfs = daily_ccfs(
+        synth.t,
+        [synth.ref],
+        [np.zeros_like(days, float)],
+        fs=synth.fs,
+        snr=20.0,
+        seed=5,
+    )
     clk = add_clock_drift(ccfs, synth.t, drift_s_per_day=0.0008)
     kw = dict(band=(0.5, 2.0), fs=synth.fs, window=(8, 35))
     caus, _ = measure_stretching(clk, synth.ref, synth.t, branch="causal", **kw)
     acau, _ = measure_stretching(clk, synth.ref, synth.t, branch="acausal", **kw)
-    assert caus[-1] * acau[-1] < 0                       # opposite sign
+    assert caus[-1] * acau[-1] < 0  # opposite sign
     assert abs(caus[-1]) > 0.01 and abs(acau[-1]) > 0.01  # and non-trivial
 
 
@@ -226,14 +251,15 @@ def test_seasonal_late_noise_contaminates_only_late_window(synth: Synth) -> None
     days = _days(3.0)
     truth = _seasonal(days, 0.0003, 40)
     base = daily_ccfs(synth.t, [synth.ref], [truth], fs=synth.fs, snr=14.0, seed=6)
-    noisy = add_seasonal_late_noise(base, synth.t, days, fs=synth.fs, onset_s=25.0,
-                                    dvv_amp=0.004, seed=9)
+    noisy = add_seasonal_late_noise(
+        base, synth.t, days, fs=synth.fs, onset_s=25.0, dvv_amp=0.004, seed=9
+    )
     kw = dict(band=(0.5, 2.0), fs=synth.fs)
     early, _ = measure_stretching(noisy, synth.ref, synth.t, window=(8, 18), **kw)
     late, _ = measure_stretching(noisy, synth.ref, synth.t, window=(28, 45), **kw)
-    assert late.std() > 5 * early.std()    # late window is contaminated
+    assert late.std() > 5 * early.std()  # late window is contaminated
     season = np.sin(2 * np.pi * days / 365.25)
-    assert np.corrcoef(late, season)[0, 1] > 0.8   # spurious signal is seasonal
+    assert np.corrcoef(late, season)[0, 1] > 0.8  # spurious signal is seasonal
 
 
 def test_inversion_beats_single_reference_and_keeps_trend(synth: Synth) -> None:
@@ -246,7 +272,88 @@ def test_inversion_beats_single_reference_and_keeps_trend(synth: Synth) -> None:
     sr, _ = measure_stretching(ccfs, ccfs[:40].mean(axis=0), synth.t, **kw)
     rmse_inv = np.sqrt(np.nanmean((inv - truth) ** 2))
     rmse_sr = np.sqrt(np.nanmean((sr - truth) ** 2))
-    assert rmse_inv < rmse_sr                 # inversion is more robust
+    assert rmse_inv < rmse_sr  # inversion is more robust
     # Preserves the downward trend (unlike a moving reference, which → 0).
     assert inv[-1] < -0.0003
     assert inv[-1] - inv[: len(inv) // 5].mean() < -0.0003
+
+
+def test_branch_selective_imposition_recovers_per_branch_truth(synth: Synth) -> None:
+    # A branch-selective stretch must recover a *different* dv/v on each branch.
+    cur = impose_dvv_branch(synth.ref, synth.t, -0.004, 0.0)
+    caus, _ = measure_stretching(
+        cur,
+        synth.ref,
+        synth.t,
+        band=(0.3, 2.0),
+        fs=synth.fs,
+        window=(8, 35),
+        branch="causal",
+    )
+    acau, _ = measure_stretching(
+        cur,
+        synth.ref,
+        synth.t,
+        band=(0.3, 2.0),
+        fs=synth.fs,
+        window=(8, 35),
+        branch="acausal",
+    )
+    assert abs(caus[0] - (-0.004)) < 3e-4
+    assert abs(acau[0] - 0.0) < 3e-4
+
+
+def test_mean_of_branches_dilutes_a_one_sided_change(synth: Synth) -> None:
+    # Heterogeneous medium: the structural change lives on the causal branch only.
+    days = _days(3.0)
+    truth_c = volcano_truth(days)
+    truth_a = 0.1 * truth_c
+    ccfs = branch_daily_ccfs(
+        synth.t, synth.ref, truth_c, truth_a, fs=synth.fs, snr=8.0, seed=131
+    )
+    win, band = (8.0, 35.0), (0.5, 2.0)
+    dc, _ = measure_stretching(
+        ccfs, synth.ref, synth.t, band=band, fs=synth.fs, window=win, branch="causal"
+    )
+    da, _ = measure_stretching(
+        ccfs, synth.ref, synth.t, band=band, fs=synth.fs, window=win, branch="acausal"
+    )
+    comb = branch_combines(dc, da)
+    drop = (days >= int(2.0 * 365.25)) & (days < int(2.3 * 365.25))
+    true_drop = truth_c[drop].mean()
+    # The causal branch recovers the structural change; the mean dilutes it toward
+    # the (much smaller) acausal truth, so it under-reports the real change.
+    assert abs(dc[drop].mean() - true_drop) < 0.3 * abs(true_drop)
+    assert abs(comb["mean"][drop].mean()) < 0.75 * abs(true_drop)
+
+
+def test_greatest_change_rule_has_low_snr_selection_bias(synth: Synth) -> None:
+    # Homogeneous medium: both branches share ONE small drop, so the branch
+    # difference is pure noise. "Take the greatest change" then over-reports the
+    # drop at low SNR (a max-of-two-estimators winner's curse); the mean does not.
+    truth_h = -0.0005
+    tc = np.full(500, truth_h)
+    win, band = (8.0, 35.0), (0.5, 2.0)
+
+    def combine(snr, seed):
+        cc = branch_daily_ccfs(
+            synth.t, synth.ref, tc, tc, fs=synth.fs, snr=snr, seed=seed
+        )
+        c, _ = measure_stretching(
+            cc, synth.ref, synth.t, band=band, fs=synth.fs, window=win, branch="causal"
+        )
+        a, _ = measure_stretching(
+            cc, synth.ref, synth.t, band=band, fs=synth.fs, window=win, branch="acausal"
+        )
+        cb = branch_combines(c, a)
+        return np.median(cb["greatest"]), np.median(cb["mean"])
+
+    great_lo, mean_lo = combine(1.5, 201)
+    great_hi, mean_hi = combine(20.0, 202)
+    # At low SNR the "greatest" rule reports a substantially deeper drop than truth,
+    # and deeper than the (near-unbiased) mean.
+    assert great_lo < truth_h * 1.5  # over-reports the drop by >50%
+    assert great_lo < mean_lo
+    assert abs(mean_lo - truth_h) < 0.4 * abs(truth_h)
+    # The bias shrinks with SNR: high-SNR "greatest" is much closer to truth.
+    assert abs(great_hi - truth_h) < abs(great_lo - truth_h)
