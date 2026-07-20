@@ -288,6 +288,17 @@ def branch_daily_ccfs(
     volume the causal branch samples (the heterogeneous case in
     :func:`fig_branch_asymmetry`).
     """
+    if ref.shape != t.shape:
+        raise ValueError(
+            f"ref and t must have the same shape, got {ref.shape} and {t.shape}"
+        )
+    dvv_causal = np.asarray(dvv_causal)
+    dvv_acausal = np.asarray(dvv_acausal)
+    if dvv_causal.shape != dvv_acausal.shape:
+        raise ValueError(
+            "dvv_causal and dvv_acausal must have the same shape, got "
+            f"{dvv_causal.shape} and {dvv_acausal.shape}"
+        )
     rng = np.random.default_rng(seed)
     ndays = len(dvv_causal)
     ref_rms = np.sqrt(np.mean(ref**2))

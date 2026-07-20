@@ -357,3 +357,13 @@ def test_greatest_change_rule_has_low_snr_selection_bias(synth: Synth) -> None:
     assert abs(mean_lo - truth_h) < 0.4 * abs(truth_h)
     # The bias shrinks with SNR: high-SNR "greatest" is much closer to truth.
     assert abs(great_hi - truth_h) < abs(great_lo - truth_h)
+
+
+def test_branch_daily_ccfs_rejects_mismatched_shapes(synth: Synth) -> None:
+    days = _days(3.0)
+    truth_c = volcano_truth(days)
+    truth_a = 0.1 * truth_c
+    with pytest.raises(ValueError, match="dvv_causal and dvv_acausal"):
+        branch_daily_ccfs(synth.t, synth.ref, truth_c, truth_a[:-5], fs=synth.fs)
+    with pytest.raises(ValueError, match="ref and t"):
+        branch_daily_ccfs(synth.t[:-3], synth.ref, truth_c, truth_a, fs=synth.fs)
