@@ -1,6 +1,26 @@
-% Extra LaTeX loaded into the Quarto-rendered manuscript (paper/manuscript.qmd).
+% Extra LaTeX loaded into the Quarto-rendered manuscript (paper/manuscript_marine.qmd).
 % Quarto already provides geometry, graphicx, amsmath, hyperref, xcolor, longtable
 % and booktabs; here we add only what the manuscript needs on top of that.
+
+% gji.cls (a 1998-era class) hard-codes raw LaTeX-kernel tabular internals
+% (\@tabclassz/\@tabclassiv/\@tabacol) in its \maketitle author-block macro,
+% which the modern `array`/`tabularx` packages our tables depend on redefine --
+% breaking \maketitle with "Missing # inserted in alignment preamble" right
+% after the title block (confirmed by isolated bisection: `array` alone
+% reproduces it). gji-siunitx-patch.sty is GJI's own official 2019 patch
+% (shipped in their Overleaf template, originally written to fix a siunitx
+% clash) that replaces \@maketitle/\author/\and with plain, non-tabular
+% versions -- which also happens to remove the exact mechanism that conflicts
+% with array/tabularx. Load it right after \documentclass{gji}.
+\usepackage{gji-siunitx-patch}
+
+% gji.cls only defines \newblock *inside* its own \thebibliography macro, but
+% natbib (loaded via cite-method: natbib) redefines \thebibliography wholesale
+% for author-year/numeric switching -- so gji.cls's inline definition never
+% runs, and the natbib-generated .bbl calls an undefined \newblock. Provide it
+% standalone with the class's own spacing (the standard fix for classes that
+% never define \newblock as a top-level command).
+\providecommand{\newblock}{\hskip .11em plus .33em minus .07em}
 
 \usepackage{siunitx}
 \usepackage{tabularx}
@@ -22,24 +42,12 @@
 
 \providecommand{\dvv}{\ensuremath{\delta v/v}}
 
-% --- GJI (Geophysical Journal International) initial-submission formatting ----
-% GJI calls the abstract the "Summary", asks for key words beneath it, and wants
-% double-spaced, continuously line-numbered text for review.
-%
-% NOTE on the official gji.cls (now vendored alongside this file): a real
-% integration attempt found that gji.cls (a 1998-era class) hard-codes raw
-% LaTeX-kernel tabular internals (\@tabclassz/\@tabclassiv/\@tabacol) in its
-% \maketitle author-block macro, and the modern `array`/`tabularx` packages
-% every table in this manuscript depends on redefine those same kernel
-% primitives -- breaking \maketitle with "Missing # inserted in alignment
-% preamble" right after the title block. Confirmed by isolated bisection
-% (loading `array` alone reproduces it; `booktabs` alone does not). Fixing this
-% properly means rewriting all 5 tables to avoid array/tabularx column types
-% (e.g. plain fixed-width `p{}` columns), which is real, non-trivial work, not
-% a one-line patch. Until that conversion happens, this manuscript renders
-% under plain `article` with a hand-rolled GJI-style summary/keywords/spacing
-% (below), and the compiled .tex is submission-formatted by hand at the end.
-\renewcommand{\abstractname}{SUMMARY}
+% --- GJI (Geophysical Journal International) formatting ----------------------
+% gji.cls redefines \abstract/\endabstract to its own \summary environment
+% (which hardcodes the "SUMMARY" heading itself, not via \abstractname -- the
+% class does not define \abstractname at all), so nothing else is needed here
+% for the summary heading. Key words are set via the raw
+% ```{=latex}\keywords ... \endkeywords``` block in the manuscript body.
 
 % Continuous line numbers, patched to survive amsmath display environments.
 \usepackage{lineno}

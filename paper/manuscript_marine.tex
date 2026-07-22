@@ -5,11 +5,8 @@
 \PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
 %
 \documentclass[
-  11pt,
-  letterpaper,
-]{article}
+  referee]{gji}
 \usepackage{xcolor}
-\usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb}
 \setcounter{secnumdepth}{5}
 \usepackage{iftex}
@@ -107,12 +104,32 @@
 
 
 \usepackage[]{natbib}
-\bibliographystyle{abbrvnat}
+\bibliographystyle{gji}
 
 
-% Extra LaTeX loaded into the Quarto-rendered manuscript (paper/manuscript.qmd).
+% Extra LaTeX loaded into the Quarto-rendered manuscript (paper/manuscript_marine.qmd).
 % Quarto already provides geometry, graphicx, amsmath, hyperref, xcolor, longtable
 % and booktabs; here we add only what the manuscript needs on top of that.
+
+% gji.cls (a 1998-era class) hard-codes raw LaTeX-kernel tabular internals
+% (\@tabclassz/\@tabclassiv/\@tabacol) in its \maketitle author-block macro,
+% which the modern `array`/`tabularx` packages our tables depend on redefine --
+% breaking \maketitle with "Missing # inserted in alignment preamble" right
+% after the title block (confirmed by isolated bisection: `array` alone
+% reproduces it). gji-siunitx-patch.sty is GJI's own official 2019 patch
+% (shipped in their Overleaf template, originally written to fix a siunitx
+% clash) that replaces \@maketitle/\author/\and with plain, non-tabular
+% versions -- which also happens to remove the exact mechanism that conflicts
+% with array/tabularx. Load it right after \documentclass{gji}.
+\usepackage{gji-siunitx-patch}
+
+% gji.cls only defines \newblock *inside* its own \thebibliography macro, but
+% natbib (loaded via cite-method: natbib) redefines \thebibliography wholesale
+% for author-year/numeric switching -- so gji.cls's inline definition never
+% runs, and the natbib-generated .bbl calls an undefined \newblock. Provide it
+% standalone with the class's own spacing (the standard fix for classes that
+% never define \newblock as a top-level command).
+\providecommand{\newblock}{\hskip .11em plus .33em minus .07em}
 
 \usepackage{siunitx}
 \usepackage{tabularx}
@@ -134,24 +151,12 @@
 
 \providecommand{\dvv}{\ensuremath{\delta v/v}}
 
-% --- GJI (Geophysical Journal International) initial-submission formatting ----
-% GJI calls the abstract the "Summary", asks for key words beneath it, and wants
-% double-spaced, continuously line-numbered text for review.
-%
-% NOTE on the official gji.cls (now vendored alongside this file): a real
-% integration attempt found that gji.cls (a 1998-era class) hard-codes raw
-% LaTeX-kernel tabular internals (\@tabclassz/\@tabclassiv/\@tabacol) in its
-% \maketitle author-block macro, and the modern `array`/`tabularx` packages
-% every table in this manuscript depends on redefine those same kernel
-% primitives -- breaking \maketitle with "Missing # inserted in alignment
-% preamble" right after the title block. Confirmed by isolated bisection
-% (loading `array` alone reproduces it; `booktabs` alone does not). Fixing this
-% properly means rewriting all 5 tables to avoid array/tabularx column types
-% (e.g. plain fixed-width `p{}` columns), which is real, non-trivial work, not
-% a one-line patch. Until that conversion happens, this manuscript renders
-% under plain `article` with a hand-rolled GJI-style summary/keywords/spacing
-% (below), and the compiled .tex is submission-formatted by hand at the end.
-\renewcommand{\abstractname}{SUMMARY}
+% --- GJI (Geophysical Journal International) formatting ----------------------
+% gji.cls redefines \abstract/\endabstract to its own \summary environment
+% (which hardcodes the "SUMMARY" heading itself, not via \abstractname -- the
+% class does not define \abstractname at all), so nothing else is needed here
+% for the summary heading. Key words are set via the raw
+% ```{=latex}\keywords ... \endkeywords``` block in the manuscript body.
 
 % Continuous line numbers, patched to survive amsmath display environments.
 \usepackage{lineno}
@@ -245,34 +250,37 @@ ambient-noise seismic velocity-change monitoring}
 \begin{document}
 \maketitle
 \begin{abstract}
-Relative seismic velocity changes (δv/v) from the ambient seismic field
+Relative seismic velocity changes (\dvv) from the ambient seismic field
 are a standard observable for volcanoes, faults, landslides, aquifers
-and the cryosphere. Yet turning cross-correlation functions into a δv/v
-time series involves a long sequence of choices --- the estimator, the
-frequency band, the coda window, the reference, the stacking, and how
-cross-components and station pairs are aggregated and weighted --- made
-\emph{ad hoc} and seldom reported in full. Using a controlled synthetic
-in which the ground-truth δv/v is known exactly, we quantify how much
-each choice moves the recovered value \emph{and its stated uncertainty}.
-Reproducing the seven NoisePy estimators, we show that at large δv/v
-methods split by family with distinct failure modes; that the same
-station pair yields different δv/v depending only on whether one
-averages the per-component δv/v or the correlation-coefficient images;
-and, most consequentially, that the reported 1σ on a network-averaged
-δv/v varies by ∼√N from the standard-error-versus-standard-deviation and
-weighting conventions --- so a change that is ``3σ significant'' in one
-study is ``not significant'' in another, from identical data. Running
-the full \emph{multiverse} of choices, we rank each by the bias and
-error-bar change it induces, and propose a Bayesian measurement model
-that marginalises the ensemble into a single time-dependent data
-covariance \(C_d\) --- the object a downstream depth or stress inversion
-needs. We argue that these undocumented choices, not the physics, are
-the leading obstacle to intercomparing δv/v studies, and release an open
-framework (codameter) that makes every choice explicit and reproducible.
+and the cryosphere. Yet turning cross-correlation functions into a
+\dvv~time series involves a long sequence of choices --- the estimator,
+the frequency band, the coda window, the reference, the stacking, and
+how cross-components and station pairs are aggregated and weighted ---
+made \emph{ad hoc} and seldom reported in full. Using a controlled
+synthetic in which the ground-truth \dvv~is known exactly, we quantify
+how much each choice moves the recovered value \emph{and its stated
+uncertainty}. Reproducing the seven NoisePy estimators, we show that at
+large \dvv~methods split by family with distinct failure modes; that the
+same station pair yields different \dvv~depending only on whether one
+averages the per-component \dvv~or the correlation-coefficient images;
+and, most consequentially, that the reported \(1\sigma\) on a
+network-averaged \dvv~varies by \(\sim\!\sqrt{N}\) from the
+standard-error-versus-standard-deviation and weighting conventions ---
+so a change that is ``\(3\sigma\) significant'' in one study is ``not
+significant'' in another, from identical data. Running the full
+\emph{multiverse} of choices, we rank each by the bias and error-bar
+change it induces, and propose a Bayesian measurement model that
+marginalises the ensemble into a single time-dependent data covariance
+\(C_d\) --- the object a downstream depth or stress inversion needs. We
+argue that these undocumented choices, not the physics, are the leading
+obstacle to intercomparing \dvv~studies, and release an open framework
+(codameter) that makes every choice explicit and reproducible.
 \end{abstract}
 
 
-\vspace{0.5em}\noindent\textbf{Key words:} Time-series analysis; Interferometry; Seismic noise; Coda waves; Inverse theory; Statistical methods.\vspace{0.5em}
+\begin{keywords}
+Time-series analysis; Interferometry; Seismic noise; Coda waves; Inverse theory; Statistical methods.
+\end{keywords}
 
 \section{Introduction}\label{sec:intro}
 
@@ -289,9 +297,9 @@ and receivers are at the same location.
 Due to the sensitivity of coda waves to small perturbations in the
 material properties, \dvv~was discovered as an effective method to
 monitor chanes during volcanic unrest since its discovery at Piton de la
-Fournaise (\citet{Brenguier2008}) and is now calculated in continuous
+Fournaise \citep{Brenguier2008} and is now calculated in continuous
 along side of more conventional seismic monitoring methods in the same
-volcano observatory (\citet{Duputel2009}) and was a determining early
+volcano observatory \citep{Duputel2009} and was a determining early
 warning parameter used by the Icelandic Meteorological Office used
 \dvv~in its response to the 2020 Reykjanes unrest (Cubuk-Sabuncu et al.,
 2021). The Institute of Mine Seismology also uses \dvv~to monitor the
@@ -300,7 +308,7 @@ before failure (Olivier et al., 2017; Ouellet et al., 2022). A broader
 set of operations is emerging around the same signal: groundwater
 storage for water management (Clements and Denolle, 2018; Mao et al.,
 2022), landslide early warning (Le Breton et al., 2021), levee and
-embankment integrity (Planès et al., 2016), and geothermal and CO₂
+embankment integrity (Planès et al., 2016), and geothermal and CO\(_2\)
 reservoir surveillance (Nakata et al., 2021). Each of these deployments
 rests on the same fragile assumption: that the \dvv~curve an operator
 acts on is a property of the subsurface, not of the analyst's processing
@@ -352,7 +360,7 @@ geometry. We illustrate the propagation of errors to a depth profile
 (Section\textasciitilde{}\ref{sec:depth}). We only utilize synthetic
 examples for ground truthing on the signal processing parameters, since
 the concepts behind the observations of phase lags in scattered waves is
-well established (\citet{Obermann2013}). We package this new methodology
+well established \citep{Obermann2013}. We package this new methodology
 in a Python software, \texttt{codameter}, which we also recast as an
 agentic system with skill, examples of golden data sets, and its
 evaluation against base models.
@@ -429,7 +437,7 @@ categorize and reference in Table\textasciitilde{}\ref{tab:hyperparams}.
 The work presented below measure the impacts of each of these parameter
 choices on the resulting \dvv.
 
-\begin{table}[htbp]
+\begin{table}
 \footnotesize
 \caption{Processing choices (``hyper-parameters'') and their effect on the
 recovered value and the reported uncertainty ($B$: bandwidth, $N$: measurement
@@ -518,7 +526,7 @@ transform; WCS optionally unwraps the cross-wavelet phase in two
 dimensions (along lapse, anchored at \(\tau\!\to\!0\), then along
 frequency) following \citet{Mao2020}.
 
-\begin{figure}[htbp]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_1_methods.png}
   \caption{Estimator choice across the seven NoisePy methods. (a) Clean,
@@ -554,7 +562,7 @@ give visibly different time series, and they propagate uncertainty along
 incompatible pathways (the ensemble spread of the per-component picks
 for A, the width of the averaged correlation peak for B).
 
-\begin{figure}[htbp]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_2_aggregation.png}
   \caption{Cross-component aggregation for one station pair. (a) Unweighted
@@ -582,7 +590,7 @@ from identical data. Error bars on published \dvv~are therefore not
 comparable across studies unless the aggregation, the weighting, and the
 standard-error-versus-standard-deviation convention are all stated.
 
-\begin{figure}[htbp]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_3_uncertainty.png}
   \caption{Station-pair aggregation and uncertainty for a nine-pair network. (a)
@@ -610,7 +618,7 @@ preserve (Fig.\textasciitilde{}\ref{fig:params}c). And the stacking
 length trades noise against temporal resolution, rounding off and
 delaying a coseismic step (Fig.\textasciitilde{}\ref{fig:params}d).
 
-\begin{figure}[htbp]
+\begin{figure}
   \centering
   \includegraphics[width=0.49\textwidth]{demo_4_frequency_depth.png}\hfill
   \includegraphics[width=0.49\textwidth]{demo_5_window_band.png}\\[2pt]
@@ -637,7 +645,7 @@ a coherent spurious \emph{seasonal} \dvv~many times the real signal
 while an earlier window stays clean \citep[the waveform-level version
 of][]{Zhan2013} (Fig.\textasciitilde{}\ref{fig:artifacts}b).
 
-\begin{figure}[htbp]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_8_artifacts.png}
   \caption{Deviations that create spurious \dvv. (a) A clock drift splits the causal
@@ -677,7 +685,7 @@ term of the measurement covariance \(C_d\)
 (Section\textasciitilde{}\ref{sec:bayes}) rather than discarding it by
 averaging.
 
-\begin{figure}[htbp]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_13_branch_asymmetry.png}
   \caption{Combining the causal and acausal branches. (a) A change localized to
@@ -716,7 +724,7 @@ low-SNR window distort the co-eruptive drop, while the frequency band
 Brenguier joint inversion is nearly as good as the fixed reference and
 preserves the trend.
 
-\begin{figure}[htbp]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_10_deviations.png}
   \caption{One-at-a-time deviations from a best-practice baseline, ranked by the
@@ -744,7 +752,7 @@ between choices --- compounding, not additive. The appropriate object is
 therefore not a single curve but a distribution of \dvv~over the
 processing choices.
 
-\begin{figure}[htbp]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_11_multiverse.png}
   \caption{The full multiverse. (a) 108 reasonable pipelines on one dataset,
@@ -764,7 +772,7 @@ and deviation sets are the ones our survey extracts from the literature
 \citetext{\citeyear{Snieder2002}; \citealp{Clarke2011}; \citealp{Weaver2011}; \citealp{Brenguier2014}; \citealp{Wang2017}; \citealp{Obermann2019}})
 and that \texttt{codameter.deviations} runs.
 
-\begin{table}[htbp]
+\begin{table}
 \footnotesize
 \caption{Measurement step: best practice versus the common deviation and its
 consequence. Rows are the axes swept in Fig.~\ref{fig:multiverse}; the sets
@@ -846,7 +854,7 @@ nominal rate while the naive posterior band does not, making concrete
 that the \emph{measurement covariance}, not the posterior of the
 averaged series, is what must be propagated.
 
-\begin{figure}[htbp]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_12_bayes.png}
   \caption{The Bayesian measurement model. (a) The processing ensemble (grey)
@@ -925,7 +933,7 @@ reports how much of the surface \dvv~each explains; the executable
 version is a documented extension
 (Section\textasciitilde{}\ref{sec:discussion}).
 
-\begin{table}[htbp]
+\begin{table}
 \footnotesize
 \caption{Depth step: best practice versus the common deviation in going from
 per-band \dvv\ to a depth profile, and the consequence for the interpretation.}
@@ -1012,7 +1020,7 @@ paper is accountable for the measurement covariance and its propagation
 to stress; the framework is accountable for the physics that turns that
 stress into a named mechanism.
 
-\begin{table}[htbp]
+\begin{table}
 \footnotesize
 \caption{Stress step: best practice versus the common deviation in converting a
 depth profile of velocity change to stress, with the consequence for the reported
@@ -1059,7 +1067,7 @@ Table\textasciitilde{}\ref{tab:checklist} collects this into a minimal
 reporting checklist, and Appendix\textasciitilde{}\ref{app:survey} shows
 how unevenly these items are reported across the literature today.
 
-\begin{table}[htbp]
+\begin{table}
 \footnotesize
 \caption{A minimal reporting checklist for an ambient-noise \dvv\ study. Stating
 these turns an undocumented, irreproducible choice into an inspectable one and
@@ -1278,8 +1286,8 @@ is rendered from \texttt{paper/manuscript.qmd} by
 
 {[}To be completed.{]}
 
-\section*{References}\label{references}
-\addcontentsline{toc}{section}{References}
+\section*{REFERENCES}\label{references}
+\addcontentsline{toc}{section}{REFERENCES}
 
 \renewcommand{\bibsection}{}
 \bibliography{references.bib,survey.bib}

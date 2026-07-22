@@ -1,0 +1,110 @@
+name: sync-paper-to-overleaf
+
+# Mirrors the already-built manuscript (paper/manuscript_marine.tex, its .bib
+# files, the vendored GJI class/style files it depends on, and the figures it
+# references) into Denolle-Lab/codameter-paper, the GitHub repo Overleaf's
+# GitHub Sync pulls from. Overleaf itself then picks up the change
+# (automatically, if GitHub Sync is enabled on the project, or via
+# "Menu -> GitHub -> Pull" otherwise).
+#
+# codameter/paper/ is the single source of truth for gji.cls/gji.bst/
+# gji_extra.sty/gji-siunitx-patch.sty -- they are synced here, not left as
+# whatever codameter-paper already has, because they carry real local patches
+# (e.g. gji.cls's \bibhang/natbib load-order fix) that an unpatched copy in
+# codameter-paper would not have, and Overleaf would then hit the exact errors
+# those patches exist to fix.
+#
+# Deliberately does NOT re-run the quarto/lualatex build in CI -- same
+# rationale as narrative-site.yml (quarto.yml): the manuscript is built and
+# verified locally (`pixi run python paper/build.py`) where the full
+# TeX Live toolchain this manuscript needs (siunitx, tabularx, natbib,
+# lineno, setspace, latexmk, the vendored class files) is already known to
+# work. This workflow only syncs the already-committed, already-verified
+# output.
+#
+# One-time setup this workflow depends on (not done by this workflow):
+#   1. Generate a deploy key OUTSIDE any git working tree, e.g. in ~/.ssh/ --
+#      NOT a bare relative filename run from inside a repo checkout, which
+#      leaves the private key sitting untracked (and easy to `git add -A`
+#      into a commit) right in the working directory:
+#        ssh-keygen -t ed25519 -C "codameter-paper-sync" -f ~/.ssh/codameter-paper-deploy -N ""
+#   2. Add ~/.ssh/codameter-paper-deploy.pub to Denolle-Lab/codameter-paper ->
+#      Settings -> Deploy keys -> Add deploy key -> check "Allow write access".
+#      (or: `gh repo deploy-key add ~/.ssh/codameter-paper-deploy.pub
+#      --repo Denolle-Lab/codameter-paper --title "<name>" --allow-write`)
+#   3. Add the contents of ~/.ssh/codameter-paper-deploy (the private half) as
+#      a repository secret named CODAMETER_PAPER_DEPLOY_KEY on
+#      Denolle-Lab/codameter (Settings -> Secrets and variables -> Actions ->
+#      New repository secret; or `gh secret set CODAMETER_PAPER_DEPLOY_KEY
+#      --repo Denolle-Lab/codameter < ~/.ssh/codameter-paper-deploy`).
+#   4. Keep the key pair in ~/.ssh/ as your local record of what the secret
+#      contains; there is nothing to delete since it was never inside a repo.
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "paper/manuscript_marine.tex"
+      - "paper/references.bib"
+      - "paper/survey.bib"
+      - "paper/appendix_table.tex"
+      - "paper/gji.cls"
+      - "paper/gji.bst"
+      - "paper/gji_extra.sty"
+      - "paper/gji-siunitx-patch.sty"
+      - "literature/figs/**"
+      - ".github/workflows/sync-paper-to-overleaf.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-paper-to-overleaf
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codameter (paper source)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            paper
+            literature/figs
+          sparse-checkout-cone-mode: false
+
+      - name: Checkout codameter-paper
+        uses: actions/checkout@v4
+        with:
+          repository: Denolle-Lab/codameter-paper
+          ssh-key: ${{ secrets.CODAMETER_PAPER_DEPLOY_KEY }}
+          path: codameter-paper
+
+      - name: Sync manuscript, bibliography, class files, and figures
+        run: |
+          mkdir -p codameter-paper/figs
+          cp paper/manuscript_marine.tex codameter-paper/
+          cp paper/references.bib codameter-paper/
+          cp paper/survey.bib codameter-paper/
+          cp paper/appendix_table.tex codameter-paper/
+          cp paper/gji.cls codameter-paper/
+          cp paper/gji.bst codameter-paper/
+          cp paper/gji_extra.sty codameter-paper/
+          cp paper/gji-siunitx-patch.sty codameter-paper/
+          rsync -a --delete literature/figs/ codameter-paper/figs/
+
+      - name: Commit and push if changed
+        working-directory: codameter-paper
+        run: |
+          git config user.name "codameter-sync[bot]"
+          git config user.email "actions@github.com"
+          git add manuscript_marine.tex references.bib survey.bib appendix_table.tex \
+            gji.cls gji.bst gji_extra.sty gji-siunitx-patch.sty figs/
+          if git diff --cached --quiet; then
+            echo "No changes to sync."
+            exit 0
+          fi
+          git commit -m "Sync from Denolle-Lab/codameter@${GITHUB_SHA::7}"
+          git push
