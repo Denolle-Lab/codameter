@@ -113,6 +113,7 @@
 % Extra LaTeX loaded into the Quarto-rendered manuscript (paper/manuscript.qmd).
 % Quarto already provides geometry, graphicx, amsmath, hyperref, xcolor, longtable
 % and booktabs; here we add only what the manuscript needs on top of that.
+
 \usepackage{siunitx}
 \usepackage{tabularx}
 \usepackage{array}
@@ -135,8 +136,21 @@
 
 % --- GJI (Geophysical Journal International) initial-submission formatting ----
 % GJI calls the abstract the "Summary", asks for key words beneath it, and wants
-% double-spaced, continuously line-numbered text for review. For production the
-% emitted manuscript.tex can be dropped into the official gji.cls.
+% double-spaced, continuously line-numbered text for review.
+%
+% NOTE on the official gji.cls (now vendored alongside this file): a real
+% integration attempt found that gji.cls (a 1998-era class) hard-codes raw
+% LaTeX-kernel tabular internals (\@tabclassz/\@tabclassiv/\@tabacol) in its
+% \maketitle author-block macro, and the modern `array`/`tabularx` packages
+% every table in this manuscript depends on redefine those same kernel
+% primitives -- breaking \maketitle with "Missing # inserted in alignment
+% preamble" right after the title block. Confirmed by isolated bisection
+% (loading `array` alone reproduces it; `booktabs` alone does not). Fixing this
+% properly means rewriting all 5 tables to avoid array/tabularx column types
+% (e.g. plain fixed-width `p{}` columns), which is real, non-trivial work, not
+% a one-line patch. Until that conversion happens, this manuscript renders
+% under plain `article` with a hand-rolled GJI-style summary/keywords/spacing
+% (below), and the compiled .tex is submission-formatted by hand at the end.
 \renewcommand{\abstractname}{SUMMARY}
 
 % Continuous line numbers, patched to survive amsmath display environments.
@@ -159,8 +173,12 @@
 \linenumbers
 
 % Double-spaced text (GJI review), tables kept single-spaced for legibility.
+% \doublespacing itself looks up a per-pointsize stretch table via \@ptsize, a
+% standard-class counter gji.cls (an old, non-standard LaTeX2e class) never
+% defines; \setstretch{2} sets the same 2x line stretch directly, with no
+% \@ptsize dependency.
 \usepackage{setspace}
-\doublespacing
+\setstretch{2}
 \usepackage{etoolbox}
 \AtBeginEnvironment{tabular}{\singlespacing}
 \AtBeginEnvironment{tabularx}{\singlespacing}
@@ -223,7 +241,7 @@
 \title{The reproducibility cost of ad-hoc processing choices in
 ambient-noise seismic velocity-change monitoring}
 \author{M. A. Denolle}
-\date{2026-07-20}
+\date{2026-07-22}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -413,10 +431,9 @@ choices on the resulting \dvv.
 
 \begin{table}[htbp]
 \footnotesize
-\caption{Processing choices (``hyper-parameters'') in an ambient-noise \dvv\
-pipeline, with their effect on the recovered value and on the reported
-uncertainty. $B=f_2-f_1$ is the bandwidth; $N$ the number of independent
-measurements; $N_{\mathrm{eff}}=(\sum w)^2/\sum w^2$ the weighted effective count.}
+\caption{Processing choices (``hyper-parameters'') and their effect on the
+recovered value and the reported uncertainty ($B$: bandwidth, $N$: measurement
+count, $N_{\mathrm{eff}}$: weighted effective count).}
 \label{tab:hyperparams}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.35cm} L L L@{}}
 \toprule
@@ -462,8 +479,6 @@ Clock / timing & causal vs acausal branch handling & A clock error fabricates
 \end{tabularx}
 \end{table}
 
-rx\} \textbackslash end\{table\}
-
 \section{Measurement: how the choices move the velocity change and its
 error}\label{sec:results}
 
@@ -495,8 +510,8 @@ phase, so MWCS cycle-skips, while the \emph{same} cross-wavelet phase,
 once unwrapped in 2-D, recovers the change --- success or failure
 turning on the unwrapping sub-choice alone. The warping methods (DTW,
 WTDTW) track but under-shoot the largest strains. No estimator is simply
-``right''; an undocumented estimator choice silently changes the answer
-once \dvv~leaves the small-amplitude regime.
+``right''; an undocumented estimator choice can alters the
+\dvv~measurements for larger strain changes.
 
 The wavelet methods use a dependency-free Morlet continuous wavelet
 transform; WCS optionally unwraps the cross-wavelet phase in two
@@ -521,13 +536,13 @@ calculated at the single station or a inter-station pair. Each carry a
 signature of the changes in velocity, components may be dominated by
 Love or Rayleigh waves (REF), but there scattering and non-straight ray
 path induce cross-component leakage between modes (REF), and thus it is
-often assumed in practce that coda waves of cross-components with
+often assumed in practice that coda waves of cross-components with
 multi-scattering characteristixcs (e.g., no clearly separated phases)
 are compoed of ``surface waves'' with strong S-wave sensitivity.
 Combining them together requires parameter choices, such as averaging
-them directly (REF), or weighted (e.g., weights of their ) How they are
-combined is a workflow choice that is almost never reported, yet it
-changes both the value and the uncertainty
+them directly (REF), or weighted (e.g., using coherence-based weighting
+\citet{hobiger14}). Combining is another workflow choice that can change
+both the value and the uncertainty
 (Fig.\textasciitilde{}\ref{fig:aggregation}). One may peak-pick each
 component's correlation-coefficient curve \(\mathrm{CC}(\varepsilon,t)\)
 and then average the per-component \dvv~(Approach A) --- unweighted, a
@@ -692,14 +707,14 @@ reference, coherence gating; the cross-cutting rules of
 as distilled in our survey), we flip \emph{one} choice at a time to a
 documented deviation and measure the resulting error against the known
 truth (Fig.\textasciitilde{}\ref{fig:deviations}). The ranking is
-unambiguous: relative to a best-practice RMS error of \$\sim\$0.02,\%,
-an unwrapped phase estimator that cycle-skips is catastrophic, a moving
-reference and a wrapped-phase MWCS each inflate the error roughly an
-order of magnitude, an over-long stack and a late low-SNR window distort
-the co-eruptive drop, while the frequency band (which mostly sets
-precision here) and the gating are second-order. The Brenguier joint
-inversion is nearly as good as the fixed reference and preserves the
-trend.
+unambiguous: relative to a best-practice RMS error of
+\(\sim\!0.02\,\%\), an unwrapped phase estimator that cycle-skips is
+catastrophic, a moving reference and a wrapped-phase MWCS each inflate
+the error roughly an order of magnitude, an over-long stack and a late
+low-SNR window distort the co-eruptive drop, while the frequency band
+(which mostly sets precision here) and the gating are second-order. The
+Brenguier joint inversion is nearly as good as the fixed reference and
+preserves the trend.
 
 \begin{figure}[htbp]
   \centering
@@ -751,10 +766,9 @@ and that \texttt{codameter.deviations} runs.
 
 \begin{table}[htbp]
 \footnotesize
-\caption{Measurement step: best practice versus the common deviation, with the
-consequence for the recovered \dvv\ and its stated uncertainty. Rows are the axes
-swept in Fig.~\ref{fig:multiverse}; the baseline and deviation sets follow the
-literature survey (Appendix~\ref{app:survey}).}
+\caption{Measurement step: best practice versus the common deviation and its
+consequence. Rows are the axes swept in Fig.~\ref{fig:multiverse}; the sets
+follow the literature survey (Appendix~\ref{app:survey}).}
 \label{tab:bp-measure}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.5cm} L L L@{}}
 \toprule
@@ -762,31 +776,29 @@ literature survey (Appendix~\ref{app:survey}).}
 \textbf{Consequence} \\
 \midrule
 Estimator & Stretching family (TS/WTS/WCC), robust at low SNR and large \dvv\
-[@Mikesell2015; @Yuan2021] & Wrapped-phase MWCS [@Clarke2011] without 2-D
-unwrapping [@Mao2020] & Cycle-skips at large \dvv; error inflated
+\citep{Mikesell2015,Yuan2021} & Wrapped-phase MWCS \citep{Clarke2011} without 2-D
+unwrapping \citep{Mao2020} & Cycle-skips at large \dvv; error inflated
 $\sim\!10\times$ or catastrophic \\ \hline
-Frequency band & Matched to the target depth: $\sim$0.1--2\,Hz (volcano, crust),
-2--4\,Hz (aquifer), 4--12\,Hz (shallow damage) [@Obermann2013; @Obermann2016] &
+Frequency band & Matched to the target depth: $\sim\!0.1$--2\,Hz (volcano, crust),
+2--4\,Hz (aquifer), 4--12\,Hz (shallow damage) \citep{Obermann2013,Obermann2016} &
 Off-target or a single wide band & Mixes depths; here mostly sets precision \\ \hline
 Coda window & Lapse window past the direct arrival, scaled with the band:
-$\sim$5--30\,s (crustal) up to $\sim$100\,s (station pairs) [@Obermann2013] &
+$\sim\!5$--30\,s (crustal) up to $\sim\!100$\,s (station pairs) \citep{Obermann2013} &
 Fixed late window reused across bands & Measures noise at high $f$; bias and
 inflated $\sigma$ \\ \hline
-Stack length & Short enough to resolve the transient ($\sim$10\,d), on a long,
-stable reference span [@Wang2017] & Over-long stack ($\sim$45\,d) & Smears and
+Stack length & Short enough to resolve the transient ($\sim\!10$\,d), on a long,
+stable reference span \citep{Wang2017} & Over-long stack ($\sim\!45$\,d) & Smears and
 delays a step; distorts the recovered drop \\ \hline
-Reference & Long fixed stack or all-to-all joint inversion [@Brenguier2014;
-@Wang2017] & Moving / trailing reference & Erases slow trends \\ \hline
+Reference & Long fixed stack or all-to-all joint inversion
+\citep{Brenguier2014,Wang2017} & Moving / trailing reference & Erases slow trends \\ \hline
 Coherence gating & Discard low-coherence epochs (CC / SNR threshold)
-[@Clarke2011] & No gating & Keeps corrupted epochs; changes the effective $N$ \\ \hline
+\citep{Clarke2011} & No gating & Keeps corrupted epochs; changes the effective $N$ \\ \hline
 Uncertainty definition & State it explicitly: within-measurement
-[@Weaver2011; @Clarke2011] / SE / SD & Left unstated & Factor $\sqrt{N}$
+\citep{Weaver2011,Clarke2011} / SE / SD & Left unstated & Factor $\sqrt{N}$
 ambiguity in significance (Fig.~\ref{fig:uncertainty}) \\
 \bottomrule
 \end{tabularx}
 \end{table}
-
-rx\} \textbackslash end\{table\}
 
 \section{A Bayesian measurement model and its data
 covariance}\label{sec:bayes}

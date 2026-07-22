@@ -332,7 +332,7 @@ def fig_deviation_ranking(rows=None):
     ax[1].set(
         yticks=y,
         yticklabels=[],
-        xlabel="error in co-eruptive drop (%, symlog)",
+        xlabel="drop error (%, symlog)",
         title="(b) Distortion of the drop",
     )
     ax[1].invert_yaxis()

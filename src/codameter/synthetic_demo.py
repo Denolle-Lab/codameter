@@ -1347,7 +1347,7 @@ def fig_uncertainty(seed: int = 123):
     ratio = meds["unweighted_sd"] / meds["weighted_se"]
     axB.set(
         xlabel="time (years)",
-        ylabel="reported 1σ on dv/v (%)",
+        ylabel=r"reported 1$\sigma$ on dv/v (%)",
         title=f"(b) the error bar is a choice (≈{ratio:.1f}× range)",
     )
     axB.legend(loc="upper left", fontsize=8)
@@ -1549,7 +1549,7 @@ def fig_artifacts(seed: int = 77):
     axA.set(
         xlabel="time (years)",
         ylabel="apparent dv/v (%)",
-        title="(a) clock drift: branches split with opposite sign",
+        title="(a) clock drift splits the branches",
     )
     axA.legend(loc="upper left", fontsize=8.5)
     axB.plot(_yrs(days2), truth2 * PCT, color=C["truth"], lw=2.2, label="truth")
@@ -1572,9 +1572,10 @@ def fig_artifacts(seed: int = 77):
     axB.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        title="(b) late-coda seasonal noise -> spurious cycle",
+        title="(b) late-coda noise -> spurious cycle",
     )
-    axB.legend(loc="lower left", fontsize=8.5)
+    leg = axB.legend(loc="lower left", fontsize=8.5, frameon=True)
+    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
     fig.tight_layout()
     return fig
 

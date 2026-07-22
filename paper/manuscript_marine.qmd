@@ -175,12 +175,12 @@ Each of these methods require specific parameter choices, which we categorize an
 reference in Table~\ref{tab:hyperparams}. The work presented below measure the impacts
 of each of these parameter choices on the resulting \dvv\.
 
+```{=latex}
 \begin{table}[htbp]
 \footnotesize
-\caption{Processing choices (``hyper-parameters'') in an ambient-noise \dvv\
-pipeline, with their effect on the recovered value and on the reported
-uncertainty. $B=f_2-f_1$ is the bandwidth; $N$ the number of independent
-measurements; $N_{\mathrm{eff}}=(\sum w)^2/\sum w^2$ the weighted effective count.}
+\caption{Processing choices (``hyper-parameters'') and their effect on the
+recovered value and the reported uncertainty ($B$: bandwidth, $N$: measurement
+count, $N_{\mathrm{eff}}$: weighted effective count).}
 \label{tab:hyperparams}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.35cm} L L L@{}}
 \toprule
@@ -225,6 +225,7 @@ Clock / timing & causal vs acausal branch handling & A clock error fabricates
 \bottomrule
 \end{tabularx}
 \end{table}
+```
 
 # Measurement: how the choices move the velocity change and its error {#sec:results}
 
@@ -253,7 +254,7 @@ cycle-skips, while the *same* cross-wavelet phase, once unwrapped in 2-D,
 recovers the change --- success or failure turning on the unwrapping sub-choice
 alone. The warping methods (DTW, WTDTW) track but under-shoot the largest
 strains. No estimator is simply "right"; an undocumented estimator choice
-silently changes the answer once \dvv\ leaves the small-amplitude regime.
+can alters the \dvv\ measurements for larger strain changes.
 
 
 The wavelet methods use a
@@ -278,12 +279,11 @@ Each three-component seismic station (e.g., Z, N, E) carries 6 cross-componet co
 a inter-station pair. Each carry a signature of the changes in velocity, components
 may be dominated by Love or Rayleigh waves (REF), but there scattering and non-straight
 ray path induce cross-component leakage between modes (REF), and thus it is often
-assumed in practce that coda waves of cross-components with multi-scattering characteristixcs
+assumed in practice that coda waves of cross-components with multi-scattering characteristixcs
 (e.g., no clearly separated phases) are compoed of "surface waves" with strong S-wave sensitivity.
 Combining them together requires parameter choices, such as averaging them directly (REF),
-or weighted (e.g., weights of their )
-How they are combined is a workflow choice that is
-almost never reported, yet it changes both the value and the uncertainty
+or weighted (e.g., using coherence-based weighting @hobiger14). Combining is another workflow
+choice that can change both the value and the uncertainty
 (Fig.~\ref{fig:aggregation}). One may peak-pick each component's
 correlation-coefficient curve $\mathrm{CC}(\varepsilon,t)$ and then average the
 per-component \dvv\ (Approach A) --- unweighted, a few poor components bias the
@@ -427,7 +427,7 @@ band matched to the target depth, a coda window well past the direct arrival, a
 of @Brenguier2014 [@Weaver2011; @Clarke2011] as distilled in our survey), we flip
 *one* choice at a time to a documented deviation and measure the resulting error against
 the known truth (Fig.~\ref{fig:deviations}). The ranking is unambiguous: relative
-to a best-practice RMS error of $\sim$0.02\,\%, an unwrapped phase estimator that
+to a best-practice RMS error of $\sim\!0.02\,\%$, an unwrapped phase estimator that
 cycle-skips is catastrophic, a moving reference and a wrapped-phase MWCS each inflate the
 error roughly an order of magnitude, an over-long stack and a late low-SNR window
 distort the co-eruptive drop, while the frequency band (which mostly sets
@@ -478,12 +478,12 @@ from the literature (the cross-cutting rules of @Snieder2002 [@Clarke2011;
 @Weaver2011; @Brenguier2014; @Wang2017; @Obermann2019]) and that
 `codameter.deviations` runs.
 
+```{=latex}
 \begin{table}[htbp]
 \footnotesize
-\caption{Measurement step: best practice versus the common deviation, with the
-consequence for the recovered \dvv\ and its stated uncertainty. Rows are the axes
-swept in Fig.~\ref{fig:multiverse}; the baseline and deviation sets follow the
-literature survey (Appendix~\ref{app:survey}).}
+\caption{Measurement step: best practice versus the common deviation and its
+consequence. Rows are the axes swept in Fig.~\ref{fig:multiverse}; the sets
+follow the literature survey (Appendix~\ref{app:survey}).}
 \label{tab:bp-measure}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.5cm} L L L@{}}
 \toprule
@@ -491,29 +491,30 @@ literature survey (Appendix~\ref{app:survey}).}
 \textbf{Consequence} \\
 \midrule
 Estimator & Stretching family (TS/WTS/WCC), robust at low SNR and large \dvv\
-[@Mikesell2015; @Yuan2021] & Wrapped-phase MWCS [@Clarke2011] without 2-D
-unwrapping [@Mao2020] & Cycle-skips at large \dvv; error inflated
+\citep{Mikesell2015,Yuan2021} & Wrapped-phase MWCS \citep{Clarke2011} without 2-D
+unwrapping \citep{Mao2020} & Cycle-skips at large \dvv; error inflated
 $\sim\!10\times$ or catastrophic \\ \hline
-Frequency band & Matched to the target depth: $\sim$0.1--2\,Hz (volcano, crust),
-2--4\,Hz (aquifer), 4--12\,Hz (shallow damage) [@Obermann2013; @Obermann2016] &
+Frequency band & Matched to the target depth: $\sim\!0.1$--2\,Hz (volcano, crust),
+2--4\,Hz (aquifer), 4--12\,Hz (shallow damage) \citep{Obermann2013,Obermann2016} &
 Off-target or a single wide band & Mixes depths; here mostly sets precision \\ \hline
 Coda window & Lapse window past the direct arrival, scaled with the band:
-$\sim$5--30\,s (crustal) up to $\sim$100\,s (station pairs) [@Obermann2013] &
+$\sim\!5$--30\,s (crustal) up to $\sim\!100$\,s (station pairs) \citep{Obermann2013} &
 Fixed late window reused across bands & Measures noise at high $f$; bias and
 inflated $\sigma$ \\ \hline
-Stack length & Short enough to resolve the transient ($\sim$10\,d), on a long,
-stable reference span [@Wang2017] & Over-long stack ($\sim$45\,d) & Smears and
+Stack length & Short enough to resolve the transient ($\sim\!10$\,d), on a long,
+stable reference span \citep{Wang2017} & Over-long stack ($\sim\!45$\,d) & Smears and
 delays a step; distorts the recovered drop \\ \hline
-Reference & Long fixed stack or all-to-all joint inversion [@Brenguier2014;
-@Wang2017] & Moving / trailing reference & Erases slow trends \\ \hline
+Reference & Long fixed stack or all-to-all joint inversion
+\citep{Brenguier2014,Wang2017} & Moving / trailing reference & Erases slow trends \\ \hline
 Coherence gating & Discard low-coherence epochs (CC / SNR threshold)
-[@Clarke2011] & No gating & Keeps corrupted epochs; changes the effective $N$ \\ \hline
+\citep{Clarke2011} & No gating & Keeps corrupted epochs; changes the effective $N$ \\ \hline
 Uncertainty definition & State it explicitly: within-measurement
-[@Weaver2011; @Clarke2011] / SE / SD & Left unstated & Factor $\sqrt{N}$
+\citep{Weaver2011,Clarke2011} / SE / SD & Left unstated & Factor $\sqrt{N}$
 ambiguity in significance (Fig.~\ref{fig:uncertainty}) \\
 \bottomrule
 \end{tabularx}
 \end{table}
+```
 
 # A Bayesian measurement model and its data covariance {#sec:bayes}
 
