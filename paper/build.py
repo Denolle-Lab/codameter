@@ -48,19 +48,25 @@ def run(cmd: list[str], cwd: Path) -> None:
 # literal string "References" (and blanks natbib's \bibsection so it doesn't
 # also print gji.cls's own \refname="REFERENCES" underneath) -- there is no
 # YAML metadata knob for this under cite-method: natbib (reference-section-
-# title has no effect there), so patch the one known string in the rendered
-# .tex and recompile. latexmk re-runs lualatex/bibtex until stable, so it does
-# not need to replicate quarto's own pass count by hand.
+# title has no effect there), so patch the two known strings (the visible
+# heading and the matching \addcontentsline, so the TOC/PDF-bookmark entry
+# doesn't stay title-case while the heading is all-caps) in the rendered .tex
+# and recompile. latexmk re-runs lualatex/bibtex until stable, so it does not
+# need to replicate quarto's own pass count by hand.
 TEX_PATCHES = [
     (
         r"\section*{References}\label{references}",
         r"\section*{REFERENCES}\label{references}",
     ),
+    (
+        r"\addcontentsline{toc}{section}{References}",
+        r"\addcontentsline{toc}{section}{REFERENCES}",
+    ),
 ]
 
 
 def patch_and_recompile(tex: Path) -> None:
-    text = tex.read_text()
+    text = tex.read_text(encoding="utf-8")
     changed = False
     for old, new in TEX_PATCHES:
         if old in text:
@@ -68,7 +74,7 @@ def patch_and_recompile(tex: Path) -> None:
             changed = True
     if not changed:
         return
-    tex.write_text(text)
+    tex.write_text(text, encoding="utf-8")
     print(f"patched {tex.name} (bibliography heading -> gji.cls house style)")
     run(["latexmk", "-pdflua", "-interaction=nonstopmode", tex.name], tex.parent)
 
