@@ -44,6 +44,35 @@ def run(cmd: list[str], cwd: Path) -> None:
     subprocess.run(cmd, cwd=cwd, check=True)
 
 
+# quarto's own pandoc LaTeX template hardcodes the bibliography heading as the
+# literal string "References" (and blanks natbib's \bibsection so it doesn't
+# also print gji.cls's own \refname="REFERENCES" underneath) -- there is no
+# YAML metadata knob for this under cite-method: natbib (reference-section-
+# title has no effect there), so patch the one known string in the rendered
+# .tex and recompile. latexmk re-runs lualatex/bibtex until stable, so it does
+# not need to replicate quarto's own pass count by hand.
+TEX_PATCHES = [
+    (
+        r"\section*{References}\label{references}",
+        r"\section*{REFERENCES}\label{references}",
+    ),
+]
+
+
+def patch_and_recompile(tex: Path) -> None:
+    text = tex.read_text()
+    changed = False
+    for old, new in TEX_PATCHES:
+        if old in text:
+            text = text.replace(old, new)
+            changed = True
+    if not changed:
+        return
+    tex.write_text(text)
+    print(f"patched {tex.name} (bibliography heading -> gji.cls house style)")
+    run(["latexmk", "-pdflua", "-interaction=nonstopmode", tex.name], tex.parent)
+
+
 def find_source(explicit: str | None) -> Path:
     if explicit:
         p = HERE / explicit
@@ -97,6 +126,8 @@ def main() -> int:
 
     pdf = source.with_suffix(".pdf")
     tex = source.with_suffix(".tex")
+    if tex.exists() and shutil.which("latexmk"):
+        patch_and_recompile(tex)
     print("\nBuild complete:")
     for p in (tex, pdf):
         print(f"  {'ok ' if p.exists() else 'MISSING '}{p.relative_to(ROOT)}")

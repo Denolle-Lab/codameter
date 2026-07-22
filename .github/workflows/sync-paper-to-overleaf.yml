@@ -14,14 +14,22 @@ name: sync-paper-to-overleaf
 # This workflow only syncs the already-committed, already-verified output.
 #
 # One-time setup this workflow depends on (not done by this workflow):
-#   1. Generate a deploy key:
-#        ssh-keygen -t ed25519 -C "codameter-paper-sync" -f deploy_key -N ""
-#   2. Add deploy_key.pub to Denolle-Lab/codameter-paper -> Settings ->
-#      Deploy keys -> Add deploy key -> check "Allow write access".
-#   3. Add the contents of deploy_key (the private half) as a repository
-#      secret named CODAMETER_PAPER_DEPLOY_KEY on Denolle-Lab/codameter
-#      (Settings -> Secrets and variables -> Actions -> New repository secret).
-#   4. Delete both local deploy_key files.
+#   1. Generate a deploy key OUTSIDE any git working tree, e.g. in ~/.ssh/ --
+#      NOT a bare relative filename run from inside a repo checkout, which
+#      leaves the private key sitting untracked (and easy to `git add -A`
+#      into a commit) right in the working directory:
+#        ssh-keygen -t ed25519 -C "codameter-paper-sync" -f ~/.ssh/codameter-paper-deploy -N ""
+#   2. Add ~/.ssh/codameter-paper-deploy.pub to Denolle-Lab/codameter-paper ->
+#      Settings -> Deploy keys -> Add deploy key -> check "Allow write access".
+#      (or: `gh repo deploy-key add ~/.ssh/codameter-paper-deploy.pub
+#      --repo Denolle-Lab/codameter-paper --title "<name>" --allow-write`)
+#   3. Add the contents of ~/.ssh/codameter-paper-deploy (the private half) as
+#      a repository secret named CODAMETER_PAPER_DEPLOY_KEY on
+#      Denolle-Lab/codameter (Settings -> Secrets and variables -> Actions ->
+#      New repository secret; or `gh secret set CODAMETER_PAPER_DEPLOY_KEY
+#      --repo Denolle-Lab/codameter < ~/.ssh/codameter-paper-deploy`).
+#   4. Keep the key pair in ~/.ssh/ as your local record of what the secret
+#      contains; there is nothing to delete since it was never inside a repo.
 
 on:
   push:

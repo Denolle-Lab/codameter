@@ -69,6 +69,17 @@ docs/_build/
 literature/.secrets.env
 literature/pdfs/
 
+# SSH keys — never commit, wherever generated (e.g. following the deploy-key
+# setup instructions in .github/workflows/sync-paper-to-overleaf.yml). Keep
+# key material in ~/.ssh/, not the repo working tree.
+deploy_key
+deploy_key.pub
+*.pem
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
 # FrugalMind JSONL export is a derived artifact (regenerate: pixi run frugalmind-export).
 # The frozen, hash-pinned copy lives in the FrugalMind repo / a HuggingFace mirror.
 /datasets/
