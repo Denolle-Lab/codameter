@@ -1,6 +1,7 @@
 % Extra LaTeX loaded into the Quarto-rendered manuscript (paper/manuscript.qmd).
 % Quarto already provides geometry, graphicx, amsmath, hyperref, xcolor, longtable
 % and booktabs; here we add only what the manuscript needs on top of that.
+
 \usepackage{siunitx}
 \usepackage{tabularx}
 \usepackage{array}
@@ -23,8 +24,21 @@
 
 % --- GJI (Geophysical Journal International) initial-submission formatting ----
 % GJI calls the abstract the "Summary", asks for key words beneath it, and wants
-% double-spaced, continuously line-numbered text for review. For production the
-% emitted manuscript.tex can be dropped into the official gji.cls.
+% double-spaced, continuously line-numbered text for review.
+%
+% NOTE on the official gji.cls (now vendored alongside this file): a real
+% integration attempt found that gji.cls (a 1998-era class) hard-codes raw
+% LaTeX-kernel tabular internals (\@tabclassz/\@tabclassiv/\@tabacol) in its
+% \maketitle author-block macro, and the modern `array`/`tabularx` packages
+% every table in this manuscript depends on redefine those same kernel
+% primitives -- breaking \maketitle with "Missing # inserted in alignment
+% preamble" right after the title block. Confirmed by isolated bisection
+% (loading `array` alone reproduces it; `booktabs` alone does not). Fixing this
+% properly means rewriting all 5 tables to avoid array/tabularx column types
+% (e.g. plain fixed-width `p{}` columns), which is real, non-trivial work, not
+% a one-line patch. Until that conversion happens, this manuscript renders
+% under plain `article` with a hand-rolled GJI-style summary/keywords/spacing
+% (below), and the compiled .tex is submission-formatted by hand at the end.
 \renewcommand{\abstractname}{SUMMARY}
 
 % Continuous line numbers, patched to survive amsmath display environments.
@@ -47,8 +61,12 @@
 \linenumbers
 
 % Double-spaced text (GJI review), tables kept single-spaced for legibility.
+% \doublespacing itself looks up a per-pointsize stretch table via \@ptsize, a
+% standard-class counter gji.cls (an old, non-standard LaTeX2e class) never
+% defines; \setstretch{2} sets the same 2x line stretch directly, with no
+% \@ptsize dependency.
 \usepackage{setspace}
-\doublespacing
+\setstretch{2}
 \usepackage{etoolbox}
 \AtBeginEnvironment{tabular}{\singlespacing}
 \AtBeginEnvironment{tabularx}{\singlespacing}

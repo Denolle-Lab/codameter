@@ -27,8 +27,10 @@ no physical reason. This is the waveform-level companion to the
 
 The machinery lives in
 [`codameter.synthetic_demo`](https://github.com/Denolle-Lab/codameter/blob/master/src/codameter/synthetic_demo.py):
-a band-limited, multiply-scattered coda (`make_coda`, and a
-frequency-dependent-decay variant `make_freqdep_coda`), a homogeneous velocity
+a band-limited, multiply-scattered coda whose envelope follows the 2D
+radiative-transfer solution (Sato 1993; Paasschens 1997) with random phases
+underneath (`make_coda`, and a frequency-dependent-absorption variant
+`make_freqdep_coda`), a homogeneous velocity
 change applied by stretching the coda (`impose_dvv`), daily noisy CCFs
 (`daily_ccfs`), artefact injectors (`add_clock_drift`,
 `add_seasonal_late_noise`), and the estimators below. A noiseless self-check

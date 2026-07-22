@@ -5,7 +5,6 @@ author:
     email: mdenolle@uw.edu
     affiliations:
       - name: Department of Earth and Space Sciences, University of Washington, Seattle, WA, USA
-  - name: "[co-authors TBD]"
 date: today
 abstract: |
   Relative seismic velocity changes (δv/v) from the ambient seismic field are a
@@ -26,7 +25,7 @@ abstract: |
   another, from identical data. Running the full *multiverse* of choices, we rank
   each by the bias and error-bar change it induces, and propose a Bayesian
   measurement model that marginalises the ensemble into a single time-dependent
-  data covariance $C_d$ --- the honest object a downstream depth or stress
+  data covariance $C_d$ --- the object a downstream depth or stress
   inversion needs. We argue that these undocumented choices, not the physics, are
   the leading obstacle to intercomparing δv/v studies, and release an open
   framework (codameter) that makes every choice explicit and reproducible.
@@ -54,96 +53,134 @@ format:
 
 # Introduction {#sec:intro}
 
-Coda-wave and ambient-noise interferometry measure relative changes in seismic
-velocity, \dvv, by tracking the apparent stretching of late, multiply-scattered
-arrivals between a reference and a current cross-correlation function
-[@Snieder2002; @SensSchonfelder2006]. Because the coda accumulates the
-travel-time perturbation with lapse time, \dvv\ is exquisitely sensitive --- of
-order $10^{-3}$ or smaller is routinely reported --- which is precisely why the
-method has spread across volcano, fault-zone, landslide, hydrological and
-cryospheric monitoring.
+Changes in subsurface properties occur due geodynamics, which drive earthquake damage
+and volcanic eruption, and hydrodynamics, which controls fluid exchange between the atomsphere
+and the solid Earth. These processes influence the mechanical property of Earth materials,
+which directly affect the speed at which seismic waves propagates. Changes in seismic
+velocity, often measured and referred to as \dvv\, can be tracked by measuring changes in arrival
+times of seismic waves, especially scatterd waves such as coda waves,
+provided that the source and receivers are at the same location.
 
-That sensitivity is a double-edged sword. The map from raw correlations to a
-\dvv\ time series is long, and at almost every step the analyst makes a choice:
-which estimator [@Yuan2021], which frequency band and coda window (which
-together set the sampled depth; @Obermann2013 [@Obermann2016]), which reference
-[@Brenguier2014], how much to stack, and --- the focus of the second half of
-this paper --- how to aggregate and weight the many cross-component and
-station-pair measurements that make up a network estimate. These choices are
-typically made by habit, justified briefly if at all, and rarely reported in
+Due to the sensitivity of coda waves to small perturbations in the material properties,
+\dvv\ was discovered as an effective method to monitor chanes during volcanic unrest since its
+discovery at Piton de la Fournaise (@Brenguier2008) and is now calculated in continuous
+along side of more conventional seismic monitoring methods in the same volcano observatory
+ (@Duputel2009) and was a determining early warning parameter used by the Icelandic Meteorological
+ Office used \dvv\ in its response to the 2020 Reykjanes unrest (Cubuk-Sabuncu et al., 2021).
+ The Institute of Mine Seismology also uses \dvv\ to monitor the internal state of tens of tailings
+ dams and mines to flag instability before failure (Olivier et al., 2017; Ouellet et al., 2022).
+  A broader set of operations is emerging around the same signal: groundwater
+  storage for water management (Clements and Denolle, 2018; Mao et al., 2022),
+  landslide early warning (Le Breton et al., 2021), levee and embankment integrity
+  (Planès et al., 2016), and geothermal and CO₂ reservoir surveillance (Nakata et al., 2021).
+  Each of these deployments rests on the same fragile assumption: that the \dvv\ curve an operator
+  acts on is a property of the subsurface, not of the analyst's processing choices.
+
+The elevated sensitivity comes at the price a long series of processing choices
+ and at almost every step the analyst makes a choice. Among these are choices of
+ estimators between windowed phase measurements or strething [@Mikesell2015, @Mao2020, @Yuan2021],
+ frequency band and coda window (which together set the sampled depth; @Obermann2013 [@Obermann2016]),
+ reference window [@Brenguier2014, @Ermert2023, @Okubo24], how much to substack to increase
+ coherence among windows (Hadzianou Celine),
+and how to aggregate and weight the many cross-component and
+station-pair measurements that make up a single reported \dvv\ time series (e.g., @hobiger14).
+ These choices are typically made by habit, justified briefly if at all , and rarely reported in
 enough detail to reproduce. The community has long flagged *individual* pitfalls
 (spurious changes from non-stationary noise, @Zhan2013; measurement-error
 formulae, @Clarke2011 [@Weaver2011]), but the *cumulative* effect of the full
 choice set on both the value and its stated uncertainty has not been quantified
-in one place.
+comprehensively in the literature.
 
 This is a reproducibility problem of exactly the "garden of forking paths" type
 identified in the statistical sciences [@Gelman2013; @Steegen2016]: many
 individually reasonable analyses of the same data give different answers, and
-without pre-registration or full reporting the reader cannot tell signal from
-choice. Here we make the problem concrete for \dvv\ monitoring. We build a
-synthetic in which the truth is known, push it through the real estimators of an
-open toolbox, and measure the artefact that each choice introduces. Our aim is
-not to crown a "best" pipeline but to show that the choices are consequential,
-that they are currently undocumented, and that the fix --- explicit reporting and
-an executable record --- is cheap. Appendix~\ref{app:survey} catalogues the
-processing choices of the 103 monitoring studies we surveyed
-(Table~\ref{tab:survey}); the breadth of that table is the empirical case that
-no convention is shared.
+without full reporting parameter choices we cannot fully interpret \dvv\ as robust values.
+. Here we make the problem concrete for \dvv\ monitoring. We use purely synthetic correlation
+time series to test the methods (estimators) and parameter choices that the community
+makes to estimate \dvv\, which we report over 103 studies Appendix~\ref{app:survey}.
+We do not aim to report the "best" pipeline, which is most often the one reported in
+scientific papers, but instead document the various parameter impacts (Section~\ref{sec:results}).
+We then propose a new measurement error that incoporates these effects into a data
+covariance matrix $C_d$ (Section~\ref{sec:bayes}).
 
-The measurement is only the first step. A \dvv\ series is a depth- and
-wavefield-integrated quantity: turning it into an Earth property means inverting
-frequency-dependent sensitivity kernels for a depth profile of shear-velocity
-change, and turning *that* into stress means passing it through a petrophysical
-model. Each step consumes the previous step's covariance, so an honest error at
-the end depends on an honest $C_d$ at the start. The first two-thirds of this
-paper quantify and model that measurement covariance
-(Sections~\ref{sec:results}--\ref{sec:bayes}). The final third then lays out, as
-a roadmap grounded in the monitoring literature rather than in new synthetics,
-how $C_d$ propagates to a depth profile (Section~\ref{sec:depth}) and to stress
-and strain at depth (Section~\ref{sec:stress}), the point at which a companion
-framework takes over the attribution to a forcing mechanism --- the inference the
-community seeks, and the reason the measurement covariance must be estimated with
-care.
+One example of propagating such error in downstream scientific insights is the
+migration of the surface \dvv\ measurement to depth profiles of perturbations in
+shear wave velocity $\Delta V_S(z)/V_S(z)$, which often depends on the wavefield
+constituting the coda waves, such as surface waves or body waves, and that depend
+on the source-receiver pair geometry. We illustrate the propagation of errors to a
+depth profile (Section~\ref{sec:depth}). We only utilize synthetic examples for
+ground truthing on the signal processing parameters, since the concepts behind
+the observations of phase lags in scattered waves is well established (@Obermann2013).
+We package this new methodology in a Python software, ``codameter``, which we also
+recast as an agentic system with skill, examples of golden data sets, and its evaluation
+against base models.
 
-# A controlled synthetic framework {#sec:methods}
+# Synthetic framework {#sec:methods}
 
-We synthesize a reference coda cross-correlation function as a band-limited,
-multiply-scattered wavefield with an exponentially decaying coda envelope, and
-optionally a frequency-dependent decay $A(t)\propto e^{-\pi f t/Q_c}$ so that the
-late coda fades first at high frequency. A homogeneous velocity change is imposed
-exactly by stretching the lapse-time axis, $u_{\rm cur}(t) = u_{\rm
-ref}\!\left(t/(1+\dvv)\right)$, and a daily time series is produced by repeating
-this with a prescribed ground-truth $\dvv(t)$ and additive band-limited noise at
-a controlled signal-to-noise ratio. Because the imposed $\dvv(t)$ is known, every
-departure of a recovered series from it is an artefact of the processing, not of
-the data.
+We build each synthetic reference coda wave as a band-limited random-phase
+wavefield modulated by a physically grounded coda envelope. We model the envelope from the exact single-scattering
+solution of the two-dimensional radiative transfer equation for isotropic
+scattering [@Sato1993; @Paasschens1997], which underlies coda-envelope modelling
+of scattering and intrinsic attenuation [@Margerin1998]. The energy density at
+source--receiver distance $r$ and lapse time $t$ is
 
-We reproduce, live, all seven \dvv\ estimators of the NoisePy
-`monitoring_methods` module [@Jiang2020]: trace stretching (TS), windowed
-cross-correlation (WCC), dynamic time warping (DTW), the moving-window
-cross-spectrum (MWCS; @Clarke2011), and three wavelet-domain methods --- the
-wavelet cross-spectrum (WCS), wavelet stretching (WTS) and wavelet DTW (WTDTW)
---- benchmarked numerically by @Yuan2021. The wavelet methods use a
-dependency-free Morlet continuous wavelet transform; WCS optionally unwraps the
-cross-wavelet phase in two dimensions (along lapse, anchored at $\tau\!\to\!0$,
-then along frequency) following @Mao2020. The framework, the figures below, and a
-unit-tested implementation are released in the open codameter package
-(Section~\ref{sec:discussion}). Formal definitions of all seven estimators, of
-the two aggregation pathways, and of the uncertainty conventions are collected in
+\begin{linenomath*}
+\begin{equation}
+E(r,t)=\left[\frac{e^{-ct/\ell}}{2\pi c r}\,\delta\!\left(t-\frac{r}{c}\right) +
+\frac{e^{\frac{1}{\ell}\left(\sqrt{c^2 t^2-r^2}-ct\right)}}{2\pi \ell\sqrt{c^2 t^2-r^2}}\,
+H\!\left(t-\frac{r}{c}\right)\right] e^{-b t},
+\label{eq:rt2d}
+\end{equation}
+\end{linenomath*}
+
+where $c$ is the (Rayleigh-wave) velocity, $\ell$ the scattering mean free path,
+$b$ the intrinsic absorption rate, and $\delta$ and $H$ the Dirac and Heaviside
+functions. The first term is the coherent ballistic arrival at $t=r/c$; the
+second is the multiply-scattered diffuse coda, which switches on at that arrival,
+builds up under scattering, and decays under intrinsic absorption. We fill
+random phases under the amplitude envelope $\sqrt{E(r,t)}$, band-limit, and
+symmetrize the causal and acausal branches as for an evenly illuminated noise
+correlation. The modeled synthetic coda depends only on
+three time constants: the ballistic onset $r/c$, the scattering mean free time
+$\ell/c$, and the absorption time $1/b$. The late-coda amplitude decays as
+$e^{-b t/2}$, recovering an apparent coda $Q_c$ while the envelope *shape* is determined
+ by scattering physics. A frequency-dependent absorption $b(f)=2\pi f/Q_c$, which
+can still be modeled as an frequency-independent attenuation factor $Q_c$,
+reproduces the observation that high frequencies are retained only at short lag
+times, so a fixed late window samples different depths at different bands.
+
+A homogeneous velocity change is imposed exactly by stretching the lapse-time
+axis, $u_{\rm cur}(t) = u_{\rm ref}\!\left(t/(1+\dvv)\right)$, and a repeated time
+series is produced by generating this stretched coda with a prescribed
+ground-truth $\dvv(t)$ and additive band-limited noise at a controlled
+signal-to-noise ratio. The concept has been demonstrated using full waveform
+modeling in several previous studies (@Obermann2013, @Obermann2016,@Yuan2021), therefore
+we do not model these effects using full waveforms. Because the imposed $\dvv(t)$ is known, every departure of
+a recovered series from it is an artefact of the processing, not of the data.
+
+
+
+We utilize seven \dvv\ estimators that were implemented in ``noisepy`` in the
+`monitoring_methods` module [@Jiang2020]: trace stretching (TS, @lobkis01), windowed
+cross-correlation (WCC, @poupinet84), dynamic time warping (DTW, @Mikesell2015),
+te moving-window cross-spectrum (MWCS; @Clarke2011), and three wavelet-domain methods, the
+wavelet cross-spectrum (WCS, @Mao2020) and the two wavelet stretching (WTS) and wavelet DTW (WTDTW)
+introduced and benchmarked numerically by @Yuan2021. The framework, the figures below, and a
+ implementation are released in the open ``codameter`` package
+(Section~\ref{sec:discussion}). Formal definitions of all seven methods, of
+the two aggregation pathways, and of the uncertainty conventions are described in
 Appendices~\ref{app:estimators} and~\ref{app:aggregation}.
 
-Table~\ref{tab:hyperparams} enumerates the processing choices a \dvv\ pipeline
-must make, together with their effect on the recovered value and --- the column
-that is almost never discussed --- on the reported uncertainty. The remainder of
-the paper works through these rows.
+Each of these methods require specific parameter choices, which we categorize and
+reference in Table~\ref{tab:hyperparams}. The work presented below measure the impacts
+of each of these parameter choices on the resulting \dvv\.
 
+```{=latex}
 \begin{table}[htbp]
 \footnotesize
-\caption{Processing choices (``hyper-parameters'') in an ambient-noise \dvv\
-pipeline, with their effect on the recovered value and on the reported
-uncertainty. $B=f_2-f_1$ is the bandwidth; $N$ the number of independent
-measurements; $N_{\mathrm{eff}}=(\sum w)^2/\sum w^2$ the weighted effective count.}
+\caption{Processing choices (``hyper-parameters'') and their effect on the
+recovered value and the reported uncertainty ($B$: bandwidth, $N$: measurement
+count, $N_{\mathrm{eff}}$: weighted effective count).}
 \label{tab:hyperparams}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.35cm} L L L@{}}
 \toprule
@@ -188,6 +225,7 @@ Clock / timing & causal vs acausal branch handling & A clock error fabricates
 \bottomrule
 \end{tabularx}
 \end{table}
+```
 
 # Measurement: how the choices move the velocity change and its error {#sec:results}
 
@@ -195,26 +233,34 @@ The literature agrees on the components of a well-posed \dvv\ measurement --- a
 stretching-family estimator for robustness at low SNR and large change
 [@Mikesell2015; @Yuan2021], a coherence-based error model
 [@Clarke2011; @Weaver2011], a long stable reference [@Wang2017], and
-cross-validation against a second estimator [@Obermann2019] --- yet no two
-studies report the same set, and the uncertainty convention is the least
-standardized of all (Appendix~\ref{app:survey}). The sections below address each
+cross-validation against a second estimator [@Obermann2019] --- yet
+studies do not always report the same set, and the uncertainty convention
+is rarely, if ever, quantified (Appendix~\ref{app:survey}). The sections below address each
 component in turn and quantify, against a known truth, how far a reasonable
-deviation moves the recovered value *and its stated error*. The resulting object
-is a covariance, which every subsequent step in the arc
-(Sections~\ref{sec:depth}--\ref{sec:stress}) consumes.
+deviation moves the recovered value and its stated error. The deliverable of this
+section is a measurement covariance, which every subsequent step in the inference
+chain (Sections~\ref{sec:depth}--\ref{sec:stress}) consumes.
 
 ## Estimator family {#sec:methods-fig}
 
-On small, clean \dvv\ all seven estimators sit on the one-to-one line
-(Fig.~\ref{fig:methods}a): the choice is invisible and the result reproducible.
-The choice bites at large \dvv\ (Fig.~\ref{fig:methods}b), where the methods
+## TO REVIEW
+
+On small, clean \dvv\, all seven estimators agree, demonstrating robustness of the methods
+(Fig.~\ref{fig:methods}a). The estimator choice becomes consequential at large
+\dvv\ (Fig.~\ref{fig:methods}b), where the methods
 split by family. The stretching family (TS, WTS) and WCC match the whole dilated
 coda and remain accurate; the phase methods read a wrapped phase, so MWCS
 cycle-skips, while the *same* cross-wavelet phase, once unwrapped in 2-D,
 recovers the change --- success or failure turning on the unwrapping sub-choice
 alone. The warping methods (DTW, WTDTW) track but under-shoot the largest
 strains. No estimator is simply "right"; an undocumented estimator choice
-silently changes the answer once \dvv\ leaves the small-amplitude regime.
+can alters the \dvv\ measurements for larger strain changes.
+
+
+The wavelet methods use a
+dependency-free Morlet continuous wavelet transform; WCS optionally unwraps the
+cross-wavelet phase in two dimensions (along lapse, anchored at $\tau\!\to\!0$,
+then along frequency) following @Mao2020.
 
 \begin{figure}[htbp]
   \centering
@@ -228,15 +274,22 @@ silently changes the answer once \dvv\ leaves the small-amplitude regime.
 
 ## Aggregating cross-components {#sec:aggregation}
 
-A single station pair carries several cross-component correlation functions, each
-a noisy view of the same \dvv. How they are combined is a workflow choice that is
-almost never reported, yet it changes both the value and the uncertainty
+Each three-component seismic station (e.g., Z, N, E) carries 6 cross-componet correlations
+(ZZ, NN, EE, ZE, ZN, NE), whether they are calculated at the single station or
+a inter-station pair. Each carry a signature of the changes in velocity, components
+may be dominated by Love or Rayleigh waves (REF), but there scattering and non-straight
+ray path induce cross-component leakage between modes (REF), and thus it is often
+assumed in practice that coda waves of cross-components with multi-scattering characteristixcs
+(e.g., no clearly separated phases) are compoed of "surface waves" with strong S-wave sensitivity.
+Combining them together requires parameter choices, such as averaging them directly (REF),
+or weighted (e.g., using coherence-based weighting @hobiger14). Combining is another workflow
+choice that can change both the value and the uncertainty
 (Fig.~\ref{fig:aggregation}). One may peak-pick each component's
 correlation-coefficient curve $\mathrm{CC}(\varepsilon,t)$ and then average the
-per-component \dvv\ (Approach A) --- unweighted, a few poor components drag the
-mean around; coherence-weighted, they are suppressed --- or one may average the
+per-component \dvv\ (Approach A) --- unweighted, a few poor components bias the
+mean; coherence-weighted, they are suppressed --- or one may average the
 $\mathrm{CC}(\varepsilon,t)$ *images* across components first and peak-pick once
-(Approach B). All three recipes appear in the literature; on the same pair they
+(Approach B). All three conventions appear in the literature; on the same pair they
 give visibly different time series, and they propagate uncertainty along
 incompatible pathways (the ensemble spread of the per-component picks for A, the
 width of the averaged correlation peak for B).
@@ -245,7 +298,7 @@ width of the averaged correlation peak for B).
   \centering
   \includegraphics[width=\textwidth]{demo_2_aggregation.png}
   \caption{Cross-component aggregation for one station pair. (a) Unweighted
-  \dvv-averaging swings with the poor components, while coherence-weighting and
+  \dvv-averaging is biased by the poor components, while coherence-weighting and
   image-averaging track the truth. (b) The averaged $\mathrm{CC}(\dvv,t)$ image
   of Approach B with its peak ridge.}
   \label{fig:aggregation}
@@ -284,7 +337,7 @@ signal and banding low recovers a deep trend --- the band chooses *what is
 measured* (Fig.~\ref{fig:params}a). The coda window does not transfer across
 bands: because the coda fades first at high frequency, a late window that is full
 of signal at low frequency is pure noise at high frequency, and reusing it
-returns garbage (Fig.~\ref{fig:params}b). The reference defines what survives: a
+recovers only noise (Fig.~\ref{fig:params}b). The reference defines what survives: a
 moving reference re-baselines continuously and erases slow trends that a fixed
 reference or a joint inversion [@Brenguier2014] preserve
 (Fig.~\ref{fig:params}c). And the stacking length trades noise against temporal
@@ -303,9 +356,9 @@ resolution, rounding off and delaying a coseismic step (Fig.~\ref{fig:params}d).
   \label{fig:params}
 \end{figure}
 
-## Choices that manufacture \texorpdfstring{\dvv}{dv/v} {#sec:artifacts}
+## Choices that create spurious \texorpdfstring{\dvv}{dv/v} {#sec:artifacts}
 
-Some choices do not merely bias the result --- they fabricate signal. A station
+Some choices do not merely bias the result --- they create spurious signal. A station
 clock error delays the whole correlation by a lapse-independent shift, producing
 an apparent \dvv\ that appears with opposite sign on the causal and acausal
 branches; measuring the two branches separately is the diagnostic
@@ -317,10 +370,47 @@ late coda, so a late measurement window reports a coherent spurious *seasonal*
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{demo_8_artifacts.png}
-  \caption{Deviations that manufacture \dvv. (a) A clock drift splits the causal
+  \caption{Deviations that create spurious \dvv. (a) A clock drift splits the causal
   and acausal branches with opposite sign. (b) Seasonal late-coda noise injects a
   spurious seasonal \dvv\ into a late window but not an early one.}
   \label{fig:artifacts}
+\end{figure}
+
+## Causal and acausal branches: a further aggregation choice {#sec:branches}
+
+The clock-error diagnostic above uses the two branches of the correlation, and
+how they are *combined* is itself an under-reported choice. The causal
+(positive-lag) and acausal (negative-lag) branches sample opposite-direction
+paths with different source-side illumination, and in a 3D medium their
+sensitivity kernels sample partly different volumes, so the two can report
+genuinely different \dvv\ without either being wrong. Two regimes bound the
+choice (Fig.~\ref{fig:branches}). When a change is *localized* to the volume one
+branch samples, symmetrizing or averaging the branches --- the common default ---
+dilutes it toward zero, while the branch that carries the change recovers it
+(Fig.~\ref{fig:branches}a); here preferring the branch of greatest change is
+recovering a real quantity. When instead both branches share the *same* change,
+their difference is measurement noise, and selecting the branch of greatest
+change over-reports it --- a max-of-two-estimators selection bias that grows as
+SNR falls (Fig.~\ref{fig:branches}b). The rule "take the side of the greatest
+change" therefore helps only after a structural check: the two branches must
+change with the *same sign* (opposite signs are a clock error,
+Fig.~\ref{fig:artifacts}a) and be coherent in time. The defensible procedure is
+to measure both branches, gate on that consistency, select by the coherence of
+the change rather than its amplitude (a criterion independent of the answer, so
+it carries no selection bias), and carry the between-branch difference as an
+explicit term of the measurement covariance $C_d$ (Section~\ref{sec:bayes})
+rather than discarding it by averaging.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{demo_13_branch_asymmetry.png}
+  \caption{Combining the causal and acausal branches. (a) A change localized to
+  the volume the causal branch samples: averaging the branches dilutes it to
+  about half, while the branch carrying it recovers the truth. (b) The same
+  change on both branches: selecting the branch of greatest change over-reports
+  the drop, worsening as SNR falls (a selection bias), while the branch mean
+  stays unbiased.}
+  \label{fig:branches}
 \end{figure}
 
 Taken together, the choices compound. We make this concrete in
@@ -335,10 +425,10 @@ directly. Starting from a single **best-practice baseline** (trace stretching, a
 band matched to the target depth, a coda window well past the direct arrival, a
 10-day stack, a long stable reference, coherence gating; the cross-cutting rules
 of @Brenguier2014 [@Weaver2011; @Clarke2011] as distilled in our survey), we flip
-*one* choice at a time to a documented deviation and measure the damage against
+*one* choice at a time to a documented deviation and measure the resulting error against
 the known truth (Fig.~\ref{fig:deviations}). The ranking is unambiguous: relative
-to a best-practice RMS error of $\sim$0.02\,\%, an unwrapped phase estimator that
-cycle-skips is catastrophic, a moving reference and a bare MWCS each inflate the
+to a best-practice RMS error of $\sim\!0.02\,\%$, an unwrapped phase estimator that
+cycle-skips is catastrophic, a moving reference and a wrapped-phase MWCS each inflate the
 error roughly an order of magnitude, an over-long stack and a late low-SNR window
 distort the co-eruptive drop, while the frequency band (which mostly sets
 precision here) and the gating are second-order. The Brenguier joint inversion is
@@ -366,16 +456,16 @@ each axis with a first-order (main-effect) sensitivity index
 the stack length** control the RMS error most, the **stack length** dominates the
 recovered drop amplitude, and the estimator is third; the first-order indices sum
 to well under one, so a large part of the spread is *interaction* between choices
---- compounding, not additive. The honest object is therefore not a single curve
+--- compounding, not additive. The appropriate object is therefore not a single curve
 but a distribution of \dvv\ over the processing choices.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{demo_11_multiverse.png}
-  \caption{The ultimate multiverse. (a) 108 reasonable pipelines on one dataset,
-  each coloured by its RMS error against the truth (green accurate, red biased;
-  the worst run off the clipped axis); the grey band is the 10--90\% inter-pipeline
-  spread, widest at the velocity drop. (b) First-order variance attribution: which
+  \caption{The full multiverse. (a) 108 reasonable pipelines on one dataset,
+  each coloured by its RMS error against the truth on a colourblind-safe scale
+  (bright accurate, dark biased; the worst run off the clipped axis); the grey band
+  is the 10--90\% inter-pipeline spread, widest at the velocity drop. (b) First-order variance attribution: which
   choice controls the RMS error and the recovered drop. Window and stack length
   dominate; the sub-unity sum signals strong interactions.}
   \label{fig:multiverse}
@@ -383,17 +473,17 @@ but a distribution of \dvv\ over the processing choices.
 
 Table~\ref{tab:bp-measure} distils this into the measurement-step best practice
 and the documented deviation for each choice, with the consequence the synthetic
-makes concrete. The baseline and deviation menus are the ones our survey extracts
+makes concrete. The baseline and deviation sets are the ones our survey extracts
 from the literature (the cross-cutting rules of @Snieder2002 [@Clarke2011;
 @Weaver2011; @Brenguier2014; @Wang2017; @Obermann2019]) and that
 `codameter.deviations` runs.
 
+```{=latex}
 \begin{table}[htbp]
 \footnotesize
-\caption{Measurement step: best practice versus the common deviation, with the
-consequence for the recovered \dvv\ and its stated uncertainty. Rows are the axes
-swept in Fig.~\ref{fig:multiverse}; the baseline and deviation menus follow the
-literature survey (Appendix~\ref{app:survey}).}
+\caption{Measurement step: best practice versus the common deviation and its
+consequence. Rows are the axes swept in Fig.~\ref{fig:multiverse}; the sets
+follow the literature survey (Appendix~\ref{app:survey}).}
 \label{tab:bp-measure}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.5cm} L L L@{}}
 \toprule
@@ -401,34 +491,35 @@ literature survey (Appendix~\ref{app:survey}).}
 \textbf{Consequence} \\
 \midrule
 Estimator & Stretching family (TS/WTS/WCC), robust at low SNR and large \dvv\
-[@Mikesell2015; @Yuan2021] & Bare MWCS / wrapped phase [@Clarke2011] without 2-D
-unwrapping [@Mao2020] & Cycle-skips at large \dvv; error inflated
+\citep{Mikesell2015,Yuan2021} & Wrapped-phase MWCS \citep{Clarke2011} without 2-D
+unwrapping \citep{Mao2020} & Cycle-skips at large \dvv; error inflated
 $\sim\!10\times$ or catastrophic \\ \hline
-Frequency band & Matched to the target depth: $\sim$0.1--2\,Hz (volcano, crust),
-2--4\,Hz (aquifer), 4--12\,Hz (shallow damage) [@Obermann2013; @Obermann2016] &
+Frequency band & Matched to the target depth: $\sim\!0.1$--2\,Hz (volcano, crust),
+2--4\,Hz (aquifer), 4--12\,Hz (shallow damage) \citep{Obermann2013,Obermann2016} &
 Off-target or a single wide band & Mixes depths; here mostly sets precision \\ \hline
 Coda window & Lapse window past the direct arrival, scaled with the band:
-$\sim$5--30\,s (crustal) up to $\sim$100\,s (station pairs) [@Obermann2013] &
+$\sim\!5$--30\,s (crustal) up to $\sim\!100$\,s (station pairs) \citep{Obermann2013} &
 Fixed late window reused across bands & Measures noise at high $f$; bias and
 inflated $\sigma$ \\ \hline
-Stack length & Short enough to resolve the transient ($\sim$10\,d), on a long,
-stable reference span [@Wang2017] & Over-long stack ($\sim$45\,d) & Smears and
+Stack length & Short enough to resolve the transient ($\sim\!10$\,d), on a long,
+stable reference span \citep{Wang2017} & Over-long stack ($\sim\!45$\,d) & Smears and
 delays a step; distorts the recovered drop \\ \hline
-Reference & Long fixed stack or all-to-all joint inversion [@Brenguier2014;
-@Wang2017] & Moving / trailing reference & Erases slow trends \\ \hline
+Reference & Long fixed stack or all-to-all joint inversion
+\citep{Brenguier2014,Wang2017} & Moving / trailing reference & Erases slow trends \\ \hline
 Coherence gating & Discard low-coherence epochs (CC / SNR threshold)
-[@Clarke2011] & No gating & Keeps corrupted epochs; changes the effective $N$ \\ \hline
+\citep{Clarke2011} & No gating & Keeps corrupted epochs; changes the effective $N$ \\ \hline
 Uncertainty definition & State it explicitly: within-measurement
-[@Weaver2011; @Clarke2011] / SE / SD & Left unstated & Factor $\sqrt{N}$
+\citep{Weaver2011,Clarke2011} / SE / SD & Left unstated & Factor $\sqrt{N}$
 ambiguity in significance (Fig.~\ref{fig:uncertainty}) \\
 \bottomrule
 \end{tabularx}
 \end{table}
+```
 
 # A Bayesian measurement model and its data covariance {#sec:bayes}
 
 If the processing choice controls the answer, the principled response is not to
-crown one pipeline but to treat the choice as a **nuisance parameter** with a
+select a single pipeline but to treat the choice as a **nuisance parameter** with a
 prior and marginalise it out. We propose this as the new best practice for the
 \dvv\ *measurement*, and implement it as a Bayesian hierarchical inversion. For
 configuration $k$ drawn from a prior over reasonable pipelines we obtain a
@@ -452,7 +543,7 @@ field makes (Fig.~\ref{fig:bayes}). The posterior of $\mu$ is the precision of
 the *combined* estimate: it is tight and shrinks with ensemble size --- yet it
 \emph{under-covers the truth}, because the configurations share a common-mode
 bias that averaging cannot remove. The object a downstream depth or stress
-inversion must actually consume is the **marginal measurement covariance**
+inversion must consume is the **marginal measurement covariance**
 \begin{equation}
 C_d(t,t') = \underbrace{D R D}_{\text{within}\,\oplus\,\text{methodological},\ \text{temporally correlated}}
 \;+\; \underbrace{\tau^2\,\mathbf{1}\mathbf{1}^\top}_{\text{common mode}},
@@ -533,7 +624,7 @@ and velocity alone cannot separate them. A petrophysical model --- Gassmann flui
 substitution for the modulus and a porosity--saturation relation for the density
 [@Gassmann1951; @Mavko2009] --- is what breaks the degeneracy, at the cost of its
 own prior uncertainty on porosity, fluid modulus, and the saturation path.
-Hydrological and cryospheric targets, where saturation swings are large
+Hydrological and cryospheric targets, where saturation varies strongly
 [@Clements2018; @James2019], are precisely where neglecting the density term
 biases the inferred velocity change and, downstream, the stress. The framework carries
 $\delta\rho/\rho$ as a second inverted field with its own kernel and reports how
@@ -599,12 +690,12 @@ $\kappa(z)=\rho\,(V_P^2-\tfrac43 V_S^2)$ and the nonlinear sensitivity $\mu'(z)$
 the forward physics, its drained/undrained regimes, and the fabric diagnostic that
 fixes $\beta_{ij}$ are the subject of the companion framework (Denolle, in prep.).
 These coefficients are layered and weakly constrained --- sometimes inferred from a
-tomographic $V_P,V_S$ model --- so they enter as *per-layer priors*, and the honest
+tomographic $V_P,V_S$ model --- so they enter as *per-layer priors*, and the
 stress covariance is the Monte-Carlo pushforward of the depth posterior $C_m(z)$
 *through* those priors. This is the step where the aleatoric measurement chain and
 the epistemic material priors merge; taking either alone understates the stress
 uncertainty. Effective stress ($\Delta\sigma'=\kappa\,\varepsilon_{\rm vol}$ under
-isotropic load, poroelastically clean) is the headline; total stress adds a
+isotropic load, poroelastically clean) is the primary quantity; total stress adds a
 poroelastic term $\alpha_B\,\Delta p$ and is an optional extension.
 
 Attribution --- how much of $\Delta\sigma(z,t)$ is thermoelastic, poroelastic,
@@ -613,8 +704,8 @@ mechanism is a stress term that can act in isolation, and decomposing the total
 into those terms is the contribution of the companion unified-framework paper
 (Denolle, in prep.), which supplies the forward models and the fabric diagnostic
 that define $\beta_{ij}$. codameter's role ends at delivering $\Delta\sigma_{ij}(z,t)$
-with its posterior --- the honest input any such decomposition must consume. The
-division of labour is clean: this paper is accountable for the measurement
+with its posterior --- the input any such decomposition must consume. The
+division of labour is well defined: this paper is accountable for the measurement
 covariance and its propagation to stress; the framework is accountable for the
 physics that turns that stress into a named mechanism.
 
@@ -648,9 +739,9 @@ Non-comparable, ambiguous stress \\
 
 # Discussion {#sec:discussion}
 
-The experiments above share one message: for ambient-noise \dvv, the dominant
+The experiments above share one finding: for ambient-noise \dvv, the dominant
 control on both the reported value and its uncertainty is frequently the
-*processing choice*, not the data. This is uncomfortable but actionable. We
+*processing choice*, not the data. This is a consequential but tractable problem. We
 suggest three responses.
 
 **Report the choices.** At minimum, a \dvv\ study should state the estimator and

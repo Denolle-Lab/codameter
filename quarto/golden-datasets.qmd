@@ -1,0 +1,56 @@
+---
+title: "Golden synthetic datasets"
+subtitle: "Seeded synthetic CCFs with known ground-truth dv/v, for regression and agent evaluation"
+---
+
+Every case below is a **seeded, reproducible** synthetic: daily cross-correlation
+functions built from a band-limited random-phase coda whose envelope follows the
+2D radiative-transfer solution (Sato 1993; Paasschens 1997), with an *exactly known*
+ground-truth $\delta v/v(t)$ imposed by stretching the coda in lapse time. Because
+the truth is known, every departure of a recovered series is an artefact of the
+processing, not of nature. These ten cases are the regression oracle for the
+estimators (`tests/test_golden.py`), the validation corpus for the
+[`codameter-advisor`](workflow.html) skill, and the benchmark behind the
+[FrugalMind](https://github.com/mdenolle/frugalmind) `dvv_processing` suites.
+
+Each figure has three panels: **(a)** the reference coda CCF (waveform realism,
+measurement window shaded), **(b)** the daily CCF gather (day vs lapse time, so
+coherence, noise, and any injected artefact are visible), and **(c)** the
+ground-truth $\delta v/v(t)$ with the series recovered by the recommended
+pipeline overlaid (baseline-aligned, RMS annotated).
+
+Regenerate the arrays and these figures with:
+
+```bash
+pixi run python scripts/plot_golden.py --outdir quarto/figs/golden
+```
+
+## Mainstream cases (one per application)
+
+The recommended config for each application should recover its truth cleanly
+(RMS well under 0.2 %).
+
+![**Volcano.** Seasonal wobble, a slow pre-eruptive decline, then a sharp co-eruptive drop at ~2 yr followed by logarithmic recovery. Band 0.4-1 Hz, coda 10-30 s.](figs/golden/volcano_mainstream.png){#fig-volcano}
+
+![**Earthquake / fault.** A coseismic step with gradual, only partial healing (a shallow damage signal that does not fully recover).](figs/golden/earthquake_mainstream.png){#fig-earthquake}
+
+![**Landslide.** High frequency (4-12 Hz) and a sub-second coda (100 Hz sampling); a ~1 % rainfall-driven seasonal swing plus a several-percent accelerating pre-failure drop.](figs/golden/landslide_mainstream.png){#fig-landslide}
+
+![**Groundwater / aquifer.** A shallow seasonal hydrologic signal in the 2-4 Hz band, short coda window.](figs/golden/groundwater_mainstream.png){#fig-groundwater}
+
+![**Cryosphere.** A large, sharply seasonal freeze-thaw swing (~ ±3.5 %) in a shallow high-frequency array (4-14 Hz, sub-second coda).](figs/golden/cryosphere_mainstream.png){#fig-cryosphere}
+
+![**Geothermal / reservoir.** A slow injection-driven velocity decline (~ -1 %) with a muted seasonal overlay, 0.5-2 Hz.](figs/golden/geothermal_mainstream.png){#fig-geothermal}
+
+## Edge cases (the failure regimes the survey warns about)
+
+Here the oracle pins the *magnitude of the artefact*: some of these are meant to
+show recovery breaking down, not tracking cleanly.
+
+![**Low SNR + large dv/v.** SNR ~2 with a several-percent pre-failure drop: the cycle-skipping regime that splits stretching from cross-spectral methods.](figs/golden/low_snr_large_dvv.png){#fig-lowsnr}
+
+![**Clock drift + seasonal coda noise.** A growing clock error (the coda columns tilt over days in panel b) plus a seasonal late-coda warp inject a *spurious* dv/v; the recovered series (panel c) departs from the truth by design (Zhan 2013 / Daskalakis 2016).](figs/golden/clock_drift_seasonal.png){#fig-clock}
+
+![**Frequency-dependent shallow + deep medium.** Two band-separated layers carry different dv/v; the high-freq band recovers the shallow seasonal layer and the low-freq band recovers the deep drought trend. The band literally selects the depth.](figs/golden/freqdep_shallow_deep.png){#fig-freqdep}
+
+![**Sparse cadence + decorrelation.** Every-third-day sampling with 30 % waveform decorrelation, stressing the reference and stacking warm-up.](figs/golden/sparse_decorr.png){#fig-sparse}

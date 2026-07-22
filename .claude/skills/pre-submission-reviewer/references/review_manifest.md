@@ -40,6 +40,7 @@ The orchestrator looks here in Step 0.5; if absent, this is iteration 1.
   "manuscript_id": "denolle2026-tremor",
   "title": "Deep tremor migration beneath the Olympic Peninsula",
   "skill_version": "2.3",
+  "skill_commit": "59cc06b",
   "model": "claude-opus-4-8",
   "profile": "default",
   "target_journal": "GRL",
@@ -50,9 +51,9 @@ The orchestrator looks here in Step 0.5; if absent, this is iteration 1.
   "updated": "2026-06-24",
 
   "history": [
-    {"iteration": 1, "date": "2026-05-01", "model": "claude-opus-4-8",
+    {"iteration": 1, "date": "2026-05-01", "model": "claude-opus-4-8", "skill_commit": "59cc06b",
      "readiness": "Major revision required", "open": 22, "manuscript_hash": "sha256:9b0c…"},
-    {"iteration": 2, "date": "2026-06-10", "model": "claude-opus-4-8",
+    {"iteration": 2, "date": "2026-06-10", "model": "claude-opus-4-8", "skill_commit": "59cc06b",
      "readiness": "Revise before submission", "open": 9, "manuscript_hash": "sha256:c44e…"}
   ],
 
@@ -100,6 +101,16 @@ The orchestrator looks here in Step 0.5; if absent, this is iteration 1.
   — the provenance four-plus. If any changed since the last run, the orchestrator
   says so (a changed journal re-calibrates the bar; a changed profile changes
   voice handling).
+- **`skill_commit`** — the short git SHA of the source commit (in the
+  `academic-practice-agents` repo) the run's skill was loaded from
+  (`git rev-parse --short HEAD` in that checkout, or read the `INSTALLED_FROM`
+  file a deployed copy carries). `skill_version` says *what* release;
+  `skill_commit` pins *exactly which bytes*, closing the gap when files were
+  edited without bumping the version. The two together resolve to the release tag
+  `presub-reviewer/v<skill_version>`. Record it at top level and in every
+  `history` entry (a re-review may run under a newer commit). `"unknown"` is
+  acceptable when the skill was not loaded from a git checkout (e.g. a stateless
+  browser upload).
 - **`iteration`** — monotonically increasing; incremented at Step 0.5 on every
   reconciliation run.
 - **`manuscript_hash`** — `sha256` of the normalized manuscript text. Used to (a)
@@ -167,7 +178,11 @@ records **process, not endorsement**. Fill the bracketed fields from the manifes
 > confirm results, and it does not endorse the manuscript's validity.
 
 Do not reword this into a quality claim ("vetted," "validated," "approved"). It
-attests only that the draft passed through the tool.
+attests only that the draft passed through the tool. **`skill_commit` is always
+recorded in the manifest, but keep the in-paper stamp version-only for
+readability** — the version maps to the release tag `presub-reviewer/v[skill_version]`,
+and a reader who needs the exact bytes finds the SHA in the retained manifest.
+(If a co-author wants it inline, `v[skill_version], commit [skill_commit]` is fine.)
 
 ---
 
@@ -190,6 +205,7 @@ governance rules 8–9. Schema:
 {
   "manuscript_id": "denolle2026-tremor",
   "skill_version": "2.4",
+  "skill_commit": "7e5ab41",
   "model": "claude-opus-4-8",
   "manuscript_hash": "sha256:1f3a…",
   "mode": "LIVE",
@@ -229,6 +245,9 @@ governance rules 8–9. Schema:
   `"self-attested"` when no separate human reviews it (weaker).
 - **`grounded_in`** — the review iteration whose inventory seeded the questions, or
   `"standalone"` (thinner coverage; no prior review).
+- **`skill_commit`** — same meaning as in the review manifest: the short source
+  SHA the pass ran from, pinning the exact skill bytes to the tag
+  `presub-reviewer/v<skill_version>`.
 - **`engagement`** — one of `ANSWERED-IN-OWN-WORDS` / `PARTIAL` /
   `DEFERRED→<name>` / `DECLINED` / `DID-NOT-ADDRESS-Q`. This records **whether the
   question was answered, not whether the answer is correct**. There is no
@@ -258,7 +277,9 @@ Do not reword this into a competence or quality claim ("verified understanding,"
 "authors demonstrated mastery," "human-validated"). It attests only that the
 examination took place and that a record of the answers is retained. Whether to
 include it in the paper at all is the authors' choice — the internal log stands on
-its own.
+its own. The `verification.json` records `skill_commit`; as with the review
+stamp, keep the in-paper wording version-only and let the retained log carry the
+exact SHA.
 
 ---
 

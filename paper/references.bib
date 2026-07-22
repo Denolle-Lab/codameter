@@ -76,6 +76,27 @@
   doi     = {10.1093/gji/ggz495}
 }
 
+@article{Sato1993,
+  author  = {Sato, Haruo},
+  title   = {Energy transportation in one- and two-dimensional scattering media: analytic solutions of the multiple isotropic scattering model},
+  journal = {Geophysical Journal International}, volume = {112}, number = {1}, pages = {141--146}, year = {1993},
+  doi     = {10.1111/j.1365-246X.1993.tb01443.x}
+}
+
+@article{Paasschens1997,
+  author  = {Paasschens, J. C. J.},
+  title   = {Solution of the time-dependent Boltzmann equation},
+  journal = {Physical Review E}, volume = {56}, number = {1}, pages = {1135--1141}, year = {1997},
+  doi     = {10.1103/PhysRevE.56.1135}
+}
+
+@article{Margerin1998,
+  author  = {Margerin, Ludovic and Campillo, Michel and Van Tiggelen, Bart},
+  title   = {Radiative transfer and diffusion of waves in a layered medium: new insight into coda Q},
+  journal = {Geophysical Journal International}, volume = {134}, number = {2}, pages = {596--612}, year = {1998},
+  doi     = {10.1046/j.1365-246x.1998.00571.x}
+}
+
 @article{Obermann2013,
   author  = {Obermann, Anne and Plan{\`e}s, Thomas and Larose, Eric and Sens-Sch{\"o}nfelder, Christoph and Campillo, Michel},
   title   = {Depth sensitivity of seismic coda waves to velocity perturbations in an elastic heterogeneous medium},
@@ -125,7 +146,11 @@
 }
 
 % Hand-curated entries for two surveyed papers absent from Crossref's index,
-% so the appendix table cites a proper reference rather than an @misc fallback.
+% so the appendix table cites a proper reference rather than a generic fallback.
+% NOTE: never put the at-sign character in a bib comment (even to name the
+% problem) -- BibTeX has no true line-comment syntax, it just scans for the
+% next at-sign to start an entry, so a stray one here silently corrupts every
+% entry after it.
 @article{Pacheco2005,
   author  = {Pacheco, Carlos and Snieder, Roel},
   title   = {Time-lapse travel time change of multiply scattered acoustic waves},
@@ -135,6 +160,19 @@
   pages   = {1300--1310},
   year    = {2005},
   doi     = {10.1121/1.1979437}
+}
+
+% Long-term fault-zone velocity-change monitoring (coseismic drop + logarithmic
+% healing over two decades at Parkfield).
+@article{Okubo2024,
+  author  = {Okubo, Kurama and Delbridge, Brent G. and Denolle, Marine A.},
+  title   = {Monitoring Velocity Change Over 20 Years at Parkfield},
+  journal = {Journal of Geophysical Research: Solid Earth},
+  volume  = {129},
+  number  = {4},
+  pages   = {e2023JB028084},
+  year    = {2024},
+  doi     = {10.1029/2023JB028084}
 }
 
 % Rock-physics references for the depth/stress framework sections
