@@ -1,0 +1,84 @@
+name: sync-paper-to-overleaf
+
+# Mirrors the already-built manuscript (paper/manuscript_marine.tex, its .bib
+# files, and the figures it references) into Denolle-Lab/codameter-paper, the
+# GitHub repo Overleaf's GitHub Sync pulls from. Overleaf itself then picks up
+# the change (automatically, if GitHub Sync is enabled on the project, or via
+# "Menu -> GitHub -> Pull" otherwise).
+#
+# Deliberately does NOT re-run the quarto/lualatex build in CI -- same
+# rationale as narrative-site.yml (quarto.yml): the manuscript is built and
+# verified locally (`pixi run python paper/build.py`) where the full
+# TeX Live toolchain this manuscript needs (siunitx, tabularx, natbib,
+# lineno, setspace, the vendored gji.cls/gji.bst) is already known to work.
+# This workflow only syncs the already-committed, already-verified output.
+#
+# One-time setup this workflow depends on (not done by this workflow):
+#   1. Generate a deploy key:
+#        ssh-keygen -t ed25519 -C "codameter-paper-sync" -f deploy_key -N ""
+#   2. Add deploy_key.pub to Denolle-Lab/codameter-paper -> Settings ->
+#      Deploy keys -> Add deploy key -> check "Allow write access".
+#   3. Add the contents of deploy_key (the private half) as a repository
+#      secret named CODAMETER_PAPER_DEPLOY_KEY on Denolle-Lab/codameter
+#      (Settings -> Secrets and variables -> Actions -> New repository secret).
+#   4. Delete both local deploy_key files.
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "paper/manuscript_marine.tex"
+      - "paper/references.bib"
+      - "paper/survey.bib"
+      - "paper/appendix_table.tex"
+      - "literature/figs/**"
+      - ".github/workflows/sync-paper-to-overleaf.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-paper-to-overleaf
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codameter (paper source)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            paper
+            literature/figs
+          sparse-checkout-cone-mode: false
+
+      - name: Checkout codameter-paper
+        uses: actions/checkout@v4
+        with:
+          repository: Denolle-Lab/codameter-paper
+          ssh-key: ${{ secrets.CODAMETER_PAPER_DEPLOY_KEY }}
+          path: codameter-paper
+
+      - name: Sync manuscript, bibliography, and figures
+        run: |
+          mkdir -p codameter-paper/figs
+          cp paper/manuscript_marine.tex codameter-paper/
+          cp paper/references.bib codameter-paper/
+          cp paper/survey.bib codameter-paper/
+          cp paper/appendix_table.tex codameter-paper/
+          rsync -a --delete literature/figs/ codameter-paper/figs/
+
+      - name: Commit and push if changed
+        working-directory: codameter-paper
+        run: |
+          git config user.name "codameter-sync[bot]"
+          git config user.email "actions@github.com"
+          git add manuscript_marine.tex references.bib survey.bib appendix_table.tex figs/
+          if git diff --cached --quiet; then
+            echo "No changes to sync."
+            exit 0
+          fi
+          git commit -m "Sync from Denolle-Lab/codameter@${GITHUB_SHA::7}"
+          git push
