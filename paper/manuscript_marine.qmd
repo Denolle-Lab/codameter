@@ -441,6 +441,18 @@ the error-bar change it induces.
 
 # The multiverse of processing choices {#sec:multiverse}
 
+The scenario is a single representative station pair monitoring a shallow volcanic
+edifice, in the style of the permanent broadband deployments used at effusive/dome
+volcanoes such as Piton de la Fournaise [@Brenguier2008]: a coda band matched to
+shallow depths (0.4--1.0\,Hz), a coda window past the direct arrival (10--30\,s),
+and daily correlations sampled every 3 days over 2.5 years at a per-day
+correlation-coefficient SNR of 7, typical of a continuously operating station.
+The synthetic ground truth combines an annual seasonal \dvv\ cycle (as from
+near-surface thermoelastic/hydrologic effects), a slow pre-eruptive inflation
+ramp, and a sharp co-eruptive velocity drop with partial recovery. This single-pair
+scenario isolates the measurement-step choices from the network-aggregation choices
+already covered in Sections~\ref{sec:aggregation}--\ref{sec:uncertainty}.
+
 The previous sections only identified single choices, but the overall research workflow
 involves them all. We now estimate the combined effects of these parametic choices.
  Starting from a single **best-practice baseline** (trace stretching, a
@@ -455,8 +467,6 @@ error roughly an order of magnitude, an over-long stack and a late low-SNR windo
 distort the co-eruptive drop, while the frequency band (which mostly sets
 precision here) and the gating are second-order. The  joint inversion is
 nearly as good as the fixed reference and preserves the trend.
-
-<!-- tracked: Denolle-Lab/codameter#27 -->
 
 \begin{figure}
   \centering
