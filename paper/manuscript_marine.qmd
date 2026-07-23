@@ -336,21 +336,38 @@ and the standard-error-versus-standard-deviation convention are all stated.
 
 ## Frequency band, coda window, reference and stacking {#sec:params}
 
-<!-- tracked: Denolle-Lab/codameter#24 -->
-
-The remaining choices are no less consequential. The frequency band sets the
+The remaining choices are no less consequential. The **frequency band** sets the
 sampled depth: in a two-layer medium, high frequencies recover shallow, often seasonal
-signals and low frequencies recover a deeper, maybe more tectonic, signals (Fig.~\ref{fig:params}a).
-And because of seismic attenuation, mostly early coda measurements are likely to
-recover the high frequency waves (Fig.~\ref{fig:params}b; @Margerin1998).
+signals and low frequencies recover a deeper, maybe more tectonic, signal
+(Fig.~\ref{fig:params}a). On our synthetic two-layer groundwater scenario, a band
+matched to each layer (1.5--6\,Hz for the shallow, seasonal signal; 0.2--0.8\,Hz
+for the deep, drought-trend signal) recovers each with RMS error
+$\sim\!0.003$--$0.03\,\%$; using the wrong band for a given depth inflates the
+error to $\sim\!0.10\,\%$ for both --- a $\sim\!4$--30$\times$ degradation.
 
-The reference defines what survives: a
-moving reference re-baselines continuously and erases slow trends that a fixed
-reference or a joint inversion [@Brenguier2014] preserve
-(Fig.~\ref{fig:params}c).
+The **coda window** must scale with the band: because of seismic attenuation,
+early coda measurements are likely to preferentially recover the high-frequency
+waves [@Margerin1998], so a late, low-frequency-sized window applied to a
+high-frequency band samples pure noise (Fig.~\ref{fig:params}b). On our
+synthetic, a fixed 20--40\,s window at a 3--6\,Hz band gives RMS error
+$\sim\!3.8\,\%$ (the noise floor, not the signal), while a window adapted to
+the band (3--12\,s) recovers the truth at $\sim\!0.01\,\%$ --- nearly a
+400$\times$ difference from this one choice alone.
 
-The stacking length trades noise against temporal
-resolution, rounding off and delaying a coseismic step (Fig.~\ref{fig:params}d).
+The **reference** defines what survives: a moving reference re-baselines
+continuously and erases slow trends that a fixed reference or a joint inversion
+[@Brenguier2014] preserve (Fig.~\ref{fig:params}c). On the volcano synthetic, a
+fixed total-stack reference gives RMS $\sim\!0.03\,\%$ and a Brenguier-style
+joint inversion $\sim\!0.04\,\%$ (both preserve the pre-eruptive trend), while a
+60-day moving reference gives RMS $\sim\!0.16\,\%$ --- roughly 4--5$\times$ worse
+--- because it re-baselines away the very trend being measured.
+
+The **stacking length** trades noise against temporal resolution, rounding off
+and delaying a coseismic step (Fig.~\ref{fig:params}d). On the earthquake
+synthetic, a 1-day stack (noisy) gives RMS $\sim\!0.044\,\%$, a 10-day stack
+$\sim\!0.018\,\%$ (the best of the three), and an over-long 45-day stack
+$\sim\!0.031\,\%$ --- worse than the 10-day stack despite averaging down more
+noise, because it smears the step itself.
 
 \begin{figure}
   \centering
