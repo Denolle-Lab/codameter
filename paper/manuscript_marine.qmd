@@ -396,7 +396,26 @@ noise, because it smears the step itself.
   \label{fig:params}
 \end{figure}
 
-<!-- tracked: Denolle-Lab/codameter#25 -->
+The accepted range for each of these parameters across the published literature
+is catalogued directly, study by study, in the survey of
+Appendix~\ref{app:survey} (Table~\ref{tab:survey}): the frequency band, coda
+window, estimator, and uncertainty treatment actually reported by 103 ambient-noise
+\dvv\ studies. The fixed-versus-adapted coda window comparison above is itself
+an instance of this literature-documented tension (band-matched windowing is
+recommended, but Table~\ref{tab:survey} shows many studies instead reuse one
+fixed window across bands).
+
+The **reference** choice also has a construction axis beyond fixed-versus-moving:
+how much of the record a "fixed" reference actually stacks. On the volcano
+synthetic, a reference built from the whole pre-eruptive record gives RMS
+$\sim\!0.03\,\%$, one built from only the earliest 15\,\% of that record (an
+"early stack," noisier for having fewer days) gives $\sim\!0.04\,\%$
+($\sim\!1.5\times$ worse), a 60-day moving stack gives $\sim\!0.16\,\%$
+(erasing the trend, as above), and the Brenguier-style joint inversion
+[@Brenguier2014] gives $\sim\!0.04\,\%$ while additionally preserving the trend
+--- so among the reference-construction choices, whole-period and joint
+inversion are comparably good, early-stacking is a modest ($\sim\!1.5\times$)
+noise penalty, and only the moving reference actively destroys signal.
 
 ## Choices that create spurious \texorpdfstring{\dvv}{dv/v} {#sec:artifacts}
 
