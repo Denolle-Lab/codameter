@@ -295,7 +295,7 @@ ray path induce cross-component leakage between modes [@Hennino2001; @Margerin20
 assumed in practice that coda waves of cross-components with multi-scattering characteristixcs
 (e.g., no clearly separated phases) are composed of "surface waves" with strong S-wave sensitivity.
 Combining them together requires parameter choices, such as averaging them directly [@Liu2014],
-or weighted (e.g., using coherence-based weighting @hobiger14, @deplaen16). Combining is another workflow
+or weighted (e.g., using coherence-based weighting @Hobiger2012, @DePlaen2016). Combining is another workflow
 choice that can change both the value and the uncertainty
 (Fig.~\ref{fig:aggregation}). One may peak-pick each component's
 correlation-coefficient curve $\mathrm{CC}(\varepsilon,t)$ and then average the
@@ -305,7 +305,12 @@ $\mathrm{CC}(\varepsilon,t)$ *images* across components first and peak-pick once
 (Approach B). All three conventions appear in the literature; on the same pair they
 give visibly different time series, and they propagate uncertainty along
 incompatible pathways (the ensemble spread of the per-component picks for A, the
-width of the averaged correlation peak for B).
+width of the averaged correlation peak for B). On our six-component synthetic (three
+good, three poor SNR), the RMS error against the known truth is $\sim\!0.31\,\%$ for
+unweighted Approach A, $\sim\!0.08\,\%$ for coherence-weighted Approach A (the poor
+components suppressed, $\sim\!4\times$ better), and $\sim\!0.03\,\%$ for Approach B
+(averaging the images before peak-picking, $\sim\!11\times$ better than the
+unweighted mean and $\sim\!3\times$ better than the weighted one).
 
 \begin{figure}
   \centering
@@ -415,8 +420,6 @@ decontaminate our workflow from these artefacts or not interpret the results.
   spurious seasonal \dvv\ into a late window but not an early one.}
   \label{fig:artifacts}
 \end{figure}
-
-<!-- tracked: Denolle-Lab/codameter#26 -->
 
 ## Causal and acausal branches {#sec:branches}
 
