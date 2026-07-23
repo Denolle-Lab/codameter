@@ -472,9 +472,12 @@ nearly as good as the fixed reference and preserves the trend.
 We test the compounding effects of these choices through 108 reasonable workflows selecting
  three estimators, two frequency bands, three coda windows, three stacking
 lengths and two reference schemes on a synthetic "volcano" dv/v time series
-that includes X, Y, and Z phenomena (Fig.~\ref{fig:multiverse}a). The distribution
-of \dvv\ values spreads over one order of magnitude in standard deviation (AGENT SHOULD CHECK THAT),
-and the variance is widest exactly at the sharp co-eruptive drop.
+that includes a seasonal oscillation, a slow pre-eruptive inflation ramp, and a
+sharp co-eruptive drop with partial exponential recovery (Fig.~\ref{fig:multiverse}a).
+The per-day standard deviation across the 108 pipelines varies by a factor of
+$\sim\!4$--5 over the time series (from $\sim\!0.4\,\%$ to $\sim\!1.7\,\%$), and is
+widest exactly at the sharp co-eruptive drop; the RMS error against the known
+truth spans over two orders of magnitude across pipelines ($\sim\!0.02$--$2.8\,\%$).
 
 Attributing the variance of the outcome to each axis with a first-order (main-effect) sensitivity index
 (Fig.~\ref{fig:multiverse}b) shows that, for this dataset, the **coda window and
@@ -484,8 +487,6 @@ to well under one, so a large part of the spread is *interaction* between choice
 compounding. The appropriate object is therefore not a single curve
 but a distribution of \dvv\ over the processing choices.
 
-
-<!-- tracked: Denolle-Lab/codameter#28 -->
 
 \begin{figure}
   \centering
