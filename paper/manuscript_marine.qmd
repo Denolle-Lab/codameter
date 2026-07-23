@@ -274,7 +274,16 @@ can alters the \dvv\ measurements for larger strain changes.
   \label{fig:methods}
 \end{figure}
 
-<!-- tracked: Denolle-Lab/codameter#22 -->
+On a clean, noiseless sweep of true \dvv\ from 0 to 5\,\%, the phase-wrapped
+MWCS estimator is the first to break: its error stays below $0.1\,\%$ up to a
+true \dvv\ of $\sim\!1.2\,\%$, then jumps discontinuously past $0.5\,\%$ error
+by $\sim\!1.4\,\%$ true \dvv\ --- the cycle-skip. The stretching family (TS,
+WTS) stays below $0.01\,\%$ error out to the full 5\,\% tested, and WCC stays
+below $0.1\,\%$; the warping methods (DTW, WTDTW) are accurate at small
+\dvv\ but develop intermittent, large ($>\!1\,\%$) errors from $\sim\!3\,\%$
+true \dvv\ onward as the warp path becomes ill-conditioned, while WCS degrades
+smoothly rather than catastrophically, crossing $1\,\%$ error only beyond
+$\sim\!4\,\%$ true \dvv.
 
 ## Aggregating cross-component results {#sec:aggregation}
 
