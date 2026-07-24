@@ -1096,7 +1096,15 @@ def fig_methods(seed: int = 11):
     recs = {
         m: measure(m, cur, s.ref, s.t, band=band, fs=s.fs, window=win) for m in METHODS
     }
-    # (b) a large, smoothly varying change (landslide pre-failure); decimate days
+    # (b) the same clean recovery, swept over the full +/-5 % range, to show
+    # exactly where and how each estimator family breaks from the 1:1 line.
+    trues_wide = np.linspace(-0.05, 0.05, 41)
+    cur_wide = np.stack([impose_dvv(s.ref, s.t, x) for x in trues_wide])
+    recs_wide = {
+        m: measure(m, cur_wide, s.ref, s.t, band=band, fs=s.fs, window=win)
+        for m in METHODS
+    }
+    # (c) a large, smoothly varying change (landslide pre-failure); decimate days
     # so the per-day DTW/WTDTW warps stay fast.
     days = _days(3.0)[::3]
     truth = landslide_truth(days)
@@ -1110,7 +1118,7 @@ def fig_methods(seed: int = 11):
             kw.update(sub)
         recL[m] = measure(m, ccfs, s.ref, s.t, **kw)
 
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
+    fig, (axA, axB, axC) = plt.subplots(1, 3, figsize=(9.8, 3.6))
     axA.plot([-0.5, 0.5], [-0.5, 0.5], color="0.6", lw=1, ls=":", label="1:1 (truth)")
     for m in METHODS:
         col, ls = _MSTYLE[m]
@@ -1130,18 +1138,36 @@ def fig_methods(seed: int = 11):
         title="(a) clean, small dv/v",
     )
     axA.legend(loc="upper left", fontsize=8, ncol=2)
-    axB.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.6, label="truth")
+    axB.plot([-5, 5], [-5, 5], color="0.6", lw=1, ls=":", label="1:1 (truth)")
     for m in METHODS:
         col, ls = _MSTYLE[m]
         axB.plot(
-            _yrs(days), recL[m] * PCT, ls=ls, color=col, lw=1.2, alpha=0.9, label=m
+            trues_wide * PCT,
+            recs_wide[m] * PCT,
+            ls=ls,
+            lw=1.3,
+            color=col,
+            alpha=0.9,
+            label=m,
         )
     axB.set(
+        xlabel="true dv/v (%)",
+        ylabel="recovered dv/v (%)",
+        title="(b) clean, $\\pm 5\\,\\%$ sweep",
+    )
+    axB.legend(loc="upper left", fontsize=7.5, ncol=2)
+    axC.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.6, label="truth")
+    for m in METHODS:
+        col, ls = _MSTYLE[m]
+        axC.plot(
+            _yrs(days), recL[m] * PCT, ls=ls, color=col, lw=1.2, alpha=0.9, label=m
+        )
+    axC.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        title="(b) large dv/v — MWCS cycle-skips",
+        title="(c) large dv/v — MWCS cycle-skips",
     )
-    axB.legend(loc="lower left", fontsize=8, ncol=2)
+    axC.legend(loc="lower left", fontsize=8, ncol=2)
     fig.tight_layout()
     return fig
 
@@ -1175,13 +1201,22 @@ def fig_aggregation(seed: int = 88):
     A_unw = dvv_c.mean(axis=0)
     A_wt = (cc_c * dvv_c).sum(axis=0) / (cc_c.sum(axis=0) + 1e-12)
     # Approach B — average the CC images, then peak-pick once. Its uncertainty is
-    # the *width of the averaged CC peak* (treating CC as a likelihood over eps),
-    # a different statistical object from A's ensemble spread.
+    # the *local width of the averaged CC peak* (a half-max/FWHM-style width
+    # around the peak, not a moment over the full search range -- the latter is
+    # dominated by the width of the epsilon search window itself, not by how
+    # sharp the peak actually is, and barely varies day to day).
     mean_img = images.mean(axis=0)
     B, _ = peak_dvv(es, mean_img)
-    w = np.clip(mean_img, 0, None)
-    mu = (w * es).sum(1) / w.sum(1)
-    sig_B = np.sqrt((w * (es - mu[:, None]) ** 2).sum(1) / w.sum(1))
+    peak_val = mean_img.max(axis=1)
+    w_local = np.clip(mean_img - (peak_val / 2.0)[:, None], 0, None)
+    mu_local = (w_local * es).sum(1) / w_local.sum(1)
+    sig_B = np.sqrt((w_local * (es - mu_local[:, None]) ** 2).sum(1) / w_local.sum(1))
+
+    # Shared y-limits so (a) and (b) are directly comparable, sized to fit
+    # Approach A's real (unclipped) excursions -- the per-component grey lines
+    # go further still (poor components swing to +/-6 %) but are background
+    # context, not the point, so they are allowed to clip at the edges.
+    ylim = (-1.4, 1.4)
 
     fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
     for d in dvv_c:
@@ -1222,21 +1257,28 @@ def fig_aggregation(seed: int = 88):
     axA.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        ylim=(-0.4, 0.4),
-        title="(a) 3 defensible recipes, 3 answers",
+        ylim=ylim,
+        title="(a) Component aggregation: three recipes",
     )
     leg = axA.legend(loc="lower left", fontsize=7.5, frameon=True)
     leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
     extent = [_yrs(days)[0], _yrs(days)[-1], es[0] * PCT, es[-1] * PCT]
-    axB.imshow(
-        mean_img.T, aspect="auto", origin="lower", extent=extent, cmap="magma", vmin=0
+    im = axB.imshow(
+        mean_img.T,
+        aspect="auto",
+        origin="lower",
+        extent=extent,
+        cmap="magma_r",  # reversed: dark = high CC, matching the paper's convention
+        vmin=0,
     )
-    axB.plot(_yrs(days), B * PCT, color="white", lw=0.8, label="peak of mean CC (B)")
-    axB.plot(_yrs(days), truth * PCT, color="cyan", lw=1.0, ls="--", label="truth")
+    cbar = fig.colorbar(im, ax=axB, pad=0.02)
+    cbar.set_label("coherence CC (dark = high)")
+    axB.plot(_yrs(days), B * PCT, color="white", lw=1.2, label="peak of mean CC (B)")
+    axB.plot(_yrs(days), truth * PCT, color="black", lw=1.0, ls="--", label="truth")
     axB.set(
         xlabel="time (years)",
         ylabel="dv/v candidate (%)",
-        ylim=(-0.35, 0.3),
+        ylim=ylim,
         title="(b) averaged CC(dv/v, t) image (B)",
     )
     axB.legend(loc="upper right", fontsize=8)

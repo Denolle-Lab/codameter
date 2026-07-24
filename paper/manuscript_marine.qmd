@@ -286,8 +286,10 @@ $\sim\!0.044\,\%$ (1-day, noisy) & Section~\ref{sec:params} \\
 ## Estimator family {#sec:methods-fig}
 
 On small, clean \dvv\, all seven estimators agree, demonstrating robustness of the methods
-(Fig.~\ref{fig:methods}a). The estimator choice becomes consequential at large
-\dvv\ (Fig.~\ref{fig:methods}b), where the effect of the methods
+(Fig.~\ref{fig:methods}a). Sweeping the same clean recovery out to
+$\pm 5\,\%$ (Fig.~\ref{fig:methods}b) shows exactly where and how each family
+first departs from the 1:1 line, and the estimator choice becomes consequential
+at large, noisy \dvv\ (Fig.~\ref{fig:methods}c), where the effect of the methods
 is split according to their phase measurement approaches. The stretching family (TS, WTS) and WCC match the whole dilated
 coda and remain accurate for high SNR coda waves; the phase methods (MWCS) read a wrapped phase and may
 cycle-skips, while the *same* cross-wavelet phase (WCS), once unwrapped in 2-D,
@@ -300,18 +302,21 @@ can alters the \dvv\ measurements for larger strain changes.
   \centering
   \includegraphics[width=\textwidth]{demo_1_methods.png}
   \caption{Estimator choice across the seven NoisePy methods. (a) Clean,
-  small \dvv: all agree. (b) Large \dvv\ (a pre-failure landslide signal): MWCS
-  cycle-skips, 2-D-unwrapped WCS and the stretching family track, the warping
-  methods under-shoot.}
+  small \dvv: all agree. (b) The same clean recovery swept over $\pm 5\,\%$
+  true \dvv: MWCS cycle-skips almost immediately past $\pm 1$--$2\,\%$, DTW/WTDTW
+  break past $\pm 3$--$4\,\%$, WCS degrades smoothly, while TS/WTS/WCC track the
+  1:1 line throughout. (c) Large, noisy \dvv\ (a pre-failure landslide signal):
+  MWCS cycle-skips, 2-D-unwrapped WCS and the stretching family track, the
+  warping methods under-shoot.}
   \label{fig:methods}
 \end{figure}
 
-On a clean, noiseless sweep of true \dvv\ from 0 to 5\,\%, the phase-wrapped
-MWCS estimator is the first to break: its error stays below $0.1\,\%$ up to a
-true \dvv\ of $\sim\!1.2\,\%$, then jumps discontinuously past $0.5\,\%$ error
-by $\sim\!1.4\,\%$ true \dvv\ --- the cycle-skip. The stretching family (TS,
-WTS) stays below $0.01\,\%$ error out to the full 5\,\% tested, and WCC stays
-below $0.1\,\%$; the warping methods (DTW, WTDTW) are accurate at small
+On a clean, noiseless sweep of true \dvv\ from 0 to 5\,\% (Fig.~\ref{fig:methods}b),
+the phase-wrapped MWCS estimator is the first to break: its error stays below
+$0.1\,\%$ up to a true \dvv\ of $\sim\!1.2\,\%$, then jumps discontinuously past
+$0.5\,\%$ error by $\sim\!1.4\,\%$ true \dvv\ --- the cycle-skip. The stretching
+family (TS, WTS) stays below $0.01\,\%$ error out to the full 5\,\% tested, and
+WCC stays below $0.1\,\%$; the warping methods (DTW, WTDTW) are accurate at small
 \dvv\ but develop intermittent, large ($>\!1\,\%$) errors from $\sim\!3\,\%$
 true \dvv\ onward as the warp path becomes ill-conditioned, while WCS degrades
 smoothly rather than catastrophically, crossing $1\,\%$ error only beyond
@@ -347,10 +352,13 @@ unweighted mean and $\sim\!3\times$ better than the weighted one).
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_2_aggregation.png}
-  \caption{Cross-component aggregation for one station pair. (a) Unweighted
-  \dvv-averaging is biased by the poor components, while coherence-weighting and
-  image-averaging track the truth. (b) The averaged $\mathrm{CC}(\dvv,t)$ image
-  of Approach B with its peak ridge.}
+  \caption{Cross-component aggregation for one station pair, both panels on the
+  same \dvv\ axis. (a) Unweighted \dvv-averaging (Approach A) is biased by the
+  poor components (grey), while coherence-weighting and image-averaging
+  (Approach B) track the truth; the shaded band is B's local peak-width
+  uncertainty. (b) The averaged $\mathrm{CC}(\dvv,t)$ image of Approach B
+  (dark = high coherence) with its peak ridge (white) tracking the truth
+  (black, dashed).}
   \label{fig:aggregation}
 \end{figure}
 
