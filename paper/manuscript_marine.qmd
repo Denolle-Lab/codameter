@@ -245,11 +245,43 @@ that borrows from ``msnoise`` [@Lecocq2014] and ``noisepy`` (@Jiang2020) to extr
 measurement of \dvv\ from the ambient noise monitoring workflow and generalize it
 to any coda wave from repeated source-receiver paths.
 
+Table~\ref{tab:results-synthesis} previews the RMS error against the known
+synthetic ground truth for the best- and worst-case option on each axis
+covered in this section, each derived in its own dedicated synthetic (detailed
+in the corresponding subsection below); it is a synthesis of *this section's*
+per-choice numbers, distinct from Table~\ref{tab:bp-measure}'s one-at-a-time
+sweep on a single shared scenario in Section~\ref{sec:multiverse}.
 
-<!-- tracked: Denolle-Lab/codameter#21 -->
-
-
-
+```{=latex}
+\begin{table}
+\footnotesize
+\caption{Synthesis of Section~\ref{sec:results}: RMS error against the known
+synthetic truth for the best- and worst-case option on each axis, each from
+its own dedicated synthetic scenario (see the cross-referenced subsection).}
+\label{tab:results-synthesis}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.2cm} L L L@{}}
+\toprule
+\textbf{Axis} & \textbf{Best-case RMS} & \textbf{Worst-case RMS} & \textbf{Section} \\
+\midrule
+Estimator (family split) & $<\!0.01\,\%$ (TS/WTS, up to 5\,\% true \dvv) &
+cycle-skip $>\!0.5\,\%$ past $\sim\!1.4\,\%$ true \dvv\ (MWCS) &
+Section~\ref{sec:methods-fig} \\ \hline
+Cross-component aggregation & $\sim\!0.03\,\%$ (Approach B, averaged images) &
+$\sim\!0.31\,\%$ (Approach A, unweighted) & Section~\ref{sec:aggregation} \\ \hline
+Network aggregation (per-pair spread) & $\sim\!0.005\,\%$ (network SE) &
+$\sim\!0.05\,\%$ (individual-pair range) & Section~\ref{sec:uncertainty} \\ \hline
+Frequency band & $\sim\!0.003$--$0.03\,\%$ (matched to depth) &
+$\sim\!0.10\,\%$ (mismatched) & Section~\ref{sec:params} \\ \hline
+Coda window & $\sim\!0.01\,\%$ (adapted to band) &
+$\sim\!3.8\,\%$ (fixed, wrong band) & Section~\ref{sec:params} \\ \hline
+Reference scheme & $\sim\!0.03$--$0.04\,\%$ (fixed stack / joint inversion) &
+$\sim\!0.16\,\%$ (60-day moving) & Section~\ref{sec:params} \\ \hline
+Stack length & $\sim\!0.018\,\%$ (10-day) &
+$\sim\!0.044\,\%$ (1-day, noisy) & Section~\ref{sec:params} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+```
 
 ## Estimator family {#sec:methods-fig}
 
