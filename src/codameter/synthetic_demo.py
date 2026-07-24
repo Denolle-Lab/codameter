@@ -1302,6 +1302,8 @@ def network_dvv(
     return {
         "truth": truth,
         "es": es,
+        "pair_dvv": pair_dvv,  # [n_pairs, ndays] -- the individual pair curves
+        "pair_snr": pair_snr,
         "weighted_se": {"dvv": W, "sigma": W_se},
         "unweighted_se": {"dvv": U, "sigma": sd / np.sqrt(n_pairs)},
         "unweighted_sd": {"dvv": U, "sigma": sd},
@@ -1351,6 +1353,59 @@ def fig_uncertainty(seed: int = 123):
         title=f"(b) the error bar is a choice (≈{ratio:.1f}× range)",
     )
     axB.legend(loc="upper left", fontsize=8)
+    fig.tight_layout()
+    return fig
+
+
+def fig_network_pairs(seed: int = 123):
+    """The per-pair spread that Fig. fig:uncertainty's network-level view hides.
+
+    A basin-scale, urban ambient-noise deployment (in the style of the San
+    Gabriel Valley groundwater network of Clements & Denolle 2018 -- an
+    illustrative, not a literal, reproduction of that network's exact station
+    geometry) has station pairs of heterogeneous quality: some pairs sit on
+    thick, well-coupled sediment with high SNR, others are noisier. Plotting
+    the individual per-pair dv/v(t) curves (not just the network-aggregate
+    mean and its error bars, as in Fig. fig:uncertainty) shows that the true
+    pair-to-pair spread is wider than any of the three network conventions'
+    error bars communicate on their own.
+    """
+    import matplotlib.pyplot as plt
+
+    days = _days(3.0)
+    truth = _seasonal(days, 0.0012, 60) - 0.0008 * (days >= int(1.5 * YEAR_D))
+    R = network_dvv(truth, seed=seed)
+    pair_dvv, pair_snr = R["pair_dvv"], R["pair_snr"]
+    yr = _yrs(days)
+
+    fig, ax = plt.subplots(figsize=(6.0, 4.0))
+    order = np.argsort(-pair_snr)  # best SNR first, for a readable legend/colour ramp
+    cmap = plt.get_cmap("viridis")
+    for rank, p in enumerate(order):
+        ax.plot(
+            yr,
+            pair_dvv[p] * PCT,
+            color=cmap(rank / max(1, len(order) - 1)),
+            lw=0.9,
+            alpha=0.85,
+        )
+    ax.plot(yr, truth * PCT, color=C["truth"], lw=2.4, label="network truth")
+    lo = np.nanmin(pair_dvv, axis=0) * PCT
+    hi = np.nanmax(pair_dvv, axis=0) * PCT
+    ax.fill_between(
+        yr, lo, hi, color="0.5", alpha=0.15, lw=0, label="individual-pair range"
+    )
+    sm = plt.cm.ScalarMappable(
+        cmap=cmap, norm=plt.Normalize(vmin=pair_snr.min(), vmax=pair_snr.max())
+    )
+    cbar = fig.colorbar(sm, ax=ax, pad=0.02)
+    cbar.set_label("pair SNR")
+    ax.set(
+        xlabel="time (years)",
+        ylabel="dv/v (%)",
+        title="Individual station-pair dv/v -- wider than the network error bar",
+    )
+    ax.legend(loc="lower left", fontsize=8.5)
     fig.tight_layout()
     return fig
 
@@ -1837,6 +1892,7 @@ FIGURES = {
     "demo_1_methods": fig_methods,
     "demo_2_aggregation": fig_aggregation,
     "demo_3_uncertainty": fig_uncertainty,
+    "demo_14_network_pairs": fig_network_pairs,
     "demo_4_frequency_depth": fig_frequency_depth,
     "demo_5_window_band": fig_window_band,
     "demo_6_stacking": fig_stacking,

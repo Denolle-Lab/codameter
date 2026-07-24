@@ -336,8 +336,6 @@ conservative one --- from identical data. Error bars on published \dvv\ are
 therefore not comparable across studies unless the aggregation, the weighting,
 and the standard-error-versus-standard-deviation convention are all stated.
 
-<!-- tracked: Denolle-Lab/codameter#23 -->
-
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_3_uncertainty.png}
@@ -346,6 +344,32 @@ and the standard-error-versus-standard-deviation convention are all stated.
   not. (b) The reported $1\sigma$ differs by $\sim\!\sqrt{N}$ purely from the
   weighting and SE-versus-SD choices.}
   \label{fig:uncertainty}
+\end{figure}
+
+Figure~\ref{fig:uncertainty} plots only the *network-aggregate* series, which
+hides how much the individual pairs actually disagree. Fig.~\ref{fig:network-pairs}
+plots the same nine-pair network's *individual* \dvv(t) curves, styled after a
+basin-scale, urban ambient-noise deployment such as the San Gabriel Valley
+groundwater network [@Clements2018] --- an illustrative geometry rather than a
+literal reproduction of that network's exact station spacing. The individual
+pairs range in quality from a coherence-weighted SNR of $\sim\!2.5$ to
+$\sim\!11$, and their spread at any given day (median range $\sim\!0.053\,\%$)
+is nearly $10\times$ wider than the coherence-weighted network standard error
+(median $\sim\!0.005\,\%$) and more than $3\times$ wider than the more
+conservative between-pair standard deviation (median $\sim\!0.017\,\%$). A
+network-level error bar, however it is computed, describes the precision of
+the *mean*, not the *dispersion* of what individual pairs actually report ---
+the two are routinely conflated when a single station-pair result is compared
+against a published network value.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.75\textwidth]{demo_14_network_pairs.png}
+  \caption{Individual station-pair \dvv(t) for the same nine-pair network as
+  Fig.~\ref{fig:uncertainty}, coloured by pair SNR. The pair-to-pair spread
+  (grey band) is far wider than any of the three network-level $1\sigma$
+  conventions in Fig.~\ref{fig:uncertainty}b.}
+  \label{fig:network-pairs}
 \end{figure}
 
 ## Frequency band, coda window, reference and stacking {#sec:params}
