@@ -80,10 +80,10 @@ The elevated sensitivity comes at the price a long series of processing choices
  and at almost every step the analyst makes a choice. Among these are choices of
  estimators between windowed phase measurements or strething [@Mikesell2015, @Mao2020, @Yuan2021],
  frequency band and coda window (which together set the sampled depth; @Obermann2013 [@Obermann2016]),
- reference window [@Brenguier2014, @Ermert2023, @Okubo24], how much to substack to increase
+ reference window [@Brenguier2014, @Ermert2023, @Okubo2024], how much to substack to increase
  coherence among windows (Hadzianou Celine),
 and how to aggregate and weight the many cross-component and
-station-pair measurements that make up a single reported \dvv\ time series (e.g., @hobiger14).
+station-pair measurements that make up a single reported \dvv\ time series (e.g., @Hobiger2012).
  These choices are typically made by habit, justified briefly if at all , and rarely reported in
 enough detail to reproduce. The community has long flagged *individual* pitfalls
 (spurious changes from non-stationary noise, @Zhan2013; measurement-error
