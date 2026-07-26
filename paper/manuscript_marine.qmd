@@ -273,7 +273,7 @@ $\sim\!0.05\,\%$ (individual-pair range) & Section~\ref{sec:uncertainty} \\ \hli
 Frequency band & $\sim\!0.003$--$0.03\,\%$ (matched to depth) &
 $\sim\!0.10\,\%$ (mismatched) & Section~\ref{sec:params} \\ \hline
 Coda window & $\sim\!0.01\,\%$ (adapted to band) &
-$\sim\!3.8\,\%$ (fixed, wrong band) & Section~\ref{sec:params} \\ \hline
+$\sim\!3.8\,\%$ (fixed, wrong band) & Section~\ref{sec:window} \\ \hline
 Reference scheme & $\sim\!0.03$--$0.04\,\%$ (fixed stack / joint inversion) &
 $\sim\!0.16\,\%$ (60-day moving) & Section~\ref{sec:params} \\ \hline
 Stack length & $\sim\!0.018\,\%$ (10-day) &
@@ -412,7 +412,7 @@ against a published network value.
   \label{fig:network-pairs}
 \end{figure}
 
-## Frequency band, coda window, reference and stacking {#sec:params}
+## Frequency band, reference and stacking {#sec:params}
 
 The remaining choices are no less consequential. The **frequency band** sets the
 sampled depth: in a two-layer medium, high frequencies recover shallow, often seasonal
@@ -422,15 +422,6 @@ matched to each layer (1.5--6\,Hz for the shallow, seasonal signal; 0.2--0.8\,Hz
 for the deep, drought-trend signal) recovers each with RMS error
 $\sim\!0.003$--$0.03\,\%$; using the wrong band for a given depth inflates the
 error to $\sim\!0.10\,\%$ for both --- a $\sim\!4$--30$\times$ degradation.
-
-The **coda window** must scale with the band: because of seismic attenuation,
-early coda measurements are likely to preferentially recover the high-frequency
-waves [@Margerin1998], so a late, low-frequency-sized window applied to a
-high-frequency band samples pure noise (Fig.~\ref{fig:params}b). On our
-synthetic, a fixed 20--40\,s window at a 3--6\,Hz band gives RMS error
-$\sim\!3.8\,\%$ (the noise floor, not the signal), while a window adapted to
-the band (3--12\,s) recovers the truth at $\sim\!0.01\,\%$ --- nearly a
-400$\times$ difference from this one choice alone.
 
 The **reference** defines what survives: a moving reference re-baselines
 continuously and erases slow trends that a fixed reference or a joint inversion
@@ -464,10 +455,7 @@ The accepted range for each of these parameters across the published literature
 is catalogued directly, study by study, in the survey of
 Appendix~\ref{app:survey} (Table~\ref{tab:survey}): the frequency band, coda
 window, estimator, and uncertainty treatment actually reported by 103 ambient-noise
-\dvv\ studies. The fixed-versus-adapted coda window comparison above is itself
-an instance of this literature-documented tension (band-matched windowing is
-recommended, but Table~\ref{tab:survey} shows many studies instead reuse one
-fixed window across bands).
+\dvv\ studies.
 
 The **reference** choice also has a construction axis beyond fixed-versus-moving:
 how much of the record a "fixed" reference actually stacks. On the volcano
@@ -480,6 +468,60 @@ $\sim\!0.03\,\%$, one built from only the earliest 15\,\% of that record (an
 --- so among the reference-construction choices, whole-period and joint
 inversion are comparably good, early-stacking is a modest ($\sim\!1.5\times$)
 noise penalty, and only the moving reference actively destroys signal.
+
+## Coda window and its covariation with frequency band {#sec:window}
+
+The coda window is not independent of the frequency band --- it deserves its own
+treatment because the two covary strongly, and getting this wrong is one of the
+larger, more avoidable sources of error in \S\ref{sec:results}. Because intrinsic
+and scattering attenuation both grow with frequency, high-frequency coda energy
+falls into the noise floor much sooner than low-frequency coda: a coda window
+that is well past the direct arrival for a $\sim\!0.3$--$0.8\,$Hz band is, at
+$\sim\!3$--$6\,$Hz, sampling almost pure noise (Fig.~\ref{fig:params}b). On our
+synthetic, a fixed 20--40\,s window at the high band gives RMS error
+$\sim\!3.8\,\%$ (the noise floor, not the signal), while a window hand-adapted
+to the band (3--12\,s) recovers the truth at $\sim\!0.01\,\%$ --- nearly a
+400$\times$ difference from this one choice alone. This is itself an instance
+of a literature-documented tension: band-matched windowing is recommended, but
+Table~\ref{tab:survey} shows many surveyed studies instead reuse one fixed
+window across bands.
+
+Hand-adapting the window per band, as above, requires knowing the band in
+advance and re-tuning per deployment. A more principled alternative --- used in
+our group --- is to track the coda envelope directly and stop the window where
+it *flattens* onto the noise floor, rather than pre-specifying a window from a
+rule of thumb. We implement this as `coda_window_from_envelope()`: band-pass a
+long-term reference stack, smooth its envelope, estimate the noise floor from a
+common late-lapse window, and take the window end as the first lapse time past
+a short onset where the envelope stays within a factor of that floor for a
+sustained interval (not a single noisy dip). Applied blind (without being told
+which band it is) to three bands spanning low, mid, and high frequency
+(Fig.~\ref{fig:window-envelope}a), the detector recovers windows of
+$\sim\!(3,29)\,$s, $\sim\!(3,37)\,$s, and $\sim\!(3,14)\,$s respectively ---
+correctly shrinking at the high band, though the low-versus-mid ordering is not
+perfectly monotonic on this synthetic (an artifact of how the fixed additive
+noise floor interacts with each band's filter, not a claim that the detector is
+exact). Recovering \dvv\ with each band's own detected window instead of one
+universal fixed (10--30\,s) window (Fig.~\ref{fig:window-envelope}b) gives RMS
+$\sim\!0.032\,\%$ vs.\ $\sim\!0.036\,\%$ at the low band (a modest,
+$\sim\!1.1\times$ gain), $\sim\!0.017\,\%$ vs.\ $\sim\!0.035\,\%$ at the mid
+band ($\sim\!2\times$), and $\sim\!0.019\,\%$ vs.\ $\sim\!1.8\,\%$ at the high
+band ($\sim\!93\times$) --- the fixed window is adequate at low frequency and
+catastrophic at high frequency, while the envelope-derived window is close to
+the best achievable at every band without ever being told what band it is
+measuring.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{demo_15_window_envelope.png}
+  \caption{Coda window / frequency-band covariation. (a) Smoothed coda
+  envelopes at three bands (log scale), shaded by each band's
+  envelope-detected window --- shrinking automatically at higher frequency.
+  (b) RMS error against the known truth for a single universal fixed window
+  versus each band's own envelope-derived window: comparable at low
+  frequency, $\sim\!93\times$ better at high frequency.}
+  \label{fig:window-envelope}
+\end{figure}
 
 ## Choices that create spurious \texorpdfstring{\dvv}{dv/v} {#sec:artifacts}
 

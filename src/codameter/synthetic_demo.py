@@ -1070,6 +1070,54 @@ def _envelope(x: np.ndarray, fs: float, smooth_s: float = 2.0) -> np.ndarray:
     return np.convolve(np.abs(x), np.ones(n) / n, mode="same")
 
 
+def coda_window_from_envelope(
+    t: np.ndarray,
+    ref: np.ndarray,
+    fs: float,
+    band: tuple[float, float],
+    *,
+    t_start: float = 3.0,
+    floor_factor: float = 1.8,
+    floor_window: tuple[float, float] = (40.0, 50.0),
+    persist_s: float = 3.0,
+    smooth_s: float = 1.5,
+) -> tuple[float, float]:
+    """Pick the coda window automatically: track the envelope, stop where it flattens.
+
+    Band-passes ``ref`` (ideally a long-term, low-noise reference stack, not a
+    single noisy daily CCF), smooths its envelope, and estimates a noise floor
+    from the late lapse-time window ``floor_window`` (assumed, for a maxlag long
+    enough, to already be dominated by noise regardless of band). The window end
+    is the first lapse time past ``t_start`` where the envelope stays within
+    ``floor_factor`` of that floor for at least ``persist_s`` seconds (a
+    sustained flattening, not a single noisy dip) -- the same practice as
+    tracking the coda envelope by eye and stopping where it visibly flattens,
+    made automatic and reproducible.
+
+    Frequency-dependent intrinsic attenuation means high-frequency coda energy
+    falls into the noise floor much sooner than low-frequency coda (see
+    :func:`make_freqdep_coda`), so this returns a *shorter* window at high
+    frequency and a *longer* one at low frequency without being told the band
+    in advance -- it discovers the covariation from the data.
+    """
+    bp = bandpass(ref, fs, *band)
+    env = _envelope(bp, fs, smooth_s=smooth_s)
+    pos = t >= 0
+    tp, envp = t[pos], env[pos]
+    fmask = (tp >= floor_window[0]) & (tp <= floor_window[1])
+    floor = np.median(envp[fmask]) if fmask.any() else envp[-1]
+    flat = envp <= floor_factor * floor
+    persist_n = max(1, int(persist_s * fs))
+    sustained = (
+        np.convolve(flat.astype(float), np.ones(persist_n), mode="valid")
+        >= persist_n - 0.5
+    )
+    tsus = tp[: len(sustained)]
+    candidates = np.where((tsus >= t_start) & sustained)[0]
+    t_end = float(tsus[candidates[0]]) if len(candidates) else float(tp[-1])
+    return t_start, t_end
+
+
 # One colour + line style per NoisePy estimator, grouped by family:
 # time-domain warp (solid), phase (dashed), wavelet (dash-dot).
 _MSTYLE = {
@@ -1525,6 +1573,89 @@ def fig_window_band(seed: int = 66):
     return fig
 
 
+def fig_window_envelope(seed: int = 71):
+    """The coda window / frequency-band covariation, and an automatic fix.
+
+    Three bands, each with its own :func:`coda_window_from_envelope` detection:
+    (a) the smoothed envelopes with the detected window marked per band,
+    showing the window shrinking automatically as the band moves to higher
+    frequency. (b) dv/v RMS against the known truth for a single universal
+    fixed window (chosen for the low band) versus each band's own
+    envelope-derived window -- the fixed window is fine at low frequency but
+    catastrophic at high frequency, where it samples almost pure noise; the
+    envelope-derived window recovers the truth at every band without being
+    told the band in advance.
+    """
+    import matplotlib.pyplot as plt
+
+    s = Synth()
+    fs = s.fs
+    tf, cf = make_freqdep_coda(fs=fs, seed=2)
+    bands = [(0.3, 0.8), (1.0, 2.5), (3.0, 6.0)]
+    band_labels = ["low 0.3–0.8 Hz", "mid 1.0–2.5 Hz", "high 3.0–6.0 Hz"]
+    band_cols = [C["alt"], C["landslide"], C["groundwater"]]
+    fixed_window = (10.0, 30.0)  # a single universal window, ignoring the band
+
+    ref_stack = daily_ccfs(
+        tf, [cf], [np.zeros(60)], fs=fs, snr=8.0, gen_band=(0.2, 8.0), seed=5
+    ).mean(axis=0)
+    days = _days(1.5)[::3]
+    truth = _seasonal(days, 0.0015, 60)
+
+    windows, rms_fixed, rms_adapt = [], [], []
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
+    m = tf >= 0
+    for band, lab, col in zip(bands, band_labels, band_cols, strict=True):
+        t1, t2 = coda_window_from_envelope(tf, ref_stack, fs, band)
+        windows.append((t1, t2))
+        env = _envelope(bandpass(ref_stack, fs, *band), fs, smooth_s=1.5)
+        norm = env[m].max()
+        axA.semilogy(tf[m], env[m] / norm, color=col, lw=1.4, label=lab)
+        axA.axvspan(t1, t2, color=col, alpha=0.12, lw=0)
+
+        ccfs = daily_ccfs(
+            tf, [cf], [truth], fs=fs, snr=8.0, gen_band=(0.2, 8.0), seed=seed
+        )
+        rf, _ = measure_stretching(ccfs, cf, tf, band=band, fs=fs, window=fixed_window)
+        ra, _ = measure_stretching(ccfs, cf, tf, band=band, fs=fs, window=(t1, t2))
+        v = np.isfinite(rf)
+        rms_fixed.append(float(np.sqrt(np.mean((rf[v] - truth[v]) ** 2))) * PCT)
+        v = np.isfinite(ra)
+        rms_adapt.append(float(np.sqrt(np.mean((ra[v] - truth[v]) ** 2))) * PCT)
+
+    axA.set(
+        xlabel="lapse time (s)",
+        ylabel="coda envelope (norm.)",
+        ylim=(1e-3, 2),
+        title="(a) window shrinks with frequency",
+    )
+    axA.legend(loc="upper right", fontsize=8)
+
+    x = np.arange(len(bands))
+    w = 0.35
+    axB.bar(
+        x - w / 2, rms_fixed, width=w, color=C["bad"], label="universal fixed window"
+    )
+    axB.bar(
+        x + w / 2,
+        rms_adapt,
+        width=w,
+        color=C["groundwater"],
+        label="envelope-adaptive window",
+    )
+    axB.set_yscale("log")
+    axB.set(
+        xticks=x,
+        xticklabels=band_labels,
+        ylabel="RMS error vs truth (dv/v, %, log)",
+        title="(b) fixed window fails at high band",
+    )
+    axB.tick_params(axis="x", labelsize=7.5, rotation=15)
+    axB.legend(loc="upper left", fontsize=8)
+    fig.tight_layout()
+    return fig
+
+
 def fig_stacking(seed: int = 22):
     """Earthquake: stack length trades noise against coseismic-step sharpness."""
     import matplotlib.pyplot as plt
@@ -1937,6 +2068,7 @@ FIGURES = {
     "demo_14_network_pairs": fig_network_pairs,
     "demo_4_frequency_depth": fig_frequency_depth,
     "demo_5_window_band": fig_window_band,
+    "demo_15_window_envelope": fig_window_envelope,
     "demo_6_stacking": fig_stacking,
     "demo_7_reference": fig_reference,
     "demo_8_artifacts": fig_artifacts,
