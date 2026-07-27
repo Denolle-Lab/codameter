@@ -4,10 +4,60 @@ All notable changes to `codameter` will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.3.0 — 2026-07-27
 
 ### Added
 
+- **Hideable golden set** — a truth-free agent view of the golden benchmark
+  (secret truth parameters withheld, a public sample exposed), with a
+  pip-installable generator and a `--exclude-public` toggle for scoring runs
+  that must not leak ground truth.
+- **`codameter-bench`** — a shardable config-sweep CLI for running the
+  benchmark on Fargate/Batch, with a bench plan sized to the loaded corpus.
+- **2D radiative-transfer coda envelope** (`rt_envelope_2d`,
+  `make_freqdep_coda`) — replaces the ad hoc exponential coda envelope with
+  the exact single-scattering solution for isotropic scattering (Sato 1993;
+  Paasschens 1997), including frequency-dependent absorption so high-frequency
+  coda decays faster than low-frequency coda, as in real data.
+- **Causal/acausal branch-asymmetry tools** (`impose_dvv_branch`,
+  `branch_daily_ccfs`, `branch_combines`, `fig_branch_asymmetry`) — test
+  whether taking the branch with the larger measured change is defensible
+  given measurement-error asymmetry between the two branches.
+- **`coda_window_from_envelope`** — picks a coda window automatically by
+  tracking a reference stack's envelope and stopping where it flattens onto
+  the noise floor, instead of a hand-tuned window per frequency band.
+- **`paper/manuscript_marine.qmd`** — the GJI draft now builds natively under
+  the real `gji.cls`, with a GitHub Action syncing the built manuscript and
+  figures to a paper-only repo that Overleaf's GitHub Sync reads from.
+
+### Changed
+
+- **Breaking:** the FrugalMind suite `dataset_id` is renamed from
+  `dvv_processing` to `codameter` (`src/codameter/frugalmind.py`), changing
+  the suite/CLI name and the exported JSONL path
+  (`datasets/codameter/v0.1/*.jsonl`). Harnesses pinned to a version before
+  this change must update their suite name when they upgrade past it.
+
+## 0.2.1 — 2026-07-12
+
+### Fixed
+
+- Validate the golden manifest version and self-heal a corrupt or stale
+  per-user cache (re-derive from the authoritative manifest) instead of
+  raising on an out-of-date cache.
+- Fix the golden data directory resolution when installed via pip.
+
+### Added
+
+- Workflow chart on the narrative site (navbar "Workflow").
+
+## 0.2.0 — 2026-07-11
+
+### Added
+
+- **Graded golden benchmark** — 30 cases (easy/medium/hard, multi-channel
+  hard), with the hard grade depth- and frequency-dependent, and FrugalMind-suite
+  compatible (`golden.recover`, depth-aware grid).
 - **`codameter.deviations`** — best-practice baseline plus a documented
   deviation menu (estimator, band, coda window, stack, reference, gating). One
   function ranks each deviation by the bias and drop-distortion it injects on a
