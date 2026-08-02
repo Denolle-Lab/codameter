@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(deep-research)",
+      "Skill(deep-research:*)"
+    ]
+  }
+}

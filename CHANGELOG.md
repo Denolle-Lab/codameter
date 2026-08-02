@@ -4,6 +4,17 @@ All notable changes to `codameter` will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- **`run_pipeline(..., return_cc=True)`** — optionally return the per-epoch
+  stretching correlation coefficient alongside `(dvv, valid)`, for
+  coherence-based error models (`uq_measurement.weaver_stretching_error`).
+  Works for fixed and moving references with the stretching estimator; NaN
+  otherwise. The default two-tuple return and all gating behavior are
+  unchanged (CC-gating remains fixed-reference-only).
+
 ## 0.3.0 — 2026-07-27
 
 ### Added
