@@ -1070,6 +1070,54 @@ def _envelope(x: np.ndarray, fs: float, smooth_s: float = 2.0) -> np.ndarray:
     return np.convolve(np.abs(x), np.ones(n) / n, mode="same")
 
 
+def coda_window_from_envelope(
+    t: np.ndarray,
+    ref: np.ndarray,
+    fs: float,
+    band: tuple[float, float],
+    *,
+    t_start: float = 3.0,
+    floor_factor: float = 1.8,
+    floor_window: tuple[float, float] = (40.0, 50.0),
+    persist_s: float = 3.0,
+    smooth_s: float = 1.5,
+) -> tuple[float, float]:
+    """Pick the coda window automatically: track the envelope, stop where it flattens.
+
+    Band-passes ``ref`` (ideally a long-term, low-noise reference stack, not a
+    single noisy daily CCF), smooths its envelope, and estimates a noise floor
+    from the late lapse-time window ``floor_window`` (assumed, for a maxlag long
+    enough, to already be dominated by noise regardless of band). The window end
+    is the first lapse time past ``t_start`` where the envelope stays within
+    ``floor_factor`` of that floor for at least ``persist_s`` seconds (a
+    sustained flattening, not a single noisy dip) -- the same practice as
+    tracking the coda envelope by eye and stopping where it visibly flattens,
+    made automatic and reproducible.
+
+    Frequency-dependent intrinsic attenuation means high-frequency coda energy
+    falls into the noise floor much sooner than low-frequency coda (see
+    :func:`make_freqdep_coda`), so this returns a *shorter* window at high
+    frequency and a *longer* one at low frequency without being told the band
+    in advance -- it discovers the covariation from the data.
+    """
+    bp = bandpass(ref, fs, *band)
+    env = _envelope(bp, fs, smooth_s=smooth_s)
+    pos = t >= 0
+    tp, envp = t[pos], env[pos]
+    fmask = (tp >= floor_window[0]) & (tp <= floor_window[1])
+    floor = np.median(envp[fmask]) if fmask.any() else envp[-1]
+    flat = envp <= floor_factor * floor
+    persist_n = max(1, int(persist_s * fs))
+    sustained = (
+        np.convolve(flat.astype(float), np.ones(persist_n), mode="valid")
+        >= persist_n - 0.5
+    )
+    tsus = tp[: len(sustained)]
+    candidates = np.where((tsus >= t_start) & sustained)[0]
+    t_end = float(tsus[candidates[0]]) if len(candidates) else float(tp[-1])
+    return t_start, t_end
+
+
 # One colour + line style per NoisePy estimator, grouped by family:
 # time-domain warp (solid), phase (dashed), wavelet (dash-dot).
 _MSTYLE = {
@@ -1096,7 +1144,15 @@ def fig_methods(seed: int = 11):
     recs = {
         m: measure(m, cur, s.ref, s.t, band=band, fs=s.fs, window=win) for m in METHODS
     }
-    # (b) a large, smoothly varying change (landslide pre-failure); decimate days
+    # (b) the same clean recovery, swept over the full +/-5 % range, to show
+    # exactly where and how each estimator family breaks from the 1:1 line.
+    trues_wide = np.linspace(-0.05, 0.05, 41)
+    cur_wide = np.stack([impose_dvv(s.ref, s.t, x) for x in trues_wide])
+    recs_wide = {
+        m: measure(m, cur_wide, s.ref, s.t, band=band, fs=s.fs, window=win)
+        for m in METHODS
+    }
+    # (c) a large, smoothly varying change (landslide pre-failure); decimate days
     # so the per-day DTW/WTDTW warps stay fast.
     days = _days(3.0)[::3]
     truth = landslide_truth(days)
@@ -1110,7 +1166,7 @@ def fig_methods(seed: int = 11):
             kw.update(sub)
         recL[m] = measure(m, ccfs, s.ref, s.t, **kw)
 
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
+    fig, (axA, axB, axC) = plt.subplots(1, 3, figsize=(9.8, 3.6))
     axA.plot([-0.5, 0.5], [-0.5, 0.5], color="0.6", lw=1, ls=":", label="1:1 (truth)")
     for m in METHODS:
         col, ls = _MSTYLE[m]
@@ -1130,18 +1186,36 @@ def fig_methods(seed: int = 11):
         title="(a) clean, small dv/v",
     )
     axA.legend(loc="upper left", fontsize=8, ncol=2)
-    axB.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.6, label="truth")
+    axB.plot([-5, 5], [-5, 5], color="0.6", lw=1, ls=":", label="1:1 (truth)")
     for m in METHODS:
         col, ls = _MSTYLE[m]
         axB.plot(
-            _yrs(days), recL[m] * PCT, ls=ls, color=col, lw=1.2, alpha=0.9, label=m
+            trues_wide * PCT,
+            recs_wide[m] * PCT,
+            ls=ls,
+            lw=1.3,
+            color=col,
+            alpha=0.9,
+            label=m,
         )
     axB.set(
+        xlabel="true dv/v (%)",
+        ylabel="recovered dv/v (%)",
+        title="(b) clean, $\\pm 5\\,\\%$ sweep",
+    )
+    axB.legend(loc="upper left", fontsize=7.5, ncol=2)
+    axC.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.6, label="truth")
+    for m in METHODS:
+        col, ls = _MSTYLE[m]
+        axC.plot(
+            _yrs(days), recL[m] * PCT, ls=ls, color=col, lw=1.2, alpha=0.9, label=m
+        )
+    axC.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        title="(b) large dv/v — MWCS cycle-skips",
+        title="(c) large dv/v — MWCS cycle-skips",
     )
-    axB.legend(loc="lower left", fontsize=8, ncol=2)
+    axC.legend(loc="lower left", fontsize=8, ncol=2)
     fig.tight_layout()
     return fig
 
@@ -1175,13 +1249,22 @@ def fig_aggregation(seed: int = 88):
     A_unw = dvv_c.mean(axis=0)
     A_wt = (cc_c * dvv_c).sum(axis=0) / (cc_c.sum(axis=0) + 1e-12)
     # Approach B — average the CC images, then peak-pick once. Its uncertainty is
-    # the *width of the averaged CC peak* (treating CC as a likelihood over eps),
-    # a different statistical object from A's ensemble spread.
+    # the *local width of the averaged CC peak* (a half-max/FWHM-style width
+    # around the peak, not a moment over the full search range -- the latter is
+    # dominated by the width of the epsilon search window itself, not by how
+    # sharp the peak actually is, and barely varies day to day).
     mean_img = images.mean(axis=0)
     B, _ = peak_dvv(es, mean_img)
-    w = np.clip(mean_img, 0, None)
-    mu = (w * es).sum(1) / w.sum(1)
-    sig_B = np.sqrt((w * (es - mu[:, None]) ** 2).sum(1) / w.sum(1))
+    peak_val = mean_img.max(axis=1)
+    w_local = np.clip(mean_img - (peak_val / 2.0)[:, None], 0, None)
+    mu_local = (w_local * es).sum(1) / w_local.sum(1)
+    sig_B = np.sqrt((w_local * (es - mu_local[:, None]) ** 2).sum(1) / w_local.sum(1))
+
+    # Shared y-limits so (a) and (b) are directly comparable, sized to fit
+    # Approach A's real (unclipped) excursions -- the per-component grey lines
+    # go further still (poor components swing to +/-6 %) but are background
+    # context, not the point, so they are allowed to clip at the edges.
+    ylim = (-1.4, 1.4)
 
     fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
     for d in dvv_c:
@@ -1222,21 +1305,28 @@ def fig_aggregation(seed: int = 88):
     axA.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        ylim=(-0.4, 0.4),
-        title="(a) 3 defensible recipes, 3 answers",
+        ylim=ylim,
+        title="(a) Component aggregation: three recipes",
     )
     leg = axA.legend(loc="lower left", fontsize=7.5, frameon=True)
     leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
     extent = [_yrs(days)[0], _yrs(days)[-1], es[0] * PCT, es[-1] * PCT]
-    axB.imshow(
-        mean_img.T, aspect="auto", origin="lower", extent=extent, cmap="magma", vmin=0
+    im = axB.imshow(
+        mean_img.T,
+        aspect="auto",
+        origin="lower",
+        extent=extent,
+        cmap="magma_r",  # reversed: dark = high CC, matching the paper's convention
+        vmin=0,
     )
-    axB.plot(_yrs(days), B * PCT, color="white", lw=0.8, label="peak of mean CC (B)")
-    axB.plot(_yrs(days), truth * PCT, color="cyan", lw=1.0, ls="--", label="truth")
+    cbar = fig.colorbar(im, ax=axB, pad=0.02)
+    cbar.set_label("coherence CC (dark = high)")
+    axB.plot(_yrs(days), B * PCT, color="white", lw=1.2, label="peak of mean CC (B)")
+    axB.plot(_yrs(days), truth * PCT, color="black", lw=1.0, ls="--", label="truth")
     axB.set(
         xlabel="time (years)",
         ylabel="dv/v candidate (%)",
-        ylim=(-0.35, 0.3),
+        ylim=ylim,
         title="(b) averaged CC(dv/v, t) image (B)",
     )
     axB.legend(loc="upper right", fontsize=8)
@@ -1302,6 +1392,8 @@ def network_dvv(
     return {
         "truth": truth,
         "es": es,
+        "pair_dvv": pair_dvv,  # [n_pairs, ndays] -- the individual pair curves
+        "pair_snr": pair_snr,
         "weighted_se": {"dvv": W, "sigma": W_se},
         "unweighted_se": {"dvv": U, "sigma": sd / np.sqrt(n_pairs)},
         "unweighted_sd": {"dvv": U, "sigma": sd},
@@ -1351,6 +1443,60 @@ def fig_uncertainty(seed: int = 123):
         title=f"(b) the error bar is a choice (≈{ratio:.1f}× range)",
     )
     axB.legend(loc="upper left", fontsize=8)
+    fig.tight_layout()
+    return fig
+
+
+def fig_network_pairs(seed: int = 123):
+    """The per-pair spread that Fig. fig:uncertainty's network-level view hides.
+
+    A basin-scale, urban ambient-noise deployment (in the style of the San
+    Gabriel Valley groundwater network of Clements & Denolle 2018 -- an
+    illustrative, not a literal, reproduction of that network's exact station
+    geometry) has station pairs of heterogeneous quality: some pairs sit on
+    thick, well-coupled sediment with high SNR, others are noisier. Plotting
+    the individual per-pair dv/v(t) curves (not just the network-aggregate
+    mean and its error bars, as in Fig. fig:uncertainty) shows that the true
+    pair-to-pair spread is wider than any of the three network conventions'
+    error bars communicate on their own.
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import Normalize
+
+    days = _days(3.0)
+    truth = _seasonal(days, 0.0012, 60) - 0.0008 * (days >= int(1.5 * YEAR_D))
+    R = network_dvv(truth, seed=seed)
+    pair_dvv, pair_snr = R["pair_dvv"], R["pair_snr"]
+    yr = _yrs(days)
+
+    fig, ax = plt.subplots(figsize=(6.0, 4.0))
+    order = np.argsort(-pair_snr)  # best SNR first, for a readable legend/colour ramp
+    cmap = plt.get_cmap("viridis")
+    for rank, p in enumerate(order):
+        ax.plot(
+            yr,
+            pair_dvv[p] * PCT,
+            color=cmap(rank / max(1, len(order) - 1)),
+            lw=0.9,
+            alpha=0.85,
+        )
+    ax.plot(yr, truth * PCT, color=C["truth"], lw=2.4, label="network truth")
+    lo = np.nanmin(pair_dvv, axis=0) * PCT
+    hi = np.nanmax(pair_dvv, axis=0) * PCT
+    ax.fill_between(
+        yr, lo, hi, color="0.5", alpha=0.15, lw=0, label="individual-pair range"
+    )
+    sm = plt.cm.ScalarMappable(
+        cmap=cmap, norm=Normalize(vmin=pair_snr.min(), vmax=pair_snr.max())
+    )
+    cbar = fig.colorbar(sm, ax=ax, pad=0.02)
+    cbar.set_label("pair SNR")
+    ax.set(
+        xlabel="time (years)",
+        ylabel="dv/v (%)",
+        title="Individual station-pair dv/v -- wider than the network error bar",
+    )
+    ax.legend(loc="lower left", fontsize=8.5)
     fig.tight_layout()
     return fig
 
@@ -1424,6 +1570,89 @@ def fig_window_band(seed: int = 66):
     )
     leg = axB.legend(loc="lower left", fontsize=8.5, frameon=True)
     leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    fig.tight_layout()
+    return fig
+
+
+def fig_window_envelope(seed: int = 71):
+    """The coda window / frequency-band covariation, and an automatic fix.
+
+    Three bands, each with its own :func:`coda_window_from_envelope` detection:
+    (a) the smoothed envelopes with the detected window marked per band,
+    showing the window shrinking automatically as the band moves to higher
+    frequency. (b) dv/v RMS against the known truth for a single universal
+    fixed window (chosen for the low band) versus each band's own
+    envelope-derived window -- the fixed window is fine at low frequency but
+    catastrophic at high frequency, where it samples almost pure noise; the
+    envelope-derived window recovers the truth at every band without being
+    told the band in advance.
+    """
+    import matplotlib.pyplot as plt
+
+    s = Synth()
+    fs = s.fs
+    tf, cf = make_freqdep_coda(fs=fs, seed=2)
+    bands = [(0.3, 0.8), (1.0, 2.5), (3.0, 6.0)]
+    band_labels = ["low 0.3–0.8 Hz", "mid 1.0–2.5 Hz", "high 3.0–6.0 Hz"]
+    band_cols = [C["alt"], C["landslide"], C["groundwater"]]
+    fixed_window = (10.0, 30.0)  # a single universal window, ignoring the band
+
+    ref_stack = daily_ccfs(
+        tf, [cf], [np.zeros(60)], fs=fs, snr=8.0, gen_band=(0.2, 8.0), seed=5
+    ).mean(axis=0)
+    days = _days(1.5)[::3]
+    truth = _seasonal(days, 0.0015, 60)
+
+    windows, rms_fixed, rms_adapt = [], [], []
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
+    m = tf >= 0
+    for band, lab, col in zip(bands, band_labels, band_cols, strict=True):
+        t1, t2 = coda_window_from_envelope(tf, ref_stack, fs, band)
+        windows.append((t1, t2))
+        env = _envelope(bandpass(ref_stack, fs, *band), fs, smooth_s=1.5)
+        norm = env[m].max()
+        axA.semilogy(tf[m], env[m] / norm, color=col, lw=1.4, label=lab)
+        axA.axvspan(t1, t2, color=col, alpha=0.12, lw=0)
+
+        ccfs = daily_ccfs(
+            tf, [cf], [truth], fs=fs, snr=8.0, gen_band=(0.2, 8.0), seed=seed
+        )
+        rf, _ = measure_stretching(ccfs, cf, tf, band=band, fs=fs, window=fixed_window)
+        ra, _ = measure_stretching(ccfs, cf, tf, band=band, fs=fs, window=(t1, t2))
+        v = np.isfinite(rf)
+        rms_fixed.append(float(np.sqrt(np.mean((rf[v] - truth[v]) ** 2))) * PCT)
+        v = np.isfinite(ra)
+        rms_adapt.append(float(np.sqrt(np.mean((ra[v] - truth[v]) ** 2))) * PCT)
+
+    axA.set(
+        xlabel="lapse time (s)",
+        ylabel="coda envelope (norm.)",
+        ylim=(1e-3, 2),
+        title="(a) window shrinks with frequency",
+    )
+    axA.legend(loc="upper right", fontsize=8)
+
+    x = np.arange(len(bands))
+    w = 0.35
+    axB.bar(
+        x - w / 2, rms_fixed, width=w, color=C["bad"], label="universal fixed window"
+    )
+    axB.bar(
+        x + w / 2,
+        rms_adapt,
+        width=w,
+        color=C["groundwater"],
+        label="envelope-adaptive window",
+    )
+    axB.set_yscale("log")
+    axB.set(
+        xticks=x,
+        xticklabels=band_labels,
+        ylabel="RMS error vs truth (dv/v, %, log)",
+        title="(b) fixed window fails at high band",
+    )
+    axB.tick_params(axis="x", labelsize=7.5, rotation=15)
+    axB.legend(loc="upper left", fontsize=8)
     fig.tight_layout()
     return fig
 
@@ -1837,8 +2066,10 @@ FIGURES = {
     "demo_1_methods": fig_methods,
     "demo_2_aggregation": fig_aggregation,
     "demo_3_uncertainty": fig_uncertainty,
+    "demo_14_network_pairs": fig_network_pairs,
     "demo_4_frequency_depth": fig_frequency_depth,
     "demo_5_window_band": fig_window_band,
+    "demo_15_window_envelope": fig_window_envelope,
     "demo_6_stacking": fig_stacking,
     "demo_7_reference": fig_reference,
     "demo_8_artifacts": fig_artifacts,

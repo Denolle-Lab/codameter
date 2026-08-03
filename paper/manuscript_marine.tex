@@ -246,7 +246,7 @@
 \title{The reproducibility cost of ad-hoc processing choices in
 ambient-noise seismic velocity-change monitoring}
 \author{M. A. Denolle}
-\date{2026-07-22}
+\date{2026-08-02}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -321,11 +321,11 @@ strething \citep[\citet{Mao2020}, \citet{Yuan2021}]{Mikesell2015},
 frequency band and coda window (which together set the sampled depth;
 \citeauthor{Obermann2013}
 \citetext{\citeyear{Obermann2013}; \citealp{Obermann2016}}), reference
-window \citep[\citet{Ermert2023}, \citet{Okubo24}]{Brenguier2014}, how
+window \citep[\citet{Ermert2023}, \citet{Okubo2024}]{Brenguier2014}, how
 much to substack to increase coherence among windows (Hadzianou Celine),
 and how to aggregate and weight the many cross-component and
 station-pair measurements that make up a single reported \dvv~time
-series (e.g., \citet{hobiger14}). These choices are typically made by
+series (e.g., \citet{Hobiger2012}). These choices are typically made by
 habit, justified briefly if at all , and rarely reported in enough
 detail to reproduce. The community has long flagged \emph{individual}
 pitfalls (spurious changes from non-stationary noise, \citet{Zhan2013};
@@ -411,10 +411,10 @@ repeated time series is produced by generating this stretched coda with
 a prescribed ground-truth \(\dvv(t)\) and additive band-limited noise at
 a controlled signal-to-noise ratio. The concept has been demonstrated
 using full waveform modeling in several previous studies
-(\citet{Obermann2013}, \citet{Obermann2016},\citet{Yuan2021}), therefore
-we do not model these effects using full waveforms. Because the imposed
-\(\dvv(t)\) is known, every departure of a recovered series from it is
-an artefact of the processing, not of the data.
+\citep{Obermann2013, Obermann2016, Yuan2021}, so we do not repeat that
+full-waveform modeling here. Because the imposed \(\dvv(t)\) is known,
+every departure of a recovered series from it is an artefact of the
+processing, not of the data.
 
 We utilize seven \dvv~estimators that were implemented in
 \texttt{noisepy} in the \texttt{monitoring\_methods} module
@@ -487,70 +487,128 @@ Clock / timing & causal vs acausal branch handling & A clock error fabricates
 \end{tabularx}
 \end{table}
 
-\section{Measurement: how the choices move the velocity change and its
-error}\label{sec:results}
+\section{\texorpdfstring{parameter-dependent \dvv~and its
+errors}{parameter-dependent ~and its errors}}\label{sec:results}
 
-The literature agrees on the components of a well-posed \dvv~measurement
---- a stretching-family estimator for robustness at low SNR and large
-change \citep{Mikesell2015, Yuan2021}, a coherence-based error model
-\citep{Clarke2011, Weaver2011}, a long stable reference
+The literature agrees on the components of a well-posed
+\dvv~measurement: a stretching-family estimator for robustness at low
+SNR and large change \citep{Mikesell2015, Yuan2021}, a coherence-based
+error model \citep{Clarke2011, Weaver2011}, a long stable reference
 \citep{Wang2017}, and cross-validation against a second estimator
-\citep{Obermann2019} --- yet studies do not always report the same set,
-and the uncertainty convention is rarely, if ever, quantified
+\citep{Obermann2019}. Yet studies do not always report the same set, and
+the uncertainty convention is rarely, if ever, quantified
 (Appendix\textasciitilde{}\ref{app:survey}). The sections below address
 each component in turn and quantify, against a known truth, how far a
-reasonable deviation moves the recovered value and its stated error. The
+parameter choice impacts the recovered \dvv~and its error. The
 deliverable of this section is a measurement covariance, which every
 subsequent step in the inference chain
 (Sections\textasciitilde{}\ref{sec:depth}--\ref{sec:stress}) consumes.
 
+Each of the parametric components is implemented in a single
+comprehensive package \texttt{codameter} that borrows from
+\texttt{msnoise} \citep{Lecocq2014} and \texttt{noisepy}
+\citep{Jiang2020} to extract the measurement of \dvv~from the ambient
+noise monitoring workflow and generalize it to any coda wave from
+repeated source-receiver paths.
+
+Table\textasciitilde{}\ref{tab:results-synthesis} previews the RMS error
+against the known synthetic ground truth for the best- and worst-case
+option on each axis covered in this section, each derived in its own
+dedicated synthetic (detailed in the corresponding subsection below); it
+is a synthesis of \emph{this section's} per-choice numbers, distinct
+from Table\textasciitilde{}\ref{tab:bp-measure}'s one-at-a-time sweep on
+a single shared scenario in
+Section\textasciitilde{}\ref{sec:multiverse}.
+
+\begin{table}
+\footnotesize
+\caption{Synthesis of Section~\ref{sec:results}: RMS error against the known
+synthetic truth for the best- and worst-case option on each axis, each from
+its own dedicated synthetic scenario (see the cross-referenced subsection).}
+\label{tab:results-synthesis}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.2cm} L L L@{}}
+\toprule
+\textbf{Axis} & \textbf{Best-case RMS} & \textbf{Worst-case RMS} & \textbf{Section} \\
+\midrule
+Estimator (family split) & $<\!0.01\,\%$ (TS/WTS, up to 5\,\% true \dvv) &
+cycle-skip $>\!0.5\,\%$ past $\sim\!1.4\,\%$ true \dvv\ (MWCS) &
+Section~\ref{sec:methods-fig} \\ \hline
+Cross-component aggregation & $\sim\!0.03\,\%$ (Approach B, averaged images) &
+$\sim\!0.31\,\%$ (Approach A, unweighted) & Section~\ref{sec:aggregation} \\ \hline
+Network aggregation (per-pair spread) & $\sim\!0.005\,\%$ (network SE) &
+$\sim\!0.05\,\%$ (individual-pair range) & Section~\ref{sec:uncertainty} \\ \hline
+Frequency band & $\sim\!0.003$--$0.03\,\%$ (matched to depth) &
+$\sim\!0.10\,\%$ (mismatched) & Section~\ref{sec:params} \\ \hline
+Coda window & $\sim\!0.01\,\%$ (adapted to band) &
+$\sim\!3.8\,\%$ (fixed, wrong band) & Section~\ref{sec:window} \\ \hline
+Reference scheme & $\sim\!0.03$--$0.04\,\%$ (fixed stack / joint inversion) &
+$\sim\!0.16\,\%$ (60-day moving) & Section~\ref{sec:params} \\ \hline
+Stack length & $\sim\!0.018\,\%$ (10-day) &
+$\sim\!0.044\,\%$ (1-day, noisy) & Section~\ref{sec:params} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 \subsection{Estimator family}\label{sec:methods-fig}
 
-\subsection{TO REVIEW}\label{to-review}
-
 On small, clean \dvv, all seven estimators agree, demonstrating
-robustness of the methods (Fig.\textasciitilde{}\ref{fig:methods}a). The
-estimator choice becomes consequential at large
-\dvv~(Fig.\textasciitilde{}\ref{fig:methods}b), where the methods split
-by family. The stretching family (TS, WTS) and WCC match the whole
-dilated coda and remain accurate; the phase methods read a wrapped
-phase, so MWCS cycle-skips, while the \emph{same} cross-wavelet phase,
-once unwrapped in 2-D, recovers the change --- success or failure
-turning on the unwrapping sub-choice alone. The warping methods (DTW,
-WTDTW) track but under-shoot the largest strains. No estimator is simply
-``right''; an undocumented estimator choice can alters the
-\dvv~measurements for larger strain changes.
-
-The wavelet methods use a dependency-free Morlet continuous wavelet
-transform; WCS optionally unwraps the cross-wavelet phase in two
-dimensions (along lapse, anchored at \(\tau\!\to\!0\), then along
-frequency) following \citet{Mao2020}.
+robustness of the methods (Fig.\textasciitilde{}\ref{fig:methods}a).
+Sweeping the same clean recovery out to \(\pm 5\,\%\)
+(Fig.\textasciitilde{}\ref{fig:methods}b) shows exactly where and how
+each family first departs from the 1:1 line, and the estimator choice
+becomes consequential at large, noisy
+\dvv~(Fig.\textasciitilde{}\ref{fig:methods}c), where the effect of the
+methods is split according to their phase measurement approaches. The
+stretching family (TS, WTS) and WCC match the whole dilated coda and
+remain accurate for high SNR coda waves; the phase methods (MWCS) read a
+wrapped phase and may cycle-skips, while the \emph{same} cross-wavelet
+phase (WCS), once unwrapped in 2-D, recovers the change. The warping
+methods (DTW, WTDTW) track but under-shoot the largest strains. No
+estimator is simply ``right'' and choices in the estimators can alters
+the \dvv~measurements for larger strain changes.
 
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_1_methods.png}
   \caption{Estimator choice across the seven NoisePy methods. (a) Clean,
-  small \dvv: all agree. (b) Large \dvv\ (a pre-failure landslide signal): MWCS
-  cycle-skips, 2-D-unwrapped WCS and the stretching family track, the warping
-  methods under-shoot.}
+  small \dvv: all agree. (b) The same clean recovery swept over $\pm 5\,\%$
+  true \dvv: MWCS cycle-skips almost immediately past $\pm 1$--$2\,\%$, DTW/WTDTW
+  break past $\pm 3$--$4\,\%$, WCS degrades smoothly, while TS/WTS/WCC track the
+  1:1 line throughout. (c) Large, noisy \dvv\ (a pre-failure landslide signal):
+  MWCS cycle-skips, 2-D-unwrapped WCS and the stretching family track, the
+  warping methods under-shoot.}
   \label{fig:methods}
 \end{figure}
 
-\subsection{Aggregating cross-components}\label{sec:aggregation}
+On a clean, noiseless sweep of true \dvv~from 0 to 5,\%
+(Fig.\textasciitilde{}\ref{fig:methods}b), the phase-wrapped MWCS
+estimator is the first to break: its error stays below \(0.1\,\%\) up to
+a true \dvv~of \(\sim\!1.2\,\%\), then jumps discontinuously past
+\(0.5\,\%\) error by \(\sim\!1.4\,\%\) true \dvv~--- the cycle-skip. The
+stretching family (TS, WTS) stays below \(0.01\,\%\) error out to the
+full 5,\% tested, and WCC stays below \(0.1\,\%\); the warping methods
+(DTW, WTDTW) are accurate at small \dvv~but develop intermittent, large
+(\(>\!1\,\%\)) errors from \(\sim\!3\,\%\) true \dvv~onward as the warp
+path becomes ill-conditioned, while WCS degrades smoothly rather than
+catastrophically, crossing \(1\,\%\) error only beyond \(\sim\!4\,\%\)
+true \dvv.
+
+\subsection{Aggregating cross-component results}\label{sec:aggregation}
 
 Each three-component seismic station (e.g., Z, N, E) carries 6
 cross-componet correlations (ZZ, NN, EE, ZE, ZN, NE), whether they are
 calculated at the single station or a inter-station pair. Each carry a
 signature of the changes in velocity, components may be dominated by
-Love or Rayleigh waves (REF), but there scattering and non-straight ray
-path induce cross-component leakage between modes (REF), and thus it is
-often assumed in practice that coda waves of cross-components with
-multi-scattering characteristixcs (e.g., no clearly separated phases)
-are compoed of ``surface waves'' with strong S-wave sensitivity.
-Combining them together requires parameter choices, such as averaging
-them directly (REF), or weighted (e.g., using coherence-based weighting
-\citet{hobiger14}). Combining is another workflow choice that can change
-both the value and the uncertainty
+Love or Rayleigh waves \citep{Lin2008, Stehly2006}, but there scattering
+and non-straight ray path induce cross-component leakage between modes
+\citep{Hennino2001, Margerin2019}, and thus it is often assumed in
+practice that coda waves of cross-components with multi-scattering
+characteristixcs (e.g., no clearly separated phases) are composed of
+``surface waves'' with strong S-wave sensitivity. Combining them
+together requires parameter choices, such as averaging them directly
+\citep{Liu2014}, or weighted (e.g., using coherence-based weighting
+\citet{Hobiger2012}, \citet{DePlaen2016}). Combining is another workflow
+choice that can change both the value and the uncertainty
 (Fig.\textasciitilde{}\ref{fig:aggregation}). One may peak-pick each
 component's correlation-coefficient curve \(\mathrm{CC}(\varepsilon,t)\)
 and then average the per-component \dvv~(Approach A) --- unweighted, a
@@ -560,35 +618,45 @@ suppressed --- or one may average the \(\mathrm{CC}(\varepsilon,t)\)
 All three conventions appear in the literature; on the same pair they
 give visibly different time series, and they propagate uncertainty along
 incompatible pathways (the ensemble spread of the per-component picks
-for A, the width of the averaged correlation peak for B).
+for A, the width of the averaged correlation peak for B). On our
+six-component synthetic (three good, three poor SNR), the RMS error
+against the known truth is \(\sim\!0.31\,\%\) for unweighted Approach A,
+\(\sim\!0.08\,\%\) for coherence-weighted Approach A (the poor
+components suppressed, \(\sim\!4\times\) better), and \(\sim\!0.03\,\%\)
+for Approach B (averaging the images before peak-picking,
+\(\sim\!11\times\) better than the unweighted mean and \(\sim\!3\times\)
+better than the weighted one).
 
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_2_aggregation.png}
-  \caption{Cross-component aggregation for one station pair. (a) Unweighted
-  \dvv-averaging is biased by the poor components, while coherence-weighting and
-  image-averaging track the truth. (b) The averaged $\mathrm{CC}(\dvv,t)$ image
-  of Approach B with its peak ridge.}
+  \caption{Cross-component aggregation for one station pair, both panels on the
+  same \dvv\ axis. (a) Unweighted \dvv-averaging (Approach A) is biased by the
+  poor components (grey), while coherence-weighting and image-averaging
+  (Approach B) track the truth; the shaded band is B's local peak-width
+  uncertainty. (b) The averaged $\mathrm{CC}(\dvv,t)$ image of Approach B
+  (dark = high coherence) with its peak ridge (white) tracking the truth
+  (black, dashed).}
   \label{fig:aggregation}
 \end{figure}
 
-\subsection{Network aggregation and the reported error
-bar}\label{sec:uncertainty}
+\subsection{Aggregating across station pairs}\label{sec:uncertainty}
 
-Adding the next layer up --- combining many station pairs into a network
-series --- exposes the most consequential and least-reported choice of
-all: how to summarize the uncertainty. Three conventions are common: a
-coherence-weighted standard error, an unweighted standard error
-(\(\sigma=\mathrm{std}/\sqrt{N}\)), and the between-pair standard
-deviation (the scatter, \emph{not} divided by \(\sqrt{N}\)). On the same
-synthetic network the recovered means nearly coincide, but the reported
-\(1\sigma\) spans a factor of \(\sim\!\sqrt{N}\)
-(Fig.\textasciitilde{}\ref{fig:uncertainty}). A velocity change that is
-``\(3\sigma\) significant'' under the tightest convention is
-``\(1\sigma\), not significant'' under the most conservative one ---
-from identical data. Error bars on published \dvv~are therefore not
-comparable across studies unless the aggregation, the weighting, and the
-standard-error-versus-standard-deviation convention are all stated.
+Adding the next layer up --- combining many station pairs into a unified
+network series --- exposes the most consequential and least-reported
+choice of all: how to summarize the uncertainty. Three conventions are
+common: a coherence-weighted standard error (e.g., \citet{Clarke2011}),
+an unweighted standard error (\(\sigma=\mathrm{std}/\sqrt{N}\); e.g.,
+\citet{Brenguier2008}), and the between-pair standard deviation (e.g.,
+\citet{Clements2018}). On the same synthetic network the recovered means
+nearly coincide, but the reported \(1\sigma\) spans a factor of
+\(\sim\!\sqrt{N}\) (Fig.\textasciitilde{}\ref{fig:uncertainty}). A
+velocity change that is ``\(3\sigma\) significant'' under the tightest
+convention is ``\(1\sigma\), not significant'' under the most
+conservative one --- from identical data. Error bars on published
+\dvv~are therefore not comparable across studies unless the aggregation,
+the weighting, and the standard-error-versus-standard-deviation
+convention are all stated.
 
 \begin{figure}
   \centering
@@ -600,23 +668,65 @@ standard-error-versus-standard-deviation convention are all stated.
   \label{fig:uncertainty}
 \end{figure}
 
-\subsection{Frequency band, coda window, reference and
-stacking}\label{sec:params}
+Figure\textasciitilde{}\ref{fig:uncertainty} plots only the
+\emph{network-aggregate} series, which hides how much the individual
+pairs actually disagree. Fig.\textasciitilde{}\ref{fig:network-pairs}
+plots the same nine-pair network's \emph{individual} \dvv(t) curves,
+styled after a basin-scale, urban ambient-noise deployment such as the
+San Gabriel Valley groundwater network \citep{Clements2018} --- an
+illustrative geometry rather than a literal reproduction of that
+network's exact station spacing. The individual pairs range in quality
+from a coherence-weighted SNR of \(\sim\!2.5\) to \(\sim\!11\), and
+their spread at any given day (median range \(\sim\!0.053\,\%\)) is
+nearly \(10\times\) wider than the coherence-weighted network standard
+error (median \(\sim\!0.005\,\%\)) and more than \(3\times\) wider than
+the more conservative between-pair standard deviation (median
+\(\sim\!0.017\,\%\)). A network-level error bar, however it is computed,
+describes the precision of the \emph{mean}, not the \emph{dispersion} of
+what individual pairs actually report --- the two are routinely
+conflated when a single station-pair result is compared against a
+published network value.
 
-The remaining choices are no less consequential. The frequency band sets
-the sampled depth: in a two-layer medium, banding high recovers a
-shallow seasonal signal and banding low recovers a deep trend --- the
-band chooses \emph{what is measured}
-(Fig.\textasciitilde{}\ref{fig:params}a). The coda window does not
-transfer across bands: because the coda fades first at high frequency, a
-late window that is full of signal at low frequency is pure noise at
-high frequency, and reusing it recovers only noise
-(Fig.\textasciitilde{}\ref{fig:params}b). The reference defines what
-survives: a moving reference re-baselines continuously and erases slow
-trends that a fixed reference or a joint inversion \citep{Brenguier2014}
-preserve (Fig.\textasciitilde{}\ref{fig:params}c). And the stacking
-length trades noise against temporal resolution, rounding off and
-delaying a coseismic step (Fig.\textasciitilde{}\ref{fig:params}d).
+\begin{figure}
+  \centering
+  \includegraphics[width=0.75\textwidth]{demo_14_network_pairs.png}
+  \caption{Individual station-pair \dvv(t) for the same nine-pair network as
+  Fig.~\ref{fig:uncertainty}, coloured by pair SNR. The pair-to-pair spread
+  (grey band) is far wider than any of the three network-level $1\sigma$
+  conventions in Fig.~\ref{fig:uncertainty}b.}
+  \label{fig:network-pairs}
+\end{figure}
+
+\subsection{Frequency band, reference and stacking}\label{sec:params}
+
+The remaining choices are no less consequential. The \textbf{frequency
+band} sets the sampled depth: in a two-layer medium, high frequencies
+recover shallow, often seasonal signals and low frequencies recover a
+deeper, maybe more tectonic, signal
+(Fig.\textasciitilde{}\ref{fig:params}a). On our synthetic two-layer
+groundwater scenario, a band matched to each layer (1.5--6,Hz for the
+shallow, seasonal signal; 0.2--0.8,Hz for the deep, drought-trend
+signal) recovers each with RMS error \(\sim\!0.003\)--\(0.03\,\%\);
+using the wrong band for a given depth inflates the error to
+\(\sim\!0.10\,\%\) for both --- a \(\sim\!4\)--30\(\times\) degradation.
+
+The \textbf{reference} defines what survives: a moving reference
+re-baselines continuously and erases slow trends that a fixed reference
+or a joint inversion \citep{Brenguier2014} preserve
+(Fig.\textasciitilde{}\ref{fig:params}c). On the volcano synthetic, a
+fixed total-stack reference gives RMS \(\sim\!0.03\,\%\) and a
+Brenguier-style joint inversion \(\sim\!0.04\,\%\) (both preserve the
+pre-eruptive trend), while a 60-day moving reference gives RMS
+\(\sim\!0.16\,\%\) --- roughly 4--5\(\times\) worse --- because it
+re-baselines away the very trend being measured.
+
+The \textbf{stacking length} trades noise against temporal resolution,
+rounding off and delaying a coseismic step
+(Fig.\textasciitilde{}\ref{fig:params}d). On the earthquake synthetic, a
+1-day stack (noisy) gives RMS \(\sim\!0.044\,\%\), a 10-day stack
+\(\sim\!0.018\,\%\) (the best of the three), and an over-long 45-day
+stack \(\sim\!0.031\,\%\) --- worse than the 10-day stack despite
+averaging down more noise, because it smears the step itself.
 
 \begin{figure}
   \centering
@@ -631,19 +741,104 @@ delaying a coseismic step (Fig.\textasciitilde{}\ref{fig:params}d).
   \label{fig:params}
 \end{figure}
 
+The accepted range for each of these parameters across the published
+literature is catalogued directly, study by study, in the survey of
+Appendix\textasciitilde{}\ref{app:survey}
+(Table\textasciitilde{}\ref{tab:survey}): the frequency band, coda
+window, estimator, and uncertainty treatment actually reported by 103
+ambient-noise \dvv~studies.
+
+The \textbf{reference} choice also has a construction axis beyond
+fixed-versus-moving: how much of the record a ``fixed'' reference
+actually stacks. On the volcano synthetic, a reference built from the
+whole pre-eruptive record gives RMS \(\sim\!0.03\,\%\), one built from
+only the earliest 15,\% of that record (an ``early stack,'' noisier for
+having fewer days) gives \(\sim\!0.04\,\%\) (\(\sim\!1.5\times\) worse),
+a 60-day moving stack gives \(\sim\!0.16\,\%\) (erasing the trend, as
+above), and the Brenguier-style joint inversion \citep{Brenguier2014}
+gives \(\sim\!0.04\,\%\) while additionally preserving the trend --- so
+among the reference-construction choices, whole-period and joint
+inversion are comparably good, early-stacking is a modest
+(\(\sim\!1.5\times\)) noise penalty, and only the moving reference
+actively destroys signal.
+
+\subsection{Coda window and its covariation with frequency
+band}\label{sec:window}
+
+The coda window is not independent of the frequency band --- it deserves
+its own treatment because the two covary strongly, and getting this
+wrong is one of the larger, more avoidable sources of error in
+\S\ref{sec:results}. Because intrinsic and scattering attenuation both
+grow with frequency, high-frequency coda energy falls into the noise
+floor much sooner than low-frequency coda: a coda window that is well
+past the direct arrival for a \(\sim\!0.3\)--\(0.8\,\)Hz band is, at
+\(\sim\!3\)--\(6\,\)Hz, sampling almost pure noise
+(Fig.\textasciitilde{}\ref{fig:params}b). On our synthetic, a fixed
+20--40,s window at the high band gives RMS error \(\sim\!3.8\,\%\) (the
+noise floor, not the signal), while a window hand-adapted to the band
+(3--12,s) recovers the truth at \(\sim\!0.01\,\%\) --- nearly a
+400\(\times\) difference from this one choice alone. This is itself an
+instance of a literature-documented tension: band-matched windowing is
+recommended, but Table\textasciitilde{}\ref{tab:survey} shows many
+surveyed studies instead reuse one fixed window across bands.
+
+Hand-adapting the window per band, as above, requires knowing the band
+in advance and re-tuning per deployment. A more principled alternative
+--- used in our group --- is to track the coda envelope directly and
+stop the window where it \emph{flattens} onto the noise floor, rather
+than pre-specifying a window from a rule of thumb. We implement this as
+\texttt{coda\_window\_from\_envelope()}: band-pass a long-term reference
+stack, smooth its envelope, estimate the noise floor from a common
+late-lapse window, and take the window end as the first lapse time past
+a short onset where the envelope stays within a factor of that floor for
+a sustained interval (not a single noisy dip). Applied blind (without
+being told which band it is) to three bands spanning low, mid, and high
+frequency (Fig.\textasciitilde{}\ref{fig:window-envelope}a), the
+detector recovers windows of \(\sim\!(3,29)\,\)s, \(\sim\!(3,37)\,\)s,
+and \(\sim\!(3,14)\,\)s respectively --- correctly shrinking at the high
+band, though the low-versus-mid ordering is not perfectly monotonic on
+this synthetic (an artifact of how the fixed additive noise floor
+interacts with each band's filter, not a claim that the detector is
+exact). Recovering \dvv~with each band's own detected window instead of
+one universal fixed (10--30,s) window
+(Fig.\textasciitilde{}\ref{fig:window-envelope}b) gives RMS
+\(\sim\!0.032\,\%\) vs.~\(\sim\!0.036\,\%\) at the low band (a modest,
+\(\sim\!1.1\times\) gain), \(\sim\!0.017\,\%\) vs.~\(\sim\!0.035\,\%\)
+at the mid band (\(\sim\!2\times\)), and \(\sim\!0.019\,\%\)
+vs.~\(\sim\!1.8\,\%\) at the high band (\(\sim\!93\times\)) --- the
+fixed window is adequate at low frequency and catastrophic at high
+frequency, while the envelope-derived window is close to the best
+achievable at every band without ever being told what band it is
+measuring.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{demo_15_window_envelope.png}
+  \caption{Coda window / frequency-band covariation. (a) Smoothed coda
+  envelopes at three bands (log scale), shaded by each band's
+  envelope-detected window --- shrinking automatically at higher frequency.
+  (b) RMS error against the known truth for a single universal fixed window
+  versus each band's own envelope-derived window: comparable at low
+  frequency, $\sim\!93\times$ better at high frequency.}
+  \label{fig:window-envelope}
+\end{figure}
+
 \subsection{\texorpdfstring{Choices that create spurious
 \texorpdfstring{\dvv}{dv/v}}{Choices that create spurious }}\label{sec:artifacts}
 
-Some choices do not merely bias the result --- they create spurious
-signal. A station clock error delays the whole correlation by a
-lapse-independent shift, producing an apparent \dvv~that appears with
-opposite sign on the causal and acausal branches; measuring the two
-branches separately is the diagnostic
+Some choices may create spurious signal. A station clock error delays
+the whole correlation by a lapse-independent shift, producing an
+apparent \dvv~that appears with opposite sign on the causal and acausal
+branches; measuring the two branches separately is the diagnostic
 (Fig.\textasciitilde{}\ref{fig:artifacts}a). Seasonally varying noise
 sources warp the low-SNR late coda, so a late measurement window reports
 a coherent spurious \emph{seasonal} \dvv~many times the real signal
 while an earlier window stays clean \citep[the waveform-level version
 of][]{Zhan2013} (Fig.\textasciitilde{}\ref{fig:artifacts}b).
+
+Biases from spurious arrivals could be quantified but mostly we should
+decontaminate our workflow from these artefacts or not interpret the
+results.
 
 \begin{figure}
   \centering
@@ -654,36 +849,41 @@ of][]{Zhan2013} (Fig.\textasciitilde{}\ref{fig:artifacts}b).
   \label{fig:artifacts}
 \end{figure}
 
-\subsection{Causal and acausal branches: a further aggregation
-choice}\label{sec:branches}
+\subsection{Causal and acausal branches}\label{sec:branches}
 
-The clock-error diagnostic above uses the two branches of the
-correlation, and how they are \emph{combined} is itself an
-under-reported choice. The causal (positive-lag) and acausal
-(negative-lag) branches sample opposite-direction paths with different
-source-side illumination, and in a 3D medium their sensitivity kernels
-sample partly different volumes, so the two can report genuinely
+In a symmetric cross-correlation, both sides of the coda (positive or
+negative lags) should exhibit the same \dvv. Due to the directionality
+of the wavefield recorded at the two stations, the correlated wavefield
+in the coda may differ \citep{Stehly2006}. While the interpretation of
+such coda in terms of Earth's structure effect is difficult
+\citep{Snieder2002}, the stability of the wavefield excited in the coda
+is the main requirement for stable \dvv~measurements
+\citep{Hadziioannou2009}. Given the challenge in interpreting both sides
+independently, researchers typically would measure \dvv~on each lag and
+then report its average \citep{Kidiwela2026}. The causal (positive-lag)
+and acausal (negative-lag) branches sample opposite-direction paths with
+different source-side illumination, and in a 3D medium their sensitivity
+kernels sample partly different volumes, so the two can report genuinely
 different \dvv~without either being wrong. Two regimes bound the choice
 (Fig.\textasciitilde{}\ref{fig:branches}). When a change is
 \emph{localized} to the volume one branch samples, symmetrizing or
 averaging the branches --- the common default --- dilutes it toward
 zero, while the branch that carries the change recovers it
 (Fig.\textasciitilde{}\ref{fig:branches}a); here preferring the branch
-of greatest change is recovering a real quantity. When instead both
+of greatest change is an researchers' judgement. When instead both
 branches share the \emph{same} change, their difference is measurement
 noise, and selecting the branch of greatest change over-reports it --- a
 max-of-two-estimators selection bias that grows as SNR falls
-(Fig.\textasciitilde{}\ref{fig:branches}b). The rule ``take the side of
-the greatest change'' therefore helps only after a structural check: the
-two branches must change with the \emph{same sign} (opposite signs are a
-clock error, Fig.\textasciitilde{}\ref{fig:artifacts}a) and be coherent
-in time. The defensible procedure is to measure both branches, gate on
-that consistency, select by the coherence of the change rather than its
-amplitude (a criterion independent of the answer, so it carries no
-selection bias), and carry the between-branch difference as an explicit
-term of the measurement covariance \(C_d\)
-(Section\textasciitilde{}\ref{sec:bayes}) rather than discarding it by
-averaging.
+(Fig.\textasciitilde{}\ref{fig:branches}b). When both side exhibit the
+same change (sign, coherence) but with different magnitude, it is
+reasonable to use the \dvv~of greatest change given the already low
+sensitivity in coda waves \citep{Obermann2013}. An acceptable workflow
+is to measure both branches, evaluate on that consistency, select by the
+coherence of the change rather than its amplitude (a criterion
+independent of the answer, so it carries no selection bias), and carry
+the between-branch difference as an explicit term of the measurement
+covariance \(C_d\) (Section\textasciitilde{}\ref{sec:bayes}) rather than
+discarding it by averaging.
 
 \begin{figure}
   \centering
@@ -705,24 +905,40 @@ it induces.
 
 \section{The multiverse of processing choices}\label{sec:multiverse}
 
-The figures so far each isolate one choice. We now ask the cumulative
-question directly. Starting from a single \textbf{best-practice
-baseline} (trace stretching, a band matched to the target depth, a coda
-window well past the direct arrival, a 10-day stack, a long stable
-reference, coherence gating; the cross-cutting rules of
-\citeauthor{Brenguier2014}
+The scenario is a single representative station pair monitoring a
+shallow volcanic edifice, in the style of the permanent broadband
+deployments used at effusive/dome volcanoes such as Piton de la
+Fournaise \citep{Brenguier2008}: a coda band matched to shallow depths
+(0.4--1.0,Hz), a coda window past the direct arrival (10--30,s), and
+daily correlations sampled every 3 days over 2.5 years at a per-day
+correlation-coefficient SNR of 7, typical of a continuously operating
+station. The synthetic ground truth combines an annual seasonal
+\dvv~cycle (as from near-surface thermoelastic/hydrologic effects), a
+slow pre-eruptive inflation ramp, and a sharp co-eruptive velocity drop
+with partial recovery. This single-pair scenario isolates the
+measurement-step choices from the network-aggregation choices already
+covered in
+Sections\textasciitilde{}\ref{sec:aggregation}--\ref{sec:uncertainty}.
+
+The previous sections only identified single choices, but the overall
+research workflow involves them all. We now estimate the combined
+effects of these parametic choices. Starting from a single
+\textbf{best-practice baseline} (trace stretching, a band matched to the
+target depth, a coda window well past the direct arrival, a 10-day
+stack, a long stable reference, coherence gating; the cross-cutting
+rules of \citeauthor{Brenguier2014}
 \citetext{\citeyear{Brenguier2014}; \citealp{Weaver2011}; \citealp{Clarke2011}}
-as distilled in our survey), we flip \emph{one} choice at a time to a
-documented deviation and measure the resulting error against the known
-truth (Fig.\textasciitilde{}\ref{fig:deviations}). The ranking is
-unambiguous: relative to a best-practice RMS error of
-\(\sim\!0.02\,\%\), an unwrapped phase estimator that cycle-skips is
-catastrophic, a moving reference and a wrapped-phase MWCS each inflate
-the error roughly an order of magnitude, an over-long stack and a late
-low-SNR window distort the co-eruptive drop, while the frequency band
-(which mostly sets precision here) and the gating are second-order. The
-Brenguier joint inversion is nearly as good as the fixed reference and
-preserves the trend.
+as distilled in our survey), we change one parameter at a time to a
+deviation from best practice documented in the literature and measure
+the resulting error against the known truth
+(Fig.\textasciitilde{}\ref{fig:deviations}). The ranking is unambiguous:
+relative to a best-practice RMS error of \(\sim\!0.02\,\%\), an
+unwrapped phase estimator that cycle-skips is catastrophic, a moving
+reference and a wrapped-phase MWCS each inflate the error roughly an
+order of magnitude, an over-long stack and a late low-SNR window distort
+the co-eruptive drop, while the frequency band (which mostly sets
+precision here) and the gating are second-order. The joint inversion is
+nearly as good as the fixed reference and preserves the trend.
 
 \begin{figure}
   \centering
@@ -735,22 +951,28 @@ preserves the trend.
   \label{fig:deviations}
 \end{figure}
 
-The choices do not act in isolation, so we run the \textbf{full
-factorial}: every combination of three estimators, two bands, three coda
-windows, three stack lengths and two reference schemes --- 108
-individually reasonable pipelines --- on one volcano dataset
-(Fig.\textasciitilde{}\ref{fig:multiverse}a). The recovered \dvv~fans
-out across more than an order of magnitude in RMS error, and the fan is
-widest exactly at the sharp co-eruptive drop. Attributing the variance
-of the outcome to each axis with a first-order (main-effect) sensitivity
-index (Fig.\textasciitilde{}\ref{fig:multiverse}b) shows that, for this
+We test the compounding effects of these choices through 108 reasonable
+workflows selecting three estimators, two frequency bands, three coda
+windows, three stacking lengths and two reference schemes on a synthetic
+``volcano'' dv/v time series that includes a seasonal oscillation, a
+slow pre-eruptive inflation ramp, and a sharp co-eruptive drop with
+partial exponential recovery
+(Fig.\textasciitilde{}\ref{fig:multiverse}a). The per-day standard
+deviation across the 108 pipelines varies by a factor of \(\sim\!4\)--5
+over the time series (from \(\sim\!0.4\,\%\) to \(\sim\!1.7\,\%\)), and
+is widest exactly at the sharp co-eruptive drop; the RMS error against
+the known truth spans over two orders of magnitude across pipelines
+(\(\sim\!0.02\)--\(2.8\,\%\)).
+
+Attributing the variance of the outcome to each axis with a first-order
+(main-effect) sensitivity index
+(Fig.\textasciitilde{}\ref{fig:multiverse}b) shows that, for this
 dataset, the \textbf{coda window and the stack length} control the RMS
 error most, the \textbf{stack length} dominates the recovered drop
 amplitude, and the estimator is third; the first-order indices sum to
 well under one, so a large part of the spread is \emph{interaction}
-between choices --- compounding, not additive. The appropriate object is
-therefore not a single curve but a distribution of \dvv~over the
-processing choices.
+between choices compounding. The appropriate object is therefore not a
+single curve but a distribution of \dvv~over the processing choices.
 
 \begin{figure}
   \centering
@@ -764,13 +986,13 @@ processing choices.
   \label{fig:multiverse}
 \end{figure}
 
-Table\textasciitilde{}\ref{tab:bp-measure} distils this into the
+Table\textasciitilde{}\ref{tab:bp-measure} summarizes this into the
 measurement-step best practice and the documented deviation for each
 choice, with the consequence the synthetic makes concrete. The baseline
 and deviation sets are the ones our survey extracts from the literature
 (the cross-cutting rules of \citeauthor{Snieder2002}
-\citetext{\citeyear{Snieder2002}; \citealp{Clarke2011}; \citealp{Weaver2011}; \citealp{Brenguier2014}; \citealp{Wang2017}; \citealp{Obermann2019}})
-and that \texttt{codameter.deviations} runs.
+\citetext{\citeyear{Snieder2002}; \citealp{Clarke2011}; \citealp{Weaver2011}; \citealp{Brenguier2014}; \citealp{Wang2017}; \citealp{Obermann2019}}).
+are implemented in \texttt{codameter.deviations}.
 
 \begin{table}
 \footnotesize
