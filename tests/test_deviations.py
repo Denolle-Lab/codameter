@@ -159,7 +159,10 @@ class TestFastPathRegressions:
         )
         np.testing.assert_allclose(dvv_b, dvv_a, rtol=0, atol=1e-12)
         np.testing.assert_array_equal(val_b, val_a)
-        np.testing.assert_allclose(cc_b, cc_a, rtol=0, atol=1e-12)
+        # cc is all-NaN for "inversion"/"mwcs" (no CC collected for those);
+        # equal_nan=True (assert_allclose's default, unlike plain np.allclose)
+        # is what makes that comparison pass -- kept explicit here.
+        np.testing.assert_allclose(cc_b, cc_a, rtol=0, atol=1e-12, equal_nan=True)
 
     def test_prefiltered_rejects_estimators_without_linear_bandpass(
         self, small_dataset
