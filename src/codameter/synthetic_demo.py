@@ -1461,6 +1461,7 @@ def fig_network_pairs(seed: int = 123):
     error bars communicate on their own.
     """
     import matplotlib.pyplot as plt
+    from matplotlib.colors import Normalize
 
     days = _days(3.0)
     truth = _seasonal(days, 0.0012, 60) - 0.0008 * (days >= int(1.5 * YEAR_D))
@@ -1486,7 +1487,7 @@ def fig_network_pairs(seed: int = 123):
         yr, lo, hi, color="0.5", alpha=0.15, lw=0, label="individual-pair range"
     )
     sm = plt.cm.ScalarMappable(
-        cmap=cmap, norm=plt.Normalize(vmin=pair_snr.min(), vmax=pair_snr.max())
+        cmap=cmap, norm=Normalize(vmin=pair_snr.min(), vmax=pair_snr.max())
     )
     cbar = fig.colorbar(sm, ax=ax, pad=0.02)
     cbar.set_label("pair SNR")

@@ -154,8 +154,8 @@ axis, $u_{\rm cur}(t) = u_{\rm ref}\!\left(t/(1+\dvv)\right)$, and a repeated ti
 series is produced by generating this stretched coda with a prescribed
 ground-truth $\dvv(t)$ and additive band-limited noise at a controlled
 signal-to-noise ratio. The concept has been demonstrated using full waveform
-modeling in several previous studies (@Obermann2013, @Obermann2016,@Yuan2021), therefore
-we do not model these effects using full waveforms. Because the imposed $\dvv(t)$ is known, every departure of
+modeling in several previous studies [@Obermann2013; @Obermann2016; @Yuan2021], so
+we do not repeat that full-waveform modeling here. Because the imposed $\dvv(t)$ is known, every departure of
 a recovered series from it is an artefact of the processing, not of the data.
 
 
@@ -240,8 +240,8 @@ impacts the recovered \dvv\ and its error. The deliverable of this
 section is a measurement covariance, which every subsequent step in the inference
 chain (Sections~\ref{sec:depth}--\ref{sec:stress}) consumes.
 
-Each of the parametric component is implemented in a single comprehensive package ``codameter``
-that borrows from ``msnoise`` [@Lecocq2014] and ``noisepy`` (@Jiang2020) to extract the
+Each of the parametric components is implemented in a single comprehensive package ``codameter``
+that borrows from ``msnoise`` [@Lecocq2014] and ``noisepy`` [@Jiang2020] to extract the
 measurement of \dvv\ from the ambient noise monitoring workflow and generalize it
 to any coda wave from repeated source-receiver paths.
 
@@ -613,7 +613,7 @@ involves them all. We now estimate the combined effects of these parametic choic
 band matched to the target depth, a coda window well past the direct arrival, a
 10-day stack, a long stable reference, coherence gating; the cross-cutting rules
 of @Brenguier2014 [@Weaver2011; @Clarke2011] as distilled in our survey), we change
-every parameter at a time to a deviation from best practice documented in the literature
+one parameter at a time to a deviation from best practice documented in the literature
  and measure the resulting error against the known truth (Fig.~\ref{fig:deviations}). The ranking is unambiguous: relative
 to a best-practice RMS error of $\sim\!0.02\,\%$, an unwrapped phase estimator that
 cycle-skips is catastrophic, a moving reference and a wrapped-phase MWCS each inflate the
