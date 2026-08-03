@@ -8,7 +8,10 @@ from codameter import deviations as D
 from codameter.synthetic_demo import (
     Synth,
     _days,
+    _trailing_stack,
+    bandpass,
     daily_ccfs,
+    measure_stretching,
     volcano_truth,
 )
 
@@ -92,3 +95,76 @@ class TestReturnCC:
         cfg = dict(D.BASELINE, estimator="MWCS", gate=False)
         dvv, valid, cc = D.run_pipeline(ccfs, s.t, s.fs, cfg, return_cc=True)
         assert np.isnan(cc).all()
+
+
+class TestFastPathRegressions:
+    """The vectorized fast paths must reproduce the per-day loops they replace."""
+
+    def test_trailing_stack_matches_per_day_loop(self, small_dataset):
+        s, days, truth, ccfs = small_dataset
+        for k in (1, 2, 10, 45, ccfs.shape[0] + 5):
+            fast = _trailing_stack(ccfs, k)
+            slow = np.stack(
+                [
+                    ccfs[max(0, d - k + 1) : d + 1].mean(axis=0)
+                    for d in range(ccfs.shape[0])
+                ]
+            )
+            np.testing.assert_allclose(fast, slow, rtol=0, atol=1e-12)
+
+    def test_moving_reference_matches_generic_loop(self, small_dataset):
+        s, days, truth, ccfs = small_dataset
+        band, window = D.BASELINE["band"], D.BASELINE["window"]
+        stacked = _trailing_stack(ccfs, D.BASELINE["stack"])
+        fast, fast_cc = D._moving_reference(
+            "stretching (TS)",
+            stacked,
+            s.t,
+            band=band,
+            fs=s.fs,
+            window=window,
+            collect_cc=True,
+            eps_max=0.05,
+        )
+        ndays = stacked.shape[0]
+        slow = np.full(ndays, np.nan)
+        slow_cc = np.full(ndays, np.nan)
+        for d in range(45, ndays):
+            ref = stacked[d - 45 : d].mean(axis=0)
+            v, c = measure_stretching(
+                stacked[d], ref, s.t, band=band, fs=s.fs, window=window, eps_max=0.05
+            )
+            slow[d], slow_cc[d] = v[0], c[0]
+        np.testing.assert_allclose(fast, slow, rtol=0, atol=1e-12)
+        np.testing.assert_allclose(fast_cc, slow_cc, rtol=0, atol=1e-12)
+
+    @pytest.mark.parametrize(
+        "cfg",
+        [
+            D.BASELINE,
+            dict(D.BASELINE, reference="moving"),
+            dict(D.BASELINE, reference="inversion"),
+            dict(D.BASELINE, estimator="MWCS"),
+        ],
+        ids=["fixed", "moving", "inversion", "mwcs"],
+    )
+    def test_prefiltered_matches_internal_bandpass(self, small_dataset, cfg):
+        # Band-passing is linear, so filtering the raw CCFs once outside must
+        # equal the estimator's internal band-pass of every stack/reference.
+        s, days, truth, ccfs = small_dataset
+        filt = bandpass(ccfs, s.fs, *cfg["band"])
+        dvv_a, val_a, cc_a = D.run_pipeline(ccfs, s.t, s.fs, cfg, return_cc=True)
+        dvv_b, val_b, cc_b = D.run_pipeline(
+            filt, s.t, s.fs, cfg, return_cc=True, prefiltered=True
+        )
+        np.testing.assert_allclose(dvv_b, dvv_a, rtol=0, atol=1e-12)
+        np.testing.assert_array_equal(val_b, val_a)
+        np.testing.assert_allclose(cc_b, cc_a, rtol=0, atol=1e-12)
+
+    def test_prefiltered_rejects_estimators_without_linear_bandpass(
+        self, small_dataset
+    ):
+        s, days, truth, ccfs = small_dataset
+        cfg = dict(D.BASELINE, estimator="WTS")
+        with pytest.raises(ValueError, match="prefiltered"):
+            D.run_pipeline(ccfs, s.t, s.fs, cfg, prefiltered=True)
