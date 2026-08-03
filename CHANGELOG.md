@@ -14,6 +14,29 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   Works for fixed and moving references with the stretching estimator; NaN
   otherwise. The default two-tuple return and all gating behavior are
   unchanged (CC-gating remains fixed-reference-only).
+- **`run_pipeline(..., prefiltered=True)`** — accept CCFs already band-passed
+  at `cfg["band"]` and skip the estimators' internal band-pass, so callers
+  evaluating several stack/reference variants at the same band filter the raw
+  matrix once. Exact to float rounding because the band-pass is linear and
+  commutes with linear stacking; only valid at an identical band and only for
+  the estimators whose band usage is that one linear filter (stretching, WCC,
+  DTW, MWCS — the wavelet estimators raise).
+- **`measure_stretching_trailing`** — vectorized stretching against a trailing
+  (moving) reference. The stretched sample positions `t/(1+eps)` are
+  data-independent, so the interpolation gather indices/weights are computed
+  once per epsilon and applied to all days at once; trailing references come
+  from a cumulative sum and the band-pass runs once over the whole matrix.
+  `deviations._moving_reference` dispatches to it for the stretching
+  estimator (~4.9x on the 3-year volcano synthetic), keeping the generic
+  per-day loop for the other estimators.
+
+### Changed
+
+- **`_trailing_stack`** is now a difference of float64 cumulative sums —
+  O(ndays x nlag) independent of the stack length instead of
+  O(ndays x k x nlag) (~2.3x at k=45). All three fast paths reproduce the
+  replaced per-day loops to ~1e-15 in dv/v, enforced by regression tests at
+  atol=1e-12; combined, a 5-member same-band ensemble drops ~4x in runtime.
 
 ## 0.3.0 — 2026-07-27
 

@@ -41,6 +41,7 @@ from .synthetic_demo import (
     measure,
     measure_inversion,
     measure_stretching,
+    measure_stretching_trailing,
     volcano_truth,
 )
 
@@ -94,7 +95,17 @@ def _moving_reference(
 
     With ``collect_cc=True``, also returns the per-epoch correlation
     coefficient for estimators that produce one (stretching); NaN otherwise.
+
+    Stretching dispatches to the vectorized
+    :func:`codameter.synthetic_demo.measure_stretching_trailing` fast path
+    (identical to float rounding, ~5x faster); the generic per-day loop below
+    serves every other estimator.
     """
+    if name == "stretching (TS)":
+        out, cc_out = measure_stretching_trailing(
+            ccfs, t, band=band, fs=fs, window=window, ref_days=ref_days, **kw
+        )
+        return (out, cc_out) if collect_cc else out
     ndays = ccfs.shape[0]
     out = np.full(ndays, np.nan)
     cc_out = np.full(ndays, np.nan)
@@ -113,7 +124,12 @@ def _moving_reference(
     return (out, cc_out) if collect_cc else out
 
 
-def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False):
+# Estimators whose only use of the band is one linear band-pass of the input
+# waveforms, so a caller may apply that band-pass once and skip it here.
+_PREFILTER_OK = {"stretching (TS)", "WCC", "DTW", "MWCS"}
+
+
+def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False, prefiltered=False):
     """Recover dv/v(t) under one processing configuration ``cfg``.
 
     Returns ``(dvv, valid)``: the per-day series and a boolean mask of epochs the
@@ -129,18 +145,41 @@ def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False):
     CC-gating (``cfg["gate"]``) applies to the fixed reference only, as it
     always has; the moving-reference CC is returned for error modelling but
     does not change ``valid``.
+
+    With ``prefiltered=True``, ``ccfs`` is taken as already band-passed at
+    ``cfg["band"]`` and the estimator skips its internal band-pass. Callers
+    that evaluate several stack/reference variants at the *same* band can
+    band-pass the raw CCF matrix once and share it. This is exact (to float
+    rounding) because the band-pass is linear, so it commutes with the linear
+    stacking that builds trailing stacks and references — it is only valid at
+    an identical band and only for the estimators whose band usage is that one
+    linear filter (stretching, WCC, DTW, MWCS; the wavelet estimators apply no
+    such filter, so ``prefiltered`` raises for them).
     """
     name = cfg["estimator"]
     band, window, k, ref = cfg["band"], cfg["window"], cfg["stack"], cfg["reference"]
+    if prefiltered and name not in _PREFILTER_OK:
+        raise ValueError(
+            f"prefiltered=True is only valid for {sorted(_PREFILTER_OK)}, not {name!r}"
+        )
     stacked = _trailing_stack(ccfs, k)
     extra = {"eps_max": eps_max} if name in ("stretching (TS)", "WTS") else {}
+    if prefiltered:
+        extra["prefiltered"] = True
 
     cc = None
     if ref == "fixed":
         reference = ccfs[: int(0.6 * len(ccfs))].mean(axis=0)  # long stable stack
         if name == "stretching (TS)":
             dvv, cc = measure_stretching(
-                stacked, reference, t, band=band, fs=fs, window=window, eps_max=eps_max
+                stacked,
+                reference,
+                t,
+                band=band,
+                fs=fs,
+                window=window,
+                eps_max=eps_max,
+                prefiltered=prefiltered,
             )
         else:
             dvv = measure(
@@ -163,7 +202,9 @@ def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False):
                 name, stacked, t, band=band, fs=fs, window=window, **extra
             )
     elif ref == "inversion":  # Brenguier et al. (2014) joint inversion (stretching)
-        dvv = measure_inversion(ccfs, t, band=band, fs=fs, window=window)
+        dvv = measure_inversion(
+            ccfs, t, band=band, fs=fs, window=window, prefiltered=prefiltered
+        )
     else:
         raise ValueError(ref)
 

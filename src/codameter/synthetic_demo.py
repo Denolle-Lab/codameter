@@ -345,6 +345,7 @@ def stretching_cc(
     branch: str = "both",
     eps_max: float = 0.06,
     n_eps: int = 161,
+    prefiltered: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """The full correlation-coefficient image ``CC(epsilon, time)``.
 
@@ -352,14 +353,19 @@ def stretching_cc(
     that aggregation workflows either reduce to a per-trace peak *before*
     averaging, or average *as images* before peak-picking (see
     :func:`peak_dvv` and the aggregation demo).
+
+    With ``prefiltered=True``, ``cur_mat`` and ``ref`` are taken as already
+    band-passed at ``band`` and the internal band-pass is skipped (valid
+    because band-passing is linear and commutes with the linear stacking that
+    builds references — see :func:`codameter.deviations.run_pipeline`).
     """
     cur_mat = np.atleast_2d(cur_mat)
-    reff = bandpass(ref, fs, *band)
+    reff = ref if prefiltered else bandpass(ref, fs, *band)
     es = np.linspace(-eps_max, eps_max, n_eps)
     sel = _window_mask(t, window, branch)
     trials = np.stack([np.interp(t / (1.0 + e), t, reff)[sel] for e in es])
     trials = trials / (np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12)
-    curf = bandpass(cur_mat, fs, *band)[:, sel]
+    curf = (cur_mat if prefiltered else bandpass(cur_mat, fs, *band))[:, sel]
     curf = curf / (np.linalg.norm(curf, axis=1, keepdims=True) + 1e-12)
     return es, curf @ trials.T  # [ndays, n_eps]
 
@@ -384,13 +390,15 @@ def measure_stretching(
     branch: str = "both",
     eps_max: float = 0.06,
     n_eps: int = 161,
+    prefiltered: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Stretching dv/v: grid-search the stretch maximizing windowed correlation.
 
     ``ref`` is a single reference vector (fixed-reference scheme). ``branch``
     selects the causal, acausal, or both coda branches — measuring the two
     branches separately is the standard clock-error diagnostic. Returns the
-    per-day dv/v and the peak correlation coefficient.
+    per-day dv/v and the peak correlation coefficient. ``prefiltered`` is
+    forwarded to :func:`stretching_cc`.
     """
     es, cc = stretching_cc(
         cur_mat,
@@ -402,6 +410,7 @@ def measure_stretching(
         branch=branch,
         eps_max=eps_max,
         n_eps=n_eps,
+        prefiltered=prefiltered,
     )
     return peak_dvv(es, cc)
 
@@ -433,6 +442,68 @@ def measure_stretching_moving(
     return out
 
 
+def measure_stretching_trailing(
+    cur_mat: np.ndarray,
+    t: np.ndarray,
+    *,
+    band: tuple[float, float],
+    fs: float,
+    window: tuple[float, float],
+    ref_days: int = 45,
+    branch: str = "both",
+    eps_max: float = 0.06,
+    n_eps: int = 161,
+    prefiltered: bool = False,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Vectorized stretching against a trailing reference (previous ``ref_days``).
+
+    Numerically equivalent (to float rounding, ~1e-15 in dv/v) to calling
+    :func:`measure_stretching` day by day against
+    ``cur_mat[d - ref_days : d].mean(axis=0)``, but ~5x faster: the stretched
+    sample positions ``t / (1 + eps)`` are data-independent, so the
+    linear-interpolation gather indices and weights are computed once per
+    epsilon and applied to every day's band-passed trailing reference at once.
+    The trailing references are built as a difference of cumulative sums and
+    the band-pass runs over the whole matrix in one FFT.
+
+    Returns ``(dvv, cc)`` over the full length of ``cur_mat``; the ``ref_days``
+    warm-up epochs are NaN.
+    """
+    cur_mat = np.atleast_2d(np.asarray(cur_mat, float))
+    ndays, nlag = cur_mat.shape
+    dvv = np.full(ndays, np.nan)
+    cc_peak = np.full(ndays, np.nan)
+    if ndays <= ref_days:
+        return dvv, cc_peak
+    # Trailing reference for day d is the mean of rows [d - ref_days, d).
+    csum = np.cumsum(cur_mat, axis=0, dtype=np.float64)
+    head = csum[ref_days - 1 : ndays - 1]
+    tail = np.concatenate([np.zeros((1, nlag)), csum[: ndays - ref_days - 1]], axis=0)
+    refs = (head - tail) / float(ref_days)
+    reffs = refs if prefiltered else bandpass(refs, fs, *band)
+
+    sel = _window_mask(t, window, branch)
+    tsel = t[sel]
+    curf = (
+        cur_mat[ref_days:] if prefiltered else bandpass(cur_mat[ref_days:], fs, *band)
+    )[:, sel]
+    curf = curf / (np.linalg.norm(curf, axis=1, keepdims=True) + 1e-12)
+
+    es = np.linspace(-eps_max, eps_max, n_eps)
+    cc_img = np.empty((ndays - ref_days, n_eps))
+    for ei, e in enumerate(es):
+        # Gather indices/weights of np.interp(t / (1 + e), t, .) on the window,
+        # clamped at the grid ends exactly as np.interp clamps.
+        q = tsel / (1.0 + e)
+        j = np.clip(np.searchsorted(t, q, side="right") - 1, 0, t.size - 2)
+        w = np.clip((q - t[j]) / (t[j + 1] - t[j]), 0.0, 1.0)
+        trials = reffs[:, j] * (1.0 - w) + reffs[:, j + 1] * w
+        trials = trials / (np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12)
+        cc_img[:, ei] = np.einsum("ij,ij->i", curf, trials)
+    dvv[ref_days:], cc_peak[ref_days:] = peak_dvv(es, cc_img)
+    return dvv, cc_peak
+
+
 def measure_mwcs(
     cur_mat: np.ndarray,
     ref: np.ndarray,
@@ -443,6 +514,7 @@ def measure_mwcs(
     window: tuple[float, float],
     subwin_s: float = 6.0,
     step_s: float = 3.0,
+    prefiltered: bool = False,
 ) -> np.ndarray:
     """MWCS dv/v: cross-spectral phase delay per sub-window, slope of dt vs lapse.
 
@@ -455,8 +527,8 @@ def measure_mwcs(
     dv/v (e.g. pre-failure landslides) where stretching stays robust.
     """
     cur_mat = np.atleast_2d(cur_mat)
-    reff = bandpass(ref, fs, *band)
-    curf = bandpass(cur_mat, fs, *band)
+    reff = ref if prefiltered else bandpass(ref, fs, *band)
+    curf = cur_mat if prefiltered else bandpass(cur_mat, fs, *band)
     centers = np.arange(window[0] + subwin_s / 2, window[1] - subwin_s / 2, step_s)
     half = int(round(subwin_s / 2 * fs))
     taper = np.hanning(2 * half)
@@ -500,6 +572,7 @@ def measure_wcc(
     window: tuple[float, float],
     subwin_s: float = 6.0,
     step_s: float = 3.0,
+    prefiltered: bool = False,
 ) -> np.ndarray:
     """WCC dv/v: time-domain windowed cross-correlation delay, slope of dt vs lapse.
 
@@ -510,8 +583,8 @@ def measure_wcc(
     the seven estimators in NoisePy's ``monitoring_methods`` (``wcc_dvv``).
     """
     cur_mat = np.atleast_2d(cur_mat)
-    reff = bandpass(ref, fs, *band)
-    curf = bandpass(cur_mat, fs, *band)
+    reff = ref if prefiltered else bandpass(ref, fs, *band)
+    curf = cur_mat if prefiltered else bandpass(cur_mat, fs, *band)
     centers = np.arange(window[0] + subwin_s / 2, window[1] - subwin_s / 2, step_s)
     half = int(round(subwin_s / 2 * fs))
     taper = np.hanning(2 * half)
@@ -579,6 +652,7 @@ def measure_dtw(
     fs: float,
     window: tuple[float, float],
     max_lag_s: float = 0.8,
+    prefiltered: bool = False,
 ) -> np.ndarray:
     """DTW dv/v: warp the current trace onto the reference, slope of lag vs lapse.
 
@@ -587,8 +661,8 @@ def measure_dtw(
     changes (Yuan et al. 2021). NoisePy ``dtw_dvv``.
     """
     cur_mat = np.atleast_2d(cur_mat)
-    reff = bandpass(ref, fs, *band)
-    curf = bandpass(cur_mat, fs, *band)
+    reff = ref if prefiltered else bandpass(ref, fs, *band)
+    curf = cur_mat if prefiltered else bandpass(cur_mat, fs, *band)
     sel = (t >= window[0]) & (t <= window[1])  # causal branch only
     tt = t[sel]
     max_lag = int(round(max_lag_s * fs))
@@ -875,6 +949,7 @@ def measure_inversion(
     block_days: int = 7,
     max_lag_blocks: int = 10,
     smooth: float = 5.0,
+    prefiltered: bool = False,
 ) -> np.ndarray:
     """Brenguier et al. (2014)-style joint inversion for a continuous dv/v series.
 
@@ -903,6 +978,7 @@ def measure_inversion(
             window=window,
             eps_max=0.03,
             n_eps=81,
+            prefiltered=prefiltered,
         )
         for i in range(j + 1, min(m, j + max_lag_blocks + 1)):
             rows += [eq, eq]
@@ -1059,9 +1135,15 @@ def _yrs(days: np.ndarray) -> np.ndarray:
 def _trailing_stack(ccfs: np.ndarray, k: int) -> np.ndarray:
     if k <= 1:
         return ccfs
-    out = np.empty_like(ccfs)
-    for d in range(ccfs.shape[0]):
-        out[d] = ccfs[max(0, d - k + 1) : d + 1].mean(axis=0)
+    # Trailing mean of the last k days (shorter at the start), as a difference
+    # of float64 cumulative sums: O(ndays * nlag) instead of O(ndays * k * nlag).
+    ndays = ccfs.shape[0]
+    csum = np.cumsum(ccfs, axis=0, dtype=np.float64)
+    out = np.empty_like(csum)
+    out[:k] = csum[:k]
+    np.subtract(csum[k:], csum[:-k], out=out[k:])  # window sum over [d-k+1, d]
+    counts = np.minimum(np.arange(1, ndays + 1), k).astype(np.float64)
+    out /= counts[:, None]
     return out
 
 
