@@ -31,6 +31,7 @@ from itertools import product
 import numpy as np
 
 from .synthetic_demo import (
+    METHODS,
     YEAR_D,
     C,
     Synth,
@@ -83,27 +84,51 @@ ERUPT_DAY = int(2.0 * YEAR_D)
 # ---------------------------------------------------------------------------
 # Run one pipeline configuration on a shared set of daily CCFs.
 # ---------------------------------------------------------------------------
-def _moving_reference(name, ccfs, t, *, band, fs, window, ref_days=45, **kw):
+def _moving_reference(
+    name, ccfs, t, *, band, fs, window, ref_days=45, collect_cc=False, **kw
+):
     """Generic trailing-reference measurement for *any* estimator.
 
     A moving reference re-baselines each epoch against the previous
     ``ref_days`` — the deviation that erases slow trends (best_practices rule 7).
+
+    With ``collect_cc=True``, also returns the per-epoch correlation
+    coefficient for estimators that produce one (stretching); NaN otherwise.
     """
     ndays = ccfs.shape[0]
     out = np.full(ndays, np.nan)
+    cc_out = np.full(ndays, np.nan)
     for d in range(ref_days, ndays):
         ref = ccfs[d - ref_days : d].mean(axis=0)
-        val = measure(name, ccfs[d], ref, t, band=band, fs=fs, window=window, **kw)
-        out[d] = np.atleast_1d(val)[0]
-    return out
+        if collect_cc:
+            res = METHODS[name](ccfs[d], ref, t, band=band, fs=fs, window=window, **kw)
+            if isinstance(res, tuple):
+                out[d] = np.atleast_1d(res[0])[0]
+                cc_out[d] = np.atleast_1d(res[1])[0]
+            else:
+                out[d] = np.atleast_1d(res)[0]
+        else:
+            val = measure(name, ccfs[d], ref, t, band=band, fs=fs, window=window, **kw)
+            out[d] = np.atleast_1d(val)[0]
+    return (out, cc_out) if collect_cc else out
 
 
-def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05):
+def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False):
     """Recover dv/v(t) under one processing configuration ``cfg``.
 
     Returns ``(dvv, valid)``: the per-day series and a boolean mask of epochs the
     pipeline actually produced (moving/inversion references have a warm-up gap;
     CC-gating drops low-coherence epochs).
+
+    With ``return_cc=True``, returns ``(dvv, valid, cc)`` where ``cc`` is the
+    per-epoch stretching correlation coefficient — the input to coherence-based
+    error models such as :func:`codameter.uq_measurement.weaver_stretching_error`.
+    ``cc`` is NaN wherever the configuration does not produce one (non-stretching
+    estimators, the inversion reference, and warm-up epochs).
+
+    CC-gating (``cfg["gate"]``) applies to the fixed reference only, as it
+    always has; the moving-reference CC is returned for error modelling but
+    does not change ``valid``.
     """
     name = cfg["estimator"]
     band, window, k, ref = cfg["band"], cfg["window"], cfg["stack"], cfg["reference"]
@@ -122,9 +147,21 @@ def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05):
                 name, stacked, reference, t, band=band, fs=fs, window=window, **extra
             )
     elif ref == "moving":
-        dvv = _moving_reference(
-            name, stacked, t, band=band, fs=fs, window=window, **extra
-        )
+        if name == "stretching (TS)":
+            dvv, cc = _moving_reference(
+                name,
+                stacked,
+                t,
+                band=band,
+                fs=fs,
+                window=window,
+                collect_cc=True,
+                **extra,
+            )
+        else:
+            dvv = _moving_reference(
+                name, stacked, t, band=band, fs=fs, window=window, **extra
+            )
     elif ref == "inversion":  # Brenguier et al. (2014) joint inversion (stretching)
         dvv = measure_inversion(ccfs, t, band=band, fs=fs, window=window)
     else:
@@ -132,9 +169,12 @@ def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05):
 
     dvv = np.asarray(dvv, float)
     valid = np.isfinite(dvv)
-    if cfg.get("gate") and cc is not None:
+    if cfg.get("gate") and ref == "fixed" and cc is not None:
         keep = cc > 0.6
         valid &= keep
+    if return_cc:
+        cc_arr = np.full(dvv.shape, np.nan) if cc is None else np.asarray(cc, float)
+        return dvv, valid, cc_arr
     return dvv, valid
 
 
