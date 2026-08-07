@@ -27,16 +27,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   once per epsilon and applied to all days at once; trailing references come
   from a cumulative sum and the band-pass runs once over the whole matrix.
   `deviations._moving_reference` dispatches to it for the stretching
-  estimator (~4.9x on the 3-year volcano synthetic), keeping the generic
-  per-day loop for the other estimators.
+  estimator (~3x on the 3-year volcano synthetic, observed 3-4.5x across
+  repeated runs), keeping the generic per-day loop for the other estimators.
 
 ### Changed
 
 - **`_trailing_stack`** is now a difference of float64 cumulative sums —
   O(ndays x nlag) independent of the stack length instead of
-  O(ndays x k x nlag) (~2.3x at k=45). All three fast paths reproduce the
+  O(ndays x k x nlag) (~2x at k=45). All three fast paths reproduce the
   replaced per-day loops to ~1e-15 in dv/v, enforced by regression tests at
-  atol=1e-12; combined, a 5-member same-band ensemble drops ~4x in runtime.
+  atol=1e-12; combined, a 5-member same-band ensemble drops ~3x in runtime.
+  (Speedups are wall-clock, measured on one machine and noisy run to run —
+  re-benchmark before citing a more precise figure than "roughly Nx".)
 
 ## 0.3.0 — 2026-07-27
 
