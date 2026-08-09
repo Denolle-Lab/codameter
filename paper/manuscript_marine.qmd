@@ -61,6 +61,23 @@ velocity, often measured and referred to as \dvv\, can be tracked by measuring c
 times of seismic waves, especially scatterd waves such as coda waves,
 provided that the source and receivers are at the same location.
 
+```{=latex}
+\begin{center}
+\fbox{\begin{minipage}{0.95\linewidth}
+\textbf{Sign convention.} \dvv\ is the fractional seismic velocity change,
+positive for a velocity \emph{increase}. The stretching family of estimators
+measures the stretch factor $\varepsilon$ that maps the reference coda onto
+the current coda; the exact relation is
+\[
+\dvv = -\frac{\varepsilon}{1+\varepsilon}.
+\]
+The first-order shortcut $\dvv \approx -\varepsilon$ is accurate to order
+$\varepsilon^2$ --- negligible below $1\,\%$ but a $0.17\,\%$ absolute bias at
+the $4\,\%$ changes seen on landslides.
+\end{minipage}}
+\end{center}
+```
+
 Due to the sensitivity of coda waves to small perturbations in the material properties,
 \dvv\ was discovered as an effective method to monitor chanes during volcanic unrest since its
 discovery at Piton de la Fournaise [@Brenguier2008] and is now calculated in continuous
@@ -287,6 +304,14 @@ $\sim\!0.044\,\%$ (1-day, noisy) & Section~\ref{sec:params} \\
 ```
 
 ## Estimator family {#sec:methods-fig}
+
+As of codameter v0.4.0, all seven estimators return physical \dvv\ under the
+sign convention above rather than the raw stretch factor $\varepsilon$; the
+synthetic generator imposes changes in the same convention, so a positive
+imposed \dvv\ recovers as positive. `tests/test_sign_convention.py` holds
+every estimator to this convention in both signs, and checks the full
+`run_pipeline` call path end to end, so the convention cannot silently drift
+back.
 
 On small, clean \dvv\, all seven estimators agree, demonstrating robustness of the methods
 (Fig.~\ref{fig:methods}a). Sweeping the same clean recovery out to
@@ -818,7 +843,7 @@ yet report. The executable stages are in development in the open codameter packa
 The field has converged on one physical rule for depth --- *depth is set by the
 frequency band and the coda lapse time, it is not assumed* [@Obermann2013;
 @Obermann2016] --- and, increasingly, on multi-band measurement as the means to
-resolve it [@Takano2017; @Feng2020; @Mao2022]. The step from a set of per-band
+resolve it [@Takano2017; @Feng2020; @Mao2022, @Mao2025]. The step from a set of per-band
 \dvv\ series to a depth profile is where reporting is least consistent: many
 studies read a single band as a single depth, only a few invert several bands
 against surface-wave sensitivity kernels, and the propagation of the measurement
@@ -980,6 +1005,28 @@ released in the open codameter package, which reproduces every result with a
 single command and is unit-tested. An executable record turns an undocumented
 choice into a versioned, inspectable one, and lets a reader re-run a study's
 pipeline on the truth-known synthetic to see its bias before trusting it on data.
+
+**Validate against something you did not generate.** Every synthetic test in
+this paper passed before the discovery below, and that is exactly the danger:
+a synthetic built under the same sign convention as the estimator reading it
+will always agree, whether the convention is physically correct or not.
+Testing codameter's estimators against a real cross-network deployment
+(Section~\ref{sec:deployment}), recovered \dvv\ anticorrelated with the
+published Clements & Denolle (2022) product and with seasonal hydrology at
+three stations ($r=-0.69,-0.45,-0.40$). Ground-truthing through the exact
+call path made the cause obvious: imposing a $+0.5\,\%$ velocity change
+returned $-0.50\,\%$. The synthetic generator and all seven estimators had
+consistently used the stretch factor $\varepsilon$ (positive for a coda
+dilation, i.e.\ a slowdown), not physical \dvv\ (positive for a speedup) ---
+internally coherent, so every synthetic-recovery test in the sections above
+passed, but opposite to the sign convention the field expects and to the
+published product it was compared against. The fix is the convention boxed
+in Section~\ref{sec:intro}, shipped as codameter v0.4.0. Internal consistency
+is not correctness: a pipeline that only checks itself will confirm whatever
+convention it started with, and only the comparison against an
+independently-produced result caught this one. Full details and the
+ground-truthing procedure are in codameter PR \#36 and its commit history on
+branch `fix/dvv-sign-convention`.
 
 **Propagate the covariance, do not truncate it.** The measurement covariance is
 not the end of the analysis but its first input. Section~\ref{sec:depth} sets out
