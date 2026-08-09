@@ -194,8 +194,18 @@ def make_coda(
 
 
 def impose_dvv(ref: np.ndarray, t: np.ndarray, dvv: float) -> np.ndarray:
-    """Apply a homogeneous velocity change by stretching the coda in lapse time."""
-    return np.interp(t / (1.0 + dvv), t, ref)
+    """Apply a homogeneous velocity change by stretching the coda in lapse time.
+
+    **Sign convention (physical dv/v)**: ``dvv`` is the fractional velocity
+    change. A velocity *increase* (``dvv > 0``) shortens travel times, so a
+    feature at reference lapse ``tau`` appears at ``tau / (1 + dvv)`` — the
+    coda compresses toward zero lag. Equivalently
+    ``dvv = -epsilon / (1 + epsilon)`` where ``epsilon`` is the stretch
+    factor that maps the reference onto the current waveform (see
+    :func:`eps_to_dvv`; ``-epsilon`` alone is only first-order accurate). (Before v0.4.0 this function used the epsilon
+    convention: positive argument meant coda dilation, i.e. a slowdown.)
+    """
+    return np.interp(t * (1.0 + dvv), t, ref)
 
 
 def impose_dvv_branch(
@@ -214,8 +224,8 @@ def impose_dvv_branch(
     """
     out = np.empty_like(ref)
     causal = t >= 0
-    out[causal] = np.interp(t[causal] / (1.0 + dvv_causal), t, ref)
-    out[~causal] = np.interp(t[~causal] / (1.0 + dvv_acausal), t, ref)
+    out[causal] = np.interp(t[causal] * (1.0 + dvv_causal), t, ref)
+    out[~causal] = np.interp(t[~causal] * (1.0 + dvv_acausal), t, ref)
     return out
 
 
@@ -370,13 +380,39 @@ def stretching_cc(
     return es, curf @ trials.T  # [ndays, n_eps]
 
 
+def eps_to_dvv(eps):
+    """Exact stretch-to-velocity map: ``dv/v = -eps / (1 + eps)``.
+
+    The stretching trial maps the reference through ``t / (1 + eps)``; the
+    physical change maps arrivals through ``t / (1 + dv/v)`` on the *current*
+    waveform. Matching the two gives ``1 + dv/v = 1 / (1 + eps)``. The
+    first-order ``dv/v = -eps`` is accurate to ~eps^2 (fine below 1%%), but
+    at landslide-scale changes (several %%) the quadratic term matters.
+    """
+    eps = np.asarray(eps, dtype=float)
+    if np.any(eps <= -1.0):
+        raise ValueError(
+            "stretch factor eps <= -1 is unphysical (the trial lapse axis "
+            "collapses); got min eps = " + str(float(np.min(eps)))
+        )
+    return -eps / (1.0 + eps)
+
+
 def peak_dvv(es: np.ndarray, cc: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Peak-pick a ``CC(epsilon, time)`` image → (dv/v per time, peak CC)."""
+    """Peak-pick a ``CC(epsilon, time)`` image → (dv/v per time, peak CC).
+
+    Returns **physical dv/v** = ``-epsilon / (1 + epsilon)`` at the
+    correlation peak (the exact map, :func:`eps_to_dvv`): the
+    grid ``es`` holds stretch factors (the trial maps the reference through
+    ``t / (1 + epsilon)``), and a coda that had to be *dilated* to match
+    (``epsilon > 0``) means travel times lengthened, i.e. the velocity
+    *dropped*. (Before v0.4.0 this returned epsilon itself, labeled dv/v.)
+    """
     cc = np.atleast_2d(cc)
     idx = np.argmax(cc, axis=1)
     de = es[1] - es[0]
-    dvv = np.array([es[i] + _parabolic(cc[d], i) * de for d, i in enumerate(idx)])
-    return dvv, cc[np.arange(cc.shape[0]), idx]
+    eps = np.array([es[i] + _parabolic(cc[d], i) * de for d, i in enumerate(idx)])
+    return eps_to_dvv(eps), cc[np.arange(cc.shape[0]), idx]
 
 
 def measure_stretching(
@@ -558,7 +594,7 @@ def measure_mwcs(
         if len(lapses) < 3:
             continue
         slope = np.polyfit(np.asarray(lapses), np.asarray(dts), 1)[0]
-        out[d] = -slope  # dt/t = -dv/v
+        out[d] = slope  # physical dv/v (see convention note)
     return out
 
 
@@ -607,7 +643,8 @@ def measure_wcc(
             lapses.append(centers[j])
         if len(lapses) < 3:
             continue
-        out[d] = np.polyfit(np.asarray(lapses), np.asarray(dts), 1)[0]
+        # slope of delay vs lapse is the stretch eps; exact map to dv/v
+        out[d] = eps_to_dvv(np.polyfit(np.asarray(lapses), np.asarray(dts), 1)[0])
     return out
 
 
@@ -669,7 +706,7 @@ def measure_dtw(
     out = np.full(cur_mat.shape[0], np.nan)
     for d in range(cur_mat.shape[0]):
         lag = _dtw_path(curf[d, sel], reff[sel], max_lag) / fs
-        out[d] = -np.polyfit(tt, lag, 1)[0]
+        out[d] = np.polyfit(tt, lag, 1)[0]  # physical dv/v
     return out
 
 
@@ -723,7 +760,8 @@ def measure_wxs(
     """WCS / WXS dv/v: wavelet cross-spectrum phase delay, power-weighted slope.
 
     The cross-wavelet spectrum ``W_cur · conj(W_ref)`` gives a phase
-    ``φ(f, τ)``; the delay ``δt = φ / (2π f)`` should equal ``−τ · dv/v``. A
+    ``φ(f, τ)``; the delay ``δt = φ / (2π f)`` grows as ``τ · ε`` for stretch
+    ``ε``, and the regression slope is converted to physical dv/v on return. A
     cross-power-weighted regression of ``δt`` on lapse ``τ`` over the
     time-frequency window yields dv/v (Mao et al. 2020; NoisePy ``wxs_dvv``).
 
@@ -746,7 +784,9 @@ def measure_wxs(
             phase = np.unwrap(phase, axis=0)  # then along frequency
         dt = (phase / (2 * np.pi * freqs[:, None]))[:, wsel].ravel()
         wgt = np.abs(Wxy)[:, wsel].ravel()
-        out[d] = -np.sum(wgt * Tg * dt) / (np.sum(wgt * Tg * Tg) + 1e-30)
+        out[d] = np.sum(wgt * Tg * dt) / (
+            np.sum(wgt * Tg * Tg) + 1e-30
+        )  # physical dv/v
     return out
 
 
@@ -791,7 +831,8 @@ def measure_wts(
             wgt = np.linalg.norm(Wcur[k, wsel])
             num += wgt * (es[i] + _parabolic(cc, i) * (es[1] - es[0]))
             den += wgt
-        out[d] = num / (den + 1e-30)
+        # pooled epsilon -> physical dv/v, exact map (see eps_to_dvv)
+        out[d] = eps_to_dvv(num / (den + 1e-30))
     return out
 
 
@@ -820,7 +861,7 @@ def measure_wtdtw(
     for d in range(cur_mat.shape[0]):
         rec = _morlet_cwt(cur_mat[d, reg], fs, freqs, 6.0).real.sum(axis=0)
         lag = _dtw_path(rec[wsel], Wref[wsel], max_lag) / fs
-        out[d] = -np.polyfit(twin, lag, 1)[0]
+        out[d] = np.polyfit(twin, lag, 1)[0]  # physical dv/v
     return out
 
 

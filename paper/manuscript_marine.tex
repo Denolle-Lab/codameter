@@ -246,7 +246,7 @@
 \title{The reproducibility cost of ad-hoc processing choices in
 ambient-noise seismic velocity-change monitoring}
 \author{M. A. Denolle}
-\date{2026-08-02}
+\date{2026-08-08}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -362,8 +362,11 @@ examples for ground truthing on the signal processing parameters, since
 the concepts behind the observations of phase lags in scattered waves is
 well established \citep{Obermann2013}. We package this new methodology
 in a Python software, \texttt{codameter}, which we also recast as an
-agentic system with skill, examples of golden data sets, and its
-evaluation against base models.
+agentic skill: an AI agent can be asked to recommend a processing
+configuration or recover a \dvv(t) series, and its answer is scored
+against seeded synthetic golden cases with known ground truth, including
+a hidden-truth variant that withholds the answer from the public package
+so it cannot be reconstructed rather than measured.
 
 \section{Synthetic framework}\label{sec:methods}
 
@@ -1030,6 +1033,21 @@ ambiguity in significance (Fig.~\ref{fig:uncertainty}) \\
 \end{tabularx}
 \end{table}
 
+Running this many pipelines is only practical if each one is cheap.
+Testing codameter against a larger, multi-year deployment surfaced real
+bottlenecks in the per-day estimator loop, which we removed with three
+vectorized fast paths: a trailing stack built from a difference of
+cumulative sums instead of a per-day mean (roughly \(2\times\) at a
+45-day stack length), a vectorized moving-reference stretching estimator
+that computes the stretch-interpolation weights once per trial epsilon
+instead of once per day (roughly \(3\times\) on a 3-year synthetic),
+and, for ensembles that share a band, a single shared band-pass instead
+of one per pipeline member (roughly \(3\times\) on a 5-member ensemble).
+All three reproduce the loops they replace to within \(10^{-15}\) in
+\dvv~(regression-tested at \(\mathrm{atol}=10^{-12}\)); the reported
+ratios are wall-clock, vary with system load, and should be read as
+``roughly \(N\times\),'' not exact.
+
 \section{A Bayesian measurement model and its data
 covariance}\label{sec:bayes}
 
@@ -1089,6 +1107,30 @@ averaged series, is what must be propagated.
   $N_{\rm eff}$ is a fraction of the epoch count.}
   \label{fig:bayes}
 \end{figure}
+
+\section{Toward deployment: a real-data retrospective
+pipeline}\label{sec:deployment}
+
+Every result so far is on a truth-known synthetic, by design
+(Section\textasciitilde{}\ref{sec:methods}): it is the only way to
+separate a processing artefact from a real signal. The next step is to
+test whether the same measurement machinery holds up against real data
+at deployment scale, not just against a synthetic that was built to
+resemble it. We are building a companion pipeline,
+\texttt{noisepy-dvv-cloud}, that correlates real continuous waveforms
+for station CI.LJR (Lake Hughes, California) --- the reference station
+of \citet{Clements2023} --- pulled from the public Southern California
+Earthquake Data Center S3 archive, using the NoisePy package
+\citep{Jiang2020} for the correlation step. Correlation and dv/v
+estimation each run as an AWS Batch job on Fargate Spot compute,
+following the same deployment pattern as QuakeScope; dv/v estimation
+itself is handed to \texttt{codameter.deviations.run\_pipeline} and
+\texttt{codameter.uq\_measurement}, with baseline processing
+configurations drawn from \texttt{codameter.use\_cases.recommend} ---
+the same functions this paper's synthetic results are built on, not a
+separate reimplementation. The retrospective run is validated against
+the already-published \citet{Clements2023} CI.LJR result before any new
+claim is drawn from it.
 
 \section{Depth: propagating the measurement covariance through
 sensitivity kernels}\label{sec:depth}
@@ -1180,8 +1222,8 @@ unstated model & Hidden systematic in the kernels and the moduli \\
 \end{tabularx}
 \end{table}
 
-\section{Stress: from velocity change to stress and strain at
-depth}\label{sec:stress}
+\section{Stress: a downstream step, not attempted
+here}\label{sec:stress}
 
 The quantity of interest is rarely the velocity change itself but the
 stress, strain, or pore-pressure change that produces it and ---
@@ -1190,85 +1232,25 @@ remains fragmented. Volcano and fault studies often interpret the
 velocity change qualitatively (a pre-eruptive pressurization, coseismic
 damage); hydrological studies fit an explicit poroelastic or
 thermoelastic model and separate the two by their seasonal phase lag
-\citep{Tsai2011, Wang2017, Clements2018}; and a growing body quantifies
-stress sensitivity through an acoustoelastic coefficient
-\citep{Brenguier2008, Nakata2011}. What is largely absent is the
-\emph{uncertainty} on that final quantity and a reasonable apportionment
-of it among the competing forcings. Because the material properties
-entering the conversion are poorly constrained, the stress uncertainty
-is dominated by \emph{epistemic} prior uncertainty rather than by the
-measurement, so a stress value reported without it is the least
-constrained quantity in the chain, and the one most often reported as a
-result.
+\citep{Tsai2011, Wang2017, Clements2018}. What is largely absent across
+this literature is the \emph{uncertainty} on that final quantity and a
+reasonable apportionment of it among the competing forcings.
 
-Velocity change is the acoustoelastic response to a stress change. Under
-isotropic load the response is scalar ---
-\(\delta v/v = \beta\,\varepsilon_{kk}\) with the bridge relation
-\(\beta=-\mu'\kappa/2\mu\) (Denolle, in prep.) --- but in general it is
-anisotropic, and the dominant fracture fabric selects \emph{which}
-stress or strain component the velocity change tracks: a confining load
-reads as volumetric strain, a directional stress reads as one deviatoric
-component. Writing \(\beta_{ij}(z)\) for the acoustoelastic coefficient
-of the fabric-selected component, the depth-resolved meter is
-\begin{equation}
-\Delta\sigma_{ij}(z,t) = \beta_{ij}(z)\,\frac{\delta V_S}{V_S}(z,t),
-\label{eq:acoustoelastic}
-\end{equation} with \(\beta_{ij}\) built from the layered moduli
-\(\mu(z)=\rho V_S^2\), \(\kappa(z)=\rho\,(V_P^2-\tfrac43 V_S^2)\) and
-the nonlinear sensitivity \(\mu'(z)\); the forward physics, its
-drained/undrained regimes, and the fabric diagnostic that fixes
-\(\beta_{ij}\) are the subject of the companion framework (Denolle, in
-prep.). These coefficients are layered and weakly constrained ---
-sometimes inferred from a tomographic \(V_P,V_S\) model --- so they
-enter as \emph{per-layer priors}, and the stress covariance is the
-Monte-Carlo pushforward of the depth posterior \(C_m(z)\) \emph{through}
-those priors. This is the step where the aleatoric measurement chain and
-the epistemic material priors merge; taking either alone understates the
-stress uncertainty. Effective stress
-(\(\Delta\sigma'=\kappa\,\varepsilon_{\rm vol}\) under isotropic load,
-poroelastically clean) is the primary quantity; total stress adds a
-poroelastic term \(\alpha_B\,\Delta p\) and is an optional extension.
-
-Attribution --- how much of \(\Delta\sigma(z,t)\) is thermoelastic,
-poroelastic, load, damage, or tectonic --- is deliberately \emph{not}
-codameter's step. Each mechanism is a stress term that can act in
-isolation, and decomposing the total into those terms is the
-contribution of the companion unified-framework paper (Denolle, in
-prep.), which supplies the forward models and the fabric diagnostic that
-define \(\beta_{ij}\). codameter's role ends at delivering
-\(\Delta\sigma_{ij}(z,t)\) with its posterior --- the input any such
-decomposition must consume. The division of labour is well defined: this
-paper is accountable for the measurement covariance and its propagation
-to stress; the framework is accountable for the physics that turns that
-stress into a named mechanism.
-
-\begin{table}
-\footnotesize
-\caption{Stress step: best practice versus the common deviation in converting a
-depth profile of velocity change to stress, with the consequence for the reported
-result. Attribution of the stress to a forcing mechanism is the companion
-framework's step and is not tabulated here.}
-\label{tab:bp-stress}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm} L L L@{}}
-\toprule
-\textbf{Choice} & \textbf{Best practice} & \textbf{Common deviation} &
-\textbf{Consequence} \\
-\midrule
-Stress conversion & Acoustoelastic meter $\Delta\sigma_{ij}=\beta_{ij}(z)\,\delta V_S/V_S$
-with layered $\beta_{ij},\mu'(z)$ priors & Single scalar coefficient, no prior &
-Understated (epistemic) stress error \\ \hline
-Stress component & Identify the fabric-selected component (isotropic vs deviatoric)
-before inverting & Assume the isotropic $\delta v/v=\beta\varepsilon_{kk}$
-everywhere & Wrong sign and magnitude under deviatoric load \\ \hline
-Uncertainty budget & Merge the aleatoric depth covariance with the epistemic
-material priors & Report the measurement error only & Stress error too small by
-its dominant term \\ \hline
-Stress measure & Report effective stress (poroelastically clean); flag any
-total-stress assumptions & Conflate effective and total stress &
-Non-comparable, ambiguous stress \\
-\bottomrule
-\end{tabularx}
-\end{table}
+Converting a depth-resolved velocity-change posterior to stress or
+strain is a further step this paper does not attempt: it requires
+material priors --- an acoustoelastic, poroelastic, or thermoelastic
+coefficient, its depth dependence, and the fracture fabric or drainage
+regime that selects which stress or strain component the velocity change
+actually tracks --- that are outside this paper's scope. Because those
+coefficients are themselves poorly constrained, any such conversion is
+dominated by \emph{epistemic} prior uncertainty rather than by the
+measurement, so a stress value reported without accounting for that is
+the least constrained quantity in the chain, and the one most often
+reported as a result. We stop deliberately at the depth-resolved
+posterior of Section\textasciitilde{}\ref{sec:depth} and its covariance:
+that object, not a stress or strain estimate, is what this paper
+delivers, and what any downstream stress or strain conversion must
+consume.
 
 \section{Discussion}\label{sec:discussion}
 
@@ -1342,18 +1324,17 @@ to see its bias before trusting it on data.
 
 \textbf{Propagate the covariance, do not truncate it.} The measurement
 covariance is not the end of the analysis but its first input.
-Sections\textasciitilde{}\ref{sec:depth}
-and\textasciitilde{}\ref{sec:stress} set out the rest of the chain:
-invert the per-band \(C_d\) through sensitivity kernels for a depth
-profile and its covariance, separate the shear-velocity and density
-contributions where the ground is partially saturated, and push the
-depth posterior through layered petrophysical priors to effective stress
-and strain at depth, which a companion framework then attributes to a
-forcing mechanism. At each step the honest error bar depends on the one
-before it, which is why a reliable stress at depth begins with a
-reliable \(C_d\). Building and testing those propagation stages on
-truth-known synthetics is the natural continuation of this work, and is
-under way in the open codameter framework.
+Section\textasciitilde{}\ref{sec:depth} sets out the next step of the
+chain: invert the per-band \(C_d\) through sensitivity kernels for a
+depth profile and its covariance, separating the shear-velocity and
+density contributions where the ground is partially saturated.
+Converting that depth-resolved posterior to stress or strain
+(Section\textasciitilde{}\ref{sec:stress}) requires material priors this
+paper does not attempt to constrain, and is left to other work; what we
+deliver is the depth posterior and its covariance, the object any such
+conversion must consume. Building and testing the depth-propagation
+stage on truth-known synthetics is the natural continuation of this
+work, and is under way in the open codameter framework.
 
 \section{Conclusions}\label{sec:conclusions}
 
@@ -1368,12 +1349,12 @@ report every choice, sample the ones the physics does not fix, carry the
 resulting measurement covariance into the inference, and release the
 pipeline as executable code. The same discipline extends down the
 inference chain: the measurement covariance is the input a depth
-inversion consumes, that depth profile the input a stress conversion
-consumes, and only a pipeline that carries the covariance to the end can
-attach an honest uncertainty to a stress or strain change at depth ---
-and hand a reliable posterior to the companion framework that attributes
-it to a forcing. We offer codameter as one such record, and as the
-package in which the depth and stress stages are being built.
+inversion consumes, and only a pipeline that carries the covariance that
+far can attach an honest uncertainty to a depth-resolved velocity-change
+profile. Converting that profile to stress or strain is a further step
+this paper does not attempt (Section\textasciitilde{}\ref{sec:stress}).
+We offer codameter as one such record, and as the package in which the
+depth stage is being built.
 
 \appendix
 
@@ -1500,7 +1481,7 @@ reproduced by \texttt{python\ literature/synthetic\_dvv\_demo.py}, the
 multiverse and deviation ranking by
 \texttt{python\ -m\ codameter.deviations}, and the Bayesian measurement
 model by \texttt{python\ -m\ codameter.uq\_bayes}. The manuscript itself
-is rendered from \texttt{paper/manuscript.qmd} by
+is rendered from \texttt{paper/manuscript\_marine.qmd} by
 \texttt{python\ paper/build.py}.
 
 \section*{Acknowledgements}\label{acknowledgements}
