@@ -6,6 +6,29 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## Unreleased
 
+### Changed (BREAKING)
+
+- **dv/v sign convention is now physical everywhere**: a velocity *increase*
+  is positive; every estimator and `run_pipeline` return
+  `dv/v = -eps / (1 + eps)` where `eps` is the stretch factor (exact at all
+  orders — the first-order `-eps` differs by ~eps² which matters at
+  landslide-scale changes). `impose_dvv`/`impose_dvv_branch` impose in the
+  same physical convention. Previously the generator and all seven
+  estimators consistently used the epsilon convention (positive = coda
+  dilation = slowdown) — internally coherent, so synthetic recovery tests
+  passed, but real-archive dv/v anticorrelated with the Clements-Denolle
+  2022 product and with seasonal hydrology at three CI stations (found on
+  the noisepy-dvv-cloud Gate 1 validation, 2026-08-08). Downstream code
+  that negated codameter output to get physical dv/v must remove that
+  negation.
+
+### Added
+
+- `synthetic_demo.eps_to_dvv`: the exact stretch-to-velocity map.
+- `tests/test_sign_convention.py`: every estimator is held to the physical
+  convention, both signs, plus a `run_pipeline` end-to-end check — the
+  permanent guard against convention drift.
+
 ### Added
 
 - **`run_pipeline(..., return_cc=True)`** — optionally return the per-epoch

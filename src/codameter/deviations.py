@@ -132,6 +132,13 @@ _PREFILTER_OK = {"stretching (TS)", "WCC", "DTW", "MWCS"}
 def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False, prefiltered=False):
     """Recover dv/v(t) under one processing configuration ``cfg``.
 
+    **Sign convention (v0.4.0, physical dv/v)**: a velocity *increase* is
+    positive. All estimators return ``dv/v = -eps / (1 + eps)`` where
+    ``eps`` is the stretch factor that maps the reference onto the current
+    waveform (a coda that must be dilated to match means the medium slowed
+    down). Before v0.4.0 this function returned ``eps`` itself, labeled
+    dv/v — anticorrelated with the physical convention.
+
     Returns ``(dvv, valid)``: the per-day series and a boolean mask of epochs the
     pipeline actually produced (moving/inversion references have a warm-up gap;
     CC-gating drops low-coherence epochs).
