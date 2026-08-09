@@ -199,9 +199,10 @@ def impose_dvv(ref: np.ndarray, t: np.ndarray, dvv: float) -> np.ndarray:
     **Sign convention (physical dv/v)**: ``dvv`` is the fractional velocity
     change. A velocity *increase* (``dvv > 0``) shortens travel times, so a
     feature at reference lapse ``tau`` appears at ``tau / (1 + dvv)`` — the
-    coda compresses toward zero lag. Equivalently ``dvv = -epsilon`` where
-    ``epsilon`` is the stretch factor that maps the reference onto the
-    current waveform. (Before v0.4.0 this function used the epsilon
+    coda compresses toward zero lag. Equivalently
+    ``dvv = -epsilon / (1 + epsilon)`` where ``epsilon`` is the stretch
+    factor that maps the reference onto the current waveform (see
+    :func:`eps_to_dvv`; ``-epsilon`` alone is only first-order accurate). (Before v0.4.0 this function used the epsilon
     convention: positive argument meant coda dilation, i.e. a slowdown.)
     """
     return np.interp(t * (1.0 + dvv), t, ref)
@@ -389,13 +390,19 @@ def eps_to_dvv(eps):
     at landslide-scale changes (several %%) the quadratic term matters.
     """
     eps = np.asarray(eps, dtype=float)
+    if np.any(eps <= -1.0):
+        raise ValueError(
+            "stretch factor eps <= -1 is unphysical (the trial lapse axis "
+            "collapses); got min eps = " + str(float(np.min(eps)))
+        )
     return -eps / (1.0 + eps)
 
 
 def peak_dvv(es: np.ndarray, cc: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Peak-pick a ``CC(epsilon, time)`` image → (dv/v per time, peak CC).
 
-    Returns **physical dv/v** = ``-epsilon`` at the correlation peak: the
+    Returns **physical dv/v** = ``-epsilon / (1 + epsilon)`` at the
+    correlation peak (the exact map, :func:`eps_to_dvv`): the
     grid ``es`` holds stretch factors (the trial maps the reference through
     ``t / (1 + epsilon)``), and a coda that had to be *dilated* to match
     (``epsilon > 0``) means travel times lengthened, i.e. the velocity
@@ -753,7 +760,8 @@ def measure_wxs(
     """WCS / WXS dv/v: wavelet cross-spectrum phase delay, power-weighted slope.
 
     The cross-wavelet spectrum ``W_cur · conj(W_ref)`` gives a phase
-    ``φ(f, τ)``; the delay ``δt = φ / (2π f)`` should equal ``−τ · dv/v``. A
+    ``φ(f, τ)``; the delay ``δt = φ / (2π f)`` grows as ``τ · ε`` for stretch
+    ``ε``, and the regression slope is converted to physical dv/v on return. A
     cross-power-weighted regression of ``δt`` on lapse ``τ`` over the
     time-frequency window yields dv/v (Mao et al. 2020; NoisePy ``wxs_dvv``).
 

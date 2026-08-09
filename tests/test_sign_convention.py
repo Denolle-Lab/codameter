@@ -3,7 +3,7 @@
 Convention (v0.4.0, physical dv/v): a velocity *increase* is positive.
 ``impose_dvv(ref, t, +x)`` compresses the coda toward zero lag (arrivals
 earlier), and every estimator in ``METHODS`` must report ``+x`` back.
-``dv/v = -epsilon`` where epsilon is the stretch factor.
+``dv/v = -epsilon / (1 + epsilon)`` where epsilon is the stretch factor (exact map).
 
 History: before v0.4.0 the generator and the stretching-family estimators
 (stretching TS, WCC, WTS) used the epsilon convention (positive = coda
@@ -59,6 +59,6 @@ def test_run_pipeline_reports_physical_dvv():
         "reference": "fixed",
         "gate": None,
     }
-    dvv, valid, cc = run_pipeline(ccfs, t, 40.0, cfg, eps_max=0.05, return_cc=True)
+    dvv, valid, cc = run_pipeline(ccfs, t, 50.0, cfg, eps_max=0.05, return_cc=True)
     tail = np.nanmedian(dvv[150:])
     assert tail == pytest.approx(TRUE_DVV, rel=0.2)

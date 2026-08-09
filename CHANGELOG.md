@@ -29,8 +29,6 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   convention, both signs, plus a `run_pipeline` end-to-end check — the
   permanent guard against convention drift.
 
-### Added
-
 - **`run_pipeline(..., return_cc=True)`** — optionally return the per-epoch
   stretching correlation coefficient alongside `(dvv, valid)`, for
   coherence-based error models (`uq_measurement.weaver_stretching_error`).

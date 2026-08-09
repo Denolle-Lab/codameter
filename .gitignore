@@ -87,3 +87,4 @@ id_ed25519.pub
 # Hidden golden evaluation corpus: the recipes ARE the dataset. Never commit.
 /hidden-golden/
 cases.json
+.claude/
