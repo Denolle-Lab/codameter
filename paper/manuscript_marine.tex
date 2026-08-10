@@ -246,7 +246,7 @@
 \title{The reproducibility cost of ad-hoc processing choices in
 ambient-noise seismic velocity-change monitoring}
 \author{M. A. Denolle}
-\date{2026-08-08}
+\date{2026-08-10}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -293,6 +293,21 @@ Changes in seismic velocity, often measured and referred to as \dvv, can
 be tracked by measuring changes in arrival times of seismic waves,
 especially scatterd waves such as coda waves, provided that the source
 and receivers are at the same location.
+
+\begin{center}
+\fbox{\begin{minipage}{0.95\linewidth}
+\textbf{Sign convention.} \dvv\ is the fractional seismic velocity change,
+positive for a velocity \emph{increase}. The stretching family of estimators
+measures the stretch factor $\varepsilon$ that maps the reference coda onto
+the current coda; the exact relation is
+\[
+\dvv = -\frac{\varepsilon}{1+\varepsilon}.
+\]
+The first-order shortcut $\dvv \approx -\varepsilon$ is accurate to order
+$\varepsilon^2$ --- negligible below $1\,\%$ but a $0.17\,\%$ absolute bias at
+the $4\,\%$ changes seen on landslides.
+\end{minipage}}
+\end{center}
 
 Due to the sensitivity of coda waves to small perturbations in the
 material properties, \dvv~was discovered as an effective method to
@@ -409,7 +424,7 @@ different bands.
 
 A homogeneous velocity change is imposed exactly by stretching the
 lapse-time axis,
-\(u_{\rm cur}(t) = u_{\rm ref}\!\left(t/(1+\dvv)\right)\), and a
+\(u_{\rm cur}(t) = u_{\rm ref}\!\left(t\,(1+\dvv)\right)\), and a
 repeated time series is produced by generating this stretched coda with
 a prescribed ground-truth \(\dvv(t)\) and additive band-limited noise at
 a controlled signal-to-noise ratio. The concept has been demonstrated
@@ -553,6 +568,14 @@ $\sim\!0.044\,\%$ (1-day, noisy) & Section~\ref{sec:params} \\
 \end{table}
 
 \subsection{Estimator family}\label{sec:methods-fig}
+
+As of codameter v0.4.0, all seven estimators return physical \dvv~under
+the sign convention above rather than the raw stretch factor
+\(\varepsilon\); the synthetic generator imposes changes in the same
+convention, so a positive imposed \dvv~recovers as positive.
+\texttt{tests/test\_sign\_convention.py} holds every estimator to this
+convention in both signs, and checks the full \texttt{run\_pipeline}
+call path end to end, so the convention cannot silently drift back.
 
 On small, clean \dvv, all seven estimators agree, demonstrating
 robustness of the methods (Fig.\textasciitilde{}\ref{fig:methods}a).
@@ -1132,6 +1155,83 @@ separate reimplementation. The retrospective run is validated against
 the already-published \citet{Clements2023} CI.LJR result before any new
 claim is drawn from it.
 
+After the correction, single-station \dvv~(NoisePy correlations, a
+codameter 5-member ensemble, 2--4,Hz, 2018--2019) validates against the
+published \citet{Clements2023} product. The comparison is not trivial to
+get right: the CD2022 90-day-comp product is a \emph{trailing} 90-day
+stack, so it lags a centered-smoothed daily series by about 45 days, and
+comparing without matching that smoothing caps the correlation near 0.7
+even on a real annual cycle
+(Fig.\textasciitilde{}\ref{fig:realdata-validation}). We match by
+applying the same trailing 90-day mean to the daily series, compare
+demeaned --- the two products reference different epochs, and a constant
+offset is bookkeeping, not error --- and exclude the first 150 days of
+each station's series as reference burn-in. Under this matched
+comparison, CI.LJR reaches \(r=0.990\) (681 overlapping days); CI.ARV
+reaches \(r=0.66\)--\(0.92\) depending on the join method, reflecting
+real 2018 data gaps; CI.RXH reaches \(r=0.68\), the weakest of the
+three, on a station whose recovered \dvv~is nearly flat and whose signal
+is low to begin with.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{realdata_1_validation.png}
+  \caption{Single-station \dvv\ at three CI stations, 2018--2019, against the
+  published Clements \& Denolle (2022) product (dashed, reference-shifted).
+  Daily \dvv\ (points) with the ensemble spread (shaded, epistemic) and
+  measurement error bars, and a 45-day-smoothed curve. The annotated $r$ is
+  computed on this 45-day-smoothed comparison, not the smoothing-matched
+  comparison reported in the text; matching CD2022's own trailing 90-day
+  window instead of a centered 45-day one raises $r$ at every station (to
+  0.990/0.66--0.92/0.68 for LJR/ARV/RXH), which is why the two numbers
+  differ.}
+  \label{fig:realdata-validation}
+\end{figure}
+
+Why validation quality differs so much by station is visible in the
+correlation function itself
+(Fig.\textasciitilde{}\ref{fig:realdata-interferograms}). CI.LJR shows a
+stable, narrow coda near zero lag through the year. CI.RXH shows
+multipath, several coherent arrivals spread across the full \(\pm 8\,\)s
+of lag shown, and a visible shift in that pattern in April--May 2019,
+consistent with a site change rather than a processing artefact.
+CI.ARV's coherent energy is compact and concentrated near zero lag but
+comparatively sparse, consistent with its higher scatter and join-method
+sensitivity.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{realdata_2_interferograms.png}
+  \caption{Daily north-south/east-west cross-component correlation
+  functions, 2--4\,Hz, $\pm 8\,$s lag, 2019. CI.LJR's coda is stable and
+  narrow. CI.RXH shows multipath (several coherent bands across the full lag
+  range) and a shift in that pattern in April--May 2019. CI.ARV's coherent
+  energy is compact and near zero lag but comparatively sparse. The visual
+  difference is the reason validation quality differs by station in
+  Fig.~\ref{fig:realdata-validation}.}
+  \label{fig:realdata-interferograms}
+\end{figure}
+
+As an optional supplement,
+Fig.\textasciitilde{}\ref{fig:realdata-warmup} shows the ensemble's
+warm-up behaviour on a separate 90-day smoke run at CI.LJR: \dvv\\
+is undefined until enough history has accumulated for the
+moving-reference member to compute a trailing reference, and each band's
+per-epoch stretching correlation coefficient is reported alongside the
+recovered series.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{realdata_3_warmup.png}
+  \caption{CI.LJR single-station \dvv, a separate 90-day smoke run (January--April
+  2023), four frequency bands. The ensemble spread (shaded) and measurement
+  error bars are reported once at least one member is defined; the annotated
+  member count grows as the moving-reference member's warm-up period
+  elapses, reaching all 5 members later in the window. Bottom panel:
+  per-band stretching correlation coefficient.}
+  \label{fig:realdata-warmup}
+\end{figure}
+
 \section{Depth: propagating the measurement covariance through
 sensitivity kernels}\label{sec:depth}
 
@@ -1146,16 +1246,16 @@ The field has converged on one physical rule for depth --- \emph{depth
 is set by the frequency band and the coda lapse time, it is not assumed}
 \citep{Obermann2013, Obermann2016} --- and, increasingly, on multi-band
 measurement as the means to resolve it
-\citep{Takano2017, Feng2020, Mao2022}. The step from a set of per-band
-\dvv~series to a depth profile is where reporting is least consistent:
-many studies read a single band as a single depth, only a few invert
-several bands against surface-wave sensitivity kernels, and the
-propagation of the measurement error into the depth estimate is seldom
-shown. The depth assignment is frequently the scientific claim itself
---- whether the change lies in the aquifer or the overlying soil,
-whether coseismic softening is a shallow site response or slip on the
-fault at depth \citep{Rubinstein2005} --- so a depth reported without
-its uncertainty cannot support that claim.
+\citep[\citet{Mao2025}]{Takano2017, Feng2020, Mao2022}. The step from a
+set of per-band \dvv~series to a depth profile is where reporting is
+least consistent: many studies read a single band as a single depth,
+only a few invert several bands against surface-wave sensitivity
+kernels, and the propagation of the measurement error into the depth
+estimate is seldom shown. The depth assignment is frequently the
+scientific claim itself --- whether the change lies in the aquifer or
+the overlying soil, whether coseismic softening is a shallow site
+response or slip on the fault at depth \citep{Rubinstein2005} --- so a
+depth reported without its uncertainty cannot support that claim.
 
 A \dvv~measured in band \(b\) is not a point sample but a weighted
 integral over depth, \begin{equation}
@@ -1322,6 +1422,30 @@ record turns an undocumented choice into a versioned, inspectable one,
 and lets a reader re-run a study's pipeline on the truth-known synthetic
 to see its bias before trusting it on data.
 
+\textbf{Validate against something you did not generate.} Every
+synthetic test in this paper passed before the discovery below, and that
+is exactly the danger: a synthetic built under the same sign convention
+as the estimator reading it will always agree, whether the convention is
+physically correct or not. Testing codameter's estimators against a real
+cross-network deployment (Section\textasciitilde{}\ref{sec:deployment}),
+recovered \dvv~anticorrelated with the published Clements \& Denolle
+(2022) product and with seasonal hydrology at three stations
+(\(r=-0.69,-0.45,-0.40\)). Ground-truthing through the exact call path
+made the cause obvious: imposing a \(+0.5\,\%\) velocity change returned
+\(-0.50\,\%\). The synthetic generator and all seven estimators had
+consistently used the stretch factor \(\varepsilon\) (positive for a
+coda dilation, i.e.~a slowdown), not physical \dvv~(positive for a
+speedup) --- internally coherent, so every synthetic-recovery test in
+the sections above passed, but opposite to the sign convention the field
+expects and to the published product it was compared against. The fix is
+the convention boxed in Section\textasciitilde{}\ref{sec:intro}, shipped
+as codameter v0.4.0. Internal consistency is not correctness: a pipeline
+that only checks itself will confirm whatever convention it started
+with, and only the comparison against an independently-produced result
+caught this one. Full details and the ground-truthing procedure are in
+codameter PR \#36 and its commit history on branch
+\texttt{fix/dvv-sign-convention}.
+
 \textbf{Propagate the covariance, do not truncate it.} The measurement
 covariance is not the end of the analysis but its first input.
 Section\textasciitilde{}\ref{sec:depth} sets out the next step of the
@@ -1363,8 +1487,11 @@ depth stage is being built.
 Let \(r(t)\) and \(c(t)\) be the reference and current
 cross-correlations, band-passed to \([f_1,f_2]\) (central frequency
 \(f_c\), bandwidth \(B\)) and read over the coda window \(W=[t_1,t_2]\)
-on one or both branches. We use the convention \(\delta t/t = -\,\dvv\),
-and write \(\varepsilon\) for the recovered \dvv.
+on one or both branches. Each method below estimates a trial stretch
+factor \(\varepsilon\), the fractional dilation of the current coda
+relative to the reference; physical \dvv~follows via the convention
+boxed in Section\textasciitilde{}\ref{sec:intro},
+\(\dvv=-\varepsilon/(1+\varepsilon)\).
 
 \textbf{Trace stretching (TS).} For a trial stretch \(s\), define
 \(r_s(t)=r\!\left(t/(1+s)\right)\) and the windowed correlation
@@ -1418,17 +1545,20 @@ cross-wavelet-power weights.
 \section{Aggregation and uncertainty conventions}\label{app:aggregation}
 
 For component \(k\) of a station pair, stretching yields the image
-\(\mathrm{CC}_k(\varepsilon,t)\).
+\(\mathrm{CC}_k(\varepsilon,t)\); each per-component stretch factor
+converts to physical \(\dvv_k\) via the boxed relation.
 
-\textbf{Approach A (average the \dvv).}
-\(\varepsilon_k(t)=\arg\max_{\varepsilon} \mathrm{CC}_k(\varepsilon,t)\)
-and the pair estimate is the (possibly weighted) mean
-\(x_p(t)=\sum_k w_k\,\varepsilon_k/\sum_k
-w_k\), with \(w_k=\max_{\varepsilon} \mathrm{CC}_k\)
-(coherence-weighted) or \(w_k=1\) (unweighted).
+\textbf{Approach A (average the per-component \dvv).} \(\dvv_k(t)\)
+follows from \(\varepsilon_k(t)=\arg\max_{\varepsilon}
+\mathrm{CC}_k(\varepsilon,t)\), and the pair estimate is the (possibly
+weighted) mean \(x_p(t)=\sum_k w_k\,\dvv_k/\sum_k w_k\), with
+\(w_k=\max_{\varepsilon}
+\mathrm{CC}_k\) (coherence-weighted) or \(w_k=1\) (unweighted).
 
-\textbf{Approach B (average the images).}
-\(x_p(t)=\arg\max_{\varepsilon}\big[\tfrac1{N_c}\sum_k \mathrm{CC}_k(\varepsilon,t)\big]\).
+\textbf{Approach B (average the images).} The pair stretch factor
+\(\varepsilon_p(t)=\arg\max_{\varepsilon}\big[\tfrac1{N_c}\sum_k
+\mathrm{CC}_k(\varepsilon,t)\big]\) converts to \(x_p(t)=\dvv_p(t)\) via
+the same relation.
 
 \textbf{Network over pairs.} With pair weights \(W_p\) (e.g.~mean
 coherence), \begin{equation}

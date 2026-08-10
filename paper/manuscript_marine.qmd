@@ -170,7 +170,7 @@ reproduces the observation that high frequencies are retained only at short lag
 times, so a fixed late window samples different depths at different bands.
 
 A homogeneous velocity change is imposed exactly by stretching the lapse-time
-axis, $u_{\rm cur}(t) = u_{\rm ref}\!\left(t/(1+\dvv)\right)$, and a repeated time
+axis, $u_{\rm cur}(t) = u_{\rm ref}\!\left(t\,(1+\dvv)\right)$, and a repeated time
 series is produced by generating this stretched coda with a prescribed
 ground-truth $\dvv(t)$ and additive band-limited noise at a controlled
 signal-to-noise ratio. The concept has been demonstrated using full waveform
@@ -828,9 +828,76 @@ separate reimplementation. The retrospective run is validated against the
 already-published @Clements2023 CI.LJR result before any new claim is drawn
 from it.
 
-<!-- TODO(author, before submission): drop in the CI.LJR dv/v(t) figure here
-once the pipeline run completes, with a caption describing only what it
-actually shows -- do not describe results ahead of having them. -->
+After the correction, single-station \dvv\ (NoisePy correlations, a
+codameter 5-member ensemble, 2--4\,Hz, 2018--2019) validates against the
+published @Clements2023 product. The comparison is not trivial to get right:
+the CD2022 90-day-comp product is a *trailing* 90-day stack, so it lags a
+centered-smoothed daily series by about 45 days, and comparing without
+matching that smoothing caps the correlation near 0.7 even on a real annual
+cycle (Fig.~\ref{fig:realdata-validation}). We match by applying the same
+trailing 90-day mean to the daily series, compare demeaned --- the two
+products reference different epochs, and a constant offset is bookkeeping,
+not error --- and exclude the first 150 days of each station's series as
+reference burn-in. Under this matched comparison, CI.LJR reaches $r=0.990$
+(681 overlapping days); CI.ARV reaches $r=0.66$--$0.92$ depending on the join
+method, reflecting real 2018 data gaps; CI.RXH reaches $r=0.68$, the weakest
+of the three, on a station whose recovered \dvv\ is nearly flat and whose
+signal is low to begin with.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{realdata_1_validation.png}
+  \caption{Single-station \dvv\ at three CI stations, 2018--2019, against the
+  published Clements \& Denolle (2022) product (dashed, reference-shifted).
+  Daily \dvv\ (points) with the ensemble spread (shaded, epistemic) and
+  measurement error bars, and a 45-day-smoothed curve. The annotated $r$ is
+  computed on this 45-day-smoothed comparison, not the smoothing-matched
+  comparison reported in the text; matching CD2022's own trailing 90-day
+  window instead of a centered 45-day one raises $r$ at every station (to
+  0.990/0.66--0.92/0.68 for LJR/ARV/RXH), which is why the two numbers
+  differ.}
+  \label{fig:realdata-validation}
+\end{figure}
+
+Why validation quality differs so much by station is visible in the
+correlation function itself (Fig.~\ref{fig:realdata-interferograms}). CI.LJR
+shows a stable, narrow coda near zero lag through the year. CI.RXH shows
+multipath, several coherent arrivals spread across the full $\pm 8\,$s of
+lag shown, and a visible shift in that pattern in April--May 2019,
+consistent with a site change rather than a processing artefact. CI.ARV's
+coherent energy is compact and concentrated near zero lag but comparatively
+sparse, consistent with its higher scatter and join-method sensitivity.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{realdata_2_interferograms.png}
+  \caption{Daily north-south/east-west cross-component correlation
+  functions, 2--4\,Hz, $\pm 8\,$s lag, 2019. CI.LJR's coda is stable and
+  narrow. CI.RXH shows multipath (several coherent bands across the full lag
+  range) and a shift in that pattern in April--May 2019. CI.ARV's coherent
+  energy is compact and near zero lag but comparatively sparse. The visual
+  difference is the reason validation quality differs by station in
+  Fig.~\ref{fig:realdata-validation}.}
+  \label{fig:realdata-interferograms}
+\end{figure}
+
+As an optional supplement, Fig.~\ref{fig:realdata-warmup} shows the
+ensemble's warm-up behaviour on a separate 90-day smoke run at CI.LJR: \dvv\
+is undefined until enough history has accumulated for the moving-reference
+member to compute a trailing reference, and each band's per-epoch stretching
+correlation coefficient is reported alongside the recovered series.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{realdata_3_warmup.png}
+  \caption{CI.LJR single-station \dvv, a separate 90-day smoke run (January--April
+  2023), four frequency bands. The ensemble spread (shaded) and measurement
+  error bars are reported once at least one member is defined; the annotated
+  member count grows as the moving-reference member's warm-up period
+  elapses, reaching all 5 members later in the window. Bottom panel:
+  per-band stretching correlation coefficient.}
+  \label{fig:realdata-warmup}
+\end{figure}
 
 # Depth: propagating the measurement covariance through sensitivity kernels {#sec:depth}
 
@@ -1064,8 +1131,10 @@ package in which the depth stage is being built.
 
 Let $r(t)$ and $c(t)$ be the reference and current cross-correlations,
 band-passed to $[f_1,f_2]$ (central frequency $f_c$, bandwidth $B$) and read over
-the coda window $W=[t_1,t_2]$ on one or both branches. We use the convention
-$\delta t/t = -\,\dvv$, and write $\varepsilon$ for the recovered \dvv.
+the coda window $W=[t_1,t_2]$ on one or both branches. Each method below
+estimates a trial stretch factor $\varepsilon$, the fractional dilation of
+the current coda relative to the reference; physical \dvv\ follows via the
+convention boxed in Section~\ref{sec:intro}, $\dvv=-\varepsilon/(1+\varepsilon)$.
 
 **Trace stretching (TS).** For a trial stretch $s$, define
 $r_s(t)=r\!\left(t/(1+s)\right)$ and the windowed correlation coefficient
@@ -1112,16 +1181,19 @@ per-scale estimates are pooled with cross-wavelet-power weights.
 # Aggregation and uncertainty conventions {#app:aggregation}
 
 For component $k$ of a station pair, stretching yields the image
-$\mathrm{CC}_k(\varepsilon,t)$.
+$\mathrm{CC}_k(\varepsilon,t)$; each per-component stretch factor converts to
+physical $\dvv_k$ via the boxed relation.
 
-**Approach A (average the \dvv).**
-$\varepsilon_k(t)=\arg\max_{\varepsilon} \mathrm{CC}_k(\varepsilon,t)$ and the pair
-estimate is the (possibly weighted) mean $x_p(t)=\sum_k w_k\,\varepsilon_k/\sum_k
-w_k$, with $w_k=\max_{\varepsilon} \mathrm{CC}_k$ (coherence-weighted) or $w_k=1$
-(unweighted).
+**Approach A (average the per-component \dvv).**
+$\dvv_k(t)$ follows from $\varepsilon_k(t)=\arg\max_{\varepsilon}
+\mathrm{CC}_k(\varepsilon,t)$, and the pair estimate is the (possibly
+weighted) mean $x_p(t)=\sum_k w_k\,\dvv_k/\sum_k w_k$, with $w_k=\max_{\varepsilon}
+\mathrm{CC}_k$ (coherence-weighted) or $w_k=1$ (unweighted).
 
-**Approach B (average the images).**
-$x_p(t)=\arg\max_{\varepsilon}\big[\tfrac1{N_c}\sum_k \mathrm{CC}_k(\varepsilon,t)\big]$.
+**Approach B (average the images).** The pair stretch factor
+$\varepsilon_p(t)=\arg\max_{\varepsilon}\big[\tfrac1{N_c}\sum_k
+\mathrm{CC}_k(\varepsilon,t)\big]$ converts to $x_p(t)=\dvv_p(t)$ via the same
+relation.
 
 **Network over pairs.** With pair weights $W_p$ (e.g.\ mean coherence),
 \begin{equation}
