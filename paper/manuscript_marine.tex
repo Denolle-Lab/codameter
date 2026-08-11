@@ -548,8 +548,8 @@ its own dedicated synthetic scenario (see the cross-referenced subsection).}
 \toprule
 \textbf{Axis} & \textbf{Best-case RMS} & \textbf{Worst-case RMS} & \textbf{Section} \\
 \midrule
-Estimator (family split) & $<\!0.01\,\%$ (TS/WTS, up to 5\,\% true \dvv) &
-cycle-skip $>\!0.5\,\%$ past $\sim\!1.4\,\%$ true \dvv\ (MWCS) &
+Estimator (family split) & $<\!0.01\,\%$ (TS, up to 5\,\% true \dvv) &
+cycle-skip $>\!0.5\,\%$ past $\sim\!1.5\,\%$ true \dvv\ (MWCS) &
 Section~\ref{sec:methods-fig} \\ \hline
 Cross-component aggregation & $\sim\!0.03\,\%$ (Approach B, averaged images) &
 $\sim\!0.31\,\%$ (Approach A, unweighted) & Section~\ref{sec:aggregation} \\ \hline
@@ -558,8 +558,8 @@ $\sim\!0.05\,\%$ (individual-pair range) & Section~\ref{sec:uncertainty} \\ \hli
 Frequency band & $\sim\!0.003$--$0.03\,\%$ (matched to depth) &
 $\sim\!0.10\,\%$ (mismatched) & Section~\ref{sec:params} \\ \hline
 Coda window & $\sim\!0.01\,\%$ (adapted to band) &
-$\sim\!3.8\,\%$ (fixed, wrong band) & Section~\ref{sec:window} \\ \hline
-Reference scheme & $\sim\!0.03$--$0.04\,\%$ (fixed stack / joint inversion) &
+$\sim\!3.9\,\%$ (fixed, wrong band) & Section~\ref{sec:window} \\ \hline
+Reference scheme & $\sim\!0.03\,\%$ (fixed stack / joint inversion) &
 $\sim\!0.16\,\%$ (60-day moving) & Section~\ref{sec:params} \\ \hline
 Stack length & $\sim\!0.018\,\%$ (10-day) &
 $\sim\!0.044\,\%$ (1-day, noisy) & Section~\ref{sec:params} \\
@@ -598,26 +598,36 @@ the \dvv~measurements for larger strain changes.
   \includegraphics[width=\textwidth]{demo_1_methods.png}
   \caption{Estimator choice across the seven NoisePy methods. (a) Clean,
   small \dvv: all agree. (b) The same clean recovery swept over $\pm 5\,\%$
-  true \dvv: MWCS cycle-skips almost immediately past $\pm 1$--$2\,\%$, DTW/WTDTW
-  break past $\pm 3$--$4\,\%$, WCS degrades smoothly, while TS/WTS/WCC track the
-  1:1 line throughout. (c) Large, noisy \dvv\ (a pre-failure landslide signal):
+  true \dvv: MWCS cycle-skips past $\sim\!1.5\,\%$ on either branch; TS and WTS
+  track the 1:1 line throughout; WCC tracks just as tightly on the negative
+  branch but breaks sharply near the positive edge; DTW and WTDTW break
+  asymmetrically, WTDTW near $+1\,\%$ but only near $-3\,\%$ on the other
+  branch; WCS degrades smoothly, crossing $1\,\%$ error beyond $\pm 4\,\%$.
+  (c) Large, noisy \dvv\ (a pre-failure landslide signal):
   MWCS cycle-skips, 2-D-unwrapped WCS and the stretching family track, the
   warping methods under-shoot.}
   \label{fig:methods}
 \end{figure}
 
-On a clean, noiseless sweep of true \dvv~from 0 to 5,\%
+On a clean, noiseless sweep of true \dvv~from \(-5\) to \(5\,\%\)
 (Fig.\textasciitilde{}\ref{fig:methods}b), the phase-wrapped MWCS
-estimator is the first to break: its error stays below \(0.1\,\%\) up to
-a true \dvv~of \(\sim\!1.2\,\%\), then jumps discontinuously past
-\(0.5\,\%\) error by \(\sim\!1.4\,\%\) true \dvv~--- the cycle-skip. The
-stretching family (TS, WTS) stays below \(0.01\,\%\) error out to the
-full 5,\% tested, and WCC stays below \(0.1\,\%\); the warping methods
-(DTW, WTDTW) are accurate at small \dvv~but develop intermittent, large
-(\(>\!1\,\%\)) errors from \(\sim\!3\,\%\) true \dvv~onward as the warp
-path becomes ill-conditioned, while WCS degrades smoothly rather than
-catastrophically, crossing \(1\,\%\) error only beyond \(\sim\!4\,\%\)
-true \dvv.
+estimator is the first to break on either branch: its error stays below
+\(0.1\,\%\) out to \(\sim\!1.3\,\%\) true \dvv, then exceeds \(1\,\%\)
+error by \(\sim\!1.5\,\%\) --- the cycle-skip, essentially symmetric in
+sign. The stretching family (TS, WTS) stays below \(0.1\,\%\) error out
+to the full \(5\,\%\) tested, on both branches. WCC is just as accurate
+on the negative branch (error stays below \(0.1\,\%\) throughout) but
+breaks sharply on the positive branch, crossing both \(0.1\,\%\) and
+\(1\,\%\) error abruptly at the edge of the tested range
+(\(\sim\!4.75\,\%\)) --- a sign asymmetry from the physical convention
+itself (Section\textasciitilde{}\ref{sec:intro}), not a processing
+artefact. The warping methods develop large (\(>\!1\,\%\)) errors
+asymmetrically as the warp path becomes ill-conditioned: WTDTW crosses
+\(1\,\%\) error already at \(\sim\!1\,\%\) true \dvv~on the positive
+branch but only at \(\sim\!3\,\%\) on the negative branch, and DTW
+crosses at \(\sim\!2.5\,\%\) versus \(\sim\!3\,\%\). WCS degrades
+smoothly rather than catastrophically, crossing \(1\,\%\) error beyond
+\(\pm4\,\%\) true \dvv~on either branch.
 
 \subsection{Aggregating cross-component results}\label{sec:aggregation}
 
@@ -742,9 +752,9 @@ re-baselines continuously and erases slow trends that a fixed reference
 or a joint inversion \citep{Brenguier2014} preserve
 (Fig.\textasciitilde{}\ref{fig:params}c). On the volcano synthetic, a
 fixed total-stack reference gives RMS \(\sim\!0.03\,\%\) and a
-Brenguier-style joint inversion \(\sim\!0.04\,\%\) (both preserve the
-pre-eruptive trend), while a 60-day moving reference gives RMS
-\(\sim\!0.16\,\%\) --- roughly 4--5\(\times\) worse --- because it
+Brenguier-style joint inversion a comparable \(\sim\!0.03\,\%\) (both
+preserve the pre-eruptive trend), while a 60-day moving reference gives
+RMS \(\sim\!0.16\,\%\) --- roughly \(5\times\) worse --- because it
 re-baselines away the very trend being measured.
 
 The \textbf{stacking length} trades noise against temporal resolution,
@@ -779,14 +789,15 @@ The \textbf{reference} choice also has a construction axis beyond
 fixed-versus-moving: how much of the record a ``fixed'' reference
 actually stacks. On the volcano synthetic, a reference built from the
 whole pre-eruptive record gives RMS \(\sim\!0.03\,\%\), one built from
-only the earliest 15,\% of that record (an ``early stack,'' noisier for
-having fewer days) gives \(\sim\!0.04\,\%\) (\(\sim\!1.5\times\) worse),
-a 60-day moving stack gives \(\sim\!0.16\,\%\) (erasing the trend, as
-above), and the Brenguier-style joint inversion \citep{Brenguier2014}
-gives \(\sim\!0.04\,\%\) while additionally preserving the trend --- so
-among the reference-construction choices, whole-period and joint
-inversion are comparably good, early-stacking is a modest
-(\(\sim\!1.5\times\)) noise penalty, and only the moving reference
+only the earliest 15,\% of that record (an ``early stack'') gives a
+comparable \(\sim\!0.03\,\%\) --- a shorter, earlier reference is not
+automatically worse: it avoids averaging across the developing
+pre-eruptive trend the way a longer stack does. A 60-day moving stack
+gives \(\sim\!0.16\,\%\) (erasing the trend, as above), and the
+Brenguier-style joint inversion \citep{Brenguier2014} gives
+\(\sim\!0.03\,\%\) while additionally preserving the trend --- so among
+the reference-construction choices, whole-period, early, and joint
+inversion are all comparably good, and only the moving reference
 actively destroys signal.
 
 \subsection{Coda window and its covariation with frequency
@@ -801,7 +812,7 @@ floor much sooner than low-frequency coda: a coda window that is well
 past the direct arrival for a \(\sim\!0.3\)--\(0.8\,\)Hz band is, at
 \(\sim\!3\)--\(6\,\)Hz, sampling almost pure noise
 (Fig.\textasciitilde{}\ref{fig:params}b). On our synthetic, a fixed
-20--40\(\,\)s window at the high band gives RMS error \(\sim\!3.8\,\%\)
+20--40\(\,\)s window at the high band gives RMS error \(\sim\!3.9\,\%\)
 (the noise floor, not the signal), while a window hand-adapted to the
 band (3--12\(\,\)s) recovers the truth at \(\sim\!0.01\,\%\) --- nearly
 a 400\(\times\) difference from this one choice alone. This is itself an
@@ -829,10 +840,10 @@ interacts with each band's filter, not a claim that the detector is
 exact). Recovering \dvv~with each band's own detected window instead of
 one universal fixed (10--30\(\,\)s) window
 (Fig.\textasciitilde{}\ref{fig:window-envelope}b) gives RMS
-\(\sim\!0.032\,\%\) vs.~\(\sim\!0.036\,\%\) at the low band (a modest,
-\(\sim\!1.1\times\) gain), \(\sim\!0.017\,\%\) vs.~\(\sim\!0.035\,\%\)
-at the mid band (\(\sim\!2\times\)), and \(\sim\!0.019\,\%\)
-vs.~\(\sim\!1.8\,\%\) at the high band (\(\sim\!93\times\)) --- the
+\(\sim\!0.030\,\%\) vs.~\(\sim\!0.036\,\%\) at the low band (a modest,
+\(\sim\!1.2\times\) gain), \(\sim\!0.017\,\%\) vs.~\(\sim\!0.035\,\%\)
+at the mid band (\(\sim\!2\times\)), and \(\sim\!0.020\,\%\)
+vs.~\(\sim\!2.0\,\%\) at the high band (\(\sim\!100\times\)) --- the
 fixed window is adequate at low frequency and catastrophic at high
 frequency, while the envelope-derived window is close to the best
 achievable at every band without ever being told what band it is
@@ -959,13 +970,16 @@ as distilled in our survey), we change one parameter at a time to a
 deviation from best practice documented in the literature and measure
 the resulting error against the known truth
 (Fig.\textasciitilde{}\ref{fig:deviations}). The ranking is unambiguous:
-relative to a best-practice RMS error of \(\sim\!0.02\,\%\), an
-unwrapped phase estimator that cycle-skips is catastrophic, a moving
-reference and a wrapped-phase MWCS each inflate the error roughly an
-order of magnitude, an over-long stack and a late low-SNR window distort
-the co-eruptive drop, while the frequency band (which mostly sets
-precision here) and the gating are second-order. The joint inversion is
-nearly as good as the fixed reference and preserves the trend.
+relative to a best-practice RMS error of \(\sim\!0.03\,\%\), the
+two-dimensionally-unwrapped WCS estimator is catastrophic here
+(\(\sim\!50\times\) worse), a wrapped-phase MWCS inflates the error by
+roughly an order of magnitude (\(\sim\!12\times\)), and DTW by
+\(\sim\!6\times\); among the non-estimator choices a moving reference is
+worst (\(\sim\!5\times\), and most distorts the recovered drop), while
+stack length, coda window, and frequency band deviations are each more
+modest (\(1.5\)--\(2.5\times\)). The joint-inversion reference stays
+closest to the fixed-reference baseline among the reference-scheme
+deviations.
 
 \begin{figure}
   \centering
@@ -994,12 +1008,14 @@ the known truth spans over two orders of magnitude across pipelines
 Attributing the variance of the outcome to each axis with a first-order
 (main-effect) sensitivity index
 (Fig.\textasciitilde{}\ref{fig:multiverse}b) shows that, for this
-dataset, the \textbf{coda window and the stack length} control the RMS
-error most, the \textbf{stack length} dominates the recovered drop
-amplitude, and the estimator is third; the first-order indices sum to
-well under one, so a large part of the spread is \emph{interaction}
-between choices compounding. The appropriate object is therefore not a
-single curve but a distribution of \dvv~over the processing choices.
+dataset, the \textbf{coda window} controls the RMS error most, with the
+estimator second and the stack length third; for the recovered drop
+amplitude the order changes to \textbf{stack length} first, window
+second, and estimator third. The first-order indices sum to well under
+one in both cases (\(\sim\!0.66\) for RMS, \(\sim\!0.63\) for the drop),
+so a large part of the spread is \emph{interaction} between choices
+compounding. The appropriate object is therefore not a single curve but
+a distribution of \dvv~over the processing choices.
 
 \begin{figure}
   \centering
@@ -1008,8 +1024,9 @@ single curve but a distribution of \dvv~over the processing choices.
   each coloured by its RMS error against the truth on a colourblind-safe scale
   (bright accurate, dark biased; the worst run off the clipped axis); the grey band
   is the 10--90\% inter-pipeline spread, widest at the velocity drop. (b) First-order variance attribution: which
-  choice controls the RMS error and the recovered drop. Window and stack length
-  dominate; the sub-unity sum signals strong interactions.}
+  choice controls the RMS error and the recovered drop. Window, estimator, and
+  stack length dominate, in that order for RMS and reordered for the drop;
+  the sub-unity sum signals strong interactions.}
   \label{fig:multiverse}
 \end{figure}
 
