@@ -409,11 +409,11 @@ def _fig_bayes(res, run):
     truth = run.truth
     sd_cd = np.sqrt(np.diag(res.Cd))
     sd_post = np.sqrt(np.diag(res.mu_cov))
-    fig = plt.figure(figsize=(7.2, 3.0), layout="constrained")
-    gs = fig.add_gridspec(1, 3, width_ratios=[1.5, 1.0, 1.1])
+    fig = plt.figure(figsize=(7.2, 5.6), layout="constrained")
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 1.0])
 
     # (a) ensemble + posterior + the two bands.
-    ax0 = fig.add_subplot(gs[0])
+    ax0 = fig.add_subplot(gs[0, 0])
     for k in range(run.members.shape[0]):
         ax0.plot(yrs, run.members[k] * 100, lw=0.5, color="0.7", alpha=0.6)
     if truth is not None:
@@ -448,7 +448,7 @@ def _fig_bayes(res, run):
     )
 
     # (b) the data covariance matrix.
-    ax1 = fig.add_subplot(gs[1])
+    ax1 = fig.add_subplot(gs[0, 1])
     vmax = float(np.percentile(np.diag(res.Cd), 85))  # robust to the warm-up spike
     im = ax1.imshow(
         res.Cd,
@@ -472,7 +472,9 @@ def _fig_bayes(res, run):
     fig.colorbar(im, ax=ax1, fraction=0.046)
 
     # (c) time-dependent sigma_d(t) and the effective-sample-size collapse.
-    ax2 = fig.add_subplot(gs[2])
+    # Full width on its own row: it carries four legend entries and was too
+    # horizontally squeezed sharing a row with (a) and (b).
+    ax2 = fig.add_subplot(gs[1, :])
     ax2.plot(
         yrs, sd_cd * 100, color=C["volcano"], lw=1.6, label=r"$\sigma_d(t)$ (total)"
     )

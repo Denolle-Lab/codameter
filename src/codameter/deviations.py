@@ -431,6 +431,7 @@ def fig_deviation_ranking(rows=None):
 def fig_multiverse_full(mv=None):
     """The ultimate multiverse: every pipeline + the variance attribution."""
     import matplotlib.pyplot as plt
+    from matplotlib.colors import Normalize
 
     if mv is None:
         mv = multiverse()
@@ -444,7 +445,7 @@ def fig_multiverse_full(mv=None):
     # (a) fan of pipelines, coloured by RMS error with a colourblind-safe,
     # perceptually uniform sequential map (dark = accurate, bright = biased).
     order = np.argsort(-np.nan_to_num(rms))
-    norm = plt.Normalize(np.nanpercentile(rms, 5), np.nanpercentile(rms, 95))
+    norm = Normalize(np.nanpercentile(rms, 5), np.nanpercentile(rms, 95))
     cmap = plt.cm.viridis_r
     for i in order:
         ax[0].plot(yrs, curves[i] * PCT, color=cmap(norm(rms[i])), lw=0.3, alpha=0.16)
@@ -463,13 +464,10 @@ def fig_multiverse_full(mv=None):
     )
     ax[0].plot(yrs, truth * PCT, color=C["truth"], lw=2.6, label="ground truth")
     ax[0].axvline(2.0, color="0.6", ls="--", lw=1)
-    # Clip tightly to the truth scale; the cycle-skipping pipelines run off-axis
-    # (that is the point — the colourbar flags them) but would otherwise swamp the
+    # Fixed, symmetric range: the cycle-skipping pipelines run off-axis (that is
+    # the point -- the colourbar flags them) but would otherwise swamp the
     # signal and make the panel unreadable.
-    span = (np.nanmax(truth) - np.nanmin(truth)) * PCT
-    ax[0].set_ylim(
-        (np.nanmin(truth) * PCT - 0.35 * span, np.nanmax(truth) * PCT + 0.35 * span)
-    )
+    ax[0].set_ylim((-0.8, 0.8))
     ax[0].set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
