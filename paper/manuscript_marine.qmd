@@ -53,12 +53,12 @@ Time-series analysis; Interferometry; Seismic noise; Coda waves; Inverse theory;
 
 # Introduction {#sec:intro}
 
-Changes in subsurface properties occur due geodynamics, which drive earthquake damage
-and volcanic eruption, and hydrodynamics, which controls fluid exchange between the atomsphere
-and the solid Earth. These processes influence the mechanical property of Earth materials,
-which directly affect the speed at which seismic waves propagates. Changes in seismic
+Changes in subsurface properties occur due to geodynamics, which drive earthquake damage
+and volcanic eruption, and hydrodynamics, which controls fluid exchange between the atmosphere
+and the solid Earth. These processes influence the mechanical properties of Earth materials,
+which directly affect the speed at which seismic waves propagate. Changes in seismic
 velocity, often measured and referred to as \dvv$\,$can be tracked by measuring changes in arrival
-times of seismic waves, especially scatterd waves such as coda waves,
+times of seismic waves, especially scattered waves such as coda waves,
 provided that the source and receivers are at the same location.
 
 ```{=latex}
@@ -79,7 +79,7 @@ a true $\dvv$ of $4\,\%$, the changes seen on landslides.
 ```
 
 Due to the sensitivity of coda waves to small perturbations in the material properties,
-\dvv\ was discovered as an effective method to monitor chanes during volcanic unrest since its
+\dvv\ was discovered as an effective method to monitor changes during volcanic unrest since its
 discovery at Piton de la Fournaise [@Brenguier2008] and is now calculated in continuous
 along side of more conventional seismic monitoring methods in the same volcano observatory
  [@Duputel2009] and was a determining early warning parameter used by the Icelandic Meteorological
@@ -93,39 +93,39 @@ along side of more conventional seismic monitoring methods in the same volcano o
   Each of these deployments rests on the same fragile assumption: that the \dvv\ curve an operator
   acts on is a property of the subsurface, not of the analyst's processing choices.
 
-The elevated sensitivity comes at the price a long series of processing choices
+The elevated sensitivity comes at the price of a long series of processing choices,
  and at almost every step the analyst makes a choice. Among these are choices of
- estimators between windowed phase measurements or strething [@Mikesell2015, @Mao2020, @Yuan2021],
+ estimators between windowed phase measurements or stretching [@Mikesell2015, @Mao2020, @Yuan2021],
  frequency band and coda window (which together set the sampled depth; @Obermann2013 [@Obermann2016]),
  reference window [@Brenguier2014, @Ermert2023, @Okubo2024], how much to substack to increase
  coherence among windows (Hadzianou Celine),
 and how to aggregate and weight the many cross-component and
 station-pair measurements that make up a single reported \dvv\ time series (e.g., @Hobiger2012).
- These choices are typically made by habit, justified briefly if at all , and rarely reported in
+ These choices are made by habit, justified briefly if at all, and rarely reported in
 enough detail to reproduce. The community has long flagged *individual* pitfalls
 (spurious changes from non-stationary noise, @Zhan2013; measurement-error
 formulae, @Clarke2011 [@Weaver2011]), but the *cumulative* effect of the full
 choice set on both the value and its stated uncertainty has not been quantified
-comprehensively in the literature.
+in the literature.
 
 This is a reproducibility problem of exactly the "garden of forking paths" type
 identified in the statistical sciences [@Gelman2013; @Steegen2016]: many
 individually reasonable analyses of the same data give different answers, and
-without full reporting parameter choices we cannot fully interpret \dvv\ as robust values.
-. Here we make the problem concrete for \dvv\ monitoring. We use purely synthetic correlation
+without full reporting of parameter choices we cannot interpret a reported
+\dvv\ as a robust value. Here we make the problem concrete for \dvv\ monitoring. We use purely synthetic correlation
 time series to test the methods (estimators) and parameter choices that the community
-makes to estimate \dvv$\,$which we report over 103 studies Appendix~\ref{app:survey}.
+makes to estimate \dvv$\,$which we report over 103 studies in Appendix~\ref{app:survey}.
 We do not aim to report the "best" pipeline, which is most often the one reported in
-scientific papers, but instead document the various parameter impacts (Section~\ref{sec:results}).
-We then propose a new measurement error that incoporates these effects into a data
+scientific papers, but instead document the parameter impacts (Section~\ref{sec:results}).
+We then propose a new measurement error that incorporates these effects into a data
 covariance matrix $C_d$ (Section~\ref{sec:bayes}).
 
-One example of propagating such error in downstream scientific insights is the
+One example of propagating such error into downstream science is the
 migration of the surface \dvv\ measurement to depth profiles of perturbations in
 shear wave velocity $\Delta V_S(z)/V_S(z)$, which often depends on the wavefield
 constituting the coda waves, such as surface waves or body waves, and that depend
 on the source-receiver pair geometry. We illustrate the propagation of errors to a
-depth profile (Section~\ref{sec:depth}). We only utilize synthetic examples for
+depth profile (Section~\ref{sec:depth}). We only use synthetic examples for
 ground truthing on the signal processing parameters, since the concepts behind
 the observations of phase lags in scattered waves is well established [@Obermann2013].
 We package this new methodology in a Python software, ``codameter``, which we also
@@ -179,13 +179,13 @@ we do not repeat that full-waveform modeling here. Because the imposed $\dvv(t)$
 a recovered series from it is an artefact of the processing, not of the data.
 
 
-We utilize seven \dvv\ estimators that were implemented in ``noisepy`` in the
+We use seven \dvv\ estimators that were implemented in ``noisepy`` in the
 `monitoring_methods` module [@Jiang2020]: trace stretching (TS, @lobkis01), windowed
 cross-correlation (WCC, @poupinet84), dynamic time warping (DTW, @Mikesell2015),
-te moving-window cross-spectrum (MWCS; @Clarke2011), and three wavelet-domain methods, the
+the moving-window cross-spectrum (MWCS; @Clarke2011), and three wavelet-domain methods, the
 wavelet cross-spectrum (WCS, @Mao2020) and the two wavelet stretching (WTS) and wavelet DTW (WTDTW)
-introduced and benchmarked numerically by @Yuan2021. The framework, the figures below, and a
- implementation are released in the open ``codameter`` package
+introduced and benchmarked numerically by @Yuan2021. The framework, the figures below, and an
+implementation are released in the open ``codameter`` package
 (Section~\ref{sec:discussion}). Formal definitions of all seven methods, of
 the two aggregation pathways, and of the uncertainty conventions are described in
 Appendices~\ref{app:estimators} and~\ref{app:aggregation}.
@@ -260,7 +260,7 @@ impacts the recovered \dvv\ and its error. The deliverable of this
 section is a measurement covariance, which every subsequent step in the inference
 chain (Sections~\ref{sec:depth}--\ref{sec:stress}) consumes.
 
-Each of the parametric components is implemented in a single comprehensive package ``codameter``
+Each of the parametric components is implemented in a single package, ``codameter``,
 that borrows from ``msnoise`` [@Lecocq2014] and ``noisepy`` [@Jiang2020] to extract the
 measurement of \dvv\ from the ambient noise monitoring workflow and generalize it
 to any coda wave from repeated source-receiver paths.
@@ -313,7 +313,7 @@ every estimator to this convention in both signs, and checks the full
 `run_pipeline` call path end to end, so the convention cannot silently drift
 back.
 
-On small, clean \dvv$\,$all seven estimators agree, demonstrating robustness of the methods
+On small, clean \dvv$\,$all seven estimators agree
 (Fig.~\ref{fig:methods}a). Sweeping the same clean recovery out to
 $\pm 5\,\%$ (Fig.~\ref{fig:methods}b) shows exactly where and how each family
 first departs from the 1:1 line, and the estimator choice becomes consequential
@@ -322,8 +322,8 @@ is split according to their phase measurement approaches. The stretching family 
 coda and remain accurate for high SNR coda waves; the phase methods (MWCS) read a wrapped phase and may
 cycle-skips, while the *same* cross-wavelet phase (WCS), once unwrapped in 2-D,
 recovers the change. The warping methods (DTW, WTDTW) track but under-shoot the largest
-strains. No estimator is simply "right" and choices in the estimators
-can alters the \dvv\ measurements for larger strain changes.
+strains. No estimator is simply "right"; the choice of estimator materially changes
+the \dvv\ measurement at larger strain.
 
 
 \begin{figure}
@@ -361,12 +361,12 @@ beyond $\pm4\,\%$ true \dvv\ on either branch.
 
 ## Aggregating cross-component results {#sec:aggregation}
 
-Each three-component seismic station (e.g., Z, N, E) carries 6 cross-componet correlations
-(ZZ, NN, EE, ZE, ZN, NE), whether they are calculated at the single station or
-a inter-station pair. Each carry a signature of the changes in velocity, components
-may be dominated by Love or Rayleigh waves [@Lin2008; @Stehly2006], but there scattering and non-straight
-ray path induce cross-component leakage between modes [@Hennino2001; @Margerin2019], and thus it is often
-assumed in practice that coda waves of cross-components with multi-scattering characteristixcs
+Each three-component seismic station (e.g., Z, N, E) carries 6 cross-component correlations
+(ZZ, NN, EE, ZE, ZN, NE), whether they are calculated at a single station or
+an inter-station pair. Each carries a signature of the changes in velocity; components
+may be dominated by Love or Rayleigh waves [@Lin2008; @Stehly2006], but scattering and non-straight
+ray paths induce cross-component leakage between modes [@Hennino2001; @Margerin2019], and thus it is often
+assumed in practice that coda waves of cross-components with multi-scattering characteristics
 (e.g., no clearly separated phases) are composed of "surface waves" with strong S-wave sensitivity.
 Combining them together requires parameter choices, such as averaging them directly [@Liu2014],
 or weighted (e.g., using coherence-based weighting @Hobiger2012, @DePlaen2016). Combining is another workflow
@@ -592,7 +592,7 @@ recorded at the two stations, the correlated wavefield in the coda may differ [@
 While the interpretation of such coda in terms of Earth's structure effect is difficult [@Snieder2002],
 the stability of the wavefield excited in the coda is the main requirement for
 stable \dvv\ measurements [@Hadziioannou2009]. Given the challenge in interpreting both sides independently,
-researchers typically would measure \dvv\ on each lag and then report its average [@Kidiwela2026].
+researchers typically measure \dvv\ on each lag and then report its average [@Kidiwela2026].
  The causal (positive-lag) and acausal (negative-lag) branches sample opposite-direction
 paths with different source-side illumination, and in a 3D medium their
 sensitivity kernels sample partly different volumes, so the two can report
@@ -601,11 +601,11 @@ choice (Fig.~\ref{fig:branches}). When a change is *localized* to the volume one
 branch samples, symmetrizing or averaging the branches --- the common default ---
 dilutes it toward zero, while the branch that carries the change recovers it
 (Fig.~\ref{fig:branches}a); here preferring the branch of greatest change is
-an researchers' judgement.
+a researcher's judgement.
 When instead both branches share the *same* change,
 their difference is measurement noise, and selecting the branch of greatest
 change over-reports it --- a max-of-two-estimators selection bias that grows as
-SNR falls (Fig.~\ref{fig:branches}b). When both side exhibit the same change
+SNR falls (Fig.~\ref{fig:branches}b). When both sides exhibit the same change
 (sign, coherence) but with  different magnitude, it is reasonable to use the
 \dvv\ of greatest change given the already low sensitivity in coda waves [@Obermann2013].
 An acceptable workflow is to measure both branches, evaluate on that consistency,
@@ -646,7 +646,7 @@ scenario isolates the measurement-step choices from the network-aggregation choi
 already covered in Sections~\ref{sec:aggregation}--\ref{sec:uncertainty}.
 
 The previous sections only identified single choices, but the overall research workflow
-involves them all. We now estimate the combined effects of these parametic choices.
+involves them all. We now estimate the combined effects of these parametric choices.
  Starting from a single **best-practice baseline** (trace stretching, a
 band matched to the target depth, a coda window well past the direct arrival, a
 10-day stack, a long stable reference, coherence gating; the cross-cutting rules
