@@ -57,7 +57,7 @@ Changes in subsurface properties occur due geodynamics, which drive earthquake d
 and volcanic eruption, and hydrodynamics, which controls fluid exchange between the atomsphere
 and the solid Earth. These processes influence the mechanical property of Earth materials,
 which directly affect the speed at which seismic waves propagates. Changes in seismic
-velocity, often measured and referred to as \dvv\, can be tracked by measuring changes in arrival
+velocity, often measured and referred to as \dvv$\,$can be tracked by measuring changes in arrival
 times of seismic waves, especially scatterd waves such as coda waves,
 provided that the source and receivers are at the same location.
 
@@ -73,7 +73,7 @@ the current coda; the exact relation is
 \]
 The first-order shortcut $\dvv \approx -\varepsilon$ is accurate to order
 $\varepsilon^2$ --- negligible below $1\,\%$ but a $0.17\,\%$ absolute bias at
-the $4\,\%$ changes seen on landslides.
+a true $\dvv$ of $4\,\%$, the changes seen on landslides.
 \end{minipage}}
 \end{center}
 ```
@@ -114,7 +114,7 @@ individually reasonable analyses of the same data give different answers, and
 without full reporting parameter choices we cannot fully interpret \dvv\ as robust values.
 . Here we make the problem concrete for \dvv\ monitoring. We use purely synthetic correlation
 time series to test the methods (estimators) and parameter choices that the community
-makes to estimate \dvv\, which we report over 103 studies Appendix~\ref{app:survey}.
+makes to estimate \dvv$\,$which we report over 103 studies Appendix~\ref{app:survey}.
 We do not aim to report the "best" pipeline, which is most often the one reported in
 scientific papers, but instead document the various parameter impacts (Section~\ref{sec:results}).
 We then propose a new measurement error that incoporates these effects into a data
@@ -313,7 +313,7 @@ every estimator to this convention in both signs, and checks the full
 `run_pipeline` call path end to end, so the convention cannot silently drift
 back.
 
-On small, clean \dvv\, all seven estimators agree, demonstrating robustness of the methods
+On small, clean \dvv$\,$all seven estimators agree, demonstrating robustness of the methods
 (Fig.~\ref{fig:methods}a). Sweeping the same clean recovery out to
 $\pm 5\,\%$ (Fig.~\ref{fig:methods}b) shows exactly where and how each family
 first departs from the 1:1 line, and the estimator choice becomes consequential
@@ -446,7 +446,7 @@ The remaining choices are no less consequential. The **frequency band** sets the
 sampled depth: in a two-layer medium, high frequencies recover shallow, often seasonal
 signals and low frequencies recover a deeper, maybe more tectonic, signal
 (Fig.~\ref{fig:params}a). On our synthetic two-layer groundwater scenario, a band
-matched to each layer (1.5--6\,Hz for the shallow, seasonal signal; 0.2--0.8\,Hz
+matched to each layer (1.5--6$\,$Hz for the shallow, seasonal signal; 0.2--0.8$\,$Hz
 for the deep, drought-trend signal) recovers each with RMS error
 $\sim\!0.003$--$0.03\,\%$; using the wrong band for a given depth inflates the
 error to $\sim\!0.10\,\%$ for both --- a $\sim\!4$--30$\times$ degradation.
@@ -506,9 +506,9 @@ and scattering attenuation both grow with frequency, high-frequency coda energy
 falls into the noise floor much sooner than low-frequency coda: a coda window
 that is well past the direct arrival for a $\sim\!0.3$--$0.8\,$Hz band is, at
 $\sim\!3$--$6\,$Hz, sampling almost pure noise (Fig.~\ref{fig:params}b). On our
-synthetic, a fixed 20--40\,s window at the high band gives RMS error
+synthetic, a fixed 20--40$\,$s window at the high band gives RMS error
 $\sim\!3.8\,\%$ (the noise floor, not the signal), while a window hand-adapted
-to the band (3--12\,s) recovers the truth at $\sim\!0.01\,\%$ --- nearly a
+to the band (3--12$\,$s) recovers the truth at $\sim\!0.01\,\%$ --- nearly a
 400$\times$ difference from this one choice alone. This is itself an instance
 of a literature-documented tension: band-matched windowing is recommended, but
 Table~\ref{tab:survey} shows many surveyed studies instead reuse one fixed
@@ -530,7 +530,7 @@ correctly shrinking at the high band, though the low-versus-mid ordering is not
 perfectly monotonic on this synthetic (an artifact of how the fixed additive
 noise floor interacts with each band's filter, not a claim that the detector is
 exact). Recovering \dvv\ with each band's own detected window instead of one
-universal fixed (10--30\,s) window (Fig.~\ref{fig:window-envelope}b) gives RMS
+universal fixed (10--30$\,$s) window (Fig.~\ref{fig:window-envelope}b) gives RMS
 $\sim\!0.032\,\%$ vs.\ $\sim\!0.036\,\%$ at the low band (a modest,
 $\sim\!1.1\times$ gain), $\sim\!0.017\,\%$ vs.\ $\sim\!0.035\,\%$ at the mid
 band ($\sim\!2\times$), and $\sim\!0.019\,\%$ vs.\ $\sim\!1.8\,\%$ at the high
@@ -626,7 +626,7 @@ the error-bar change it induces.
 The scenario is a single representative station pair monitoring a shallow volcanic
 edifice, in the style of the permanent broadband deployments used at effusive/dome
 volcanoes such as Piton de la Fournaise [@Brenguier2008]: a coda band matched to
-shallow depths (0.4--1.0\,Hz), a coda window past the direct arrival (10--30\,s),
+shallow depths (0.4--1.0$\,$Hz), a coda window past the direct arrival (10--30$\,$s),
 and daily correlations sampled every 3 days over 2.5 years at a per-day
 correlation-coefficient SNR of 7, typical of a continuously operating station.
 The synthetic ground truth combines an annual seasonal \dvv\ cycle (as from
@@ -829,7 +829,7 @@ already-published @Clements2023 CI.LJR result before any new claim is drawn
 from it.
 
 After the correction, single-station \dvv\ (NoisePy correlations, a
-codameter 5-member ensemble, 2--4\,Hz, 2018--2019) validates against the
+codameter 5-member ensemble, 2--4$\,$Hz, 2018--2019) validates against the
 published @Clements2023 product. The comparison is not trivial to get right:
 the CD2022 90-day-comp product is a *trailing* 90-day stack, so it lags a
 centered-smoothed daily series by about 45 days, and comparing without
@@ -872,7 +872,7 @@ sparse, consistent with its higher scatter and join-method sensitivity.
   \centering
   \includegraphics[width=\textwidth]{realdata_2_interferograms.png}
   \caption{Daily north-south/east-west cross-component correlation
-  functions, 2--4\,Hz, $\pm 8\,$s lag, 2019. CI.LJR's coda is stable and
+  functions, 2--4$\,$Hz, $\pm 8\,$s lag, 2019. CI.LJR's coda is stable and
   narrow. CI.RXH shows multipath (several coherent bands across the full lag
   range) and a shift in that pattern in April--May 2019. CI.ARV's coherent
   energy is compact and near zero lag but comparatively sparse. The visual
@@ -882,8 +882,8 @@ sparse, consistent with its higher scatter and join-method sensitivity.
 \end{figure}
 
 As an optional supplement, Fig.~\ref{fig:realdata-warmup} shows the
-ensemble's warm-up behaviour on a separate 90-day smoke run at CI.LJR: \dvv\
-is undefined until enough history has accumulated for the moving-reference
+ensemble's warm-up behaviour on a separate 90-day smoke run at CI.LJR: \dvv$\,$is
+undefined until enough history has accumulated for the moving-reference
 member to compute a trailing reference, and each band's per-epoch stretching
 correlation coefficient is reported alongside the recovered series.
 
@@ -910,7 +910,7 @@ yet report. The executable stages are in development in the open codameter packa
 The field has converged on one physical rule for depth --- *depth is set by the
 frequency band and the coda lapse time, it is not assumed* [@Obermann2013;
 @Obermann2016] --- and, increasingly, on multi-band measurement as the means to
-resolve it [@Takano2017; @Feng2020; @Mao2022, @Mao2025]. The step from a set of per-band
+resolve it [@Takano2017; @Feng2020; @Mao2022; @Mao2025]. The step from a set of per-band
 \dvv\ series to a depth profile is where reporting is least consistent: many
 studies read a single band as a single depth, only a few invert several bands
 against surface-wave sensitivity kernels, and the propagation of the measurement
