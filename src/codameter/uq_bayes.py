@@ -403,7 +403,7 @@ def _build_bayes(seed: int = 55, cadence: int = 4):
 def _fig_bayes(res, run):
     import matplotlib.pyplot as plt
 
-    from .synthetic_demo import YEAR_D, C
+    from .synthetic_demo import YEAR_D, C, _boost_fonts
 
     yrs = res.times_days / YEAR_D
     truth = run.truth
@@ -439,7 +439,7 @@ def _fig_bayes(res, run):
     ax0.plot(yrs, res.mu_mean * 100, color=C["alt"], lw=1.5, label="posterior mean")
     ax0.set(xlabel="time (years)", ylabel="dv/v (%)", title="(a) Ensemble to posterior")
     ax0.legend(
-        fontsize=7.5,
+        fontsize=11,
         loc="lower left",
         frameon=True,
         facecolor="white",
@@ -465,11 +465,12 @@ def _fig_bayes(res, run):
         0.92,
         f"corr. length {res.corr_length_days:.0f} d",
         transform=ax1.transAxes,
-        fontsize=8,
+        fontsize=11,
         color="white",
         va="top",
     )
-    fig.colorbar(im, ax=ax1, fraction=0.046)
+    cbar1 = fig.colorbar(im, ax=ax1, fraction=0.046)
+    cbar1.ax.tick_params(labelsize=11)
 
     # (c) time-dependent sigma_d(t) and the effective-sample-size collapse.
     # Full width on its own row: it carries four legend entries and was too
@@ -491,7 +492,8 @@ def _fig_bayes(res, run):
         ylabel=r"$\sigma$ (dv/v, %)",
         title=f"(c) time-dependent error;  " f"$N_{{eff}}$={res.n_eff:.0f}/{len(yrs)}",
     )
-    ax2.legend(fontsize=7.5)
+    ax2.legend(fontsize=11)
+    _boost_fonts(ax0, ax1, ax2, tick=11, label=12, title=13.5)
     return fig
 
 

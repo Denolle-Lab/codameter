@@ -7,29 +7,45 @@ author:
       - name: Department of Earth and Space Sciences, University of Washington, Seattle, WA, USA
 date: today
 abstract: |
-  Relative seismic velocity changes (\dvv) from the ambient seismic field are a
-  standard observable for volcanoes, faults, landslides, aquifers and the
-  cryosphere. Yet turning cross-correlation functions into a \dvv\ time series
+  Relative seismic velocity changes (\dvv) from repeated coda waves are becoming
+   a standard observable for volcanoes, faults, landslides, aquifers and the
+  cryosphere and are increasingly regarded as new measurements of strain changes.
+  Yet turning cross-correlation functions into a \dvv\ time series
   involves a long sequence of choices --- the estimator, the frequency band, the
   coda window, the reference, the stacking, and how cross-components and station
-  pairs are aggregated and weighted --- made *ad hoc* and seldom reported in full.
-  Using a controlled synthetic in which the ground-truth \dvv\ is known exactly, we
-  quantify how much each choice moves the recovered value *and its stated
-  uncertainty*. Reproducing the seven NoisePy estimators, we show that at large
-  \dvv\ methods split by family with distinct failure modes; that the same station
+  pairs are aggregated and weighted --- made *ad hoc*, their impact on the measurement
+  uncertainty unclear. These hidden choices clearly limit reproducibility of the
+  research and importantly the inter-study comparison.
+
+  We demonstrate here how to turn repeated wavefield measurement into agent-ready,
+  scalable-ready, uncertainty-aware measurement of changes in seismic properties.
+  We quantify the individual and combined effects of these choices
+   using a controlled synthetic in which the ground-truth \dvv\ is known exactly.
+  We show that at large \dvv\ methods split by family with distinct failure modes; that the same station
   pair yields different \dvv\ depending only on whether one averages the
   per-component \dvv\ or the correlation-coefficient images; and, most
   consequentially, that the reported $1\sigma$ on a network-averaged \dvv\ varies by
   $\sim\!\sqrt{N}$
   from the standard-error-versus-standard-deviation and weighting conventions ---
   so a change that is "$3\sigma$ significant" in one study is "not significant" in
-  another, from identical data. Running the full *multiverse* of choices, we rank
-  each by the bias and error-bar change it induces, and propose a Bayesian
+  another, from identical data.
+
+  Running the full breadth of parameter choices, we estimate
+  each by the bias and error-bar change it induces. We propose a Bayesian
   measurement model that marginalises the ensemble into a single time-dependent
-  data covariance $C_d$ --- the object a downstream depth or stress
-  inversion needs. We argue that these undocumented choices, not the physics, are
-  the leading obstacle to intercomparing \dvv\ studies, and release an open
-  framework (codameter) that makes every choice explicit and reproducible.
+   data covariance $C_d$ and illustrate its use by propagating errors in a
+   depth-inversion of shear wave perturbation. We provide a real data examples from a California data set and reproduce
+  previous results that were generated with a different computing language
+  and processing pipeline, demonstrating at the same time the integration
+  of codameter with noisepy and its portability and scalability from laptop
+  to cloud systems. We also generate a codameter agent advisor that can guide researchers or agents
+  in their parameter choices, accompanied with a robust evaluation of the agent against
+  a golden data set. Our method and associated software package, ``codameter`` turns
+  repeated coda waves into time series of \dvv\ and its covariance
+  making it coda-wave interferometry uncertainty-aware and reproducible.
+
+
+
 bibliography:
   - references.bib
   - survey.bib
@@ -57,39 +73,65 @@ Changes in subsurface properties occur due to geodynamics, which drive earthquak
 and volcanic eruption, and hydrodynamics, which controls fluid exchange between the atmosphere
 and the solid Earth. These processes influence the mechanical properties of Earth materials,
 which directly affect the speed at which seismic waves propagate. Changes in seismic
-velocity, often measured and referred to as \dvv$\,$can be tracked by measuring changes in arrival
+velocity, often measured and referred to as \dvv\, can be tracked by measuring changes in arrival
 times of seismic waves, especially scattered waves such as coda waves,
 provided that the source and receivers are at the same location.
 
-```{=latex}
-\begin{center}
-\fbox{\begin{minipage}{0.95\linewidth}
-\textbf{Sign convention.} \dvv\ is the fractional seismic velocity change,
-positive for a velocity \emph{increase}. The stretching family of estimators
-measures the stretch factor $\varepsilon$ that maps the reference coda onto
-the current coda; the exact relation is
+ \dvv\ is the fractional seismic velocity change, positive for a velocity \emph{increase}. The stretching family of estimators
+measures the stretch factor $\varepsilon$ that maps the current coda onto
+the reference coda. Throughout this work, the reference correlation is held
+fixed and trial dilations are applied to the current correlation,
+[
+c_\epsilon(t)=c[(1+\epsilon)t],
+]
+where interpolation is performed only on (c). Thus (\epsilon=t_{\rm cur}/t_{\rm ref}-1) is a fractional travel-time dilation:
+(\epsilon>0) denotes a delayed current coda. For unchanged propagation geometry,
+[
+1+\epsilon=\frac{t_{\rm cur}}{t_{\rm ref}}
+=\frac{v_{\rm ref}}{v_{\rm cur}},
+]
+and therefore the physical fractional velocity change reported throughout this work is
+[
+\boxed{
+\frac{\delta v}{v}
+\equiv
+\frac{v_{\rm cur}-v_{\rm ref}}{v_{\rm ref}}
+===========================================
+
+-\frac{\epsilon}{1+\epsilon}.
+}
+]
+The commonly used relation (\delta v/v\simeq-\epsilon\simeq-\delta t/t) is its first-order approximation.
+We retain the exact finite-change transformation because its computational cost is negligible and because
+the distinction becomes measurable for velocity perturbations of several percent.
+
+We interpolate the current rather than the reference correlation so that
+the high-SNR reference stack remains unchanged throughout the search. In the ideal continuous-signal limit the reciprocal formulations are mathematically equivalent after their stretch parameters are transformed to a common physical (dv/v); in sampled, finite-window data they can differ because interpolation and boundary truncation break that symmetry. We therefore state the interpolation direction as part of the estimator definition and quantify its numerical effect in the synthetic validation.
+
+
+
+
+
+ the exact relation is
 \[
 \dvv = -\frac{\varepsilon}{1+\varepsilon}.
 \]
 The first-order shortcut $\dvv \approx -\varepsilon$ is accurate to order
 $\varepsilon^2$ --- negligible below $1\,\%$ but a $0.17\,\%$ absolute bias at
 a true $\dvv$ of $4\,\%$, the changes seen on landslides.
-\end{minipage}}
-\end{center}
-```
 
 Due to the sensitivity of coda waves to small perturbations in the material properties,
 \dvv\ was discovered as an effective method to monitor changes during volcanic unrest since its
 discovery at Piton de la Fournaise [@Brenguier2008] and is now calculated in continuous
 along side of more conventional seismic monitoring methods in the same volcano observatory
- [@Duputel2009] and was a determining early warning parameter used by the Icelandic Meteorological
- Office used \dvv\ in its response to the 2020 Reykjanes unrest (Cubuk-Sabuncu et al., 2021).
+ [@Duputel2009] and was a determining early warning parameter: the Icelandic Meteorological
+ Office used \dvv\ in its response to the 2020 Reykjanes unrest [@CubukSabuncu2021].
  The Institute of Mine Seismology also uses \dvv\ to monitor the internal state of tens of tailings
- dams and mines to flag instability before failure (Olivier et al., 2017; Ouellet et al., 2022).
+ dams and mines to flag instability before failure [@Olivier2017; @Ouellet2022].
   A broader set of operations is emerging around the same signal: groundwater
-  storage for water management (Clements and Denolle, 2018; Mao et al., 2022),
-  landslide early warning (Le Breton et al., 2021), levee and embankment integrity
-  (Planès et al., 2016), and geothermal and CO$_2$ reservoir surveillance (Nakata et al., 2021).
+  storage for water management [@Clements2018; @Mao2022],
+  landslide early warning [@LeBreton2021], levee and embankment integrity
+  [@Planes2016], and geothermal and CO$_2$ reservoir surveillance [@Tsuji2021].
   Each of these deployments rests on the same fragile assumption: that the \dvv\ curve an operator
   acts on is a property of the subsurface, not of the analyst's processing choices.
 
@@ -106,13 +148,19 @@ enough detail to reproduce. The community has long flagged *individual* pitfalls
 (spurious changes from non-stationary noise, @Zhan2013; measurement-error
 formulae, @Clarke2011 [@Weaver2011]), but the *cumulative* effect of the full
 choice set on both the value and its stated uncertainty has not been quantified
-in the literature.
+in the literature. A striking example of such their cumulative effects can be seen in Figure x
+of [@Denolle25b] who demonstrated that most studies found a direct correlation between
+\dvv\ and groundwater level change, but the scatter around the mean was easily
+explained by frequency choices, single-vs-inter station correlations, and likely
+the other signal-processing parameters chosen by the authors, which speak of the robust
+correlation but not rigorously established enough to be useful in downstream hydrological research.
 
 This is a reproducibility problem of exactly the "garden of forking paths" type
 identified in the statistical sciences [@Gelman2013; @Steegen2016]: many
 individually reasonable analyses of the same data give different answers, and
 without full reporting of parameter choices we cannot interpret a reported
-\dvv\ as a robust value. Here we make the problem concrete for \dvv\ monitoring. We use purely synthetic correlation
+\dvv\ as a robust value. Here we make the problem concrete for \dvv\ monitoring.
+We use purely synthetic correlation
 time series to test the methods (estimators) and parameter choices that the community
 makes to estimate \dvv$\,$which we report over 103 studies in Appendix~\ref{app:survey}.
 We do not aim to report the "best" pipeline, which is most often the one reported in
@@ -125,9 +173,12 @@ migration of the surface \dvv\ measurement to depth profiles of perturbations in
 shear wave velocity $\Delta V_S(z)/V_S(z)$, which often depends on the wavefield
 constituting the coda waves, such as surface waves or body waves, and that depend
 on the source-receiver pair geometry. We illustrate the propagation of errors to a
-depth profile (Section~\ref{sec:depth}). We only use synthetic examples for
+depth profile (Section~\ref{sec:depth}). We use synthetic examples for
 ground truthing on the signal processing parameters, since the concepts behind
 the observations of phase lags in scattered waves is well established [@Obermann2013].
+
+We further validate using real obervations that the estimates of \dvv\ and their uncertainty
+reproduces well those of observed time series by reproducing previous studies.
 We package this new methodology in a Python software, ``codameter``, which we also
 recast as an agentic skill: an AI agent can be asked to recommend a processing
 configuration or recover a \dvv(t) series, and its answer is scored against
@@ -179,8 +230,8 @@ we do not repeat that full-waveform modeling here. Because the imposed $\dvv(t)$
 a recovered series from it is an artefact of the processing, not of the data.
 
 
-We use seven \dvv\ estimators that were implemented in ``noisepy`` in the
-`monitoring_methods` module [@Jiang2020]: trace stretching (TS, @lobkis01), windowed
+We use seven \dvv\ estimators that were implemented in ``noisepy``
+[@Jiang2020]: trace stretching (TS, @lobkis03), windowed
 cross-correlation (WCC, @poupinet84), dynamic time warping (DTW, @Mikesell2015),
 the moving-window cross-spectrum (MWCS; @Clarke2011), and three wavelet-domain methods, the
 wavelet cross-spectrum (WCS, @Mao2020) and the two wavelet stretching (WTS) and wavelet DTW (WTDTW)
@@ -258,7 +309,14 @@ is rarely, if ever, quantified (Appendix~\ref{app:survey}). The sections below a
 component in turn and quantify, against a known truth, how far a parameter choice
 impacts the recovered \dvv\ and its error. The deliverable of this
 section is a measurement covariance, which every subsequent step in the inference
-chain (Sections~\ref{sec:depth}--\ref{sec:stress}) consumes.
+chain (Sections~\ref{sec:depth}) consumes.
+
+Each subsection below is written to serve three readers at once: a seismologist
+checking the mechanism against a realistic synthetic, a geophysicist who wants
+the scale of the resulting error without re-deriving it, and an automated agent
+or pipeline that needs a concrete, quotable rule for setting the same parameter.
+The closing **Scale of effect** sentence in each subsection is written for that
+last use directly.
 
 Each of the parametric components is implemented in a single package, ``codameter``,
 that borrows from ``msnoise`` [@Lecocq2014] and ``noisepy`` [@Jiang2020] to extract the
@@ -290,14 +348,16 @@ Cross-component aggregation & $\sim\!0.03\,\%$ (Approach B, averaged images) &
 $\sim\!0.31\,\%$ (Approach A, unweighted) & Section~\ref{sec:aggregation} \\ \hline
 Network aggregation (per-pair spread) & $\sim\!0.005\,\%$ (network SE) &
 $\sim\!0.05\,\%$ (individual-pair range) & Section~\ref{sec:uncertainty} \\ \hline
-Frequency band & $\sim\!0.003$--$0.03\,\%$ (matched to depth) &
-$\sim\!0.10\,\%$ (mismatched) & Section~\ref{sec:params} \\ \hline
+Frequency band & $\sim\!0.028$--$0.031\,\%$ (within $\pm0.3\,$Hz of the true
+band) & $\sim\!0.10\,\%$ (center off by $>\!0.5\,$Hz) &
+Section~\ref{sec:params_freq} \\ \hline
 Coda window & $\sim\!0.01\,\%$ (adapted to band) &
-$\sim\!3.9\,\%$ (fixed, wrong band) & Section~\ref{sec:window} \\ \hline
-Reference scheme & $\sim\!0.03\,\%$ (fixed stack / joint inversion) &
-$\sim\!0.16\,\%$ (60-day moving) & Section~\ref{sec:params} \\ \hline
-Stack length & $\sim\!0.018\,\%$ (10-day) &
-$\sim\!0.044\,\%$ (1-day, noisy) & Section~\ref{sec:params} \\
+$\sim\!3.9\,\%$ (fixed, wrong band) & Section~\ref{sec:param_window} \\ \hline
+Reference scheme & $\sim\!0.03\,\%$ (whole record, earliest period, or joint
+inversion) & $\sim\!0.15$--$0.16\,\%$ (end-of-record fixed, or moving) &
+Section~\ref{sec:param_ref} \\ \hline
+Stack length & $\sim\!0.020\,\%$ (7--10-day, workable deployment) &
+$\sim\!0.044\,\%$ (1-day, same deployment) & Section~\ref{sec:param_substack} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -305,13 +365,16 @@ $\sim\!0.044\,\%$ (1-day, noisy) & Section~\ref{sec:params} \\
 
 ## Estimator family {#sec:methods-fig}
 
+We implement all methods as in previous work [@Jiang2020].
+
+
+
 As of codameter v0.4.0, all seven estimators return physical \dvv\ under the
 sign convention above rather than the raw stretch factor $\varepsilon$; the
 synthetic generator imposes changes in the same convention, so a positive
-imposed \dvv\ recovers as positive. `tests/test_sign_convention.py` holds
-every estimator to this convention in both signs, and checks the full
-`run_pipeline` call path end to end, so the convention cannot silently drift
-back.
+imposed \dvv\ recovers as positive. A dedicated regression test holds every
+estimator to this convention in both signs, end to end through the full
+measurement pipeline, so the convention cannot silently drift back.
 
 On small, clean \dvv$\,$all seven estimators agree
 (Fig.~\ref{fig:methods}a). Sweeping the same clean recovery out to
@@ -359,6 +422,7 @@ the negative branch, and DTW crosses at $\sim\!2.5\,\%$ versus $\sim\!3\,\%$.
 WCS degrades smoothly rather than catastrophically, crossing $1\,\%$ error
 beyond $\pm4\,\%$ true \dvv\ on either branch.
 
+
 ## Aggregating cross-component results {#sec:aggregation}
 
 Each three-component seismic station (e.g., Z, N, E) carries 6 cross-component correlations
@@ -369,7 +433,9 @@ ray paths induce cross-component leakage between modes [@Hennino2001; @Margerin2
 assumed in practice that coda waves of cross-components with multi-scattering characteristics
 (e.g., no clearly separated phases) are composed of "surface waves" with strong S-wave sensitivity.
 Combining them together requires parameter choices, such as averaging them directly [@Liu2014],
-or weighted (e.g., using coherence-based weighting @Hobiger2012, @DePlaen2016). Combining is another workflow
+or weighted (e.g., using coherence-based weighting @Hobiger2012, @DePlaen2016).
+
+Combining is another workflow
 choice that can change both the value and the uncertainty
 (Fig.~\ref{fig:aggregation}). One may peak-pick each component's
 correlation-coefficient curve $\mathrm{CC}(\varepsilon,t)$ and then average the
@@ -449,31 +515,146 @@ against a published network value.
   \label{fig:network-pairs}
 \end{figure}
 
-## Frequency band, reference and stacking {#sec:params}
+## Frequency band {#sec:params_freq}
 
 The remaining choices are no less consequential. The **frequency band** sets the
 sampled depth: in a two-layer medium, high frequencies recover shallow, often seasonal
 signals and low frequencies recover a deeper, maybe more tectonic, signal
-(Fig.~\ref{fig:params}a). On our synthetic two-layer groundwater scenario, a band
-matched to each layer (1.5--6$\,$Hz for the shallow, seasonal signal; 0.2--0.8$\,$Hz
-for the deep, drought-trend signal) recovers each with RMS error
-$\sim\!0.003$--$0.03\,\%$; using the wrong band for a given depth inflates the
-error to $\sim\!0.10\,\%$ for both --- a $\sim\!4$--30$\times$ degradation.
+(Fig.~\ref{fig:params}a). In practice a band often gets reused from a neighboring
+deployment or an earlier study at the same site without re-checking that it still
+matches the target depth --- exactly the error this section quantifies.
+
+On our synthetic two-layer groundwater scenario, holding the recovery band's width
+fixed (0.6$\,$Hz) and sweeping its center away from the deep layer's true
+0.2--0.8$\,$Hz band shows the cost is not gradual: RMS error against the known
+truth stays flat, $\sim\!0.028$--$0.031\,\%$, for a center offset within
+$\sim\!0.3\,$Hz of the true center, then rises by a factor of $\sim\!3$--$4$ once
+the offset passes $\sim\!0.5\,$Hz --- the point at which the assumed band starts
+sampling the shallow layer's signal instead of the deep one --- and plateaus
+near $\sim\!0.10\,\%$ beyond that (Fig.~\ref{fig:band-sensitivity}). The band
+choice is forgiving up to the edge of the layer it targets, and expensive
+immediately past it, not gradually worse the further off it drifts.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{demo_16_band_sensitivity.png}
+  \caption{Frequency-band sensitivity: RMS error against the known
+  groundwater deep-layer truth as the recovery band's center is swept away
+  from the true 0.2--0.8$\,$Hz band, holding its 0.6$\,$Hz width fixed. Error
+  is flat within $\sim\!\pm0.3\,$Hz of the true center, then rises sharply
+  once the assumed band drifts into the shallow layer's territory.}
+  \label{fig:band-sensitivity}
+\end{figure}
+
+**Scale of effect:** a band-center error under $\sim\!0.3\,$Hz costs essentially
+nothing here; past $\sim\!0.5\,$Hz it costs a factor of $\sim\!3$--$4$ in RMS,
+from $\sim\!0.03\,\%$ to $\sim\!0.10\,\%$.
+
+## Reference {#sec:param_ref}
 
 The **reference** defines what survives: a moving reference re-baselines
 continuously and erases slow trends that a fixed reference or a joint inversion
-[@Brenguier2014] preserve (Fig.~\ref{fig:params}c). On the volcano synthetic, a
-fixed total-stack reference gives RMS $\sim\!0.03\,\%$ and a Brenguier-style
-joint inversion a comparable $\sim\!0.03\,\%$ (both preserve the pre-eruptive trend), while a
-60-day moving reference gives RMS $\sim\!0.16\,\%$ --- roughly $5\times$ worse
---- because it re-baselines away the very trend being measured.
+[@Brenguier2014] preserve (Fig.~\ref{fig:params}c). In practice the choice is
+rarely just fixed-versus-moving: an analyst also decides *which* period of the
+record a fixed reference is built from, and that choice alone can dominate the
+error --- for instance when a deployment barely predates the process of
+interest, or when the only quiet-looking period available sits close in time
+to the process itself.
+
+We compare five named schemes on the volcano synthetic: a reference built from
+the **beginning** of the pre-eruptive record (its earliest 15\%), from the
+**end** of that record (its latest 15\%, immediately before the eruption),
+from the **whole** pre-eruptive record, a 60-day **moving** (trailing)
+reference, and **no single reference at all** --- the Brenguier et al.
+(2014)-style joint inversion, which measures relative dv/v between many short
+stacks instead of referencing every day to one (Fig.~\ref{fig:reference-schemes}a).
+The whole-record, beginning, and inversion schemes all recover the truth to RMS
+$\sim\!0.03\,\%$. The end-of-record reference does far worse, RMS
+$\sim\!0.15\,\%$ --- not because it tracks the dynamics any less faithfully
+(its residual scatter around the truth, $\sim\!0.029\,\%$, matches every other
+fixed scheme) but because the reference epoch itself already sits
+$\sim\!0.15\,\%$ into the developing pre-eruptive ramp, and every dv/v value is
+reported *relative to whatever the reference was doing*. Reference choice sets
+the zero point, not just the noise floor: comparing dv/v across studies, or
+across deployments that started at different times, requires knowing what the
+reference period itself was doing, not just how well each pipeline scores
+against a single truth.
+
+The 60-day moving reference gives RMS $\sim\!0.16\,\%$ --- comparable to the
+worst fixed case, but for the opposite reason: it re-baselines away the trend
+continuously rather than sitting at one biased epoch. Lengthening the trailing
+window helps only slowly and never converges to the fixed-reference baseline:
+RMS falls from $\sim\!0.168\,\%$ at a 10-day trailing window to $\sim\!0.151\,\%$
+at 240 days, still $\sim\!4$--$5\times$ the whole-record RMS
+(Fig.~\ref{fig:reference-schemes}b) --- the erasure is structural, not a noise
+effect that more averaging fixes. Field deployments sometimes need a
+multiple-reference approach for the same underlying reason, when no single
+period is long or quiet enough to serve as a stable baseline (e.g., the urban
+Mexico City deployment of @Ermert2023); our moving-reference sweep is the
+closest single-parameter analog available in codameter today, not a
+reproduction of any one study's exact reference construction.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{demo_17_reference_schemes.png}
+  \caption{Reference construction on the volcano synthetic. (a) Five named
+  schemes, each scored by RMS against the known truth over the whole record
+  and over the pre-eruptive ramp alone. (b) RMS for the moving reference as a
+  function of its trailing length; the dashed line is the whole-record fixed
+  reference's RMS, which the moving reference never reaches.}
+  \label{fig:reference-schemes}
+\end{figure}
+
+**Scale of effect:** which *period* a fixed reference is drawn from can cost as
+much as switching to a moving reference altogether ($\sim\!0.15$--$0.16\,\%$ RMS
+either way); a reference from the quietest available period, of any length,
+recovers the trend to $\sim\!0.03\,\%$.
+
+## Substacking {#sec:param_substack}
 
 The **stacking length** trades noise against temporal resolution, rounding off
-and delaying a coseismic step (Fig.~\ref{fig:params}d). On the earthquake
-synthetic, a 1-day stack (noisy) gives RMS $\sim\!0.044\,\%$, a 10-day stack
-$\sim\!0.018\,\%$ (the best of the three), and an over-long 45-day stack
-$\sim\!0.031\,\%$ --- worse than the 10-day stack despite averaging down more
-noise, because it smears the step itself.
+and delaying a coseismic step (Fig.~\ref{fig:params}d). In practice the
+decision is rarely "how many days" in the abstract; it is "how long until the
+coda is coherent enough to trust" --- stacking only as long as needed to clear
+a working correlation-coefficient (CC) threshold, then stopping. codameter's
+own quality-control gate uses CC~$>0.6$ (Section~\ref{sec:results}), and how
+quickly a station clears that bar depends entirely on its data quality.
+
+On the earthquake synthetic, a workable deployment (SNR 4, the same setting
+used throughout this section) clears CC~$>0.6$ already at a 1-day stack
+(median CC 0.86); a poor, coherence-limited deployment (SNR 0.5) needs 14 days
+of substacking to clear the same bar (Fig.~\ref{fig:stack-coherence}a). The
+two regimes behave differently past that point, too. For the workable
+deployment, RMS is U-shaped: it falls from $\sim\!0.044\,\%$ at 1 day to a
+minimum $\sim\!0.020\,\%$ around 7--10 days, then rises again to
+$\sim\!0.038\,\%$ by 60 days as the stack smears the step
+(Fig.~\ref{fig:stack-coherence}b) --- the classic noise-versus-smearing
+tradeoff, and the reason "longer is always better" is wrong even once the
+coherence gate is satisfied. For the poor deployment, RMS is still falling at
+60 days ($\sim\!0.067\,\%$, down from $\sim\!0.71\,\%$ at 1 day): the noise
+floor dominates over the whole tested range, and the smearing penalty never
+gets the chance to show up. Both regimes underestimate the coseismic step's
+amplitude at every stack length tested here (the bias stays negative
+throughout for the poor deployment, and only crosses zero past 45 days for the
+workable one), so a recovered step should be read as a lower bound on the true
+drop, more so the longer the stack.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{demo_18_stack_coherence.png}
+  \caption{Substacking on the earthquake synthetic, at two deployment
+  qualities. (a) Median stretching correlation coefficient versus stack
+  length; the dashed line is codameter's own CC-gate threshold
+  (Section~\ref{sec:results}). (b) RMS error and the absolute bias in the
+  recovered coseismic-step amplitude, both against the known truth, log
+  scale.}
+  \label{fig:stack-coherence}
+\end{figure}
+
+**Scale of effect:** for a workable deployment, the noise/smearing tradeoff
+bottoms out around 7--10 days at RMS $\sim\!0.02\,\%$; for a poor deployment,
+substack at least $\sim\!2$ weeks just to clear the coherence gate, and expect
+RMS an order of magnitude worse even after clearing it.
 
 \begin{figure}
   \centering
@@ -494,20 +675,7 @@ Appendix~\ref{app:survey} (Table~\ref{tab:survey}): the frequency band, coda
 window, estimator, and uncertainty treatment actually reported by 103 ambient-noise
 \dvv\ studies.
 
-The **reference** choice also has a construction axis beyond fixed-versus-moving:
-how much of the record a "fixed" reference actually stacks. On the volcano
-synthetic, a reference built from the whole pre-eruptive record gives RMS
-$\sim\!0.03\,\%$, one built from only the earliest 15\,\% of that record (an
-"early stack") gives a comparable $\sim\!0.03\,\%$ --- a shorter, earlier
-reference is not automatically worse: it avoids averaging across the
-developing pre-eruptive trend the way a longer stack does. A 60-day moving
-stack gives $\sim\!0.16\,\%$ (erasing the trend, as above), and the
-Brenguier-style joint inversion [@Brenguier2014] gives $\sim\!0.03\,\%$ while
-additionally preserving the trend --- so among the reference-construction
-choices, whole-period, early, and joint inversion are all comparably good,
-and only the moving reference actively destroys signal.
-
-## Coda window and its covariation with frequency band {#sec:window}
+## Coda window  {#sec:param_window}
 
 The coda window is not independent of the frequency band --- it deserves its own
 treatment because the two covary strongly, and getting this wrong is one of the
@@ -528,9 +696,9 @@ Hand-adapting the window per band, as above, requires knowing the band in
 advance and re-tuning per deployment. A more principled alternative --- used in
 our group --- is to track the coda envelope directly and stop the window where
 it *flattens* onto the noise floor, rather than pre-specifying a window from a
-rule of thumb. We implement this as `coda_window_from_envelope()`: band-pass a
-long-term reference stack, smooth its envelope, estimate the noise floor from a
-common late-lapse window, and take the window end as the first lapse time past
+rule of thumb. We implement this by band-passing a
+long-term reference stack, smoothing its envelope, estimating the noise floor from a
+common late-lapse window, and taking the window end as the first lapse time past
 a short onset where the envelope stays within a factor of that floor for a
 sustained interval (not a single noisy dip). Applied blind (without being told
 which band it is) to three bands spanning low, mid, and high frequency
@@ -559,29 +727,6 @@ measuring.
   versus each band's own envelope-derived window: comparable at low
   frequency, $\sim\!93\times$ better at high frequency.}
   \label{fig:window-envelope}
-\end{figure}
-
-## Choices that create spurious \texorpdfstring{\dvv}{dv/v} {#sec:artifacts}
-
-Some choices may create spurious signal. A station
-clock error delays the whole correlation by a lapse-independent shift, producing
-an apparent \dvv\ that appears with opposite sign on the causal and acausal
-branches; measuring the two branches separately is the diagnostic
-(Fig.~\ref{fig:artifacts}a). Seasonally varying noise sources warp the low-SNR
-late coda, so a late measurement window reports a coherent spurious *seasonal*
-\dvv\ many times the real signal while an earlier window stays clean
-[the waveform-level version of @Zhan2013] (Fig.~\ref{fig:artifacts}b).
-
-Biases from spurious arrivals could be quantified but mostly we should
-decontaminate our workflow from these artefacts or not interpret the results.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{demo_8_artifacts.png}
-  \caption{Deviations that create spurious \dvv. (a) A clock drift splits the causal
-  and acausal branches with opposite sign. (b) Seasonal late-coda noise injects a
-  spurious seasonal \dvv\ into a late window but not an early one.}
-  \label{fig:artifacts}
 \end{figure}
 
 ## Causal and acausal branches {#sec:branches}
@@ -626,12 +771,37 @@ rather than discarding it by averaging.
   \label{fig:branches}
 \end{figure}
 
+
+## Choices that create spurious \texorpdfstring{\dvv}{dv/v} {#sec:artifacts}
+
+Some choices may create spurious signal. A station
+clock error delays the whole correlation by a lapse-independent shift, producing
+an apparent \dvv\ that appears with opposite sign on the causal and acausal
+branches; measuring the two branches separately is the diagnostic
+(Fig.~\ref{fig:artifacts}a). Seasonally varying noise sources warp the low-SNR
+late coda, so a late measurement window reports a coherent spurious *seasonal*
+\dvv\ many times the real signal while an earlier window stays clean
+[the waveform-level version of @Zhan2013] (Fig.~\ref{fig:artifacts}b).
+
+Biases from spurious arrivals could be quantified but mostly we should
+decontaminate our workflow from these artefacts or not interpret the results.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{demo_8_artifacts.png}
+  \caption{Deviations that create spurious \dvv. (a) A clock drift splits the causal
+  and acausal branches with opposite sign. (b) Seasonal late-coda noise injects a
+  spurious seasonal \dvv\ into a late window but not an early one.}
+  \label{fig:artifacts}
+\end{figure}
+
+
 Taken together, the choices compound. We make this concrete in
 Section~\ref{sec:multiverse} by running the full *multiverse* of best-practice
 and deviation choices on one synthetic dataset and ranking each by the bias and
 the error-bar change it induces.
 
-# The multiverse of processing choices {#sec:multiverse}
+# The combined impact of processing choices {#sec:multiverse}
 
 The scenario is a single representative station pair monitoring a shallow volcanic
 edifice, in the style of the permanent broadband deployments used at effusive/dome
@@ -711,8 +881,8 @@ Table~\ref{tab:bp-measure} summarizes this into the measurement-step best practi
 and the documented deviation for each choice, with the consequence the synthetic
 makes concrete. The baseline and deviation sets are the ones our survey extracts
 from the literature (the cross-cutting rules of @Snieder2002 [@Clarke2011;
-@Weaver2011; @Brenguier2014; @Wang2017; @Obermann2019]). are implemented in
-`codameter.deviations`.
+@Weaver2011; @Brenguier2014; @Wang2017; @Obermann2019]) and are implemented in
+codameter.
 
 ```{=latex}
 \begin{table}
@@ -785,8 +955,8 @@ with a second-difference random-walk smoothness prior on the latent true series
 $\mu(t)$. Here $\beta_k$ is configuration $k$'s methodological bias (the
 systematic offset between, say, MWCS and stretching), $\tau$ its scale across the
 ensemble, and $s$ rescales the Weaver floor so the data report whether it is
-calibrated. A conjugate Gibbs sampler returns the joint posterior; the
-implementation is `codameter.uq_bayes` (pure NumPy, no external sampler).
+calibrated. A conjugate Gibbs sampler, implemented in codameter with no
+external sampler dependency, returns the joint posterior.
 
 The model yields two distinct objects, and conflating them is the error the
 field makes (Fig.~\ref{fig:bayes}). The posterior of $\mu$ is the precision of
@@ -823,98 +993,8 @@ not the posterior of the averaged series, is what must be propagated.
   \label{fig:bayes}
 \end{figure}
 
-# Toward deployment: a real-data retrospective pipeline {#sec:deployment}
 
-Every result so far is on a truth-known synthetic, by design (Section~\ref{sec:methods}):
-it is the only way to separate a processing artefact from a real signal. The
-next step is to test whether the same measurement machinery holds up against
-real data at deployment scale, not just against a synthetic that was built to
-resemble it. We are building a companion pipeline, `noisepy-dvv-cloud`, that
-correlates real continuous waveforms for station CI.LJR (Lake Hughes,
-California) --- the reference station of @Clements2023 --- pulled from the
-public Southern California Earthquake Data Center S3 archive, using the
-NoisePy package [@Jiang2020] for the correlation step. Correlation and dv/v
-estimation each run as an AWS Batch job on Fargate Spot compute, following the
-same deployment pattern as QuakeScope; dv/v estimation itself is handed to
-`codameter.deviations.run_pipeline` and `codameter.uq_measurement`, with
-baseline processing configurations drawn from `codameter.use_cases.recommend`
---- the same functions this paper's synthetic results are built on, not a
-separate reimplementation. The retrospective run is validated against the
-already-published @Clements2023 CI.LJR result before any new claim is drawn
-from it.
-
-After the correction, single-station \dvv\ (NoisePy correlations, a
-codameter 5-member ensemble, 2--4$\,$Hz, 2018--2019) validates against the
-published @Clements2023 product. The comparison is not trivial to get right:
-the CD2022 90-day-comp product is a *trailing* 90-day stack, so it lags a
-centered-smoothed daily series by about 45 days, and comparing without
-matching that smoothing caps the correlation near 0.7 even on a real annual
-cycle (Fig.~\ref{fig:realdata-validation}). We match by applying the same
-trailing 90-day mean to the daily series, compare demeaned --- the two
-products reference different epochs, and a constant offset is bookkeeping,
-not error --- and exclude the first 150 days of each station's series as
-reference burn-in. Under this matched comparison, CI.LJR reaches $r=0.990$
-(681 overlapping days); CI.ARV reaches $r=0.66$--$0.92$ depending on the join
-method, reflecting real 2018 data gaps; CI.RXH reaches $r=0.68$, the weakest
-of the three, on a station whose recovered \dvv\ is nearly flat and whose
-signal is low to begin with.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{realdata_1_validation.png}
-  \caption{Single-station \dvv\ at three CI stations, 2018--2019, against the
-  published Clements \& Denolle (2022) product (dashed, reference-shifted).
-  Daily \dvv\ (points) with the ensemble spread (shaded, epistemic) and
-  measurement error bars, and a 45-day-smoothed curve. The annotated $r$ is
-  computed on this 45-day-smoothed comparison, not the smoothing-matched
-  comparison reported in the text; matching CD2022's own trailing 90-day
-  window instead of a centered 45-day one raises $r$ at every station (to
-  0.990/0.66--0.92/0.68 for LJR/ARV/RXH), which is why the two numbers
-  differ.}
-  \label{fig:realdata-validation}
-\end{figure}
-
-Why validation quality differs so much by station is visible in the
-correlation function itself (Fig.~\ref{fig:realdata-interferograms}). CI.LJR
-shows a stable, narrow coda near zero lag through the year. CI.RXH shows
-multipath, several coherent arrivals spread across the full $\pm 8\,$s of
-lag shown, and a visible shift in that pattern in April--May 2019,
-consistent with a site change rather than a processing artefact. CI.ARV's
-coherent energy is compact and concentrated near zero lag but comparatively
-sparse, consistent with its higher scatter and join-method sensitivity.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{realdata_2_interferograms.png}
-  \caption{Daily north-south/east-west cross-component correlation
-  functions, 2--4$\,$Hz, $\pm 8\,$s lag, 2019. CI.LJR's coda is stable and
-  narrow. CI.RXH shows multipath (several coherent bands across the full lag
-  range) and a shift in that pattern in April--May 2019. CI.ARV's coherent
-  energy is compact and near zero lag but comparatively sparse. The visual
-  difference is the reason validation quality differs by station in
-  Fig.~\ref{fig:realdata-validation}.}
-  \label{fig:realdata-interferograms}
-\end{figure}
-
-As an optional supplement, Fig.~\ref{fig:realdata-warmup} shows the
-ensemble's warm-up behaviour on a separate 90-day smoke run at CI.LJR: \dvv$\,$is
-undefined until enough history has accumulated for the moving-reference
-member to compute a trailing reference, and each band's per-epoch stretching
-correlation coefficient is reported alongside the recovered series.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{realdata_3_warmup.png}
-  \caption{CI.LJR single-station \dvv, a separate 90-day smoke run (January--April
-  2023), four frequency bands. The ensemble spread (shaded) and measurement
-  error bars are reported once at least one member is defined; the annotated
-  member count grows as the moving-reference member's warm-up period
-  elapses, reaching all 5 members later in the window. Bottom panel:
-  per-band stretching correlation coefficient.}
-  \label{fig:realdata-warmup}
-\end{figure}
-
-# Depth: propagating the measurement covariance through sensitivity kernels {#sec:depth}
+# Propagating \dvv\ errors at depth $\Delta\beta/beta(z)${#sec:depth}
 
 The remaining sections present a framework rather than new synthetics: they set
 out how the covariance of Section~\ref{sec:bayes} propagates down the inference
@@ -947,9 +1027,9 @@ Section~\ref{sec:bayes}. Stacking bands gives a linear system
 $\mathbf{d}=\mathbf{G}\,\mathbf{m}+\boldsymbol\varepsilon$ with
 $\mathbf{G}_{bz}=K_b(z)$ and data covariance $C_d$; the Bayesian solution under a
 smoothness prior returns a depth profile $\delta V_S/V_S(z)$ together with its
-posterior covariance $C_m(z)$ (implemented in `codameter.uq_depth`). The bands
+posterior covariance $C_m(z)$, implemented in codameter. The bands
 must sit where the kernels resolve: too low and the kernel leaks into the
-half-space, too high and the coda is incoherent (Section~\ref{sec:params}). The
+half-space, too high and the coda is incoherent (Section~\ref{sec:params_freq}). The
 width of $C_m(z)$ --- not the profile alone --- is the deliverable, and it
 inherits the temporal correlation and common-mode structure of $C_d$.
 
@@ -997,31 +1077,96 @@ unstated model & Hidden systematic in the kernels and the moduli \\
 \end{tabularx}
 \end{table}
 
-# Stress: a downstream step, not attempted here {#sec:stress}
+# Toward a scalable deployment {#sec:deployment}
 
-The quantity of interest is rarely the velocity change itself but the stress,
-strain, or pore-pressure change that produces it and --- increasingly --- the
-forcing responsible for it. Here the literature remains fragmented. Volcano and
-fault studies often interpret the velocity change qualitatively (a pre-eruptive
-pressurization, coseismic damage); hydrological studies fit an explicit
-poroelastic or thermoelastic model and separate the two by their seasonal phase
-lag [@Tsai2011; @Wang2017; @Clements2018]. What is largely absent across this
-literature is the *uncertainty* on that final quantity and a reasonable
-apportionment of it among the competing forcings.
+Every result so far is on a truth-known synthetic, by design (Section~\ref{sec:methods}):
+it is the only way to separate a processing artefact from a real signal. The
+next step is to test whether the same measurement machinery holds up against
+real data at deployment scale, not just against a synthetic that was built to
+resemble it. We are building a companion cloud pipeline that
+correlates real continuous waveforms for station CI.LJR (Lake Hughes,
+California) --- the reference station of @Clements2023 --- pulled from the
+public Southern California Earthquake Data Center S3 archive, using the
+NoisePy package [@Jiang2020] for the correlation step. Correlation and dv/v
+estimation each run as a cloud batch job on spot compute; dv/v estimation
+itself is handed to the same codameter measurement and uncertainty functions
+this paper's synthetic results are built on, with baseline processing
+configurations drawn from the same recommendation logic --- not a separate
+reimplementation. The retrospective run is validated against the
+already-published @Clements2023 CI.LJR result before any new claim is drawn
+from it.
 
-Converting a depth-resolved velocity-change posterior to stress or strain is a
-further step this paper does not attempt: it requires material priors --- an
-acoustoelastic, poroelastic, or thermoelastic coefficient, its depth dependence,
-and the fracture fabric or drainage regime that selects which stress or strain
-component the velocity change actually tracks --- that are outside this paper's
-scope. Because those coefficients are themselves poorly constrained, any such
-conversion is dominated by *epistemic* prior uncertainty rather than by the
-measurement, so a stress value reported without accounting for that is the least
-constrained quantity in the chain, and the one most often reported as a result.
-We stop deliberately at the depth-resolved posterior of Section~\ref{sec:depth}
-and its covariance: that object, not a stress or strain estimate, is what this
-paper delivers, and what any downstream stress or strain conversion must
-consume.
+After the correction, single-station \dvv\ (NoisePy correlations, a
+codameter 5-member ensemble, 2--4$\,$Hz, 2018--2019) validates against the
+published @Clements2023 product. The comparison is not trivial to get right:
+the CD2023 90-day-comp product is a *trailing* 90-day stack, so it lags a
+centered-smoothed daily series by about 45 days, and comparing without
+matching that smoothing caps the correlation near 0.7 even on a real annual
+cycle (Fig.~\ref{fig:realdata-validation}). We match by applying the same
+trailing 90-day mean to the daily series, compare demeaned --- the two
+products reference different epochs, and a constant offset is bookkeeping,
+not error --- and exclude the first 150 days of each station's series as
+reference burn-in. Under this matched comparison, CI.LJR reaches $r=0.990$
+(681 overlapping days); CI.ARV reaches $r=0.66$--$0.92$ depending on the join
+method, reflecting real 2018 data gaps; CI.RXH reaches $r=0.68$, the weakest
+of the three, on a station whose recovered \dvv\ is nearly flat and whose
+signal is low to begin with.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{realdata_1_validation.png}
+  \caption{Single-station \dvv\ at three CI stations, 2018--2019, against the
+  published \citet{Clements2023} product (dashed, reference-shifted).
+  Daily \dvv\ (points) with the ensemble spread (shaded, epistemic) and
+  measurement error bars, and a 45-day-smoothed curve. The annotated $r$ is
+  computed on this 45-day-smoothed comparison, not the smoothing-matched
+  comparison reported in the text; matching CD2023's own trailing 90-day
+  window instead of a centered 45-day one raises $r$ at every station (to
+  0.990/0.66--0.92/0.68 for LJR/ARV/RXH), which is why the two numbers
+  differ.}
+  \label{fig:realdata-validation}
+\end{figure}
+
+Why validation quality differs so much by station is visible in the
+correlation function itself (Fig.~\ref{fig:realdata-interferograms}). CI.LJR
+shows a stable, narrow coda near zero lag through the year. CI.RXH shows
+multipath, several coherent arrivals spread across the full $\pm 8\,$s of
+lag shown, and a visible shift in that pattern in April--May 2019,
+consistent with a site change rather than a processing artefact. CI.ARV's
+coherent energy is compact and concentrated near zero lag but comparatively
+sparse, consistent with its higher scatter and join-method sensitivity.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{realdata_2_interferograms.png}
+  \caption{Daily north-south/east-west cross-component correlation
+  functions, 2--4$\,$Hz, $\pm 8\,$s lag, 2019. CI.LJR's coda is stable and
+  narrow. CI.RXH shows multipath (several coherent bands across the full lag
+  range) and a shift in that pattern in April--May 2019. CI.ARV's coherent
+  energy is compact and near zero lag but comparatively sparse. The visual
+  difference is the reason validation quality differs by station in
+  Fig.~\ref{fig:realdata-validation}.}
+  \label{fig:realdata-interferograms}
+\end{figure}
+
+As an optional supplement, Fig.~\ref{fig:realdata-warmup} shows the
+ensemble's warm-up behaviour on a separate 90-day smoke run at CI.LJR: \dvv$\,$is
+undefined until enough history has accumulated for the moving-reference
+member to compute a trailing reference, and each band's per-epoch stretching
+correlation coefficient is reported alongside the recovered series.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{realdata_3_warmup.png}
+  \caption{CI.LJR single-station \dvv, a separate 90-day smoke run (January--April
+  2023), four frequency bands. The ensemble spread (shaded) and measurement
+  error bars are reported once at least one member is defined; the annotated
+  member count grows as the moving-reference member's warm-up period
+  elapses, reaching all 5 members later in the window. Bottom panel:
+  per-band stretching correlation coefficient.}
+  \label{fig:realdata-warmup}
+\end{figure}
+
 
 # Discussion {#sec:discussion}
 
@@ -1094,7 +1239,7 @@ a synthetic built under the same sign convention as the estimator reading it
 will always agree, whether the convention is physically correct or not.
 Testing codameter's estimators against a real cross-network deployment
 (Section~\ref{sec:deployment}), recovered \dvv\ anticorrelated with the
-published Clements & Denolle (2022) product and with seasonal hydrology at
+published @Clements2023 product and with seasonal hydrology at
 three stations ($r=-0.69,-0.45,-0.40$). Ground-truthing through the exact
 call path made the cause obvious: imposing a $+0.5\,\%$ velocity change
 returned $-0.50\,\%$. The synthetic generator and all seven estimators had
@@ -1106,16 +1251,15 @@ published product it was compared against. The fix is the convention boxed
 in Section~\ref{sec:intro}, shipped as codameter v0.4.0. Internal consistency
 is not correctness: a pipeline that only checks itself will confirm whatever
 convention it started with, and only the comparison against an
-independently-produced result caught this one. Full details and the
-ground-truthing procedure are in codameter PR \#36 and its commit history on
-branch `fix/dvv-sign-convention`.
+independently-produced result caught this one. The fix and its
+ground-truthing procedure are documented in the codameter release history.
 
 **Propagate the covariance, do not truncate it.** The measurement covariance is
 not the end of the analysis but its first input. Section~\ref{sec:depth} sets out
 the next step of the chain: invert the per-band $C_d$ through sensitivity kernels
 for a depth profile and its covariance, separating the shear-velocity and density
 contributions where the ground is partially saturated. Converting that
-depth-resolved posterior to stress or strain (Section~\ref{sec:stress}) requires
+depth-resolved posterior to stress or strain requires
 material priors this paper does not attempt to constrain, and is left to other
 work; what we deliver is the depth posterior and its covariance, the object any
 such conversion must consume. Building and testing the depth-propagation stage on
@@ -1136,8 +1280,7 @@ pipeline as executable code. The same discipline extends down the inference
 chain: the measurement covariance is the input a depth inversion consumes, and
 only a pipeline that carries the covariance that far can attach an honest
 uncertainty to a depth-resolved velocity-change profile. Converting that profile
-to stress or strain is a further step this paper does not attempt
-(Section~\ref{sec:stress}). We offer codameter as one such record, and as the
+to stress or strain is a further step this paper does not attempt. We offer codameter as one such record, and as the
 package in which the depth stage is being built.
 
 \appendix
@@ -1151,17 +1294,19 @@ estimates a trial stretch factor $\varepsilon$, the fractional dilation of
 the current coda relative to the reference; physical \dvv\ follows via the
 convention boxed in Section~\ref{sec:intro}, $\dvv=-\varepsilon/(1+\varepsilon)$.
 
-**Trace stretching (TS).** For a trial stretch $s$, define
-$r_s(t)=r\!\left(t/(1+s)\right)$ and the windowed correlation coefficient
+**Trace stretching (TS).** For each trial stretch factor $\varepsilon$, the current correlation is interpolated as $c_\varepsilon(t)=\mathcal{I}[c]\big((1+\varepsilon)t\big)$ (interpolation on current only) while the reference $r(t)$ remains fixed. The windowed correlation coefficient is
 \begin{equation}
-\mathrm{CC}(s) = \frac{\int_W c(t)\,r_s(t)\,\mathrm{d}t}
-{\left(\int_W c^2\,\mathrm{d}t\int_W r_s^2\,\mathrm{d}t\right)^{1/2}},
-\qquad \varepsilon = \arg\max_s \mathrm{CC}(s).
+\mathrm{CC}(\varepsilon) = \frac{\int_W r(t)\,c_\varepsilon(t)\,\mathrm{d}t}
+{\left(\int_W r^2\,\mathrm{d}t\int_W c_\varepsilon^2\,\mathrm{d}t\right)^{1/2}},
+\qquad \varepsilon^\star = \arg\max_\varepsilon \mathrm{CC}(\varepsilon).
 \end{equation}
+The best-fit stretch $\varepsilon^\star$ is then converted to physical $\dvv$ via $\dvv^\star = -\varepsilon^\star/(1+\varepsilon^\star)$ as boxed in the Introduction.
 The single-measurement error decreases with the coherence $\mathrm{CC}$, the
 bandwidth $B$, and the window length, approximately as $\sigma_{\varepsilon} \propto
 \sqrt{(1-\mathrm{CC}^2)/\mathrm{CC}^2}\, \big/\!\left[f_c\sqrt{B\,(t_2^3-t_1^3)}\right]$
 [@Weaver2011].
+
+*Interpolation direction and convention.* The interpolation is applied to the current waveform and not the reference so that the high-SNR reference stack remains invariant throughout the epsilon search, which is particularly important when the reference is built as a long-term or moving average. In the continuous-signal, infinite-support limit the two conventions (interpolating current versus interpolating reference) are mathematically equivalent after their fitted parameters are converted to the same physical $\dvv$ through the exact relation $\dvv = -\varepsilon/(1+\varepsilon)$. In sampled, finite-window signals, that symmetry is broken: interpolation error, edge truncation, and the finite support of the data cause the two conventions to give slightly different numerical results even when both use the exact conversion. Therefore the interpolation direction must be reported explicitly and treated as a fixed processing choice. For diffuse codas in ambient-noise and volcanic monitoring, we have verified that the choice has a measurable but small effect: truth-known synthetics recover $\dvv$ with sub-$10^{-4}$ bias when the signal-to-noise ratio is high and the changes are small, with the effect growing as a few percent at landslide-scale perturbations ($\dvv\sim4\,\%$).
 
 **Windowed cross-correlation (WCC).** In sub-windows centred at lapse $t_i$ the
 delay is $\delta t_i=\arg\max_{\tau}\int c(t)\,r(t-\tau)\,\mathrm{d}t$; a
@@ -1225,8 +1370,8 @@ mean $\bar x$ but obey $\sigma_{\mathrm{SD}}/\sigma_{\mathrm{SE}}=\sqrt{N}$.
 # Survey of processing choices across the literature {#app:survey}
 
 Table~\ref{tab:survey} catalogues the processing choices of the 103 ambient-noise
-\dvv\ monitoring studies we surveyed (full machine-readable version and
-provenance in the codameter `literature/` directory). It is the empirical basis
+\dvv\ monitoring studies we surveyed (the full machine-readable version and
+provenance are distributed with the codameter package). It is the empirical basis
 for the paper's claim that no convention is shared: the estimator, the frequency
 band, the coda window, the reference scheme and --- most unevenly of all --- the
 uncertainty treatment vary study to study, and the last is frequently
@@ -1247,13 +1392,10 @@ in the table is therefore a lower bound on what the literature actually states.
 
 # Data availability {.unnumbered}
 
-The codameter package, including the synthetic-demonstration module, the
-figure-generating scripts, and the literature survey that motivates this work, is
-openly available at <https://github.com/Denolle-Lab/codameter>. All figures are
-reproduced by `python literature/synthetic_dvv_demo.py`, the multiverse and
-deviation ranking by `python -m codameter.deviations`, and the Bayesian
-measurement model by `python -m codameter.uq_bayes`. The manuscript itself is
-rendered from `paper/manuscript_marine.qmd` by `python paper/build.py`.
+All synthetics, estimators, and figures in this paper are implemented in the
+open-source Python package codameter (version 0.4.0, MIT license), openly
+available at <https://github.com/Denolle-Lab/codameter>. A versioned archive
+with a Zenodo DOI will be issued alongside publication.
 
 # Acknowledgements {.unnumbered}
 

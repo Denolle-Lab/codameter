@@ -22,6 +22,30 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   that negated codameter output to get physical dv/v must remove that
   negation.
 
+- **The stretching-family trial-epsilon search now resamples `current`, not
+  `reference`.** `stretching_cc`, `measure_stretching_trailing`, and
+  `measure_wts` previously interpolated the *reference* waveform at trial
+  positions `t/(1+eps)` and held `current` fixed; they now interpolate
+  *current* at `(1+eps)*t` and hold `reference` fixed, matching the field's
+  usual convention (the reference is the stable, often multi-day-averaged
+  anchor; the current trace is the one being tested against it). **The exact
+  conversion `dv/v = -eps/(1+eps)` is unchanged** — both conventions give
+  the identical exact map (see the derivation in the PR), so this is not a
+  second sign-convention flip; it is an internal numerics change with a
+  small (single-digit-percent) shift in finite-sample results, since a
+  different (per-day, typically noisier) trace is now the one being
+  resampled. Added `synthetic_demo.dvv_to_epsilon` (the exact inverse of
+  `eps_to_dvv`) and `synthetic_demo._stretch_window`, a common
+  valid-support window shared across the whole epsilon grid so no trial
+  epsilon is silently extrapolated and every candidate is scored on an
+  identical sample count (warns and shrinks the window if the requested
+  one would need extrapolation at the edges of `eps_max`; none of the
+  packaged `use_cases.py` configs hit this).
+  `tests/data/golden/manifest.json` regenerated against the new numerics
+  (`golden.MANIFEST_VERSION` bumped 2 → 3 so stale per-user caches
+  regenerate); a hidden/private golden corpus built with `private_golden.py`
+  before this change should be regenerated too.
+
 ### Added
 
 - `synthetic_demo.eps_to_dvv`: the exact stretch-to-velocity map.
@@ -43,13 +67,14 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   the estimators whose band usage is that one linear filter (stretching, WCC,
   DTW, MWCS — the wavelet estimators raise).
 - **`measure_stretching_trailing`** — vectorized stretching against a trailing
-  (moving) reference. The stretched sample positions `t/(1+eps)` are
+  (moving) reference. The stretched sample positions `(1+eps)*t` are
   data-independent, so the interpolation gather indices/weights are computed
   once per epsilon and applied to all days at once; trailing references come
   from a cumulative sum and the band-pass runs once over the whole matrix.
   `deviations._moving_reference` dispatches to it for the stretching
   estimator (~3x on the 3-year volcano synthetic, observed 3-4.5x across
   repeated runs), keeping the generic per-day loop for the other estimators.
+  (Updated below: the resampled trace is `current`, not `reference`.)
 
 ### Changed
 

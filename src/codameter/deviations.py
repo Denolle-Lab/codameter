@@ -35,6 +35,7 @@ from .synthetic_demo import (
     YEAR_D,
     C,
     Synth,
+    _boost_fonts,
     _days,
     _trailing_stack,
     daily_ccfs,
@@ -134,10 +135,11 @@ def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False, prefiltered
 
     **Sign convention (v0.4.0, physical dv/v)**: a velocity *increase* is
     positive. All estimators return ``dv/v = -eps / (1 + eps)`` where
-    ``eps`` is the stretch factor that maps the reference onto the current
-    waveform (a coda that must be dilated to match means the medium slowed
-    down). Before v0.4.0 this function returned ``eps`` itself, labeled
-    dv/v — anticorrelated with the physical convention.
+    ``eps`` is the stretch factor that resamples the *current* waveform to
+    match the fixed reference (a current trace that must be dilated to
+    match means the medium slowed down). Before v0.4.0 this function
+    returned ``eps`` itself, labeled dv/v — anticorrelated with the
+    physical convention.
 
     Returns ``(dvv, valid)``: the per-day series and a boolean mask of epochs the
     pipeline actually produced (moving/inversion references have a warm-up gap;
@@ -410,9 +412,9 @@ def fig_deviation_ranking(rows=None):
         xlabel="RMS error vs truth (dv/v, %, log)",
         title="(a) Bias injected by each deviation",
     )
-    ax[0].set_yticklabels(labels, fontsize=8.5)
+    ax[0].set_yticklabels(labels, fontsize=10.5)
     ax[0].invert_yaxis()
-    ax[0].legend(fontsize=8.5, frameon=False, loc="lower right")
+    ax[0].legend(fontsize=10.5, frameon=False, loc="lower right")
     drop = [r.drop_err * PCT for r in items]
     ax[1].barh(y, drop, color=cols)
     ax[1].axvline(0, color=C["truth"], lw=1)
@@ -424,6 +426,7 @@ def fig_deviation_ranking(rows=None):
         title="(b) Distortion of the drop",
     )
     ax[1].invert_yaxis()
+    _boost_fonts(ax[0], ax[1], tick=10.5, label=12, title=13)
     fig.tight_layout()
     return fig
 
@@ -473,16 +476,18 @@ def fig_multiverse_full(mv=None):
         ylabel="dv/v (%)",
         title=f"(a) {mv['n_pipelines']} pipelines (colour = RMS error)",
     )
-    leg = ax[0].legend(fontsize=8.5, loc="lower left", frameon=True)
+    leg = ax[0].legend(fontsize=10.5, loc="lower left", frameon=True)
     leg.get_frame().set_facecolor("white")
     leg.get_frame().set_alpha(0.9)
     leg.get_frame().set_edgecolor("0.7")
-    fig.colorbar(
+    cbar = fig.colorbar(
         plt.cm.ScalarMappable(norm=norm, cmap=cmap),
         ax=ax[0],
         fraction=0.046,
         label="RMS vs truth",
     )
+    cbar.set_label("RMS vs truth", fontsize=12)
+    cbar.ax.tick_params(labelsize=10.5)
 
     # (b) first-order variance attribution.
     axes = mv["axes"]
@@ -496,8 +501,9 @@ def fig_multiverse_full(mv=None):
         ylabel="first-order variance fraction",
         title="(b) Which choice controls the answer",
     )
-    ax[1].set_xticklabels(axes, rotation=30, ha="right", fontsize=8.5)
-    ax[1].legend(fontsize=8.5, frameon=False)
+    ax[1].set_xticklabels(axes, rotation=30, ha="right", fontsize=10.5)
+    ax[1].legend(fontsize=10.5, frameon=False)
+    _boost_fonts(ax[0], ax[1], tick=10.5, label=12, title=13)
     fig.tight_layout()
     return fig
 
