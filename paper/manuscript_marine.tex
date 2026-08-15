@@ -246,7 +246,7 @@
 \title{The reproducibility cost of ad-hoc processing choices in
 ambient-noise seismic velocity-change monitoring}
 \author{M. A. Denolle}
-\date{2026-08-14}
+\date{2026-08-15}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -294,7 +294,7 @@ interferometry uncertainty-aware and reproducible.
 
 
 \begin{keywords}
-Time-series analysis; Interferometry; Seismic noise; Coda waves; Inverse theory; Statistical methods.
+Coda-wave Interferometry; Seismic noise; Coda waves; Inverse theory; Statistical methods.
 \end{keywords}
 
 \section{Introduction}\label{sec:intro}
@@ -308,21 +308,6 @@ Changes in seismic velocity, often measured and referred to as \dvv, can
 be tracked by measuring changes in arrival times of seismic waves,
 especially scattered waves such as coda waves, provided that the source
 and receivers are at the same location.
-
-\begin{center}
-\fbox{\begin{minipage}{0.95\linewidth}
-\textbf{Sign convention.} \dvv\ is the fractional seismic velocity change,
-positive for a velocity \emph{increase}. The stretching family of estimators
-measures the stretch factor $\varepsilon$ that maps the reference coda onto
-the current coda; the exact relation is
-\[
-\dvv = -\frac{\varepsilon}{1+\varepsilon}.
-\]
-The first-order shortcut $\dvv \approx -\varepsilon$ is accurate to order
-$\varepsilon^2$ --- negligible below $1\,\%$ but a $0.17\,\%$ absolute bias at
-a true $\dvv$ of $4\,\%$, the changes seen on landslides.
-\end{minipage}}
-\end{center}
 
 Due to the sensitivity of coda waves to small perturbations in the
 material properties, \dvv~was discovered as an effective method to
@@ -343,6 +328,50 @@ Each of these deployments rests on the same fragile assumption: that the
 \dvv~curve an operator acts on is a property of the subsurface, not of
 the analyst's processing choices.
 
+The temporal resolution of ambient-noise \dvv~measurements is
+fundamentally limited by the tradeoff between the duration required for
+stable noise correlations and the need to resolve rapid medium changes;
+however, filtering, denoising, and exploitation of spatial or temporal
+redundancy can improve the signal-to-noise ratio of short-time
+correlations and thereby permit stable \dvv~estimates at increasingly
+fine temporal resolution
+\citep{Hadziioannou2011,Moreau2017,Mao2019,Viens2020}.
+
+\dvv~is the fractional seismic velocity change, positive for a velocity
+\emph{increase}. The stretching family of estimators measures the
+stretch factor \(\varepsilon\) that maps the current coda onto the
+reference coda. Throughout this work, the reference correlation is held
+fixed and trial dilations are applied to the current correlation, \[
+c_\epsilon(t)=c[(1+\epsilon)t],
+\] where interpolation is performed only on (c). Thus
+\((\epsilon=t_{\rm cur}/t_{\rm ref}-1)\) is a fractional travel-time
+dilation: \(\epsilon>0\) denotes a delayed phase in the current coda
+(slower) and \(\epsilon<0\) denotes an earlier arrival time (faster).
+For unchanged propagation geometry, \[
+1+\epsilon=\frac{t_{\rm cur}}{t_{\rm ref}}
+=\frac{v_{\rm ref}}{v_{\rm cur}},
+\] and therefore the physical fractional velocity change reported
+throughout this work is \[
+\boxed{
+\frac{\delta v}{v}
+\equiv
+\frac{v_{\rm cur}-v_{\rm ref}}{v_{\rm ref}}
+=
+-\frac{\epsilon}{1+\epsilon}.
+}
+\] The commonly used relation
+(\(\delta v/v\simeq-\epsilon\simeq-\delta t/t\)) is its first-order
+approximation and used in the majority of published work. We retain the
+exact finite-change transformation because its computational cost is
+negligible and because the distinction becomes measurable for velocity
+perturbations of several percent measured in large strain phenomena such
+as landslides. The current coda is stretched rather than the reference
+correlation so that the high-SNR reference stack remains unchanged
+throughout the search. While the reciprocal formulations are
+mathematically equivalent; in sampled, finite-window data they can
+differ because interpolation and boundary truncation break that
+symmetry.
+
 The elevated sensitivity comes at the price of a long series of
 processing choices, and at almost every step the analyst makes a choice.
 Among these are choices of estimators between windowed phase
@@ -351,17 +380,25 @@ measurements or stretching \citep[\citet{Mao2020},
 together set the sampled depth; \citeauthor{Obermann2013}
 \citetext{\citeyear{Obermann2013}; \citealp{Obermann2016}}), reference
 window \citep[\citet{Ermert2023}, \citet{Okubo2024}]{Brenguier2014}, how
-much to substack to increase coherence among windows (Hadzianou Celine),
-and how to aggregate and weight the many cross-component and
-station-pair measurements that make up a single reported \dvv~time
-series (e.g., \citet{Hobiger2012}). These choices are made by habit,
-justified briefly if at all, and rarely reported in enough detail to
-reproduce. The community has long flagged \emph{individual} pitfalls
-(spurious changes from non-stationary noise, \citet{Zhan2013};
-measurement-error formulae, \citeauthor{Clarke2011}
+much to substack to increase coherence among windows (Hadzianou Celine)
+or even other forms of denoising (), and how to aggregate and weight the
+many cross-component and station-pair measurements that make up a single
+reported \dvv~time series (e.g., \citet{Hobiger2012}). These choices are
+made by habit, justified briefly if at all, and rarely reported in
+enough detail to reproduce. The community has long flagged
+\emph{individual} pitfalls (spurious changes from non-stationary noise,
+\citet{Zhan2013}; measurement-error formulae, \citeauthor{Clarke2011}
 \citetext{\citeyear{Clarke2011}; \citealp{Weaver2011}}), but the
 \emph{cumulative} effect of the full choice set on both the value and
-its stated uncertainty has not been quantified in the literature.
+its stated uncertainty has not been quantified in the literature. A
+striking example of such their cumulative effects can be seen in Figure
+x of \citep{Denolle25b} who demonstrated that most studies found a
+direct correlation between \dvv~and groundwater level change, but the
+scatter around the mean was easily explained by frequency choices,
+single-vs-inter station correlations, and likely the other
+signal-processing parameters chosen by the authors, which speak of the
+robust correlation but not rigorously established enough to be useful in
+downstream hydrological research.
 
 This is a reproducibility problem of exactly the ``garden of forking
 paths'' type identified in the statistical sciences
@@ -532,32 +569,15 @@ error model \citep{Clarke2011, Weaver2011}, a long stable reference
 the uncertainty convention is rarely, if ever, quantified
 (Appendix\textasciitilde{}\ref{app:survey}). The sections below address
 each component in turn and quantify, against a known truth, how far a
-parameter choice impacts the recovered \dvv~and its error. The
-deliverable of this section is a measurement covariance, which every
-subsequent step in the inference chain
-(Sections\textasciitilde{}\ref{sec:depth}) consumes.
-
-Each subsection below is written to serve three readers at once: a
-seismologist checking the mechanism against a realistic synthetic, a
-geophysicist who wants the scale of the resulting error without
-re-deriving it, and an automated agent or pipeline that needs a
-concrete, quotable rule for setting the same parameter. The closing
-\textbf{Scale of effect} sentence in each subsection is written for that
-last use directly.
-
-Each of the parametric components is implemented in a single package,
-\texttt{codameter}, that borrows from \texttt{msnoise}
-\citep{Lecocq2014} and \texttt{noisepy} \citep{Jiang2020} to extract the
-measurement of \dvv~from the ambient noise monitoring workflow and
-generalize it to any coda wave from repeated source-receiver paths.
+parameter choice impacts the recovered \dvv~and its error.
 
 Table\textasciitilde{}\ref{tab:results-synthesis} previews the RMS error
 against the known synthetic ground truth for the best- and worst-case
 option on each axis covered in this section, each derived in its own
-dedicated synthetic (detailed in the corresponding subsection below); it
-is a synthesis of \emph{this section's} per-choice numbers, distinct
-from Table\textasciitilde{}\ref{tab:bp-measure}'s one-at-a-time sweep on
-a single shared scenario in
+dedicated synthetic exercise (detailed in the corresponding subsection
+below); it is a synthesis of \emph{this section's} per-choice numbers,
+distinct from Table\textasciitilde{}\ref{tab:bp-measure}'s one-at-a-time
+sweep on a single shared scenario in
 Section\textasciitilde{}\ref{sec:multiverse}.
 
 \begin{table}
@@ -592,6 +612,8 @@ $\sim\!0.044\,\%$ (1-day, same deployment) & Section~\ref{sec:param_substack} \\
 \end{table}
 
 \subsection{Estimator family}\label{sec:methods-fig}
+
+We implement all methods as in previous work \citep{Jiang2020}.
 
 As of codameter v0.4.0, all seven estimators return physical \dvv~under
 the sign convention above rather than the raw stretch factor
@@ -878,6 +900,22 @@ stopping. codameter's own quality-control gate uses
 CC\textasciitilde{}\(>0.6\) (Section\textasciitilde{}\ref{sec:results}),
 and how quickly a station clears that bar depends entirely on its data
 quality.
+
+Substack duration therefore defines a fundamental
+precision--temporal-resolution tradeoff. Longer stacks suppress
+incoherent noise fluctuations and accelerate the convergence of noise
+correlation functions, whereas shorter substacks preserve transient
+changes that would otherwise be averaged within the stacking window. The
+reduced signal-to-noise ratio of shorter correlations can be partially
+compensated through adaptive filtering, SVD-based or learned denoising,
+or through redundancy across dense seismic arrays, enabling
+\dvv~measurements at daily, hourly, and even sub-hourly resolution
+\citep{Hadziioannou2011,Moreau2017,Mao2019,Viens2020}. In this paper,
+the choice of substack length is guided by data-dependent quality gates
+(the CC threshold above) rather than a fixed duration, which allows
+stations with high coherence to preserve shorter temporal windows and
+thereby track rapid changes, while stations with lower SNR substack as
+needed to achieve stable estimates.
 
 On the earthquake synthetic, a workable deployment (SNR 4, the same
 setting used throughout this section) clears CC\textasciitilde{}\(>0.6\)
@@ -1612,17 +1650,42 @@ relative to the reference; physical \dvv~follows via the convention
 boxed in Section\textasciitilde{}\ref{sec:intro},
 \(\dvv=-\varepsilon/(1+\varepsilon)\).
 
-\textbf{Trace stretching (TS).} For a trial stretch \(s\), define
-\(r_s(t)=r\!\left(t/(1+s)\right)\) and the windowed correlation
-coefficient \begin{equation}
-\mathrm{CC}(s) = \frac{\int_W c(t)\,r_s(t)\,\mathrm{d}t}
-{\left(\int_W c^2\,\mathrm{d}t\int_W r_s^2\,\mathrm{d}t\right)^{1/2}},
-\qquad \varepsilon = \arg\max_s \mathrm{CC}(s).
-\end{equation} The single-measurement error decreases with the coherence
-\(\mathrm{CC}\), the bandwidth \(B\), and the window length,
+\textbf{Trace stretching (TS).} For each trial stretch factor
+\(\varepsilon\), the current correlation is interpolated as
+\(c_\varepsilon(t)=\mathcal{I}[c]\big((1+\varepsilon)t\big)\)
+(interpolation on current only) while the reference \(r(t)\) remains
+fixed. The windowed correlation coefficient is \begin{equation}
+\mathrm{CC}(\varepsilon) = \frac{\int_W r(t)\,c_\varepsilon(t)\,\mathrm{d}t}
+{\left(\int_W r^2\,\mathrm{d}t\int_W c_\varepsilon^2\,\mathrm{d}t\right)^{1/2}},
+\qquad \varepsilon^\star = \arg\max_\varepsilon \mathrm{CC}(\varepsilon).
+\end{equation} The best-fit stretch \(\varepsilon^\star\) is then
+converted to physical \(\dvv\) via
+\(\dvv^\star = -\varepsilon^\star/(1+\varepsilon^\star)\) as boxed in
+the Introduction. The single-measurement error decreases with the
+coherence \(\mathrm{CC}\), the bandwidth \(B\), and the window length,
 approximately as \(\sigma_{\varepsilon} \propto
 \sqrt{(1-\mathrm{CC}^2)/\mathrm{CC}^2}\, \big/\!\left[f_c\sqrt{B\,(t_2^3-t_1^3)}\right]\)
 \citep{Weaver2011}.
+
+\emph{Interpolation direction and convention.} The interpolation is
+applied to the current waveform and not the reference so that the
+high-SNR reference stack remains invariant throughout the epsilon
+search, which is particularly important when the reference is built as a
+long-term or moving average. In the continuous-signal, infinite-support
+limit the two conventions (interpolating current versus interpolating
+reference) are mathematically equivalent after their fitted parameters
+are converted to the same physical \(\dvv\) through the exact relation
+\(\dvv = -\varepsilon/(1+\varepsilon)\). In sampled, finite-window
+signals, that symmetry is broken: interpolation error, edge truncation,
+and the finite support of the data cause the two conventions to give
+slightly different numerical results even when both use the exact
+conversion. Therefore the interpolation direction must be reported
+explicitly and treated as a fixed processing choice. For diffuse codas
+in ambient-noise and volcanic monitoring, we have verified that the
+choice has a measurable but small effect: truth-known synthetics recover
+\(\dvv\) with sub-\(10^{-4}\) bias when the signal-to-noise ratio is
+high and the changes are small, with the effect growing as a few percent
+at landslide-scale perturbations (\(\dvv\sim4\,\%\)).
 
 \textbf{Windowed cross-correlation (WCC).} In sub-windows centred at
 lapse \(t_i\) the delay is
