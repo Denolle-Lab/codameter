@@ -246,7 +246,7 @@
 \title{The reproducibility cost of ad-hoc processing choices in
 ambient-noise seismic velocity-change monitoring}
 \author{M. A. Denolle}
-\date{2026-08-15}
+\date{2026-08-16}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -328,15 +328,6 @@ Each of these deployments rests on the same fragile assumption: that the
 \dvv~curve an operator acts on is a property of the subsurface, not of
 the analyst's processing choices.
 
-The temporal resolution of ambient-noise \dvv~measurements is
-fundamentally limited by the tradeoff between the duration required for
-stable noise correlations and the need to resolve rapid medium changes;
-however, filtering, denoising, and exploitation of spatial or temporal
-redundancy can improve the signal-to-noise ratio of short-time
-correlations and thereby permit stable \dvv~estimates at increasingly
-fine temporal resolution
-\citep{Hadziioannou2011,Moreau2017,Mao2019,Viens2020}.
-
 \dvv~is the fractional seismic velocity change, positive for a velocity
 \emph{increase}. The stretching family of estimators measures the
 stretch factor \(\varepsilon\) that maps the current coda onto the
@@ -372,6 +363,15 @@ mathematically equivalent; in sampled, finite-window data they can
 differ because interpolation and boundary truncation break that
 symmetry.
 
+Throughout this paper, \(\sigma\) denotes the measurement uncertainty
+(standard deviation) of a recovered \dvv~estimate. Subscripts and
+modifiers distinguish specific types: \(\sigma_k\) is the per-component
+uncertainty, \(\sigma_{\varepsilon}\) is the measurement error on the
+raw stretch factor, \(\sigma_{\mathrm{SE}}\) and
+\(\sigma_{\mathrm{SD}}\) are the standard error and standard deviation
+conventions, and \(\sigma_d\) is the data covariance matrix diagonal;
+each is defined in context where it appears.
+
 The elevated sensitivity comes at the price of a long series of
 processing choices, and at almost every step the analyst makes a choice.
 Among these are choices of estimators between windowed phase
@@ -379,15 +379,17 @@ measurements or stretching \citep[\citet{Mao2020},
 \citet{Yuan2021}]{Mikesell2015}, frequency band and coda window (which
 together set the sampled depth; \citeauthor{Obermann2013}
 \citetext{\citeyear{Obermann2013}; \citealp{Obermann2016}}), reference
-window \citep[\citet{Ermert2023}, \citet{Okubo2024}]{Brenguier2014}, how
-much to substack to increase coherence among windows (Hadzianou Celine)
-or even other forms of denoising (), and how to aggregate and weight the
-many cross-component and station-pair measurements that make up a single
-reported \dvv~time series (e.g., \citet{Hobiger2012}). These choices are
-made by habit, justified briefly if at all, and rarely reported in
-enough detail to reproduce. The community has long flagged
-\emph{individual} pitfalls (spurious changes from non-stationary noise,
-\citet{Zhan2013}; measurement-error formulae, \citeauthor{Clarke2011}
+window \citep[\citet{Ermert2023}, \citet{Okubo2024}]{Brenguier2014},
+increasing the temporal resolution of the measurement through
+substacking-filtering-denoising
+\citep[\citet{Moreau2017},\citet{Mao2019},\citet{Viens2020}]{Hadziioannou2011},
+and how to aggregate and weight the many cross-component and
+station-pair measurements that make up a single reported \dvv~time
+series (e.g., \citet{Hobiger2012}). These choices are made by habit,
+justified briefly if at all, and rarely reported in enough detail to
+reproduce. The community has long flagged \emph{individual} pitfalls
+(spurious changes from non-stationary noise, \citet{Zhan2013};
+measurement-error formulae, \citeauthor{Clarke2011}
 \citetext{\citeyear{Clarke2011}; \citealp{Weaver2011}}), but the
 \emph{cumulative} effect of the full choice set on both the value and
 its stated uncertainty has not been quantified in the literature. A
@@ -518,13 +520,13 @@ count, $N_{\mathrm{eff}}$: weighted effective count).}
 \textbf{Choice} & \textbf{Options / typical range} & \textbf{Effect on the
 value} & \textbf{Effect on the uncertainty} \\
 \midrule
-Estimator & TS, WCC, DTW, MWCS, WCS, WTS, WTDTW (7 in NoisePy) &
+Estimator & TS, WCC, DTW, MWCS, WCS, WTS, WTDTW &
 Agree at small \dvv; at large \dvv\ phase methods cycle-skip, warps under-shoot
 (Fig.~\ref{fig:methods}) & Each has its own error model; the inter-method spread
 is itself an uncertainty \\ \hline
 Phase unwrapping & on / off (phase methods) & Decides whether MWCS/WCS cycle-skip
 (Fig.~\ref{fig:methods}b) & Sets the usable \dvv\ range \\ \hline
-Frequency band $[f_1,f_2]$ & 0.1--2\,Hz (volcano), 2--4\,Hz (aquifer),
+Frequency band  & 0.1--2\,Hz (volcano), 2--4\,Hz (aquifer),
 4--12\,Hz (landslide) & Selects the sampled depth, hence \emph{which} signal
 (Fig.~\ref{fig:params}a) & $\sigma$ falls as bandwidth $B$ grows \\ \hline
 Coda window $[t_1,t_2]$ & a few to tens of mean free times & Later lapse $\to$
@@ -908,14 +910,15 @@ correlation functions, whereas shorter substacks preserve transient
 changes that would otherwise be averaged within the stacking window. The
 reduced signal-to-noise ratio of shorter correlations can be partially
 compensated through adaptive filtering, SVD-based or learned denoising,
-or through redundancy across dense seismic arrays, enabling
-\dvv~measurements at daily, hourly, and even sub-hourly resolution
-\citep{Hadziioannou2011,Moreau2017,Mao2019,Viens2020}. In this paper,
-the choice of substack length is guided by data-dependent quality gates
-(the CC threshold above) rather than a fixed duration, which allows
-stations with high coherence to preserve shorter temporal windows and
-thereby track rapid changes, while stations with lower SNR substack as
-needed to achieve stable estimates.
+or through redundancy across dense seismic arrays, enabling \dvv~
+measurements at daily, hourly, and even sub-hourly resolution
+\citep[\citet{Moreau2017},\citet{Mao2019},\citet{Viens2020}]{Hadziioannou2011}.
+
+In this paper, the choice of substack length is guided by data-dependent
+quality gates (the CC threshold above) rather than a fixed duration,
+which allows stations with high coherence to preserve shorter temporal
+windows and thereby track rapid changes, while stations with lower SNR
+substack as needed to achieve stable estimates.
 
 On the earthquake synthetic, a workable deployment (SNR 4, the same
 setting used throughout this section) clears CC\textasciitilde{}\(>0.6\)
@@ -1298,10 +1301,10 @@ cannot remove. The object a downstream depth or stress inversion must
 consume is the \textbf{marginal measurement covariance} \begin{equation}
 C_d(t,t') = \underbrace{D R D}_{\text{within}\,\oplus\,\text{methodological},\ \text{temporally correlated}}
 \;+\; \underbrace{\tau^2\,\mathbf{1}\mathbf{1}^\top}_{\text{common mode}},
-\qquad D=\operatorname{diag}\!\big(\sigma_{\rm tot}(t)\big),
+\qquad D=\operatorname{diag}\!\big(\sigma_{\mathrm{tot}}(t)\big),
 \label{eq:cd}
-\end{equation} with \(\sigma_{\rm tot}^2 = s^2\sigma_k^2\)-average \(+\)
-methodological variance and \(R_{ij}=e^{-|t_i-t_j|/L}\) for a
+\end{equation} with \(\sigma_{\mathrm{tot}}^2 = s^2\sigma_k^2\)-average
+\(+\) methodological variance and \(R_{ij}=e^{-|t_i-t_j|/L}\) for a
 correlation length \(L\) estimated from the ensemble residuals. This
 \(C_d\) is \textbf{time-dependent} --- wider at the sharp drop and at
 low coherence --- and its temporal correlation plus common-mode term
@@ -1321,7 +1324,7 @@ averaged series, is what must be propagated.
   does not. (b) The resulting time-dependent data covariance $C_d$. (c) Its
   diagonal $\sigma_d(t)$ decomposed into within-method and methodological parts,
   rising at the eruption; the posterior-of-the-mean (dotted) is far tighter, and
-  $N_{\rm eff}$ is a fraction of the epoch count.}
+  $N_{\mathrm{eff}}$ is a fraction of the epoch count.}
   \label{fig:bayes}
 \end{figure}
 
