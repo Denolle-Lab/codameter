@@ -124,8 +124,6 @@ rather than the reference correlation so that the high-SNR reference stack remai
 the search. While the reciprocal formulations are mathematically equivalent; in sampled, finite-window
 data they can differ because interpolation and boundary truncation break that symmetry.
 
-Throughout this paper, $\sigma$ denotes the measurement uncertainty (standard deviation) of a recovered \dvv\ estimate; subscripts distinguish specific contexts and types, defined where they first appear.
-
 The elevated sensitivity comes at the price of a long series of processing choices,
  and at almost every step the analyst makes a choice. Among these are choices of
  estimators between windowed phase measurements or stretching [@Mikesell2015, @Mao2020, @Yuan2021],
@@ -157,7 +155,7 @@ makes to estimate \dvv$\,$which we report over 103 studies in Appendix~\ref{app:
 We do not aim to report the "best" pipeline, which is most often the one reported in
 scientific papers, but instead document the parameter impacts (Section~\ref{sec:results}).
 We then propose a new measurement error that incorporates these effects into a data
-covariance matrix $C_d$ (Section~\ref{sec:bayes}).
+covariance matrix $C_d$ (Section~\ref{sec:bayes}). Throughout this paper, key notation includes: $\sigma$ (measurement uncertainty of a recovered \dvv\ estimate), $B$ (frequency bandwidth), and $W=[t_1,t_2]$ (coda window); subscripts distinguish specific contexts (e.g., $\sigma_k$ for per-component uncertainty), each defined where first introduced.
 
 One example of propagating such error into downstream science is the
 migration of the surface \dvv\ measurement to depth profiles of perturbations in
@@ -241,8 +239,8 @@ of each of these parameter choices on the resulting \dvv\.
 \begin{table}
 \footnotesize
 \caption{Processing choices (``hyper-parameters'') and their effect on the
-recovered value and the reported uncertainty ($B$: bandwidth, $N$: measurement
-count, $N_{\mathrm{eff}}$: weighted effective count).}
+recovered value and the reported uncertainty. Key notation: $B$ (frequency bandwidth),
+$W=[t_1,t_2]$ (coda window), $N$ (measurement count), $N_{\mathrm{eff}}$ (weighted effective count), $\sigma$ (measurement uncertainty).}
 \label{tab:hyperparams}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.35cm} L L L@{}}
 \toprule
@@ -251,16 +249,14 @@ value} & \textbf{Effect on the uncertainty} \\
 \midrule
 Estimator & TS, WCC, DTW, MWCS, WCS, WTS, WTDTW &
 Agree at small \dvv; at large \dvv\ phase methods cycle-skip, warps under-shoot
-(Fig.~\ref{fig:methods}) & Each has its own error model; the inter-method spread
-is itself an uncertainty \\ \hline
+(Fig.~\ref{fig:methods}) & Each has its own error model; inter-method spread is an uncertainty \\ \hline
 Phase unwrapping & on / off (phase methods) & Decides whether MWCS/WCS cycle-skip
 (Fig.~\ref{fig:methods}b) & Sets the usable \dvv\ range \\ \hline
-Frequency band  & 0.1--2\,Hz (volcano), 2--4\,Hz (aquifer),
+$B$ & 0.1--2\,Hz (volcano), 2--4\,Hz (aquifer),
 4--12\,Hz (landslide) & Selects the sampled depth, hence \emph{which} signal
-(Fig.~\ref{fig:params}a) & $\sigma$ falls as bandwidth $B$ grows \\ \hline
-Coda window $[t_1,t_2]$ & a few to tens of mean free times & Later lapse $\to$
-deeper, larger sensitivity & $\sigma\propto(t_2^3-t_1^3)^{-1/2}$, but late coda
-is low-SNR \\ \hline
+(Fig.~\ref{fig:params}a) & $\sigma$ decreases with increasing $B$ \\ \hline
+Coda window $W$ & a few to tens of mean free times & Later lapse $\to$
+deeper, larger sensitivity & $\sigma\propto(t_2^3-t_1^3)^{-1/2}$ (duration effect), but late coda is low-SNR \\ \hline
 Window--band coupling & fixed vs scaled with $f$ & A fixed late window at high
 $f$ measures noise (Fig.~\ref{fig:params}b) & Inflates $\sigma$ / decorrelation
 at high band \\ \hline
@@ -964,7 +960,7 @@ C_d(t,t') = \underbrace{D R D}_{\text{within}\,\oplus\,\text{methodological},\ \
 \qquad D=\operatorname{diag}\!\big(\sigma_{\mathrm{tot}}(t)\big),
 \label{eq:cd}
 \end{equation}
-with $\sigma_{\mathrm{tot}}^2 = s^2\sigma_k^2$-average $+$ methodological variance (where $\sigma_k(t)$ is the per-component measurement uncertainty), and
+with $\sigma_{\mathrm{tot}}^2 = s^2\sigma_k^2$-average $+$ methodological variance and
 $R_{ij}=e^{-|t_i-t_j|/L}$ for a correlation length $L$ estimated from the
 ensemble residuals. This $C_d$ is **time-dependent** --- wider at the sharp drop
 and at low coherence --- and its temporal correlation plus common-mode term
@@ -981,7 +977,7 @@ not the posterior of the averaged series, is what must be propagated.
   (the estimator precision) and a much wider $\pm2\sigma$ band from the marginal
   $C_d$ (the honest data error), which covers the truth where the credible band
   does not. (b) The resulting time-dependent data covariance $C_d$. (c) Its
-  diagonal ($\sigma_d(t)$, the measurement uncertainty from $C_d$) decomposed into within-method and methodological parts,
+  diagonal $\sigma_d(t)$ decomposed into within-method and methodological parts,
   rising at the eruption; the posterior-of-the-mean (dotted) is far tighter, and
   $N_{\mathrm{eff}}$ is a fraction of the epoch count.}
   \label{fig:bayes}
@@ -1295,9 +1291,9 @@ convention boxed in Section~\ref{sec:intro}, $\dvv=-\varepsilon/(1+\varepsilon)$
 \qquad \varepsilon^\star = \arg\max_\varepsilon \mathrm{CC}(\varepsilon).
 \end{equation}
 The best-fit stretch $\varepsilon^\star$ is then converted to physical $\dvv$ via $\dvv^\star = -\varepsilon^\star/(1+\varepsilon^\star)$ as boxed in the Introduction.
-The single-measurement error on the raw stretch factor $\varepsilon$ (denoted $\sigma_{\varepsilon}$) decreases with the coherence $\mathrm{CC}$, the
-bandwidth $B$, and the window length, approximately as
-$\sigma_{\varepsilon} \propto \sqrt{(1-\mathrm{CC}^2)/\mathrm{CC}^2}\, \big/\!\left[f_c\sqrt{B\,(t_2^3-t_1^3)}\right]$
+The single-measurement error decreases with the coherence $\mathrm{CC}$, the
+bandwidth $B$, and the window length, approximately as $\sigma_{\varepsilon} \propto
+\sqrt{(1-\mathrm{CC}^2)/\mathrm{CC}^2}\, \big/\!\left[f_c\sqrt{B\,(t_2^3-t_1^3)}\right]$
 [@Weaver2011].
 
 *Interpolation direction and convention.* The interpolation is applied to the current waveform and not the reference so that the high-SNR reference stack remains invariant throughout the epsilon search, which is particularly important when the reference is built as a long-term or moving average. In the continuous-signal, infinite-support limit the two conventions (interpolating current versus interpolating reference) are mathematically equivalent after their fitted parameters are converted to the same physical $\dvv$ through the exact relation $\dvv = -\varepsilon/(1+\varepsilon)$. In sampled, finite-window signals, that symmetry is broken: interpolation error, edge truncation, and the finite support of the data cause the two conventions to give slightly different numerical results even when both use the exact conversion. Therefore the interpolation direction must be reported explicitly and treated as a fixed processing choice. For diffuse codas in ambient-noise and volcanic monitoring, we have verified that the choice has a measurable but small effect: truth-known synthetics recover $\dvv$ with sub-$10^{-4}$ bias when the signal-to-noise ratio is high and the changes are small, with the effect growing as a few percent at landslide-scale perturbations ($\dvv\sim4\,\%$).
