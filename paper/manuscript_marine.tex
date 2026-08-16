@@ -524,13 +524,14 @@ Phase unwrapping & on / off (phase methods) & Decides whether MWCS/WCS cycle-ski
 $B$ & 0.1--2\,Hz (volcano), 2--4\,Hz (aquifer),
 4--12\,Hz (landslide) & Selects the sampled depth, hence \emph{which} signal
 (Fig.~\ref{fig:params}a) & $\sigma$ decreases with increasing $B$ \\ \hline
-Coda window $W$ & a few to tens of mean free times & Later lapse $\to$
-deeper, larger sensitivity & $\sigma\propto(t_2^3-t_1^3)^{-1/2}$ (duration effect), but late coda is low-SNR \\ \hline
-Window--band coupling & fixed vs scaled with $f$ & A fixed late window at high
-$f$ measures noise (Fig.~\ref{fig:params}b) & Inflates $\sigma$ / decorrelation
-at high band \\ \hline
+$W$ & a few to tens of mean free times & Later lapse $\to$
+deeper, larger sensitivity & $\sigma\propto(t_2^3-t_1^3)^{-1/2}$ (duration effect),
+but late coda is low-SNR \\ \hline
+$W$-$B$ coupling & fixed vs scaled with $f$ & A fixed late window at high
+$f$ measures noise (Fig.~\ref{fig:params}b) & inceases $\sigma$ due to decorrelation
+at high $f$ \\ \hline
 Reference & total stack / trailing / joint inversion & Moving reference erases
-slow trends (Fig.~\ref{fig:params}c) & Reference noise propagates; inversion
+ trends within segments (unless stitched across segments); joint inversion preserves them (Fig.~\ref{fig:params}c) & Reference noise propagates; inversion
 lowers it \\ \hline
 Stacking / substack & 1--30+ days & Smears and delays transients
 (Fig.~\ref{fig:params}d) & $\sigma$ falls with stack length; resolution falls
@@ -904,7 +905,7 @@ correlation functions, whereas shorter substacks preserve transient
 changes that would otherwise be averaged within the stacking window. The
 reduced signal-to-noise ratio of shorter correlations can be partially
 compensated through adaptive filtering, SVD-based or learned denoising,
-or through redundancy across dense seismic arrays, enabling \dvv~
+or through redundancy across dense seismic arrays, enabling \dvv\\
 measurements at daily, hourly, and even sub-hourly resolution
 \citep[\citet{Moreau2017},\citet{Mao2019},\citet{Viens2020}]{Hadziioannou2011}.
 
