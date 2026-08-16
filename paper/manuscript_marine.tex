@@ -531,11 +531,10 @@ $W$-$B$ coupling & fixed vs scaled with $f$ & A fixed late window at high
 $f$ measures noise (Fig.~\ref{fig:params}b) & inceases $\sigma$ due to decorrelation
 at high $f$ \\ \hline
 Reference & total stack / trailing / joint inversion & Moving reference erases
- trends within segments (unless stitched across segments); joint inversion preserves them (Fig.~\ref{fig:params}c) & Reference noise propagates; inversion
+the trend; joint inversion preserves it (Fig.~\ref{fig:params}c) & Reference noise propagates; inversion
 lowers it \\ \hline
 Stacking / substack & 1--30+ days & Smears and delays transients
-(Fig.~\ref{fig:params}d) & $\sigma$ falls with stack length; resolution falls
-too \\ \hline
+(Fig.~\ref{fig:params}d) & $\sigma$ and resolution decreases with stacking length \\ \hline
 Component aggregation & A (average \dvv) vs B (average CC images); weighted vs
 not & Different time series (Fig.~\ref{fig:aggregation}) & Different uncertainty
 object (ensemble spread vs CC-peak width) \\ \hline
@@ -860,13 +859,30 @@ the fixed-reference baseline: RMS falls from \(\sim\!0.168\,\%\) at a
 10-day trailing window to \(\sim\!0.151\,\%\) at 240 days, still
 \(\sim\!4\)--\(5\times\) the whole-record RMS
 (Fig.\textasciitilde{}\ref{fig:reference-schemes}b) --- the erasure is
-structural, not a noise effect that more averaging fixes. Field
-deployments sometimes need a multiple-reference approach for the same
-underlying reason, when no single period is long or quiet enough to
-serve as a stable baseline (e.g., the urban Mexico City deployment of
-\citet{Ermert2023}); our moving-reference sweep is the closest
-single-parameter analog available in codameter today, not a reproduction
-of any one study's exact reference construction.
+structural, not a noise effect that more averaging fixes. That
+structural erasure is the reason to read the moving reference here as a
+limit case rather than as common practice: none of the 103 studies in
+our survey (Appendix\textasciitilde{}\ref{app:survey}) reports
+re-baselining against a trailing reference at all. The schemes coded as
+``moving'\,' in the survey are moving \emph{current} stacks read against
+a fixed long-term reference --- \citet{Brenguier2008} measure
+overlapping 5-day windows against a 1550-day reference, \citet{Wang2017}
+a moving-window current stack against a \$\sim\$1-yr reference --- which
+is the substacking axis of
+Section\textasciitilde{}\ref{sec:param_substack}, not the reference
+axis. The moving reference is therefore best understood as a controlled
+demonstration of what continuous re-baselining costs, and the case for
+the joint inversion rests on that cost directly rather than on any
+analogy to a published reference construction.
+
+Where the reference is genuinely hard to define, the surveyed responses
+take a different form: \citet{Ermert2023} stabilise urban single-station
+autocorrelations in Mexico City by clustering the correlation waveforms
+with a Gaussian mixture model before stacking, so that the reference is
+built from a coherent subset of the record rather than from a contiguous
+window of it. Reference \emph{selection} of that kind is a distinct axis
+from reference \emph{length}, and codameter does not currently implement
+it.
 
 \begin{figure}
   \centering
