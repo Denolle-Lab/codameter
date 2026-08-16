@@ -364,13 +364,9 @@ differ because interpolation and boundary truncation break that
 symmetry.
 
 Throughout this paper, \(\sigma\) denotes the measurement uncertainty
-(standard deviation) of a recovered \dvv~estimate. Subscripts and
-modifiers distinguish specific types: \(\sigma_k\) is the per-component
-uncertainty, \(\sigma_{\varepsilon}\) is the measurement error on the
-raw stretch factor, \(\sigma_{\mathrm{SE}}\) and
-\(\sigma_{\mathrm{SD}}\) are the standard error and standard deviation
-conventions, and \(\sigma_d\) is the data covariance matrix diagonal;
-each is defined in context where it appears.
+(standard deviation) of a recovered \dvv~estimate; subscripts
+distinguish specific contexts and types, defined where they first
+appear.
 
 The elevated sensitivity comes at the price of a long series of
 processing choices, and at almost every step the analyst makes a choice.
@@ -910,7 +906,7 @@ correlation functions, whereas shorter substacks preserve transient
 changes that would otherwise be averaged within the stacking window. The
 reduced signal-to-noise ratio of shorter correlations can be partially
 compensated through adaptive filtering, SVD-based or learned denoising,
-or through redundancy across dense seismic arrays, enabling \dvv~
+or through redundancy across dense seismic arrays, enabling \dvv\\
 measurements at daily, hourly, and even sub-hourly resolution
 \citep[\citet{Moreau2017},\citet{Mao2019},\citet{Viens2020}]{Hadziioannou2011}.
 
@@ -1304,10 +1300,11 @@ C_d(t,t') = \underbrace{D R D}_{\text{within}\,\oplus\,\text{methodological},\ \
 \qquad D=\operatorname{diag}\!\big(\sigma_{\mathrm{tot}}(t)\big),
 \label{eq:cd}
 \end{equation} with \(\sigma_{\mathrm{tot}}^2 = s^2\sigma_k^2\)-average
-\(+\) methodological variance and \(R_{ij}=e^{-|t_i-t_j|/L}\) for a
-correlation length \(L\) estimated from the ensemble residuals. This
-\(C_d\) is \textbf{time-dependent} --- wider at the sharp drop and at
-low coherence --- and its temporal correlation plus common-mode term
+\(+\) methodological variance (where \(\sigma_k(t)\) is the
+per-component measurement uncertainty), and \(R_{ij}=e^{-|t_i-t_j|/L}\)
+for a correlation length \(L\) estimated from the ensemble residuals.
+This \(C_d\) is \textbf{time-dependent} --- wider at the sharp drop and
+at low coherence --- and its temporal correlation plus common-mode term
 collapse the effective number of independent epochs by an order of
 magnitude. On our synthetic the marginal \(C_d\) covers the truth at the
 nominal rate while the naive posterior band does not, making concrete
@@ -1322,7 +1319,7 @@ averaged series, is what must be propagated.
   (the estimator precision) and a much wider $\pm2\sigma$ band from the marginal
   $C_d$ (the honest data error), which covers the truth where the credible band
   does not. (b) The resulting time-dependent data covariance $C_d$. (c) Its
-  diagonal $\sigma_d(t)$ decomposed into within-method and methodological parts,
+  diagonal ($\sigma_d(t)$, the measurement uncertainty from $C_d$) decomposed into within-method and methodological parts,
   rising at the eruption; the posterior-of-the-mean (dotted) is far tighter, and
   $N_{\mathrm{eff}}$ is a fraction of the epoch count.}
   \label{fig:bayes}
@@ -1664,10 +1661,11 @@ fixed. The windowed correlation coefficient is \begin{equation}
 \end{equation} The best-fit stretch \(\varepsilon^\star\) is then
 converted to physical \(\dvv\) via
 \(\dvv^\star = -\varepsilon^\star/(1+\varepsilon^\star)\) as boxed in
-the Introduction. The single-measurement error decreases with the
+the Introduction. The single-measurement error on the raw stretch factor
+\(\varepsilon\) (denoted \(\sigma_{\varepsilon}\)) decreases with the
 coherence \(\mathrm{CC}\), the bandwidth \(B\), and the window length,
-approximately as \(\sigma_{\varepsilon} \propto
-\sqrt{(1-\mathrm{CC}^2)/\mathrm{CC}^2}\, \big/\!\left[f_c\sqrt{B\,(t_2^3-t_1^3)}\right]\)
+approximately as
+\(\sigma_{\varepsilon} \propto \sqrt{(1-\mathrm{CC}^2)/\mathrm{CC}^2}\, \big/\!\left[f_c\sqrt{B\,(t_2^3-t_1^3)}\right]\)
 \citep{Weaver2011}.
 
 \emph{Interpolation direction and convention.} The interpolation is
