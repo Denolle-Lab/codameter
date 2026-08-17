@@ -261,8 +261,9 @@ but late coda is low-SNR \\ \hline
 $W$-$B$ coupling & fixed vs scaled with $f$ & A fixed late window at high
 $f$ measures noise (Fig.~\ref{fig:params}b) & inceases $\sigma$ due to decorrelation
 at high $f$ \\ \hline
-Reference & total stack / trailing / joint inversion & Moving reference erases
-the trend; joint inversion preserves it (Fig.~\ref{fig:params}c) & Reference noise propagates; inversion
+Reference & total stack / trailing / joint inversion & Trailing reference gives
+increments: the trend is absent unless they are cumulated, which then drifts;
+joint inversion preserves it directly (Fig.~\ref{fig:params}c) & Reference noise propagates; inversion
 lowers it \\ \hline
 Stacking / substack & 1--30+ days & Smears and delays transients
 (Fig.~\ref{fig:params}d) & $\sigma$ and resolution decreases with stacking length \\ \hline
@@ -562,26 +563,37 @@ window helps only slowly and never converges to the fixed-reference baseline:
 RMS falls from $\sim\!0.168\,\%$ at a 10-day trailing window to $\sim\!0.151\,\%$
 at 240 days, still $\sim\!4$--$5\times$ the whole-record RMS
 (Fig.~\ref{fig:reference-schemes}b) --- the erasure is structural, not a noise
-effect that more averaging fixes. That structural erasure is the reason to read
-the moving reference here as a limit case rather than as common practice: none
-of the 103 studies in our survey (Appendix~\ref{app:survey}) reports
-re-baselining against a trailing reference at all. The schemes coded as
-``moving'' in the survey are moving \emph{current} stacks read against a fixed
-long-term reference --- @Brenguier2008 measure overlapping 5-day windows against
-a 1550-day reference, @Wang2017 a moving-window current stack against a
-$\sim$1-yr reference --- which is the substacking axis of
-Section~\ref{sec:param_substack}, not the reference axis. The moving reference
-is therefore best understood as a controlled demonstration of what continuous
-re-baselining costs, and the case for the joint inversion rests on that cost
-directly rather than on any analogy to a published reference construction.
+effect that more averaging fixes.
 
-Where the reference is genuinely hard to define, the surveyed responses take a
-different form: @Ermert2023 stabilise urban single-station autocorrelations in
-Mexico City by clustering the correlation waveforms with a Gaussian mixture
-model before stacking, so that the reference is built from a coherent subset of
-the record rather than from a contiguous window of it. Reference
-\emph{selection} of that kind is a distinct axis from reference \emph{length},
-and codameter does not currently implement it.
+That erasure is a property of the \emph{increment}, however, not of the moving
+reference itself, and the distinction matters. A trailing reference measures the
+change between adjacent epochs; reporting those increments directly, as the
+sweep above does, discards the trend by construction. Cumulating them does not.
+@James2017 re-baseline each day against the immediately preceding day-stack and
+sum the daily $\delta t/t$ from a fixed start date, and thereby recover a
+seasonal freeze--thaw trend in Alaskan permafrost that a stationary reference
+failed to detect at all --- the large frozen-to-thawed velocity contrast made
+the stationary comparison cycle-skip, while adjacent days stayed coherent. The
+same rolling-reference construction is used in laboratory coda monitoring of
+rock deforming to failure, where scattering properties change too much for a
+fixed reference to remain valid [@ZotzWilson2019]. The cost is that summation
+integrates the measurement error: @James2017 report a positive drift in the
+cumulated series that their quadrature error budget could not account for, and
+correct it linearly against a stationary-reference anchor. A cumulated trailing
+reference therefore trades a stationary-reference coherence limit for a
+random-walk drift, and needs an independent anchor to tie the accumulated series
+back to an absolute baseline.
+
+Reference \emph{selection} is a further axis, distinct from reference length.
+@Ermert2023 adopt an explicitly multiple-reference approach for urban
+single-station autocorrelations in Mexico City, because long-term waveform
+coherence is unavailable there, and stabilise the stacks by clustering
+correlation windows with a Gaussian mixture model so that day-time and
+night-time noise regimes are stacked separately. codameter implements neither
+the cumulated trailing reference nor cluster-based reference selection; the
+moving-reference sweep above is the uncumulated increment, and should be read as
+a controlled demonstration of what re-baselining costs when the increments are
+not summed, not as a reproduction of either published construction.
 
 \begin{figure}
   \centering
