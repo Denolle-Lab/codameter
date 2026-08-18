@@ -24,12 +24,20 @@ Sign convention
 ---------------
 ``dv/v`` is the fractional velocity change. A velocity *decrease*
 (``dv/v < 0``) lengthens travel times, so the coda dilates to later lapse times:
-a feature at reference lapse :math:`t` appears at :math:`t/(1+dv/v)`. The
-recovered estimate uses the same convention, so a correct measurement returns
+a feature at reference lapse :math:`t` appears at :math:`t/(1+dv/v)` on the
+*current* waveform (equivalently, ``current(t) = reference(t*(1+dv/v))`` --
+this is exactly what :func:`impose_dvv` implements). The stretching
+estimators (:func:`stretching_cc` and everything built on it) invert this by
+resampling the *current* waveform at trial positions ``(1+eps)*t``, holding
+the *reference* fixed, and converting the fitted stretch factor ``eps`` to
+physical ``dv/v`` via the exact map ``dv/v = -eps/(1+eps)``
+(:func:`eps_to_dvv`) -- never the first-order ``dv/v ~= -eps`` alone, which
+is only accurate to :math:`O(\mathrm{eps}^2)`. A correct measurement returns
 the imposed value (verified in :func:`_self_check`).
 """
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -198,11 +206,18 @@ def impose_dvv(ref: np.ndarray, t: np.ndarray, dvv: float) -> np.ndarray:
 
     **Sign convention (physical dv/v)**: ``dvv`` is the fractional velocity
     change. A velocity *increase* (``dvv > 0``) shortens travel times, so a
-    feature at reference lapse ``tau`` appears at ``tau / (1 + dvv)`` — the
-    coda compresses toward zero lag. Equivalently
-    ``dvv = -epsilon / (1 + epsilon)`` where ``epsilon`` is the stretch
-    factor that maps the reference onto the current waveform (see
-    :func:`eps_to_dvv`; ``-epsilon`` alone is only first-order accurate). (Before v0.4.0 this function used the epsilon
+    feature at reference lapse ``tau`` appears at ``tau / (1 + dvv)`` on the
+    current waveform -- equivalently, ``current(t) = reference(t*(1+dvv))``
+    for every ``t``, which is exactly the ``np.interp`` call below: the
+    output at time ``t`` is the reference sampled at ``t*(1+dvv)``. This is
+    the exact time-ratio relation implied by ``t_current/t_reference =
+    1/(1+dvv)``, not a first-order approximation.
+
+    The stretching estimators invert this relation the other way: they
+    resample the *current* waveform (not the reference) at trial positions
+    ``(1+eps)*t`` and recover ``dvv = -eps/(1+eps)`` exactly (see
+    :func:`stretching_cc`, :func:`eps_to_dvv`; ``-eps`` alone is only
+    first-order accurate). (Before v0.4.0 this function used the epsilon
     convention: positive argument meant coda dilation, i.e. a slowdown.)
     """
     return np.interp(t * (1.0 + dvv), t, ref)
@@ -335,6 +350,51 @@ def _window_mask(
     return (np.abs(t) >= w0) & (np.abs(t) <= w1)
 
 
+def _stretch_window(
+    t: np.ndarray,
+    window: tuple[float, float],
+    eps_max: float,
+    branch: str = "both",
+) -> tuple[np.ndarray, tuple[float, float]]:
+    """Window mask shared by every trial epsilon in a stretching search.
+
+    The stretching estimators resample *current* at ``(1+eps)*t``; the query
+    point furthest from zero lag for a window ``[w0, w1]`` and trial range
+    ``[-eps_max, eps_max]`` is ``(1+eps_max)*w1``, reached at the largest
+    dilation. If that would fall outside ``t``'s recorded support, the
+    window's upper edge is shrunk (never silently extrapolated) to the
+    largest value that stays in-bounds for *every* trial epsilon, and a
+    ``UserWarning`` is raised naming the shrunk window. The same (w0, w1) is
+    then used to build the mask for the *entire* epsilon grid, so every
+    trial candidate is evaluated against an identical sample count -- a
+    changing valid-support size cannot spuriously change which epsilon
+    looks like the best-correlated one.
+
+    Returns ``(sel, (w0, w1))``: ``sel`` is the boolean mask on ``t``, and
+    ``(w0, w1)`` is the (possibly shrunk) window actually used.
+    """
+    w0, w1 = window
+    tmax = float(np.max(np.abs(t))) if t.size else 0.0
+    safe_w1 = min(w1, tmax / (1.0 + eps_max)) if eps_max > -1.0 else w1
+    if safe_w1 < w0:
+        raise ValueError(
+            f"window {window} cannot be evaluated for any trial epsilon up "
+            f"to eps_max={eps_max} within the trace's recorded support "
+            f"(max |t| = {tmax}); shrink eps_max/window or extend the trace."
+        )
+    if safe_w1 < w1 - 1e-9:
+        warnings.warn(
+            f"coda window upper edge {w1:g} shrunk to {safe_w1:.6g} so every "
+            f"trial epsilon (|eps| <= {eps_max:g}) stays within the current "
+            "trace's recorded support (t_current = (1+eps)*t); no sample is "
+            "extrapolated. Pass a narrower window or a smaller eps_max to "
+            "silence this.",
+            stacklevel=3,
+        )
+        w1 = safe_w1
+    return _window_mask(t, (w0, w1), branch), (w0, w1)
+
+
 def _parabolic(y: np.ndarray, i: int) -> float:
     """Sub-sample peak offset (in index units) from a 3-point parabola fit."""
     if i <= 0 or i >= len(y) - 1:
@@ -359,6 +419,16 @@ def stretching_cc(
 ) -> tuple[np.ndarray, np.ndarray]:
     """The full correlation-coefficient image ``CC(epsilon, time)``.
 
+    For each trial ``epsilon`` the *current* waveform is resampled at
+    ``(1 + epsilon) * t`` and correlated against the unchanged, windowed
+    *reference* (:func:`eps_to_dvv` converts the fitted ``epsilon`` to
+    physical dv/v; reference stays fixed, never resampled). The coda window
+    is shrunk, with a loud warning, if needed so every trial in
+    ``[-eps_max, eps_max]`` stays within the current trace's recorded
+    support and no sample is silently extrapolated — see
+    :func:`_stretch_window`; the same window is then used for the whole
+    epsilon grid, so every candidate is scored on an identical sample count.
+
     Returns ``(es, cc)`` where ``cc`` has shape ``[ndays, n_eps]`` — the object
     that aggregation workflows either reduce to a per-trace peak *before*
     averaging, or average *as images* before peak-picking (see
@@ -369,25 +439,41 @@ def stretching_cc(
     because band-passing is linear and commutes with the linear stacking that
     builds references — see :func:`codameter.deviations.run_pipeline`).
     """
-    cur_mat = np.atleast_2d(cur_mat)
+    cur_mat = np.atleast_2d(np.asarray(cur_mat, float))
+    curf_full = cur_mat if prefiltered else bandpass(cur_mat, fs, *band)
     reff = ref if prefiltered else bandpass(ref, fs, *band)
     es = np.linspace(-eps_max, eps_max, n_eps)
-    sel = _window_mask(t, window, branch)
-    trials = np.stack([np.interp(t / (1.0 + e), t, reff)[sel] for e in es])
-    trials = trials / (np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12)
-    curf = (cur_mat if prefiltered else bandpass(cur_mat, fs, *band))[:, sel]
-    curf = curf / (np.linalg.norm(curf, axis=1, keepdims=True) + 1e-12)
-    return es, curf @ trials.T  # [ndays, n_eps]
+    sel, _ = _stretch_window(t, window, eps_max, branch)
+    tsel = t[sel]
+
+    refw = reff[sel]
+    refw = refw / (np.linalg.norm(refw) + 1e-12)
+
+    cc = np.empty((curf_full.shape[0], n_eps))
+    for ei, e in enumerate(es):
+        # Gather indices/weights of np.interp((1+e)*t, t, .) on the window,
+        # clamped at the grid ends exactly as np.interp clamps -- unreached
+        # in practice since _stretch_window keeps every trial in-bounds.
+        q = (1.0 + e) * tsel
+        j = np.clip(np.searchsorted(t, q, side="right") - 1, 0, t.size - 2)
+        w = np.clip((q - t[j]) / (t[j + 1] - t[j]), 0.0, 1.0)
+        trials = curf_full[:, j] * (1.0 - w) + curf_full[:, j + 1] * w
+        trials = trials / (np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12)
+        cc[:, ei] = trials @ refw
+    return es, cc  # [ndays, n_eps]
 
 
 def eps_to_dvv(eps):
     """Exact stretch-to-velocity map: ``dv/v = -eps / (1 + eps)``.
 
-    The stretching trial maps the reference through ``t / (1 + eps)``; the
-    physical change maps arrivals through ``t / (1 + dv/v)`` on the *current*
-    waveform. Matching the two gives ``1 + dv/v = 1 / (1 + eps)``. The
-    first-order ``dv/v = -eps`` is accurate to ~eps^2 (fine below 1%%), but
-    at landslide-scale changes (several %%) the quadratic term matters.
+    The stretching trial resamples the *current* waveform through
+    ``(1 + eps) * t``, holding the reference fixed (see :func:`stretching_cc`);
+    the physical change maps ``current(t) = reference(t * (1 + dv/v))``.
+    Matching the two trial-vs-physical forms gives ``1 + eps = 1 / (1 + dv/v)``,
+    i.e. ``dv/v = -eps / (1 + eps)`` exactly, for every ``eps``. The
+    first-order ``dv/v = -eps`` is accurate to ~eps^2 only (fine below 1%%),
+    but at landslide-scale changes (several %%) the quadratic term matters —
+    do not substitute it where the exact form is available.
     """
     eps = np.asarray(eps, dtype=float)
     if np.any(eps <= -1.0):
@@ -398,13 +484,31 @@ def eps_to_dvv(eps):
     return -eps / (1.0 + eps)
 
 
+def dvv_to_epsilon(dvv):
+    """Exact velocity-to-stretch map: ``eps = -dv/v / (1 + dv/v)``.
+
+    The inverse of :func:`eps_to_dvv` (``dvv_to_epsilon(eps_to_dvv(e)) == e``
+    for every valid ``e``): given a desired physical ``dv/v``, this is the
+    trial stretch ``eps`` whose current-interpolated correlation peak,
+    :func:`eps_to_dvv`, would report that ``dv/v`` back exactly.
+    """
+    dvv = np.asarray(dvv, dtype=float)
+    if np.any(dvv <= -1.0):
+        raise ValueError(
+            "dv/v <= -1 is unphysical (zero or negative velocity); got "
+            "min dv/v = " + str(float(np.min(dvv)))
+        )
+    return -dvv / (1.0 + dvv)
+
+
 def peak_dvv(es: np.ndarray, cc: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Peak-pick a ``CC(epsilon, time)`` image → (dv/v per time, peak CC).
 
     Returns **physical dv/v** = ``-epsilon / (1 + epsilon)`` at the
     correlation peak (the exact map, :func:`eps_to_dvv`): the
-    grid ``es`` holds stretch factors (the trial maps the reference through
-    ``t / (1 + epsilon)``), and a coda that had to be *dilated* to match
+    grid ``es`` holds stretch factors (the trial resamples *current* through
+    ``(1 + epsilon) * t``, reference fixed — see :func:`stretching_cc`), and
+    a current waveform that had to be *dilated* to match the reference
     (``epsilon > 0``) means travel times lengthened, i.e. the velocity
     *dropped*. (Before v0.4.0 this returned epsilon itself, labeled dv/v.)
     """
@@ -463,8 +567,14 @@ def measure_stretching_moving(
 ) -> np.ndarray:
     """Stretching dv/v against a *trailing* reference (previous ``ref_days``).
 
-    A moving reference re-baselines continuously, so it removes slow trends —
-    the canonical reason a moving reference and a fixed reference disagree.
+    Returns the *uncumulated* per-epoch increment: each day is referenced to
+    the mean of the preceding ``ref_days``, so a slow trend is differenced away
+    rather than measured. Published trailing-reference workflows do not stop
+    here — James et al. (2017) sum these increments from a fixed start date to
+    reconstruct the trend, at the cost of a random-walk drift that needs an
+    independent anchor. That summation is not applied here; this function is the
+    increment alone, which is what makes it a clean isolation of the cost of
+    re-baselining.
     """
     cur_mat = np.atleast_2d(cur_mat)
     ndays = cur_mat.shape[0]
@@ -495,12 +605,14 @@ def measure_stretching_trailing(
 
     Numerically equivalent (to float rounding, ~1e-15 in dv/v) to calling
     :func:`measure_stretching` day by day against
-    ``cur_mat[d - ref_days : d].mean(axis=0)``, but ~5x faster: the stretched
-    sample positions ``t / (1 + eps)`` are data-independent, so the
-    linear-interpolation gather indices and weights are computed once per
-    epsilon and applied to every day's band-passed trailing reference at once.
-    The trailing references are built as a difference of cumulative sums and
-    the band-pass runs over the whole matrix in one FFT.
+    ``cur_mat[d - ref_days : d].mean(axis=0)``, but ~5x faster: for each
+    trial epsilon the *current* trace is resampled at ``(1 + eps) * t``
+    (reference fixed, as in :func:`stretching_cc`); since that query axis is
+    the same for every day, the linear-interpolation gather indices and
+    weights are computed once per epsilon and applied to every day's
+    band-passed current trace at once. The trailing references (fixed with
+    respect to epsilon) are built as a difference of cumulative sums and the
+    band-pass runs over the whole matrix in one FFT.
 
     Returns ``(dvv, cc)`` over the full length of ``cur_mat``; the ``ref_days``
     warm-up epochs are NaN.
@@ -518,24 +630,27 @@ def measure_stretching_trailing(
     refs = (head - tail) / float(ref_days)
     reffs = refs if prefiltered else bandpass(refs, fs, *band)
 
-    sel = _window_mask(t, window, branch)
+    sel, _ = _stretch_window(t, window, eps_max, branch)
     tsel = t[sel]
+    refw = reffs[:, sel]
+    refw = refw / (np.linalg.norm(refw, axis=1, keepdims=True) + 1e-12)
+
     curf = (
         cur_mat[ref_days:] if prefiltered else bandpass(cur_mat[ref_days:], fs, *band)
-    )[:, sel]
-    curf = curf / (np.linalg.norm(curf, axis=1, keepdims=True) + 1e-12)
+    )
 
     es = np.linspace(-eps_max, eps_max, n_eps)
     cc_img = np.empty((ndays - ref_days, n_eps))
     for ei, e in enumerate(es):
-        # Gather indices/weights of np.interp(t / (1 + e), t, .) on the window,
-        # clamped at the grid ends exactly as np.interp clamps.
-        q = tsel / (1.0 + e)
+        # Gather indices/weights of np.interp((1+e)*t, t, .) on the window,
+        # clamped at the grid ends exactly as np.interp clamps -- unreached
+        # in practice since _stretch_window keeps every trial in-bounds.
+        q = (1.0 + e) * tsel
         j = np.clip(np.searchsorted(t, q, side="right") - 1, 0, t.size - 2)
         w = np.clip((q - t[j]) / (t[j + 1] - t[j]), 0.0, 1.0)
-        trials = reffs[:, j] * (1.0 - w) + reffs[:, j + 1] * w
+        trials = curf[:, j] * (1.0 - w) + curf[:, j + 1] * w
         trials = trials / (np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12)
-        cc_img[:, ei] = np.einsum("ij,ij->i", curf, trials)
+        cc_img[:, ei] = np.einsum("ij,ij->i", trials, refw)
     dvv[ref_days:], cc_peak[ref_days:] = peak_dvv(es, cc_img)
     return dvv, cc_peak
 
@@ -805,28 +920,30 @@ def measure_wts(
 ) -> np.ndarray:
     """WTS dv/v: stretching applied per scale of the wavelet transform.
 
-    Each frequency row of the (real part of the) CWT is a narrow-band trace; the
-    stretch that best aligns current to reference is found per scale and pooled,
-    power-weighted (NoisePy ``wts_dvv``). Being a stretching variant it is robust
-    to large dv/v, like time-domain TS.
+    Each frequency row of the (real part of the) CWT is a narrow-band trace;
+    for each trial epsilon the *current* row is resampled at
+    ``(1 + eps) * t`` and correlated against the unchanged reference row
+    (reference fixed, as in :func:`stretching_cc`) -- the stretch that best
+    aligns them is found per scale and pooled, power-weighted (NoisePy
+    ``wts_dvv``). Being a stretching variant it is robust to large dv/v,
+    like time-domain TS.
     """
     cur_mat = np.atleast_2d(cur_mat)
-    reg, tt, freqs, wsel = _cwt_setup(t, window, band, nfreq)
+    reg, tt, freqs, _ = _cwt_setup(t, window, band, nfreq)
+    wsel, _ = _stretch_window(tt, window, eps_max, branch="causal")
     Wref = _morlet_cwt(ref[reg], fs, freqs, w0).real
+    refbank = Wref[:, wsel]
+    refbank = refbank / (np.linalg.norm(refbank, axis=1, keepdims=True) + 1e-12)
     es = np.linspace(-eps_max, eps_max, n_eps)
-    banks = []
-    for k in range(freqs.size):
-        trials = np.stack([np.interp(tt / (1.0 + e), tt, Wref[k])[wsel] for e in es])
-        trials /= np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12
-        banks.append(trials)
+    ttsel = tt[wsel]
     out = np.full(cur_mat.shape[0], np.nan)
     for d in range(cur_mat.shape[0]):
         Wcur = _morlet_cwt(cur_mat[d, reg], fs, freqs, w0).real
         num = den = 0.0
         for k in range(freqs.size):
-            seg = Wcur[k, wsel]
-            seg = seg / (np.linalg.norm(seg) + 1e-12)
-            cc = banks[k] @ seg
+            trials = np.stack([np.interp((1.0 + e) * ttsel, tt, Wcur[k]) for e in es])
+            trials /= np.linalg.norm(trials, axis=1, keepdims=True) + 1e-12
+            cc = trials @ refbank[k]
             i = int(np.argmax(cc))
             wgt = np.linalg.norm(Wcur[k, wsel])
             num += wgt * (es[i] + _parabolic(cc, i) * (es[1] - es[0]))
@@ -1173,6 +1290,24 @@ def _yrs(days: np.ndarray) -> np.ndarray:
     return days / YEAR_D
 
 
+def _boost_fonts(*axes, tick=13.0, label=15.0, title=16.0):
+    """Set explicit tick/label/title sizes on each axis.
+
+    Figures are authored at a native size well above their final
+    ``\\includegraphics`` width in the manuscript (multi-panel figures need
+    the extra canvas width to avoid overlapping subplots), which shrinks
+    every point size by roughly (embed width / native width) once placed on
+    the page. The defaults here assume a substantial shrink and are picked
+    per call to land near a ~9.5 pt tick/legend and ~11-12 pt label/title on
+    the printed page; callers with a milder shrink pass smaller values.
+    """
+    for ax in axes:
+        ax.tick_params(labelsize=tick)
+        ax.xaxis.label.set_size(label)
+        ax.yaxis.label.set_size(label)
+        ax.title.set_size(title)
+
+
 def _trailing_stack(ccfs: np.ndarray, k: int) -> np.ndarray:
     if k <= 1:
         return ccfs
@@ -1289,7 +1424,7 @@ def fig_methods(seed: int = 11):
             kw.update(sub)
         recL[m] = measure(m, ccfs, s.ref, s.t, **kw)
 
-    fig, (axA, axB, axC) = plt.subplots(1, 3, figsize=(9.8, 3.6))
+    fig, (axA, axB, axC) = plt.subplots(1, 3, figsize=(11.8, 4.9))
     axA.plot([-0.5, 0.5], [-0.5, 0.5], color="0.6", lw=1, ls=":", label="1:1 (truth)")
     for m in METHODS:
         col, ls = _MSTYLE[m]
@@ -1308,7 +1443,6 @@ def fig_methods(seed: int = 11):
         ylabel="recovered dv/v (%)",
         title="(a) clean, small dv/v",
     )
-    axA.legend(loc="upper left", fontsize=8, ncol=2)
     axB.plot([-5, 5], [-5, 5], color="0.6", lw=1, ls=":", label="1:1 (truth)")
     for m in METHODS:
         col, ls = _MSTYLE[m]
@@ -1326,8 +1460,9 @@ def fig_methods(seed: int = 11):
         ylabel="recovered dv/v (%)",
         title="(b) clean, $\\pm 5\\,\\%$ sweep",
     )
-    axB.legend(loc="upper left", fontsize=7.5, ncol=2)
-    axC.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.6, label="truth")
+    axC.plot(
+        _yrs(days), truth * PCT, color=C["truth"], lw=2.6, label="truth (landslide)"
+    )
     for m in METHODS:
         col, ls = _MSTYLE[m]
         axC.plot(
@@ -1338,8 +1473,24 @@ def fig_methods(seed: int = 11):
         ylabel="dv/v (%)",
         title="(c) large dv/v — MWCS cycle-skips",
     )
-    axC.legend(loc="lower left", fontsize=8, ncol=2)
-    fig.tight_layout()
+    # One shared legend for all three panels (they plot the same 9 series) —
+    # per-panel legends at a legible size would cover the data in a figure
+    # this dense.
+    handles, labels = axA.get_legend_handles_labels()
+    h2, l2 = axC.get_legend_handles_labels()
+    handles.append(h2[0])
+    labels.append(l2[0])
+    fig.legend(
+        handles,
+        labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.08),
+        ncol=5,
+        fontsize=15,
+        frameon=False,
+    )
+    _boost_fonts(axA, axB, axC, tick=15, label=17, title=18)
+    fig.tight_layout(rect=(0, 0.1, 1, 1))
     return fig
 
 
@@ -1389,7 +1540,7 @@ def fig_aggregation(seed: int = 88):
     # context, not the point, so they are allowed to clip at the edges.
     ylim = (-1.4, 1.4)
 
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(8.6, 4.4))
     for d in dvv_c:
         axA.plot(_yrs(days), d * PCT, color="0.8", lw=0.4)
     axA.plot(
@@ -1431,7 +1582,7 @@ def fig_aggregation(seed: int = 88):
         ylim=ylim,
         title="(a) Component aggregation: three recipes",
     )
-    leg = axA.legend(loc="lower left", fontsize=7.5, frameon=True)
+    leg = axA.legend(loc="lower left", fontsize=13, frameon=True)
     leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
     extent = [_yrs(days)[0], _yrs(days)[-1], es[0] * PCT, es[-1] * PCT]
     im = axB.imshow(
@@ -1443,7 +1594,8 @@ def fig_aggregation(seed: int = 88):
         vmin=0,
     )
     cbar = fig.colorbar(im, ax=axB, pad=0.02)
-    cbar.set_label("coherence CC (dark = high)")
+    cbar.set_label("coherence CC (dark = high)", fontsize=15)
+    cbar.ax.tick_params(labelsize=13)
     axB.plot(_yrs(days), B * PCT, color="white", lw=1.2, label="peak of mean CC (B)")
     axB.plot(_yrs(days), truth * PCT, color="black", lw=1.0, ls="--", label="truth")
     axB.set(
@@ -1452,7 +1604,8 @@ def fig_aggregation(seed: int = 88):
         ylim=ylim,
         title="(b) averaged CC(dv/v, t) image (B)",
     )
-    axB.legend(loc="upper right", fontsize=8)
+    axB.legend(loc="upper right", fontsize=13)
+    _boost_fonts(axA, axB, tick=13, label=15, title=16)
     fig.tight_layout()
     return fig
 
@@ -1539,7 +1692,7 @@ def fig_uncertainty(seed: int = 123):
     ]
     yr = _yrs(days)
 
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(8.6, 4.4))
     axA.plot(yr, truth * PCT, color=C["truth"], lw=2.4, label="network truth")
     for key, col, lab in schemes:
         m, sg = R[key]["dvv"], R[key]["sigma"]
@@ -1553,7 +1706,8 @@ def fig_uncertainty(seed: int = 123):
         ylim=(-0.35, 0.3),
         title="(a) same mean, different error bands",
     )
-    axA.legend(loc="lower left", fontsize=8)
+    leg = axA.legend(loc="lower left", fontsize=13, frameon=True)
+    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
     meds = {}
     for key, col, lab in schemes:
         sg = R[key]["sigma"] * PCT
@@ -1565,7 +1719,9 @@ def fig_uncertainty(seed: int = 123):
         ylabel=r"reported 1$\sigma$ on dv/v (%)",
         title=f"(b) the error bar is a choice (≈{ratio:.1f}× range)",
     )
-    axB.legend(loc="upper left", fontsize=8)
+    leg = axB.legend(loc="upper left", fontsize=13, frameon=True)
+    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    _boost_fonts(axA, axB, tick=13, label=15, title=15.5)
     fig.tight_layout()
     return fig
 
@@ -1592,7 +1748,7 @@ def fig_network_pairs(seed: int = 123):
     pair_dvv, pair_snr = R["pair_dvv"], R["pair_snr"]
     yr = _yrs(days)
 
-    fig, ax = plt.subplots(figsize=(6.0, 4.0))
+    fig, ax = plt.subplots(figsize=(7.2, 4.8))
     order = np.argsort(-pair_snr)  # best SNR first, for a readable legend/colour ramp
     cmap = plt.get_cmap("viridis")
     for rank, p in enumerate(order):
@@ -1613,86 +1769,60 @@ def fig_network_pairs(seed: int = 123):
         cmap=cmap, norm=Normalize(vmin=pair_snr.min(), vmax=pair_snr.max())
     )
     cbar = fig.colorbar(sm, ax=ax, pad=0.02)
-    cbar.set_label("pair SNR")
+    cbar.set_label("pair SNR", fontsize=16)
+    cbar.ax.tick_params(labelsize=14)
     ax.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
         title="Individual station-pair dv/v -- wider than the network error bar",
     )
-    ax.legend(loc="lower left", fontsize=8.5)
+    ax.legend(loc="lower left", fontsize=14)
+    _boost_fonts(ax, tick=14, label=16, title=17)
     fig.tight_layout()
     return fig
 
 
 def fig_window_band(seed: int = 66):
     """Coda window must scale with frequency band: a fixed late window is full of
-    signal at low frequency but pure noise at high frequency."""
+    signal at low frequency but pure noise at high frequency.
+
+    Single panel by design -- embedded as one quadrant of Fig. fig:params
+    alongside three other single-panel figures, so it needs to match their
+    footprint. The companion dv/v-recovery comparison this used to carry as a
+    second panel is covered more rigorously (RMS against a known truth, three
+    bands) by the dedicated :func:`fig_window_envelope` figure.
+    """
     import matplotlib.pyplot as plt
 
     s = Synth()
     tf, cf = make_freqdep_coda(fs=s.fs, seed=2)
-    days = _days(2.0)
-    truth = _seasonal(days, 0.0015, 60) - 0.0008 * days / days[-1]
-    ccfs = daily_ccfs(
-        tf, [cf], [truth], fs=s.fs, snr=15.0, gen_band=(0.2, 8.0), seed=seed
-    )
     lowb, hib = (0.3, 0.8), (3.0, 6.0)
     fixed_w, adapt_w = (20.0, 40.0), (3.0, 12.0)
-    hi_fixed, _ = measure_stretching(ccfs, cf, tf, band=hib, fs=s.fs, window=fixed_w)
-    hi_adapt, _ = measure_stretching(ccfs, cf, tf, band=hib, fs=s.fs, window=adapt_w)
 
     env_lo = _envelope(bandpass(cf, s.fs, *lowb), s.fs)
     env_hi = _envelope(bandpass(cf, s.fs, *hib), s.fs)
     norm = env_lo.max()
     floor = env_lo[(np.abs(tf) > 45)].mean() / norm  # late-lapse noise proxy
 
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
+    fig, ax = plt.subplots(figsize=(4.2, 3.1))
     m = tf >= 0
-    axA.semilogy(
-        tf[m], env_lo[m] / norm, color=C["alt"], lw=1.5, label="low band 0.3–0.8 Hz"
+    ax.semilogy(tf[m], env_lo[m] / norm, color=C["alt"], lw=1.5, label="low band")
+    ax.semilogy(
+        tf[m], env_hi[m] / norm, color=C["groundwater"], lw=1.5, label="high band"
     )
-    axA.semilogy(
-        tf[m],
-        env_hi[m] / norm,
-        color=C["groundwater"],
-        lw=1.5,
-        label="high band 3–6 Hz",
-    )
-    axA.axhline(max(floor, 1e-3), color="0.5", ls=":", lw=1, label="noise floor")
-    axA.axvspan(*fixed_w, color=C["bad"], alpha=0.15, lw=0)
-    axA.axvspan(*adapt_w, color=C["groundwater"], alpha=0.12, lw=0)
-    axA.set(
+    ax.axhline(max(floor, 1e-3), color="0.5", ls=":", lw=1, label="noise floor")
+    ax.axvspan(*fixed_w, color=C["bad"], alpha=0.15, lw=0)
+    ax.axvspan(*adapt_w, color=C["groundwater"], alpha=0.12, lw=0)
+    ax.set(
         xlabel="lapse time (s)",
         ylabel="coda envelope (norm.)",
         ylim=(1e-3, 2),
-        title="(a) high-frequency coda decays first",
+        title="High-frequency coda\ndecays first",
     )
-    axA.legend(loc="upper right", fontsize=8.5)
-    axA.text(30, 1.1e-3, "fixed 20–40 s\n= noise here", color=C["bad"], fontsize=8)
-    axB.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="truth")
-    axB.plot(
-        _yrs(days),
-        hi_fixed * PCT,
-        color=C["bad"],
-        lw=1.0,
-        alpha=0.9,
-        label="high band, fixed 20–40 s window",
-    )
-    axB.plot(
-        _yrs(days),
-        hi_adapt * PCT,
-        color=C["groundwater"],
-        lw=1.0,
-        alpha=0.9,
-        label="high band, adapted 3–12 s window",
-    )
-    axB.set(
-        xlabel="time (years)",
-        ylabel="dv/v (%)",
-        title="(b) low-band window at high band -> noise",
-    )
-    leg = axB.legend(loc="lower left", fontsize=8.5, frameon=True)
+    leg = ax.legend(loc="upper right", fontsize=12, frameon=True)
     leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    ax.text(28, 1.4e-3, "fixed 20–40 s\n= noise here", color=C["bad"], fontsize=11)
+    _boost_fonts(ax, tick=12, label=13.5, title=14)
     fig.tight_layout()
     return fig
 
@@ -1727,7 +1857,7 @@ def fig_window_envelope(seed: int = 71):
     truth = _seasonal(days, 0.0015, 60)
 
     windows, rms_fixed, rms_adapt = [], [], []
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(8.6, 4.6))
     m = tf >= 0
     for band, lab, col in zip(bands, band_labels, band_cols, strict=True):
         t1, t2 = coda_window_from_envelope(tf, ref_stack, fs, band)
@@ -1753,7 +1883,7 @@ def fig_window_envelope(seed: int = 71):
         ylim=(1e-3, 2),
         title="(a) window shrinks with frequency",
     )
-    axA.legend(loc="upper right", fontsize=8)
+    axA.legend(loc="upper right", fontsize=13)
 
     x = np.arange(len(bands))
     w = 0.35
@@ -1774,8 +1904,9 @@ def fig_window_envelope(seed: int = 71):
         ylabel="RMS error vs truth (dv/v, %, log)",
         title="(b) fixed window fails at high band",
     )
-    axB.tick_params(axis="x", labelsize=7.5, rotation=15)
-    axB.legend(loc="upper left", fontsize=8)
+    axB.tick_params(axis="x", labelsize=13, rotation=15)
+    axB.legend(loc="upper left", fontsize=13)
+    _boost_fonts(axA, axB, tick=13, label=15, title=16)
     fig.tight_layout()
     return fig
 
@@ -1789,7 +1920,7 @@ def fig_stacking(seed: int = 22):
     truth = earthquake_truth(days)
     ccfs = daily_ccfs(s.t, [s.ref], [truth], fs=s.fs, snr=4.0, seed=seed)
     band, window = (0.5, 2.0), (8.0, 40.0)
-    fig, ax = plt.subplots(figsize=(5.8, 3.8))
+    fig, ax = plt.subplots(figsize=(4.0, 3.0))
     ax.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="ground truth")
     for k, col in [(1, C["bad"]), (10, C["earthquake"]), (45, C["alt"])]:
         rec, _ = measure_stretching(
@@ -1803,7 +1934,9 @@ def fig_stacking(seed: int = 22):
         ylabel="dv/v (%)",
         title="Stack length trades noise vs coseismic-step sharpness",
     )
-    ax.legend(loc="lower left")
+    leg = ax.legend(loc="lower left", fontsize=12, frameon=True)
+    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    _boost_fonts(ax, tick=12, label=14, title=14.5)
     fig.tight_layout()
     return fig
 
@@ -1827,7 +1960,7 @@ def fig_reference(seed: int = 33):
     rec_inv = measure_inversion(
         ccfs, s.t, band=band, fs=s.fs, window=window, block_days=10
     )
-    fig, ax = plt.subplots(figsize=(5.8, 3.8))
+    fig, ax = plt.subplots(figsize=(4.0, 3.0))
     ax.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="ground truth")
     ax.plot(
         _yrs(days),
@@ -1835,29 +1968,31 @@ def fig_reference(seed: int = 33):
         color="0.6",
         lw=0.9,
         alpha=0.8,
-        label="total-stack reference (noisy)",
+        label="fixed reference",
     )
     ax.plot(
         _yrs(days),
         rec_move * PCT,
         color=C["bad"],
         lw=1.4,
-        label="60-day moving reference (trend erased)",
+        label="60-day moving ref.",
     )
     ax.plot(
         _yrs(days),
         rec_inv * PCT,
         color=C["groundwater"],
         lw=1.8,
-        label="Brenguier 2014 inversion (keeps trend)",
+        label="joint inversion",
     )
     ax.axvline(2.0, color="0.6", ls="--", lw=1)
     ax.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        title="Reference strategy: moving reference erases the trend",
+        title="Uncumulated moving reference removes the trend",
     )
-    ax.legend(loc="lower left", fontsize=8.5)
+    leg = ax.legend(loc="lower left", fontsize=12, frameon=True)
+    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    _boost_fonts(ax, tick=12, label=14, title=13.5)
     fig.tight_layout()
     return fig
 
@@ -1903,7 +2038,8 @@ def fig_artifacts(seed: int = 77):
         ylabel="apparent dv/v (%)",
         title="(a) clock drift splits the branches",
     )
-    axA.legend(loc="upper left", fontsize=8.5)
+    leg = axA.legend(loc="upper left", fontsize=10.5, frameon=True)
+    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
     axB.plot(_yrs(days2), truth2 * PCT, color=C["truth"], lw=2.2, label="truth")
     axB.plot(
         _yrs(days2),
@@ -1926,8 +2062,9 @@ def fig_artifacts(seed: int = 77):
         ylabel="dv/v (%)",
         title="(b) late-coda noise -> spurious cycle",
     )
-    leg = axB.legend(loc="lower left", fontsize=8.5, frameon=True)
+    leg = axB.legend(loc="lower left", fontsize=10.5, frameon=True)
     leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    _boost_fonts(axA, axB, tick=10.5, label=12, title=13)
     fig.tight_layout()
     return fig
 
@@ -1956,13 +2093,13 @@ def fig_frequency_depth(seed: int = 44):
     rec_lo, _ = measure_stretching(
         ccfs, ref_lo + ref_hi, s.t, band=(0.2, 0.8), fs=s.fs, window=(12.0, 45.0)
     )
-    fig, ax = plt.subplots(figsize=(5.8, 3.8))
+    fig, ax = plt.subplots(figsize=(4.6, 3.4))
     ax.plot(
         _yrs(days),
         shallow * PCT,
         color=C["truth"],
         lw=2.2,
-        label="truth — shallow (seasonal)",
+        label="truth: shallow",
     )
     ax.plot(
         _yrs(days),
@@ -1970,7 +2107,7 @@ def fig_frequency_depth(seed: int = 44):
         color="0.55",
         lw=2.2,
         ls="--",
-        label="truth — deep (drought trend)",
+        label="truth: deep",
     )
     ax.plot(
         _yrs(days),
@@ -1978,7 +2115,7 @@ def fig_frequency_depth(seed: int = 44):
         color=C["groundwater"],
         lw=1.4,
         alpha=0.9,
-        label="high band 1.5-6 Hz -> shallow",
+        label="high band -> shallow",
     )
     ax.plot(
         _yrs(days),
@@ -1986,14 +2123,257 @@ def fig_frequency_depth(seed: int = 44):
         color=C["alt"],
         lw=1.4,
         alpha=0.9,
-        label="low band 0.2-0.8 Hz -> deep",
+        label="low band -> deep",
     )
     ax.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        title="Frequency band selects depth — and a different signal",
+        title="Frequency band selects depth,\nand a different signal",
     )
-    ax.legend(loc="lower left", ncol=2, fontsize=8.5)
+    leg = ax.legend(loc="lower left", ncol=2, fontsize=11, frameon=True)
+    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    _boost_fonts(ax, tick=12, label=14, title=13.5)
+    fig.tight_layout()
+    return fig
+
+
+def fig_band_sensitivity(seed: int = 141):
+    """Frequency band: RMS against truth as a continuous function of band mismatch.
+
+    Reuses the two-layer groundwater synthetic of :func:`fig_frequency_depth`
+    (same ccfs, same components) but instead of the two named "shallow" vs
+    "deep" bands, sweeps the recovery band's center frequency continuously
+    across and past the true deep-layer band (0.2-0.8 Hz, center 0.5 Hz,
+    width 0.6 Hz held fixed) and scores each against the deep-layer truth --
+    a dose-response curve instead of a single matched/mismatched anecdote.
+    """
+    s = Synth()
+    days = _days(3.0)
+    shallow, deep = groundwater_truth(days)
+    _, ref_lo = make_coda(maxlag_s=s.maxlag_s, fs=s.fs, band=(0.2, 0.8), seed=4)
+    _, ref_hi = make_coda(maxlag_s=s.maxlag_s, fs=s.fs, band=(1.5, 6.0), seed=5)
+    ccfs = daily_ccfs(
+        s.t,
+        [ref_lo, ref_hi],
+        [deep, shallow],
+        fs=s.fs,
+        snr=12.0,
+        gen_band=(0.1, 8.0),
+        seed=seed,
+    )
+    true_center, half_width, window = 0.5, 0.3, (12.0, 45.0)
+    centers = np.array([0.35, 0.5, 0.65, 0.8, 1.0, 1.25, 1.5, 1.75, 2.0])
+    rms = np.empty_like(centers)
+    for i, c in enumerate(centers):
+        band = (max(0.05, c - half_width), c + half_width)
+        rec, _ = measure_stretching(
+            ccfs, ref_lo + ref_hi, s.t, band=band, fs=s.fs, window=window
+        )
+        v = np.isfinite(rec)
+        rms[i] = float(np.sqrt(np.mean((rec[v] - deep[v]) ** 2))) * PCT
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(6.6, 4.3))
+    ax.plot(centers - true_center, rms, "o-", color=C["groundwater"], lw=2.2, ms=7)
+    ax.axvline(0, color="0.6", ls="--", lw=1.2, label="true band center")
+    ax.set(
+        xlabel=r"band-center offset from the true band, $\Delta f$ (Hz)",
+        ylabel="RMS error vs truth (dv/v, %)",
+        title="RMS is flat within the layer's band, then rises sharply past its edge",
+    )
+    _boost_fonts(ax, tick=14, label=16, title=17.5)
+    ax.legend(fontsize=14)
+    fig.tight_layout()
+    return fig
+
+
+def fig_reference_schemes(seed: int = 142):
+    """Reference construction: five named schemes, plus a continuous
+    moving-reference length sweep, on the volcano synthetic.
+
+    Compares a reference built from the beginning, the end, or the whole of
+    the pre-eruptive record, a moving (trailing) reference, and no reference
+    at all (Brenguier et al. 2014-style joint inversion). Reports both the
+    whole-record RMS and the RMS restricted to the pre-eruptive ramp (the
+    slow trend this axis is really about preserving or erasing).
+    """
+    s = Synth()
+    days = _days(3.0)
+    truth = volcano_truth(days)
+    ccfs = daily_ccfs(s.t, [s.ref], [truth], fs=s.fs, snr=6.0, seed=seed)
+    band, window = (0.5, 2.0), (8.0, 40.0)
+    erupt = int(2.0 * YEAR_D)
+    n_edge = int(0.15 * erupt)  # beginning/end reference: earliest/latest 15%
+    ramp_sel = (days >= erupt - 200) & (days < erupt)
+
+    def _rms(rec, sel=None):
+        m = np.isfinite(rec)
+        if sel is not None:
+            m = m & sel
+        return float(np.sqrt(np.mean((rec[m] - truth[m]) ** 2))) * PCT
+
+    schemes: dict[str, np.ndarray] = {}
+    rec, _ = measure_stretching(
+        ccfs, ccfs[:n_edge].mean(axis=0), s.t, band=band, fs=s.fs, window=window
+    )
+    schemes["beginning\n(15%)"] = rec
+    rec, _ = measure_stretching(
+        ccfs,
+        ccfs[erupt - n_edge : erupt].mean(axis=0),
+        s.t,
+        band=band,
+        fs=s.fs,
+        window=window,
+    )
+    schemes["end\n(15%)"] = rec
+    rec, _ = measure_stretching(
+        ccfs, ccfs[:erupt].mean(axis=0), s.t, band=band, fs=s.fs, window=window
+    )
+    schemes["whole"] = rec
+    schemes["moving\n(60 d)"] = measure_stretching_moving(
+        ccfs, s.t, band=band, fs=s.fs, window=window, ref_days=60
+    )
+    schemes["no ref.\n(inversion)"] = measure_inversion(
+        ccfs, s.t, band=band, fs=s.fs, window=window, block_days=10
+    )
+
+    names = list(schemes)
+    rms_whole = [_rms(schemes[n]) for n in names]
+    rms_ramp = [_rms(schemes[n], ramp_sel) for n in names]
+
+    ref_days_grid = np.array([10, 20, 30, 45, 60, 90, 120, 180, 240])
+    rms_moving = np.array(
+        [
+            _rms(
+                measure_stretching_moving(
+                    ccfs, s.t, band=band, fs=s.fs, window=window, ref_days=int(rd)
+                )
+            )
+            for rd in ref_days_grid
+        ]
+    )
+
+    import matplotlib.pyplot as plt
+
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.6, 4.9))
+    x = np.arange(len(names))
+    w = 0.38
+    axA.bar(x - w / 2, rms_whole, width=w, color=C["alt"], label="whole record")
+    axA.bar(
+        x + w / 2, rms_ramp, width=w, color=C["bad"], label="pre-eruptive ramp only"
+    )
+    axA.set_yscale("log")
+    axA.set(
+        xticks=x,
+        ylabel="RMS error vs truth (dv/v, %, log)",
+        title="(a) five reference schemes",
+    )
+    axA.set_xticklabels(names, fontsize=16)
+    axA.tick_params(axis="y", labelsize=16)
+    axA.yaxis.label.set_size(18)
+    axA.title.set_size(20)
+    lo, hi = axA.get_ylim()
+    axA.set_ylim(lo, hi * 2.8)  # headroom so the legend clears the tallest bars
+    axA.legend(fontsize=16, loc="upper left")
+
+    axB.plot(ref_days_grid, rms_moving, "o-", color=C["bad"], lw=2.2, ms=6)
+    axB.axhline(
+        rms_whole[names.index("whole")],
+        color="0.55",
+        ls="--",
+        lw=1.2,
+        label="whole-record reference",
+    )
+    axB.set(
+        xlabel="moving-reference length (days)",
+        ylabel="RMS error vs truth (dv/v, %)",
+        title="(b) a longer trailing window helps,\nbut never converges",
+    )
+    _boost_fonts(axB, tick=16, label=18, title=20)
+    axB.legend(fontsize=16)
+    fig.tight_layout()
+    return fig
+
+
+def fig_stack_coherence(seed: int = 143):
+    """Substacking: the practitioner's actual stopping rule -- stack until the
+    coda's coherence (correlation coefficient) crosses a working threshold --
+    rather than an arbitrary day count. Uses the same CC-gate threshold
+    (0.6) already hardcoded in :func:`codameter.deviations.run_pipeline`.
+
+    Two SNR levels on the earthquake synthetic: a poor, coherence-limited
+    deployment (snr=0.5) versus the paper's own noisy-but-workable baseline
+    (snr=4.0, the same value :func:`fig_stacking` uses).
+    """
+    s = Synth()
+    days = _days(3.0)
+    truth = earthquake_truth(days)
+    band, window = (0.5, 2.0), (8.0, 40.0)
+    eq = int(1.5 * YEAR_D)
+    stack_days = np.array([1, 2, 3, 5, 7, 10, 14, 21, 30, 45, 60])
+    cc_threshold = 0.6
+
+    def _step_bias(dvv, valid):
+        pre = (days < eq) & (days > eq - 120) & valid
+        post = (days >= eq) & (days < eq + 120) & valid
+        if pre.sum() < 3 or post.sum() < 3:
+            return np.nan
+        rec_drop = np.nanmin(dvv[post]) - np.nanmedian(dvv[pre])
+        true_drop = np.nanmin(truth[post]) - np.nanmedian(truth[pre])
+        return float(rec_drop - true_drop)
+
+    import matplotlib.pyplot as plt
+
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(11.0, 5.0))
+    for snr, col, lab in [
+        (0.5, C["bad"], "SNR 0.5 (poor)"),
+        (4.0, C["earthquake"], "SNR 4 (workable)"),
+    ]:
+        ccfs = daily_ccfs(s.t, [s.ref], [truth], fs=s.fs, snr=snr, seed=seed)
+        med_cc, rms, bias = [], [], []
+        for k in stack_days:
+            rec, cc = measure_stretching(
+                _trailing_stack(ccfs, int(k)),
+                s.ref,
+                s.t,
+                band=band,
+                fs=s.fs,
+                window=window,
+            )
+            v = np.isfinite(rec)
+            med_cc.append(float(np.nanmedian(cc[v])))
+            rms.append(float(np.sqrt(np.mean((rec[v] - truth[v]) ** 2))) * PCT)
+            bias.append(_step_bias(rec, v) * PCT)
+        axA.plot(stack_days, med_cc, "o-", color=col, lw=2.2, ms=6, label=lab)
+        axB.plot(stack_days, rms, "o-", color=col, lw=2.2, ms=6, label=f"{lab}: RMS")
+        axB.plot(
+            stack_days,
+            np.abs(bias),
+            "s--",
+            color=col,
+            lw=1.6,
+            ms=5,
+            alpha=0.8,
+            label=f"{lab}: |bias|",
+        )
+    axA.axhline(cc_threshold, color="0.35", ls="--", lw=1.4, label="CC gate (0.6)")
+    axA.set(
+        xlabel="stack length (days)",
+        ylabel="median stretching CC",
+        title="(a) coherence rises with stack length",
+    )
+    leg = axA.legend(fontsize=16, loc="lower right", frameon=True)
+    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    axB.set_yscale("log")
+    axB.set(
+        xlabel="stack length (days)",
+        ylabel="dv/v error (%, log)",
+        title="(b) noise floor vs step-smearing tradeoff",
+    )
+    leg = axB.legend(fontsize=14, loc="lower left", ncol=1, frameon=True)
+    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    _boost_fonts(axA, axB, tick=16, label=18, title=20)
     fig.tight_layout()
     return fig
 
@@ -2154,7 +2534,7 @@ def fig_branch_asymmetry(seed: int = 131):
         yr, truth_c * PCT, color=C["truth"], lw=2.2, ls="--", label="truth (structural)"
     )
     axA.set(xlabel="time (years)", ylabel="dv/v (%)", title="(a) one-sided change")
-    leg = axA.legend(loc="lower left", fontsize=7.5, frameon=True)
+    leg = axA.legend(loc="lower left", fontsize=10.5, frameon=True)
     leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
 
     axB.axhline(
@@ -2180,7 +2560,8 @@ def fig_branch_asymmetry(seed: int = 131):
     )
     axB.set_xticks(snrs)
     axB.set_xticklabels([f"{v:g}" for v in snrs])
-    axB.legend(loc="lower right", fontsize=8)
+    axB.legend(loc="lower right", fontsize=10.5)
+    _boost_fonts(axA, axB, tick=10.5, label=12, title=13)
     fig.tight_layout()
     return fig
 
@@ -2198,6 +2579,9 @@ FIGURES = {
     "demo_8_artifacts": fig_artifacts,
     "demo_9_multiverse": fig_multiverse,
     "demo_13_branch_asymmetry": fig_branch_asymmetry,
+    "demo_16_band_sensitivity": fig_band_sensitivity,
+    "demo_17_reference_schemes": fig_reference_schemes,
+    "demo_18_stack_coherence": fig_stack_coherence,
 }
 
 

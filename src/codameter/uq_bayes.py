@@ -403,17 +403,17 @@ def _build_bayes(seed: int = 55, cadence: int = 4):
 def _fig_bayes(res, run):
     import matplotlib.pyplot as plt
 
-    from .synthetic_demo import YEAR_D, C
+    from .synthetic_demo import YEAR_D, C, _boost_fonts
 
     yrs = res.times_days / YEAR_D
     truth = run.truth
     sd_cd = np.sqrt(np.diag(res.Cd))
     sd_post = np.sqrt(np.diag(res.mu_cov))
-    fig = plt.figure(figsize=(7.2, 3.0), layout="constrained")
-    gs = fig.add_gridspec(1, 3, width_ratios=[1.5, 1.0, 1.1])
+    fig = plt.figure(figsize=(7.2, 5.6), layout="constrained")
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 1.0])
 
     # (a) ensemble + posterior + the two bands.
-    ax0 = fig.add_subplot(gs[0])
+    ax0 = fig.add_subplot(gs[0, 0])
     for k in range(run.members.shape[0]):
         ax0.plot(yrs, run.members[k] * 100, lw=0.5, color="0.7", alpha=0.6)
     if truth is not None:
@@ -439,7 +439,7 @@ def _fig_bayes(res, run):
     ax0.plot(yrs, res.mu_mean * 100, color=C["alt"], lw=1.5, label="posterior mean")
     ax0.set(xlabel="time (years)", ylabel="dv/v (%)", title="(a) Ensemble to posterior")
     ax0.legend(
-        fontsize=7.5,
+        fontsize=11,
         loc="lower left",
         frameon=True,
         facecolor="white",
@@ -448,7 +448,7 @@ def _fig_bayes(res, run):
     )
 
     # (b) the data covariance matrix.
-    ax1 = fig.add_subplot(gs[1])
+    ax1 = fig.add_subplot(gs[0, 1])
     vmax = float(np.percentile(np.diag(res.Cd), 85))  # robust to the warm-up spike
     im = ax1.imshow(
         res.Cd,
@@ -465,14 +465,17 @@ def _fig_bayes(res, run):
         0.92,
         f"corr. length {res.corr_length_days:.0f} d",
         transform=ax1.transAxes,
-        fontsize=8,
+        fontsize=11,
         color="white",
         va="top",
     )
-    fig.colorbar(im, ax=ax1, fraction=0.046)
+    cbar1 = fig.colorbar(im, ax=ax1, fraction=0.046)
+    cbar1.ax.tick_params(labelsize=11)
 
     # (c) time-dependent sigma_d(t) and the effective-sample-size collapse.
-    ax2 = fig.add_subplot(gs[2])
+    # Full width on its own row: it carries four legend entries and was too
+    # horizontally squeezed sharing a row with (a) and (b).
+    ax2 = fig.add_subplot(gs[1, :])
     ax2.plot(
         yrs, sd_cd * 100, color=C["volcano"], lw=1.6, label=r"$\sigma_d(t)$ (total)"
     )
@@ -489,7 +492,8 @@ def _fig_bayes(res, run):
         ylabel=r"$\sigma$ (dv/v, %)",
         title=f"(c) time-dependent error;  " f"$N_{{eff}}$={res.n_eff:.0f}/{len(yrs)}",
     )
-    ax2.legend(fontsize=7.5)
+    ax2.legend(fontsize=11)
+    _boost_fonts(ax0, ax1, ax2, tick=11, label=12, title=13.5)
     return fig
 
 
