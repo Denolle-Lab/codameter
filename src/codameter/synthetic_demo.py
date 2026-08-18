@@ -567,8 +567,14 @@ def measure_stretching_moving(
 ) -> np.ndarray:
     """Stretching dv/v against a *trailing* reference (previous ``ref_days``).
 
-    A moving reference re-baselines continuously, so it removes slow trends —
-    the canonical reason a moving reference and a fixed reference disagree.
+    Returns the *uncumulated* per-epoch increment: each day is referenced to
+    the mean of the preceding ``ref_days``, so a slow trend is differenced away
+    rather than measured. Published trailing-reference workflows do not stop
+    here — James et al. (2017) sum these increments from a fixed start date to
+    reconstruct the trend, at the cost of a random-walk drift that needs an
+    independent anchor. That summation is not applied here; this function is the
+    increment alone, which is what makes it a clean isolation of the cost of
+    re-baselining.
     """
     cur_mat = np.atleast_2d(cur_mat)
     ndays = cur_mat.shape[0]
@@ -1982,7 +1988,7 @@ def fig_reference(seed: int = 33):
     ax.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        title="Reference strategy: moving reference erases the trend",
+        title="Uncumulated moving reference removes the trend",
     )
     leg = ax.legend(loc="lower left", fontsize=12, frameon=True)
     leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")

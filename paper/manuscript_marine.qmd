@@ -565,35 +565,52 @@ at 240 days, still $\sim\!4$--$5\times$ the whole-record RMS
 (Fig.~\ref{fig:reference-schemes}b) --- the erasure is structural, not a noise
 effect that more averaging fixes.
 
-That erasure is a property of the \emph{increment}, however, not of the moving
-reference itself, and the distinction matters. A trailing reference measures the
-change between adjacent epochs; reporting those increments directly, as the
-sweep above does, discards the trend by construction. Cumulating them does not.
-@James2017 re-baseline each day against the immediately preceding day-stack and
-sum the daily $\delta t/t$ from a fixed start date, and thereby recover a
-seasonal freeze--thaw trend in Alaskan permafrost that a stationary reference
-failed to detect at all --- the large frozen-to-thawed velocity contrast made
-the stationary comparison cycle-skip, while adjacent days stayed coherent. The
-same rolling-reference construction is used in laboratory coda monitoring of
-rock deforming to failure, where scattering properties change too much for a
-fixed reference to remain valid [@ZotzWilson2019]. The cost is that summation
-integrates the measurement error: @James2017 report a positive drift in the
-cumulated series that their quadrature error budget could not account for, and
-correct it linearly against a stationary-reference anchor. A cumulated trailing
-reference therefore trades a stationary-reference coherence limit for a
-random-walk drift, and needs an independent anchor to tie the accumulated series
-back to an absolute baseline.
+Read carefully, though, that erasure is a property of the \emph{uncumulated
+increment}, not of a non-fixed reference as such --- and the published
+alternatives to a fixed reference do not take the form the sweep assumes. They
+fall into two families, neither of which re-baselines every epoch and reports
+the raw increment.
 
-Reference \emph{selection} is a further axis, distinct from reference length.
-@Ermert2023 adopt an explicitly multiple-reference approach for urban
-single-station autocorrelations in Mexico City, because long-term waveform
-coherence is unavailable there, and stabilise the stacks by clustering
+The first cumulates. @James2017 re-baseline each day against the immediately
+preceding day-stack and sum the daily $\delta t/t$ from a fixed start date,
+recovering a seasonal freeze--thaw trend in Alaskan permafrost that a stationary
+reference could not detect at all: the frozen-to-thawed velocity contrast made
+the stationary comparison cycle-skip, while adjacent days stayed coherent.
+@Rivet2011 likewise reference each epoch to the previous one. The cost is that
+summation integrates the measurement error --- @James2017 report a positive
+drift in the cumulated series that their quadrature error budget could not
+account for, and correct it linearly against a stationary-reference anchor. The
+same rolling construction appears in laboratory coda monitoring of rock
+deforming to failure, where the scattering properties change too much for a
+fixed reference to stay valid [@ZotzWilson2019].
+
+The second holds the reference fixed within a segment and stitches the segments
+together. @Rivet2014 define a separate reference stack for each of three
+multi-year periods at Piton de la Fournaise, then merge the three series by
+measuring the relative velocity change \emph{between} the adjacent segment
+references, using station pairs that occupied the same sites across the network
+change. @SensSchonfelder2014 develop the multiple-reference form of the same
+idea at the same volcano, and @Ermert2023 adopt a multiple-reference approach
+for urban single-station autocorrelations in Mexico City, where long-term
+waveform coherence is simply unavailable, stabilising the stacks by clustering
 correlation windows with a Gaussian mixture model so that day-time and
-night-time noise regimes are stacked separately. codameter implements neither
-the cumulated trailing reference nor cluster-based reference selection; the
-moving-reference sweep above is the uncumulated increment, and should be read as
-a controlled demonstration of what re-baselining costs when the increments are
-not summed, not as a reproduction of either published construction.
+night-time noise regimes stack separately.
+
+That second family is worth naming precisely, because it is not a separate
+method from the joint inversion --- it is a restriction of it. Stitching two
+segments by measuring the relative dv/v between their references is exactly the
+adjacent-pair case of the over-determined system the inversion solves over all
+pairs of block stacks. The reference axis is therefore better read as a single
+continuum, from one global reference, through segment references joined
+pairwise, to the fully coupled inversion, than as a menu of unrelated choices.
+
+Against that, the uncumulated day-by-day trailing reference swept above is a
+limit case rather than a practice: we found no surveyed study that re-baselines
+continuously and reports the increments without summing them. It is retained
+here because it isolates what re-baselining costs when the trend is not
+reconstructed, which is the failure mode the two families above exist to avoid.
+codameter implements the joint inversion but neither the cumulated trailing
+reference nor cluster-based reference selection.
 
 \begin{figure}
   \centering
@@ -680,7 +697,8 @@ RMS an order of magnitude worse even after clearing it.
   \includegraphics[width=0.49\textwidth]{demo_6_stacking.png}
   \caption{Parameter choices. (a) Frequency band selects depth and signal. (b)
   A coda window does not transfer across bands. (c) Reference strategy: a moving
-  reference erases the trend a fixed reference and the joint inversion keep. (d)
+  reference differences the trend away unless its increments are cumulated;
+  a fixed reference and the joint inversion retain it. (d)
   Stacking length smears the coseismic step.}
   \label{fig:params}
 \end{figure}
