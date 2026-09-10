@@ -8,6 +8,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- `codameter.calibration`: repeated-realisation coverage calibration of the
+  Bayesian measurement covariance (`python -m codameter.calibration --n 200
+  --scenario clean|shared_drift --out ...`): pointwise 68/95 percent coverage
+  of the truth by `mu +- z sqrt(diag Cd)`, credible-band coverage, width,
+  bias, RMSE and failures per realisation, with standard errors across
+  realisations and a predefined acceptance margin. (SCI-05)
+
 - `codameter.figures`: one driver for every generated paper figure
   (`python -m codameter.figures --out literature/figs`). Each figure is
   written with a `.npz` sidecar holding every plotted array (and the
@@ -19,6 +26,26 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   figures are documented as external in `literature/figs/SOURCES.md`.
 
 ### Changed (BREAKING)
+
+- **The Bayesian ensemble runs every configuration through the canonical
+  pipeline** (`deviations.run_pipeline`): `reference` (`fixed`/`moving`) and
+  `gate` now take effect (they were ignored), stacking happens on the daily
+  grid and only the output is decimated by `cadence` (a 10-day stack used to
+  span 27 days at cadence 3), epochs a configuration cannot produce are NaN
+  and treated as missing, and coherence below `MIN_COHERENCE` gives a
+  missing floor instead of being clipped to 0.5. `reference="inversion"` is
+  rejected. Member labels now include stack, reference and gate. (UQ-05)
+
+- **`gibbs_dvv` builds its smoothness prior on the physical time grid**
+  (`second_difference_operator`: exactly `[1, -2, 1]` on a regular grid, and
+  a curvature penalty that scales with the interval across gaps), accepts
+  missing members (zero precision), and reports `beta_mean` and `n_obs`.
+  The per-epoch decomposition no longer counts the within-method floor
+  twice: `method_std**2` is the between-configuration variance of the
+  offset-corrected members minus the calibrated floor, floored at zero, and
+  `total_std**2` is their sum. `Cd` is documented as a constructed
+  measurement covariance that cannot represent an error shared by every
+  configuration (tested as a documented limitation). (UQ-03, UQ-04, UQ-05)
 
 - **`weaver_stretching_error` now requires the band width** (`bandwidth_hz`;
   or call `weaver_stretching_error_band(cc, (f1, f2), t1, t2)`). It implements

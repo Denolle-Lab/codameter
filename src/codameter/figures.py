@@ -42,6 +42,7 @@ __all__ = [
     "SLOW",
     "generators",
     "figure_arrays",
+    "compact_array",
     "figure_inventory",
     "save_figure",
     "build_all_figures",
@@ -55,6 +56,9 @@ EXTERNAL = (
 )
 #: Generators that take minutes rather than seconds.
 SLOW = {"demo_10_deviations", "demo_11_multiverse", "demo_12_bayes"}
+#: float64 arrays with more elements than this are stored as float32 in the
+#: sidecar (seven significant digits); smaller arrays are stored exactly.
+LARGE_ARRAY = 50_000
 
 Generator = Callable[[], tuple[Any, dict[str, Any], dict[str, Any]]]
 
@@ -127,6 +131,14 @@ def figure_arrays(fig) -> dict[str, np.ndarray]:
     return out
 
 
+def compact_array(a: np.ndarray) -> np.ndarray:
+    """Store large float64 arrays as float32 (see :data:`LARGE_ARRAY`)."""
+    a = np.asarray(a)
+    if a.dtype == np.float64 and a.size > LARGE_ARRAY:
+        return a.astype(np.float32)
+    return a
+
+
 def figure_inventory(fig) -> list[dict[str, Any]]:
     """Axes titles, labels and artist labels, aligned with :func:`figure_arrays`."""
     inv = []
@@ -163,6 +175,7 @@ def save_figure(
     arrays: dict[str, Any] = dict(figure_arrays(fig))
     for k, v in (extra_arrays or {}).items():
         arrays[f"data/{k}"] = np.asarray(v)
+    arrays = {k: compact_array(v) for k, v in arrays.items()}
     np.savez_compressed(outdir / f"{name}.npz", **arrays)
     meta: dict[str, Any] = {
         "figure": name,

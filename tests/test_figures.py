@@ -44,6 +44,12 @@ def test_sidecar_round_trips_every_plotted_array(tmp_path):
     np.testing.assert_allclose(z["ax1/image0"], np.arange(6.0).reshape(2, 3))
     assert z["ax1/patch0/xywh"][3] == pytest.approx(2.0)
     np.testing.assert_allclose(z["data/truth"], x)
+    assert z["data/truth"].dtype == np.float64  # small arrays are exact
+    big = np.random.default_rng(0).standard_normal(F.LARGE_ARRAY + 1)
+    F.save_figure(fig, tmp_path, "big", generator="test", extra_arrays={"big": big})
+    zb = np.load(tmp_path / "big.npz")
+    assert zb["data/big"].dtype == np.float32
+    np.testing.assert_allclose(zb["data/big"], big, rtol=1e-6)
     meta = json.loads((tmp_path / "unit.json").read_text())
     assert meta["generator"] == "test" and meta["note"] == {"n": 7}
     assert meta["axes"][0]["lines"] == ["quad"] and meta["axes"][0]["title"] == "left"

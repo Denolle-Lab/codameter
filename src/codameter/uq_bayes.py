@@ -23,7 +23,8 @@ We posit
     \varepsilon_k(t) \sim \mathcal N\!\big(0,\, s^2\,\sigma_k(t)^2\big),
 
 with a smoothness (2nd-difference random-walk) prior of precision :math:`\lambda`
-on the latent true series :math:`\mu(t)`. Here :math:`\beta_k` is the
+on the latent true series :math:`\mu(t)`, built on the physical time grid so
+gaps are gaps. Missing members (warm-up, gated epochs) carry no information. Here :math:`\beta_k` is the
 configuration's **methodological bias** (e.g. the systematic MWCS-vs-stretching
 offset), :math:`\tau^2` its variance across the ensemble, and :math:`s^2`
 rescales the Weaver floor so the data tell us whether it is calibrated.
@@ -49,11 +50,12 @@ external sampler). Its two deliverables are
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 
 import numpy as np
 from scipy.linalg import cho_solve_banded, cholesky_banded, solve_banded
-from scipy.sparse import diags
+from scipy.sparse import coo_matrix
 
 from .uq_measurement import (
     effective_sample_size,
@@ -62,12 +64,17 @@ from .uq_measurement import (
 )
 
 __all__ = [
+    "MIN_COHERENCE",
     "default_prior",
     "run_processing_ensemble",
     "BayesResult",
     "gibbs_dvv",
     "bayes_dvv_from_ccfs",
 ]
+
+#: Peak stretching coherence below which an epoch has no usable Weaver floor
+#: and is treated as missing in the ensemble (not clipped to a fixed floor).
+MIN_COHERENCE = 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -112,59 +119,79 @@ class EnsembleRun:
 
 
 def run_processing_ensemble(
-    ccfs, t, fs, prior, *, cadence=3, years=2.5, truth=None, days=None
+    ccfs, t, fs, prior, *, cadence=3, years=2.5, truth=None, days=None, eps_max=0.06
 ):
-    """Measure dv/v for every configuration in ``prior`` on shared CCFs.
+    """Measure dv/v for every configuration in ``prior`` on shared daily CCFs.
 
-    The within-method floor :math:`\\sigma_k(t)` is computed from the *coherence*
-    (peak stretching CC for the band/window of the configuration, a property of
-    the data and window, not of the estimator) via the Weaver/Clarke formula, so
-    the floor tracks the time-varying SNR.
+    Every configuration runs through the canonical pipeline
+    (:func:`codameter.deviations.run_pipeline`), so ``estimator``, ``band``,
+    ``window``, ``stack`` (in days), ``reference`` (``"fixed"`` or
+    ``"moving"``) and ``gate`` all take effect. Epochs a configuration does not
+    produce (reference warm-up, gated coherence) are NaN in ``members`` and are
+    treated as missing by :func:`gibbs_dvv`. Stacking happens on the daily grid
+    and only the *output* is decimated by ``cadence``, so a 10-day stack is ten
+    days at any cadence. (Before the 2026-09 revision the CCFs were decimated
+    first, which silently stretched stack and reference durations, and
+    ``reference`` and ``gate`` were ignored; audit UQ-05.)
+
+    The within-method floor :math:`\\sigma_k(t)` comes from the peak stretching
+    coherence for the configuration's band, window, stack and reference (a
+    property of the data and window, not of the estimator) through the Weaver
+    floor. Coherence below :data:`MIN_COHERENCE` gives a NaN floor and the
+    epoch is missing rather than clipped. ``reference="inversion"`` has no
+    per-epoch coherence and is rejected.
     """
-    from .synthetic_demo import _trailing_stack, measure, peak_dvv, stretching_cc
+    from .deviations import run_pipeline
 
-    if days is None:
-        days = np.arange(ccfs.shape[0])
-    idx = np.arange(0, ccfs.shape[0], cadence)
-    ccfs_s, days_s = ccfs[idx], days[idx]
-    truth_s = None if truth is None else np.asarray(truth)[idx]
+    ccfs = np.asarray(ccfs, float)
+    n = ccfs.shape[0]
+    days_arr = np.arange(n, dtype=float) if days is None else np.asarray(days, float)
+    if days_arr.shape != (n,):
+        raise ValueError("days must have one entry per CCF row")
+    idx = np.arange(0, n, cadence)
+    truth_s = None if truth is None else np.asarray(truth, float)[idx]
 
     labels, members, sigmas = [], [], []
-    for cfg in prior:
-        band, win, k = cfg["band"], cfg["window"], cfg["stack"]
-        stacked = _trailing_stack(ccfs_s, k)
-        ref = ccfs_s[: int(0.6 * len(ccfs_s))].mean(axis=0)
-        # Coherence (and dv/v if stretching) from the stretching CC image.
-        es, cc_img = stretching_cc(
-            stacked, ref, t, band=band, fs=fs, window=win, eps_max=0.06
-        )
-        dvv_ts, cc_peak = peak_dvv(es, cc_img)
-        if cfg["estimator"] == "stretching (TS)":
-            dvv = dvv_ts
-        else:
-            extra = {"eps_max": 0.06} if cfg["estimator"] == "WTS" else {}
-            dvv = np.atleast_1d(
-                measure(
-                    cfg["estimator"],
-                    stacked,
-                    ref,
-                    t,
-                    band=band,
-                    fs=fs,
-                    window=win,
-                    **extra,
-                )
+    for raw in prior:
+        cfg = dict(raw)
+        cfg.setdefault("reference", "fixed")
+        cfg.setdefault("gate", False)
+        if cfg["reference"] not in ("fixed", "moving"):
+            raise ValueError(
+                f"reference={cfg['reference']!r} is not supported by the Bayesian "
+                "ensemble: it has no per-epoch coherence for the Weaver floor"
             )
-        sig = weaver_stretching_error_band(
-            np.clip(cc_peak, 0.5, 0.999), band, win[0], win[1]
+        band, win = tuple(cfg["band"]), tuple(cfg["window"])
+        # Coherence (and dv/v for stretching) from the stretching pipeline at
+        # the same band / window / stack / reference / gate.
+        probe = dict(cfg, estimator="stretching (TS)")
+        dvv_ts, valid_ts, cc = run_pipeline(
+            ccfs, t, fs, probe, eps_max=eps_max, return_cc=True
         )
+        if cfg["estimator"] == "stretching (TS)":
+            dvv, valid = dvv_ts, valid_ts
+        else:
+            dvv, valid = run_pipeline(ccfs, t, fs, cfg, eps_max=eps_max)
+            if cfg["gate"]:
+                valid = valid & valid_ts  # gate every estimator on the same coherence
+        dvv = np.where(valid, np.asarray(dvv, float), np.nan)
+        cc = np.asarray(cc, float)
+        ok = np.isfinite(cc) & (cc >= MIN_COHERENCE)
+        sig = np.full(n, np.nan)
+        if ok.any():
+            sig[ok] = weaver_stretching_error_band(
+                np.minimum(cc[ok], 0.999), band, win[0], win[1]
+            )
         labels.append(
-            f"{cfg['estimator']} {band[0]:g}-{band[1]:g}Hz {win[0]:g}-{win[1]:g}s"
+            f"{cfg['estimator']} {band[0]:g}-{band[1]:g}Hz {win[0]:g}-{win[1]:g}s "
+            f"stack{cfg['stack']}d {cfg['reference']}{' gated' if cfg['gate'] else ''}"
         )
-        members.append(np.asarray(dvv, float))
-        sigmas.append(np.asarray(sig, float))
+        members.append(dvv[idx])
+        sigmas.append(sig[idx])
 
-    return EnsembleRun(labels, np.vstack(members), np.vstack(sigmas), days_s, truth_s)
+    return EnsembleRun(
+        labels, np.vstack(members), np.vstack(sigmas), days_arr[idx], truth_s
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -186,22 +213,45 @@ class BayesResult:
         uncertainty of the *combined* estimate. It shrinks with ensemble size and
         is **not** the object to propagate downstream.
     Cd : np.ndarray (T, T)
-        The **marginal measurement covariance** to hand a downstream depth/stress
-        inversion: per-epoch total error (within-method ⊕ methodological) with an
-        exponential temporal correlation (length ``corr_length_days``) and a
-        common-mode floor ``tau`` (the constant-in-time methodological bias that
-        averaging cannot remove). Time-dependent by construction — wider where the
-        ensemble disagrees.
+        The **constructed measurement covariance** to hand a downstream
+        depth/stress inversion: :math:`C_d = D R D + \tau^2 \mathbf{1}\mathbf{1}^T`
+        with :math:`D = \operatorname{diag}(\text{total\_std})`, an exponential
+        temporal correlation of length ``corr_length_days`` fitted to the
+        ensemble residuals, and the common-mode scale ``tau``. It is derived
+        from the fitted model, not sampled, and it cannot represent an error
+        that every configuration shares (a common source or clock artefact
+        moves all members together and leaves no trace in their spread; see
+        ``tests/test_uq_bayes.py::test_shared_artifact_is_not_detected``).
     tau, s : float
-        Posterior-mean methodological common-mode bias scale and Weaver-floor
-        rescale.
+        Posterior-mean scale of the per-configuration offsets :math:`\beta_k`
+        and of the Weaver-floor rescale.
     corr_length_days : float
         Temporal correlation length estimated from the ensemble residuals.
     n_eff : float
         Effective number of independent epochs implied by ``Cd``.
     total_std, method_std, within_std : np.ndarray (T,)
-        Per-epoch total / methodological / within-method standard deviations
-        (``total_std`` is the diagonal scale of ``Cd`` before the common mode).
+        Per-epoch decomposition of the diagonal of ``D``:
+        ``within_std**2 = s**2 * mean_k sigma_k(t)**2`` (calibrated floor over
+        the configurations observed at ``t``); ``method_std**2`` is the
+        between-configuration variance of ``m_k(t) - beta_k`` *minus* the
+        within-method variance, floored at zero, so within-method noise is not
+        counted twice and the constant offsets are carried by ``tau`` instead
+        (audit UQ-03/04); ``total_std**2`` is their sum, i.e. the larger of the
+        observed spread and the calibrated floor. Epochs with fewer than two
+        observed configurations take the median over time.
+    beta_mean : np.ndarray (K,)
+        Posterior-mean configuration offsets.
+    n_obs : np.ndarray (T,)
+        Number of configurations observed (finite member and floor) per epoch.
+    prior_weight : dict
+        Share of each scale posterior that comes from its hyper-prior rather
+        than the data, evaluated at the posterior means:
+        ``b0 / (b0 + 0.5 * sum(beta**2))`` for tau^2,
+        ``b0 / (b0 + 0.5 * sum(resid**2 / sigma**2))`` for s^2, and
+        ``lam_b / (lam_b + 0.5 * sum((D mu)**2))`` for lambda. Small values
+        mean data-dominated; a value near one means the prior scale is setting
+        the answer, which happens for tau^2 with few configurations and tiny
+        offsets.
     samples_mu : np.ndarray (n_keep, T)
     """
 
@@ -219,6 +269,9 @@ class BayesResult:
     method_std: np.ndarray
     within_std: np.ndarray
     samples_mu: np.ndarray
+    beta_mean: np.ndarray | None = None
+    n_obs: np.ndarray | None = None
+    prior_weight: dict[str, float] | None = None
 
 
 def _estimate_corr_length(residuals: np.ndarray, times_days: np.ndarray) -> float:
@@ -229,15 +282,18 @@ def _estimate_corr_length(residuals: np.ndarray, times_days: np.ndarray) -> floa
     configurations. Returns ``L`` in days.
     """
     R = np.asarray(residuals, float)
-    R = R - R.mean(axis=1, keepdims=True)
-    K, T = R.shape
-    var = np.mean(R**2, axis=1, keepdims=True)
-    maxlag = min(T - 1, 40)
-    rho = np.zeros(maxlag + 1)
-    for lag in range(maxlag + 1):
-        c = np.mean(R[:, : T - lag] * R[:, lag:], axis=1, keepdims=True) / (var + 1e-30)
-        rho[lag] = np.mean(c)
-    rho = np.clip(rho, 1e-3, 1.0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN rows/lags
+        R = R - np.nanmean(R, axis=1, keepdims=True)
+        K, T = R.shape
+        var = np.nanmean(R**2, axis=1, keepdims=True)
+        maxlag = min(T - 1, 40)
+        rho = np.zeros(maxlag + 1)
+        for lag in range(maxlag + 1):
+            prod = R[:, : T - lag] * R[:, lag:]
+            c = np.nanmean(prod, axis=1, keepdims=True) / (var + 1e-30)
+            rho[lag] = np.nanmean(c)
+    rho = np.clip(np.nan_to_num(rho, nan=1e-3), 1e-3, 1.0)
     dt = float(np.median(np.diff(times_days))) if T > 1 else 1.0
     lags_days = np.arange(maxlag + 1) * dt
     # Linear fit of log(rho) vs lag (weight early, well-determined lags).
@@ -249,11 +305,51 @@ def _estimate_corr_length(residuals: np.ndarray, times_days: np.ndarray) -> floa
 
 
 def _second_difference(T: int) -> np.ndarray:
-    """(T-2)xT second-difference operator for the random-walk smoothness prior."""
+    """(T-2)xT second-difference operator on a regular grid (dense; tests)."""
     D = np.zeros((T - 2, T))
     for k in range(T - 2):
         D[k, k : k + 3] = (1.0, -2.0, 1.0)
     return D
+
+
+def second_difference_operator(times_days):
+    r"""Sparse ``(T-2) x T`` second-difference operator on an irregular grid.
+
+    Row :math:`k` approximates :math:`h_0^2\,\mu''(t_k)\sqrt{\bar h_k/h_0}` from the
+    three points :math:`t_{k-1}, t_k, t_{k+1}` with intervals
+    :math:`h_l, h_r` and :math:`\bar h_k = (h_l + h_r)/2`, where :math:`h_0` is
+    the median interval. On a regular grid this is exactly ``[1, -2, 1]``, so
+    the smoothness precision :math:`\lambda` keeps its meaning; across a gap
+    the curvature penalty scales with the physical spacing instead of the
+    sample index (audit UQ-05: a 1000-day gap used to be invisible to the
+    prior).
+    """
+    t = np.asarray(times_days, float)
+    T = t.size
+    if T < 3:
+        raise ValueError("need at least three epochs")
+    h = np.diff(t)
+    if np.any(h <= 0):
+        raise ValueError("times_days must be strictly increasing")
+    h0 = float(np.median(h))
+    hl, hr = h[:-1], h[1:]
+    scale = h0**2 * np.sqrt((hl + hr) / (2.0 * h0))
+    c0 = scale * 2.0 / (hl * (hl + hr))
+    c1 = -scale * 2.0 / (hl * hr)
+    c2 = scale * 2.0 / (hr * (hl + hr))
+    rows = np.repeat(np.arange(T - 2), 3)
+    cols = (np.arange(T - 2)[:, None] + np.arange(3)[None, :]).ravel()
+    vals = np.stack([c0, c1, c2], axis=1).ravel()
+    return coo_matrix((vals, (rows, cols)), shape=(T - 2, T)).tocsr()
+
+
+def _fill_nan(x: np.ndarray, t: np.ndarray) -> np.ndarray:
+    ok = np.isfinite(x)
+    if ok.all():
+        return x
+    if not ok.any():
+        return np.zeros_like(x)
+    return np.asarray(np.interp(t, t[ok], x[ok]), float)
 
 
 def gibbs_dvv(
@@ -276,46 +372,71 @@ def gibbs_dvv(
     Parameters
     ----------
     members : (K, T)
-        Ensemble of measured dv/v series.
+        Ensemble of measured dv/v series. NaN marks an epoch a configuration
+        did not produce; it carries no information (zero precision).
     within_sigma : (K, T)
-        Per-configuration within-method standard errors (Weaver floor).
+        Per-configuration within-method standard errors (Weaver floor). NaN or
+        non-positive entries also mark the observation as missing.
     times_days : (T,)
+        Strictly increasing epoch times. The smoothness prior is built on this
+        grid (:func:`second_difference_operator`), so gaps are physical.
+    solver
+        ``"banded"`` (default, O(T) per sweep) or ``"dense"`` (explicit
+        matrices, for equivalence tests).
     n_iter, burn, thin
         Total sweeps, burn-in, and thinning.
     a0, b0, lam_a, lam_b
-        InvGamma/Gamma hyper-priors for :math:`\tau^2, s^2` and the smoothness
-        precision :math:`\lambda` (weakly informative).
+        InvGamma/Gamma hyper-priors for tau^2, s^2 and the smoothness precision
+        lambda. ``b0`` is a scale in the units of the quantity: it is negligible
+        only when it is small against the data term (``0.5 * sum(beta**2)`` for
+        tau^2, of order ``K * offset**2``; ``0.5 * sum(resid**2 / sigma**2)``
+        for s^2, of order ``K * T``). The result reports the actual prior share
+        in ``prior_weight``; with the defaults and a few configurations whose
+        offsets are ~1e-4, the tau^2 share is a few percent. See
+        ``tests/test_uq_bayes.py::test_prior_sensitivity``.
     """
     rng = np.random.default_rng(seed)
     M = np.asarray(members, float)
-    S2 = np.clip(np.asarray(within_sigma, float), 1e-9, None) ** 2
+    S = np.asarray(within_sigma, float)
+    if M.ndim != 2 or S.shape != M.shape:
+        raise ValueError("members and within_sigma must both be (K, T)")
     K, T = M.shape
+    times = np.asarray(times_days, float)
+    if times.shape != (T,):
+        raise ValueError("times_days must have one entry per epoch")
     if solver not in ("banded", "dense"):
         raise ValueError("solver must be 'banded' or 'dense'")
-    # Second-difference smoothness operator. Its normal matrix D^T D is
-    # pentadiagonal, so the mu-update (a T x T solve per iteration) is done in
-    # banded form: O(T) per iteration instead of O(T^3) time and O(T^2) memory
-    # (audit SCALE-01). ``solver="dense"`` keeps the explicit matrices for
-    # equivalence tests.
-    Dsp = diags([1.0, -2.0, 1.0], [0, 1, 2], shape=(T - 2, T), format="csr")
+    obs = np.isfinite(M) & np.isfinite(S) & (S > 0)
+    n_obs_t = obs.sum(axis=0)
+    if (n_obs_t > 0).sum() < 3:
+        raise ValueError("need finite observations at three or more epochs")
+    S2 = np.where(obs, np.clip(S, 1e-9, None) ** 2, np.inf)  # inf = no information
+    Mz = np.where(obs, M, 0.0)
+
+    # Second-difference smoothness operator on the physical time grid. Its
+    # normal matrix D^T D is pentadiagonal, so the mu-update is a banded solve:
+    # O(T) per sweep instead of O(T^3) time and O(T^2) memory (audit SCALE-01).
+    Dsp = second_difference_operator(times)
     DtD_sp = (Dsp.T @ Dsp).tocsr()
     dtd_diag = [DtD_sp.diagonal(k) for k in (0, 1, 2)]
     if solver == "dense":
-        D = _second_difference(T)
-        DtD = D.T @ D
+        DtD = DtD_sp.toarray()
 
     # Initialise.
-    mu = M.mean(axis=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        mu = _fill_nan(np.nanmean(np.where(obs, M, np.nan), axis=0), times)
+        tau2 = float(np.nanvar(np.nanmean(np.where(obs, M, np.nan), axis=1))) + 1e-12
     beta = np.zeros(K)
-    tau2 = np.var(M.mean(axis=1)) + 1e-12
     s2 = 1.0
-    lam = 1.0 / (np.var(np.diff(mu, 2)) + 1e-12)
+    lam = 1.0 / (np.var(Dsp @ mu) + 1e-12)
 
-    keep_mu, keep_tau, keep_s = [], [], []
+    keep_mu, keep_tau, keep_s, keep_beta = [], [], [], []
     for it in range(n_iter):
         # 1. mu | rest : Gaussian with precision Q = diag(prec_t) + lam*DtD.
-        prec_t = np.sum(1.0 / (s2 * S2), axis=0)  # (T,)
-        rhs = np.sum((M - beta[:, None]) / (s2 * S2), axis=0)  # (T,)
+        w = 1.0 / (s2 * S2)  # zero where unobserved
+        prec_t = np.sum(w, axis=0)
+        rhs = np.sum(w * (Mz - beta[:, None]), axis=0)
         z = rng.standard_normal(T)
         if solver == "dense":
             Q = np.diag(prec_t) + lam * DtD
@@ -331,28 +452,29 @@ def gibbs_dvv(
             mean_mu = cho_solve_banded((c, False), rhs)
             mu = mean_mu + solve_banded((0, 2), c, z)  # U^{-1} z ~ N(0, Q^{-1})
 
-        # 2. beta_k | rest : Gaussian.
+        # 2. beta_k | rest : Gaussian (only observed epochs contribute).
         for k in range(K):
-            prec = 1.0 / tau2 + np.sum(1.0 / (s2 * S2[k]))
-            m = np.sum((M[k] - mu) / (s2 * S2[k])) / prec
+            prec = 1.0 / tau2 + np.sum(w[k])
+            m = np.sum(w[k] * (Mz[k] - mu)) / prec
             beta[k] = m + rng.standard_normal() / np.sqrt(prec)
 
         # 3. tau2 | beta : InvGamma.
         tau2 = 1.0 / rng.gamma(a0 + K / 2.0, 1.0 / (b0 + 0.5 * np.sum(beta**2)))
 
-        # 4. s2 | rest : InvGamma over standardized residuals.
-        resid = M - mu[None, :] - beta[:, None]
-        ss = np.sum(resid**2 / S2)
-        s2 = 1.0 / rng.gamma(a0 + K * T / 2.0, 1.0 / (b0 + 0.5 * ss))
+        # 4. s2 | rest : InvGamma over standardized residuals of observed cells.
+        resid = np.where(obs, M - mu[None, :] - beta[:, None], 0.0)
+        ss = np.sum(np.where(obs, resid**2 / np.where(obs, S2, 1.0), 0.0))
+        s2 = 1.0 / rng.gamma(a0 + obs.sum() / 2.0, 1.0 / (b0 + 0.5 * ss))
 
         # 5. lambda | mu : Gamma (random-walk precision).
-        dm = np.diff(mu, n=2)
+        dm = Dsp @ mu
         lam = rng.gamma(lam_a + (T - 2) / 2.0, 1.0 / (lam_b + 0.5 * np.sum(dm**2)))
 
         if it >= burn and (it - burn) % thin == 0:
             keep_mu.append(mu.copy())
             keep_tau.append(tau2)
             keep_s.append(s2)
+            keep_beta.append(beta.copy())
 
     samples = np.array(keep_mu)
     mu_mean = samples.mean(axis=0)
@@ -361,16 +483,37 @@ def gibbs_dvv(
 
     tau = float(np.sqrt(np.mean(keep_tau)))
     s = float(np.sqrt(np.mean(keep_s)))
-    method_std = M.std(axis=0, ddof=1) if K > 1 else np.zeros(T)
-    within_std = s * np.sqrt(np.mean(S2, axis=0))  # calibrated Weaver floor
-    total_std = np.sqrt(within_std**2 + method_std**2)  # law of total variance
+    beta_mean = np.mean(keep_beta, axis=0)
 
-    times = np.asarray(times_days, float)
-    L = _estimate_corr_length(M - mu_mean[None, :], times)
-    # The honest *measurement* covariance for downstream use: per-epoch total
-    # error, exponential temporal correlation, plus a common-mode floor (the
-    # constant-in-time methodological bias that averaging cannot remove).
+    # Decomposition of the per-epoch measurement variance (audit UQ-03/04):
+    # calibrated floor, plus the between-configuration spread of the
+    # offset-corrected members with the floor removed (never negative).
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        within_var = s**2 * np.nanmean(np.where(obs, S2, np.nan), axis=0)
+        resid_obs = np.where(obs, M - beta_mean[:, None], np.nan)
+        raw_var = np.nanvar(resid_obs, axis=0, ddof=1)
+    within_var = np.where(np.isfinite(within_var), within_var, np.nanmedian(within_var))
+    raw_var = np.where(np.isfinite(raw_var), raw_var, np.nanmedian(raw_var))
+    if not np.isfinite(raw_var).any():  # a single configuration: no spread
+        raw_var = np.zeros(T)
+    method_var = np.maximum(raw_var - within_var, 0.0)
+    within_std = np.sqrt(within_var)
+    method_std = np.sqrt(method_var)
+    total_std = np.sqrt(within_var + method_var)
+
+    L = _estimate_corr_length(resid_obs - mu_mean[None, :], times)
     Cd = temporal_error_covariance(total_std, times, L, common_mode_sigma=tau)
+
+    # How much of each scale posterior the hyper-prior supplies (at the means).
+    resid_hat = np.where(obs, M - mu_mean[None, :] - beta_mean[:, None], 0.0)
+    ss_hat = float(np.sum(np.where(obs, resid_hat**2 / np.where(obs, S2, 1.0), 0.0)))
+    dmu_hat = Dsp @ mu_mean
+    prior_weight = {
+        "tau2": float(b0 / (b0 + 0.5 * np.sum(beta_mean**2))),
+        "s2": float(b0 / (b0 + 0.5 * ss_hat)),
+        "lambda": float(lam_b / (lam_b + 0.5 * np.sum(dmu_hat**2))),
+    }
 
     return BayesResult(
         times_days=times,
@@ -387,6 +530,9 @@ def gibbs_dvv(
         method_std=method_std,
         within_std=within_std,
         samples_mu=samples,
+        beta_mean=beta_mean,
+        n_obs=n_obs_t,
+        prior_weight=prior_weight,
     )
 
 
