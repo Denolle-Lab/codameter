@@ -188,6 +188,11 @@
 \AtBeginEnvironment{tabular}{\singlespacing}
 \AtBeginEnvironment{tabularx}{\singlespacing}
 \AtBeginEnvironment{longtable}{\singlespacing}
+
+% The full manuscript title overflows GJI's odd-page running header.
+\makeatletter
+\AtBeginDocument{\gdef\@shorttitle{Processing choices in seismic velocity monitoring}}
+\makeatother
 \makeatletter
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \AtBeginDocument{%
@@ -270,17 +275,19 @@ quantities that studies rarely distinguish. A one-at-a-time sweep and a
 108-pipeline factorial on one scenario rank the choices by the error
 they induce. We then propose a hierarchical Bayesian measurement model
 that runs an ensemble of defensible pipelines on the same correlations
-and marginalises the processing choice into a single \dvv~series and a
-time-dependent single-measurement covariance \(C_d\). On 200 independent
-synthetic realisations of a volcano scenario, \(C_d\) covers 95.6,\% of
-individual member errors at the 95,\% level, whereas the credible band
-on the ensemble mean covers the truth only 59,\% of the time because the
-configurations share time-varying biases; a seasonal source artefact
-seen by every configuration halves that coverage again and doubles the
-error of the ensemble mean while leaving \(C_d\) nominally calibrated,
-because an ensemble over processing choices can only see the errors on
-which its members disagree. We set out how \(C_d\) enters a depth
-inversion of shear-velocity change; that stage is described, not
+and combines their estimates into a single \dvv~series. A separate
+construction proposes a time-dependent single-member error covariance
+\(C_d\). On 200 independent synthetic realisations of a volcano
+scenario, \(C_d\) covers 95.6\% of individual member errors at the 95\%
+level, whereas the credible band on the ensemble mean covers the truth
+only 59\% of the time because the configurations share time-varying
+biases; a seasonal source artefact seen by every configuration reduces
+that coverage to 34\% and more than doubles the error of the ensemble
+mean while leaving member coverage near 95\%. The nominal 68\% member
+intervals cover 81\% in the clean case; these pointwise checks do not
+validate the full covariance. Shared errors require diagnostics beyond
+agreement among processing choices. We set out how \(C_d\) enters a
+depth inversion of shear-velocity change; that stage is described, not
 evaluated, here. On three California stations the same measurement code,
 run on NoisePy correlations in a cloud batch pipeline, reproduces a
 published \dvv~product (correlation 0.83--0.99 on 360--580 matched days,
@@ -288,9 +295,9 @@ with a reproducible comparison script), a comparison that also exposed
 and corrected a sign-convention error. The framework, estimators,
 figures with their numerical sidecars, and the calibration experiments
 are released in the open Python package \texttt{codameter}, together
-with a processing-choice advisor and a seeded golden dataset whose
-scorer cannot be satisfied by sparse predictions; an evaluation of
-agents against that dataset is left to future work.
+with a processing-choice advisor and a seeded golden dataset with fixed
+scoring support and a null-change penalty for missing predictions; an
+evaluation of agents against that dataset is left to future work.
 \end{abstract}
 
 
@@ -584,10 +591,10 @@ optimistic & Same epochs; the target is the finite-network mean \\ \hline
 Posterior credible band on $\mu(t)$ & Precision of the ensemble-combined
 estimate under the model of Section~\ref{sec:bayes} & Decimated epochs; under-covers
 when configurations share a bias \\ \hline
-$C_d$ & Covariance of one measurement drawn from the ensemble: calibrated
-floor plus between-configuration spread, temporal correlation, common-mode
-scale $\tau$ & Same epochs; calibrated against member errors
-(Table~\ref{tab:calibration}); blind to errors every configuration shares \\ \hline
+$C_d$ & Proposed error covariance of one ensemble member: fitted
+floor, excess spread, temporal correlation, offset scale $\tau$ & Same
+epochs; 95\% pointwise member coverage supported, 68\% overcoverage;
+temporal covariance unvalidated (Table~\ref{tab:calibration}) \\ \hline
 Field comparison $r$, slope & Agreement with a published product after matched
 smoothing & Calendar-day join, 150-day burn-in, trailing 90-day mean
 (Section~\ref{sec:deployment}) \\
@@ -1374,18 +1381,22 @@ covariance}\label{sec:bayes}
 
 If the processing choice controls the answer, the principled response is
 not to select a single pipeline but to treat the choice as a
-\textbf{nuisance parameter} with a prior and marginalise it out. We
-propose this as the new best practice for the \dvv~\emph{measurement},
-and implement it as a Bayesian hierarchical inversion. For configuration
-\(k\) drawn from a prior over reasonable pipelines we obtain a measured
-series \(m_k(t)\) with a coherence-limited within-method floor
-\(\sigma_k(t)\) \citep{Weaver2011, Clarke2011}, and posit
-\begin{equation}
+\textbf{nuisance parameter} with a prior and assess its influence. We
+explore a Bayesian hierarchical model for the \dvv~\emph{measurement},
+conditional on a specified pipeline menu. For configuration \(k\) drawn
+from a prior over reasonable pipelines we obtain a measured series
+\(m_k(t)\) with a coherence-limited within-method floor \(\sigma_k(t)\)
+\citep{Weaver2011, Clarke2011}, and posit \begin{equation}
 m_k(t) = \mu(t) + \beta_k + \varepsilon_k(t), \qquad
 \beta_k\sim\mathcal N(0,\tau^2),\quad
 \varepsilon_k(t)\sim\mathcal N\!\big(0,\,s^2\sigma_k(t)^2\big),
 \label{eq:bayes}
-\end{equation} with a second-difference smoothness prior of precision
+\end{equation} The likelihood treats residuals as conditionally
+independent across configurations and epochs. Shared input waveforms do
+not ensure this assumption. Fitting all member outputs jointly is not
+the same operation as marginalising a discrete mixture of alternative
+pipelines. The posterior is therefore conditional on this working
+likelihood. We use a second-difference smoothness prior of precision
 \(\lambda\) on the latent true series \(\mu(t)\), built on the physical
 time grid so that a gap in the record is a gap in the prior. Here
 \(\beta_k\) is configuration \(k\)'s constant offset (the systematic
@@ -1398,19 +1409,22 @@ scheme and coherence gate all take effect; an epoch a configuration does
 not produce (reference warm-up, a gated coherence) is simply missing and
 carries no information. The hyper-priors on \(\tau^2\), \(s^2\) and
 \(\lambda\) are conjugate inverse-gamma and gamma distributions whose
-scales are small against the data terms; codameter reports the share of
-each posterior that the prior supplies, which on the synthetic below is
-a few percent for \(\tau^2\) and negligible for \(s^2\) and \(\lambda\)
-(Table~\ref{tab:calibration}). A conjugate Gibbs sampler, implemented in
-codameter with no external sampler dependency and with a banded solve
-for the smoothness update, returns the joint posterior.
+scales are small against the data terms. Codameter reports the prior
+scale term divided by the conditional posterior rate, evaluated at
+posterior means. The ratio is about 0.09 for \(\tau^2\) in the clean
+scenario and below 0.01 for \(s^2\) and \(\lambda\)
+(Table~\ref{tab:calibration}). This diagnostic does not measure the
+total influence of the prior or establish sampler convergence. A
+conjugate Gibbs sampler, implemented in codameter with no external
+sampler dependency and with a banded solve for the smoothness update,
+returns the joint posterior.
 
 The model yields two distinct objects, and conflating them is a common
 error (Fig.~\ref{fig:bayes}; Table~\ref{tab:estimands}). The posterior
 of \(\mu\) is the precision of the \emph{combined} estimate: it is tight
-and shrinks with ensemble size. The object a downstream depth or stress
-inversion must consume when it takes a single \dvv~series as data is the
-\textbf{single-measurement covariance} \begin{equation}
+and shrinks with ensemble size under the working likelihood. Separately,
+we construct a candidate \textbf{single-member error covariance}
+\begin{equation}
 C_d(t,t') = \underbrace{D R D}_{\text{calibrated floor}\,\oplus\,\text{excess spread},\ \text{temporally correlated}}
 \;+\; \underbrace{\tau^2\,\mathbf{1}\mathbf{1}^\top}_{\text{common mode}},
 \qquad D=\operatorname{diag}\!\big(\sigma_{\mathrm{tot}}(t)\big),
@@ -1422,8 +1436,14 @@ the calibrated floor plus whatever spread across configurations exceeds
 it (so that the floor is not counted twice), and
 \(R_{ij}=e^{-|t_i-t_j|/L}\) for a correlation length \(L\) estimated
 from the ensemble residuals. \(C_d\) is constructed from the fitted
-model, not sampled; it is the covariance of one measurement drawn from
-the ensemble, not of \(\mu\).
+model, not sampled. It targets the error of one measurement drawn from
+the ensemble, not of \(\mu\). The between-configuration offset scale
+\(\tau\) does not identify an error shared by all configurations.
+Pointwise coverage tests only the diagonal scale; it does not validate
+\(R\) or the rank-one term. A downstream inversion needs the error
+covariance of its actual input estimate. Neither using this \(C_d\) for
+the ensemble mean nor interpreting its time axes as frequency-band axes
+is justified here.
 
 Two properties of the fit deserve to be stated plainly. First,
 \(s\approx 12\) on this synthetic: the residual scatter of the members
@@ -1434,10 +1454,10 @@ rescale is what makes it usable. Second, once \(s\) is fitted on those
 residuals, the calibrated floor absorbs nearly all of the
 between-configuration spread, and the excess term of eq.~\ref{eq:cd} is
 non-zero only at the epochs where the configurations disagree more than
-they usually do (Fig.~\ref{fig:bayes}c). The temporal correlation
-(\(L\approx 40\) days at a 4-day cadence) and the common-mode term
-collapse the effective number of independent epochs from 229 to a few
-tens.
+they usually do (Fig.~\ref{fig:bayes}c). The assumed temporal
+correlation (\(L\approx 40\) days at a 4-day cadence) and the
+common-mode term collapse the effective number of independent epochs
+from 229 to a few tens.
 
 Whether these intervals mean what they say is a question one realisation
 cannot answer, so we repeat the whole measurement on independent
@@ -1445,41 +1465,41 @@ realisations of the same scenario (Table~\ref{tab:calibration}; the
 driver is \texttt{codameter.calibration}). Three coverages answer three
 different questions. The fraction of member epochs whose error against
 the truth lies within \(1.96\,\sigma_{C_d}\) is 0.956 on 200
-realisations, within the margin of \(\pm 0.03\) fixed before the run:
-\(C_d\) is calibrated as the covariance of a single measurement at the
-95,\% level. At the 68,\% level it covers 0.81, so the member residuals
-are more peaked than a Gaussian. The 95,\% credible band on \(\mu\)
+realisations, within the margin of \(\pm 0.03\) fixed before the run.
+This supports the 95,\% pointwise interval on this scenario, not
+calibration of the entire covariance. At the 68,\% level it covers 0.81
+and fails the same margin. One Gaussian scale therefore does not
+calibrate both interval levels. The 95,\% credible band on \(\mu\)
 contains the truth at only 0.59 of the epochs: the ensemble mean
 inherits the biases its members share (the stacking that rounds the
 drop, the estimator biases at low coherence), and no amount of averaging
 over configurations removes them, which is what the posterior's
-precision cannot know. An earlier draft of this paper compared \(\mu\)
-with \(\pm 2\sigma_{C_d}\) and read the resulting 100,\% coverage as
-nominal; that comparison mixes the ensemble mean with a
-single-measurement scale and over-covers by construction, and we no
-longer make it. The other two scenarios of Table~\ref{tab:calibration}
-inject artefacts that every configuration sees identically. A station
-clock drift leaves every statistic unchanged, because a
-lapse-independent shift appears with opposite signs on the causal and
-acausal branches (Section~\ref{sec:artifacts}) and every configuration
-in this ensemble measures both branches together, so the drift cancels
-in the estimate; that is a property of the two-branch measurement, not
-evidence that the ensemble could have detected it. A seasonal source
-effect confined to the late coda, the waveform-level artefact of
-\citet{Zhan2013} (Section~\ref{sec:artifacts}), is the genuine shared
-error: it warps the coda every configuration measures, and on that
-scenario the credible band covers the truth at only 0.34 of the epochs
-and the RMSE of \(\mu\) more than doubles, from 0.067 to 0.161,\%, while
-the member-level coverage of \(C_d\) stays at 0.95. That last number is
-right for a reason that gives no comfort: the artefact also inflates the
-scatter that \(s\) absorbs, so \(C_d\) widens, but its coherent part
-biases every member and the ensemble mean together and leaves no trace
-in their spread. That is the limit of the method, not a defect of the
-fit: an ensemble over processing choices can only reveal the errors on
-which its members disagree, and an error shared by every pipeline (a
-source change, a contaminated reference, a clock drift measured on one
-branch) needs an independent diagnostic, such as the branch asymmetry of
-Section~\ref{sec:artifacts}.
+precision cannot know. Comparing \(\mu\) with \(\pm 2\sigma_{C_d}\)
+mixes the ensemble mean with a single-member scale and yields nearly
+complete coverage here; it does not validate the uncertainty of the
+combined estimate. The other two scenarios of
+Table~\ref{tab:calibration} inject artefacts that every configuration
+sees identically. A station clock drift leaves every statistic
+unchanged, because a lapse-independent shift appears with opposite signs
+on the causal and acausal branches (Section~\ref{sec:artifacts}) and
+every configuration in this ensemble measures both branches together, so
+the drift cancels in the estimate; that is a property of the two-branch
+measurement, not evidence that the ensemble could have detected it. A
+seasonal source effect confined to the late coda, the waveform-level
+artefact of \citet{Zhan2013} (Section~\ref{sec:artifacts}), is the
+genuine shared error: it warps the coda every configuration measures,
+and on that scenario the credible band covers the truth at only 0.34 of
+the epochs and the RMSE of \(\mu\) more than doubles, from 0.067 to
+0.161,\%, while the member-level coverage of \(C_d\) stays at 0.95. That
+last number is right for a reason that gives no comfort: the artefact
+also inflates the scatter that \(s\) absorbs, so \(C_d\) widens, but its
+coherent part biases every member and the ensemble mean together and
+leaves no trace in their spread. That is the limit of the method, not a
+defect of the fit: an ensemble over processing choices can only reveal
+the errors on which its members disagree, and an error shared by every
+pipeline (a source change, a contaminated reference, a clock drift
+measured on one branch) needs an independent diagnostic, such as the
+branch asymmetry of Section~\ref{sec:artifacts}.
 
 \begin{figure}
   \centering
@@ -1533,18 +1553,21 @@ integral over depth, \begin{equation}
 \Big(\tfrac{\delta v}{v}\Big)_b = \int_0^\infty K_b(z)\,\frac{\delta V_S}{V_S}(z)\,\mathrm{d}z \;+\; \varepsilon_b,
 \label{eq:kernel}
 \end{equation} where \(K_b(z)\) is the (Rayleigh-wave) depth-sensitivity
-kernel for band \(b\) and \(\varepsilon_b\) carries that band's
-measurement covariance from Section~\ref{sec:bayes}. Stacking bands
-gives a linear system
+kernel for band \(b\) and \(\varepsilon_b\) is that band's observation
+error. Stacking bands gives a linear system
 \(\mathbf{d}=\mathbf{G}\,\mathbf{m}+\boldsymbol\varepsilon\) with
-\(\mathbf{G}_{bz}=K_b(z)\) and data covariance \(C_d\); the Bayesian
-solution under a smoothness prior returns a depth profile
-\(\delta V_S/V_S(z)\) together with its posterior covariance \(C_m(z)\),
-implemented in codameter. The bands must sit where the kernels resolve:
-too low and the kernel leaks into the half-space, too high and the coda
-is incoherent (Section~\ref{sec:params_freq}). The width of \(C_m(z)\)
---- not the profile alone --- is the deliverable, and it inherits the
-temporal correlation and common-mode structure of \(C_d\).
+\(\mathbf{G}_{bz}=K_b(z)\) and cross-band data covariance
+\(C_d^{\mathrm{band}}\). This covariance must describe the band
+estimates actually supplied. The temporal \(C_d\) in
+Section~\ref{sec:bayes} does not supply its cross-band entries. Given
+such a covariance, the Bayesian solution under a smoothness prior
+returns a depth profile \(\delta V_S/V_S(z)\) together with its
+posterior covariance \(C_m(z)\), implemented in codameter. The bands
+must sit where the kernels resolve: too low and the kernel leaks into
+the half-space, too high and the coda is incoherent
+(Section~\ref{sec:params_freq}). The width of \(C_m(z)\) --- not the
+profile alone --- is the deliverable, and it inherits the temporal
+correlation and common-mode structure of \(C_d\).
 
 One assumption is usually left implicit: that a \dvv~change is a
 shear-velocity change alone. In partially saturated ground it is not.
@@ -1789,27 +1812,30 @@ Software & Package, version, and the parameter file or its DOI \\
 
 \textbf{Quantify the choice-induced uncertainty.} Where a choice is not
 forced by the physics, it can be sampled. Pushing a distribution of
-reasonable processing choices through the same correlations yields, by
-the law of total variance, a marginal \dvv~uncertainty that includes the
-processing-choice spread, and Section~\ref{sec:bayes} makes this a
-Bayesian measurement model whose deliverable is a time-dependent
-single-measurement covariance \(C_d\). Its limitations are as important
-as its construction. The prior over pipelines is a menu, not a
-representative sample of practice, and the covariance is conditional on
-it. Every configuration transforms the same waveforms, so an error they
-all share (a source change, a contaminated reference, a clock drift
-measured on one branch) leaves no trace in their spread: on the
-shared-source scenario of Table~\ref{tab:calibration} the ensemble
-agrees with itself, the error of its mean doubles, and \(C_d\) cannot
-see it. Configurations in different bands sample different depths and
-may not estimate the same physical quantity, so the configuration axis
-should be marginalised only over pipelines that target one estimand. And
-the coherence floor of \citet{Weaver2011} is a lower bound: on our
-synthetic the residual scatter about the ensemble mean is an order of
-magnitude above it, which the fitted rescale \(s\) reports rather than
-hides. An error bar built this way is more complete than any single
-pipeline's, not automatically calibrated; Table~\ref{tab:calibration} is
-what makes it a tested claim on the scenarios listed there.
+reasonable processing choices through the same correlations measures
+conditional sensitivity. A probabilistic mixture would combine
+conditional variances and the variance of conditional means. The joint
+likelihood in Section~\ref{sec:bayes} instead defines a working Bayesian
+model whose deliverable is a time-dependent single-measurement
+covariance \(C_d\). Its limitations are as important as its
+construction. The prior over pipelines is a menu, not a representative
+sample of practice, and the covariance is conditional on it. Every
+configuration transforms the same waveforms, so an error they all share
+(a source change, a contaminated reference, a clock drift measured on
+one branch) leaves no trace in their spread: on the shared-source
+scenario of Table~\ref{tab:calibration} the ensemble agrees with itself,
+the error of its mean doubles, and \(C_d\) cannot see it. Configurations
+in different bands sample different depths and may not estimate the same
+physical quantity, so the configuration axis should be marginalised only
+over pipelines that target one estimand. And the coherence floor of
+\citet{Weaver2011} is a lower bound: on our synthetic the residual
+scatter about the ensemble mean is an order of magnitude above it, which
+the fitted rescale \(s\) reports rather than hides. The pointwise tests
+in Table~\ref{tab:calibration} support the 95,\% member intervals on the
+listed scenarios. They also expose 68,\% overcoverage and poor coverage
+of the combined estimate. They do not establish temporal covariance
+calibration, convergence across independent chains, or valid downstream
+intervals.
 
 \textbf{Make it executable.} All synthetics, estimators and generated
 figures in this paper are released in the open codameter package; one
@@ -1873,15 +1899,16 @@ study calls \(1\sigma\), all without touching the data. The remedy is
 not a single mandated pipeline but transparency: report every choice and
 name the quantity each error bar estimates, sample the choices the
 physics does not fix, carry the resulting measurement covariance into
-the inference, and release the pipeline as executable code. The
-covariance we propose is calibrated against member errors on repeated
-synthetic realisations and blind, by construction, to errors every
-configuration shares (Table~\ref{tab:calibration}); it is the input a
-depth inversion consumes, and carrying it that far is necessary, not
-sufficient, for an honest depth-resolved uncertainty, which also needs
-the kernels' own uncertainty. Converting a depth profile to stress or
-strain is a further step this paper does not attempt. We offer codameter
-as one such record; its depth stage is an interface awaiting evaluation.
+the inference after validating its target, and release the pipeline as
+executable code. Repeated synthetic realisations support the proposed
+95,\% pointwise member intervals, while the nominal 68,\% intervals
+overcover and the combined estimate's credible band undercovers
+(Table~\ref{tab:calibration}). Temporal and cross-band covariance and
+shared errors remain unvalidated. A depth inversion also needs kernel
+uncertainty and the covariance of the actual observations it consumes.
+Converting a depth profile to stress or strain is a further step this
+paper does not attempt. We offer codameter as one such record; its depth
+stage is an interface awaiting evaluation.
 
 \appendix
 
@@ -2056,21 +2083,25 @@ full-text rows.
 
 All synthetics, estimators, and generated figures in this paper are
 implemented in the open-source Python package codameter (MIT license),
-openly available at \url{https://github.com/Denolle-Lab/codameter}; the
-manuscript is built from the commit recorded in each figure's sidecar.
-\texttt{python -m codameter.figures} regenerates every generated figure
-with a \texttt{.npz} sidecar of its plotted arrays and a \texttt{.json}
-sidecar of its provenance; \texttt{python -m codameter.calibration}
-reproduces Table~\ref{tab:calibration}
-(\texttt{paper/data/calibration/}); \texttt{scripts/compare\_gate1.py}
-reproduces Table~\ref{tab:gate1} from the daily products under
-\texttt{paper/data/gate1/} and the published \citet{Clements2023} series
-archived there. The daily products and the three real-data figures were
-produced by the noisepy-dvv-cloud Gate 1 run from public Southern
-California Earthquake Data Center waveforms; the products are archived
-with the paper and the run's commit is recorded in
-\texttt{paper/data/gate1/README.md}. A versioned archive with a Zenodo
-DOI will be issued alongside publication.
+openly available at \url{https://github.com/Denolle-Lab/codameter}; each
+generated figure's sidecar records its generating commit and numerical
+arrays. The figures and manuscript can originate from different
+revisions. \texttt{python -m codameter.figures} regenerates every
+generated figure with a \texttt{.npz} sidecar of its plotted arrays and
+a \texttt{.json} sidecar of its provenance;
+\texttt{python -m codameter.calibration} reproduces
+Table~\ref{tab:calibration} (\texttt{paper/data/calibration/});
+\texttt{scripts/compare\_gate1.py} reproduces Table~\ref{tab:gate1} from
+the daily products under \texttt{paper/data/gate1/} and the published
+\citet{Clements2023} series archived there. The daily products and the
+three real-data figures were produced by the noisepy-dvv-cloud Gate 1
+run from public Southern California Earthquake Data Center waveforms;
+the products are available locally during this analysis but are not
+tracked in the repository. The exact Gate 1 run commit, run
+configuration and redistribution archive remain to be supplied; their
+current provenance limits are recorded in
+\texttt{paper/data/gate1/README.md}. A versioned archive is planned but
+has not yet been deposited.
 
 \section*{Acknowledgements}\label{acknowledgements}
 \addcontentsline{toc}{section}{Acknowledgements}
@@ -2078,14 +2109,14 @@ DOI will be issued alongside publication.
 {[}Funding, contributions and thanks to be completed by the author.{]}
 AI assistance: this manuscript was checked with the Denolle Group
 Pre-Submission Reviewer (v2.4, model Codex/GPT-6), an advisory AI tool,
-through one review iteration prior to submission; all findings were
-reviewed and adjudicated by the author, and the tool does not endorse
-the manuscript's validity. Code revisions and text edits in response to
-that review were drafted with Claude (Anthropic) under the author's
-direction and are recorded in the repository history.
+through one review iteration and a subsequent evidence reconciliation;
+final author adjudication remains to be recorded. The tool does not
+endorse manuscript validity. Code revisions and text edits in response
+to that review were drafted with Claude (Anthropic) and Codex (OpenAI)
+under the author's direction and are recorded in the repository history.
 
-\section*{REFERENCES}\label{references}
-\addcontentsline{toc}{section}{REFERENCES}
+\section*{References}\label{references}
+\addcontentsline{toc}{section}{References}
 
 \renewcommand{\bibsection}{}
 \bibliography{references.bib,survey.bib}

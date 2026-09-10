@@ -1,15 +1,18 @@
 \begin{table}
 \footnotesize
-\caption{Coverage calibration of the Bayesian measurement model over independent synthetic realisations of the volcano scenario (2.5 years, SNR 7, 4-day cadence, 12-member ensemble). Member coverage: fraction of member epochs with $|m_k(t)-\mathrm{truth}(t)|\le z\,\sigma_{C_d}(t)$, the quantity $C_d$ is a covariance of. Posterior: fraction of epochs whose 95\% credible band on $\mu$ contains the truth. $\mu\pm\sigma_{C_d}$: the comparison an earlier draft quoted, which mixes the ensemble mean with a single-measurement scale, is 1.000 in every scenario and is not tabulated. Means with standard errors across realisations; no realisation failed; $\sigma_{C_d}$, bias and RMSE in percent; prior $\tau^2$ is the fraction of the $\tau^2$ posterior supplied by its hyper-prior (the $\lambda$ share is below 0.01 throughout). Clock drift: $4\times10^{-5}$\,s/day from 40\% of the record; the two-branch measurement cancels it. Shared source: a seasonal source effect warping the coda beyond 6\,s lapse with a spurious 0.2\% seasonal \dvv, seen by every configuration. Generated from \texttt{paper/data/calibration/} by \texttt{paper/build\_calibration\_table.py}.}
+\caption{Coverage calibration of the Bayesian measurement model over independent synthetic realisations of the volcano scenario (2.5 years, SNR 7, 4-day cadence, 12-member ensemble). Member coverage: fraction of member epochs with $|m_k(t)-\mathrm{truth}(t)|\le z\,\sigma_{C_d}(t)$, the target of the proposed single-member error scale. These pointwise tests do not validate the temporal covariance. Nominal 68\% intervals overcover. Posterior: fraction of epochs whose 95\% credible band on $\mu$ contains the truth. Means with standard errors across realisations; no realisation failed; $\sigma_{C_d}$, bias and RMSE in percent; prior $\tau^2$ is the fraction of conditional posterior rate supplied by the prior scale term (the $\lambda$ ratio is below 0.01 throughout). Clock drift: $4\times10^{-5}$\,s/day from 40\% of the record; the two-branch measurement cancels it. Shared source: a seasonal source effect warping the coda beyond 6\,s lapse with a spurious 0.2\% seasonal \dvv, seen by every configuration. Generated from \texttt{paper/data/calibration/} by \texttt{paper/build\_calibration\_table.py}.}
 \label{tab:calibration}
-\scriptsize
-\begin{tabular}{@{}lrlllrrrr@{}}
+\begin{tabularx}{\textwidth}{@{}Lrrr@{}}
 \toprule
-Scenario & $n$ & member 68\% & member 95\% & posterior 95\% & med.\ $\sigma_{C_d}$ & bias & RMSE($\mu$) & prior $\tau^2$ \\
+Quantity & clean ($n=200$) & shared source ($n=200$) & clock drift ($n=200$) \\
 \midrule
-clean & 200 & 0.808 $\pm$ 0.001 & 0.956 $\pm$ 0.000 & 0.590 $\pm$ 0.004 & 0.225 $\pm$ 0.001 & -0.017 $\pm$ 0.001 & 0.067 $\pm$ 0.000 & 0.09 $\pm$ 0.01 \\
-shared source & 200 & 0.795 $\pm$ 0.001 & 0.950 $\pm$ 0.000 & 0.340 $\pm$ 0.004 & 0.330 $\pm$ 0.001 & -0.045 $\pm$ 0.001 & 0.161 $\pm$ 0.001 & 0.02 $\pm$ 0.00 \\
-clock drift & 200 & 0.804 $\pm$ 0.001 & 0.954 $\pm$ 0.000 & 0.604 $\pm$ 0.004 & 0.222 $\pm$ 0.001 & -0.019 $\pm$ 0.001 & 0.066 $\pm$ 0.000 & 0.08 $\pm$ 0.01 \\
+Member 68\% & 0.808 $\pm$ 0.001 & 0.795 $\pm$ 0.001 & 0.804 $\pm$ 0.001 \\
+Member 95\% & 0.9561 $\pm$ 0.0003 & 0.9496 $\pm$ 0.0004 & 0.9543 $\pm$ 0.0003 \\
+Posterior 95\% & 0.590 $\pm$ 0.004 & 0.340 $\pm$ 0.004 & 0.604 $\pm$ 0.004 \\
+Median $\sigma_{C_d}$ (\%) & 0.225 $\pm$ 0.001 & 0.330 $\pm$ 0.001 & 0.222 $\pm$ 0.001 \\
+Bias (\%) & -0.017 $\pm$ 0.001 & -0.045 $\pm$ 0.001 & -0.019 $\pm$ 0.001 \\
+RMSE($\mu$) (\%) & 0.0669 $\pm$ 0.0005 & 0.161 $\pm$ 0.001 & 0.0656 $\pm$ 0.0005 \\
+Prior scale share $\tau^2$ & 0.09 $\pm$ 0.01 & 0.025 $\pm$ 0.005 & 0.08 $\pm$ 0.01 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}

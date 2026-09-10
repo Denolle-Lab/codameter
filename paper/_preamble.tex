@@ -79,3 +79,8 @@
 \AtBeginEnvironment{tabular}{\singlespacing}
 \AtBeginEnvironment{tabularx}{\singlespacing}
 \AtBeginEnvironment{longtable}{\singlespacing}
+
+% The full manuscript title overflows GJI's odd-page running header.
+\makeatletter
+\AtBeginDocument{\gdef\@shorttitle{Processing choices in seismic velocity monitoring}}
+\makeatother
