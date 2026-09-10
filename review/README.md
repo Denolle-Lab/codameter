@@ -82,3 +82,5 @@ Author adjudication has not yet been recorded. The statement deliberately does n
 ## Ledger for the next iteration
 
 Use [codameter-gji.review.json](codameter-gji.review.json) as the authoritative ledger. Every finding is currently `OPEN`. Preserve the manuscript hash and provide a revision diff. Reconcile findings using their stable identifiers and required evidence. The CSV offers a readable working view.
+
+Live copy for the reviewer skill: `reviews/codameter-gji.review.json` (converted 2026-09-10; this file stays frozen as the iteration-1 record).
