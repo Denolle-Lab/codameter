@@ -164,7 +164,7 @@ module = "codameter.frugalmind"
 disable_error_code = ["operator", "no-any-return"]
 
 [[tool.mypy.overrides]]
-module = "codameter.use_cases"
+module = ["codameter.use_cases", "codameter.bench"]
 disable_error_code = ["no-any-return"]
 
 [[tool.mypy.overrides]]

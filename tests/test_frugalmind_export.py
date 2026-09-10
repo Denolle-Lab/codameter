@@ -163,10 +163,8 @@ def test_rms_on_support_matches_oracle_for_reference_pipeline():
     assert rms_new == pytest.approx(
         golden._rms(dvv, d["truth"], d["days"], valid), rel=1e-12
     )
-    # rel=1e-6, not tighter: generate() serves float32 from the cache while the
-    # manifest was computed on fresh float64 arrays (audit DET-02; step E).
     assert rms_new == pytest.approx(
-        golden.expected_metrics(case["id"])["rms"], rel=1e-6
+        golden.expected_metrics(case["id"])["rms"], rel=1e-9
     )
 
 

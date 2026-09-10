@@ -22,21 +22,26 @@ any array runner):
 
 Run ``codameter-bench --help``.
 """
+
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import re
 import sys
-from functools import lru_cache
+from collections import Counter
+from collections.abc import Iterator
+from functools import cache
 from itertools import product
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import numpy as np
 
 from . import golden
 from . import use_cases as uc
+from ._version import __version__
 from .deviations import metrics
 
 # ---------------------------------------------------------------------------
@@ -52,20 +57,29 @@ GRIDS: dict[str, dict[str, Any]] = {
     # Small, fast: for `plan`, tests, and smoke runs.
     "compact": {
         "estimator": ["stretching (TS)", "MWCS"],
-        "band": "rec", "window": "rec", "stack": "rec",
-        "reference": ["fixed", "moving"], "gate": [True],
+        "band": "rec",
+        "window": "rec",
+        "stack": "rec",
+        "reference": ["fixed", "moving"],
+        "gate": [True],
     },
     # The default massive sweep: hundreds of cells per case.
     "multiverse": {
         "estimator": ESTIMATORS_ALL,
-        "band": "variants", "window": "variants", "stack": [None, 1, 45],
-        "reference": ["fixed", "moving", "inversion"], "gate": [True, False],
+        "band": "variants",
+        "window": "variants",
+        "stack": [None, 1, 45],
+        "reference": ["fixed", "moving", "inversion"],
+        "gate": [True, False],
     },
     # Everything, for an overnight run.
     "wide": {
         "estimator": ESTIMATORS_ALL,
-        "band": "variants", "window": "variants", "stack": [None, 1, 5, 20, 60],
-        "reference": ["fixed", "moving", "inversion"], "gate": [True, False],
+        "band": "variants",
+        "window": "variants",
+        "stack": [None, 1, 5, 20, 60],
+        "reference": ["fixed", "moving", "inversion"],
+        "gate": [True, False],
     },
 }
 
@@ -113,15 +127,24 @@ def build_grid(case: dict, grid: str = "multiverse") -> list[dict]:
     else:
         bands = _axis_values(rec["band"], spec["band"], _band_variants)
     windows = _axis_values(rec["window"], spec["window"], _window_variants)
-    stacks = [rec["stack"] if s is None else s for s in
-              _axis_values(rec["stack"], spec["stack"], None)]
+    stacks = [
+        rec["stack"] if s is None else s
+        for s in _axis_values(rec["stack"], spec["stack"], None)
+    ]
     configs = []
     for est, band, window, stack, ref, gate in product(
         spec["estimator"], bands, windows, stacks, spec["reference"], spec["gate"]
     ):
-        configs.append({"estimator": est, "band": tuple(band),
-                        "window": tuple(window), "stack": int(stack),
-                        "reference": ref, "gate": bool(gate)})
+        configs.append(
+            {
+                "estimator": est,
+                "band": tuple(band),
+                "window": tuple(window),
+                "stack": int(stack),
+                "reference": ref,
+                "gate": bool(gate),
+            }
+        )
     return configs
 
 
@@ -154,7 +177,9 @@ def parse_shard(spec: str | None) -> tuple[int, int]:
     if spec:
         k, n = spec.split("/")
         return int(k), int(n)
-    idx = os.environ.get("AWS_BATCH_JOB_ARRAY_INDEX") or os.environ.get("CODAMETER_SHARD_INDEX")
+    idx = os.environ.get("AWS_BATCH_JOB_ARRAY_INDEX") or os.environ.get(
+        "CODAMETER_SHARD_INDEX"
+    )
     cnt = os.environ.get("CODAMETER_SHARDS")
     if idx is not None and cnt is not None:
         return int(idx), int(cnt)
@@ -164,7 +189,7 @@ def parse_shard(spec: str | None) -> tuple[int, int]:
 # ---------------------------------------------------------------------------
 # Scoring one cell
 # ---------------------------------------------------------------------------
-@lru_cache(maxsize=None)
+@cache
 def _case(case_id: str) -> dict:
     """Load a case's arrays once per process (deterministic, disk-cached)."""
     return golden.generate(case_id)
@@ -175,13 +200,19 @@ def score_cell(case_id: str, config_index: int, cfg: dict) -> dict:
     case = golden.CASES_BY_ID[case_id]
     use_case = case["use_case"]
     row = {
-        "case_id": case_id, "use_case": use_case, "grade": case["grade"],
+        "case_id": case_id,
+        "use_case": use_case,
+        "grade": case["grade"],
         "config_index": config_index,
-        "estimator": cfg["estimator"], "band": list(cfg["band"]),
-        "window": list(cfg["window"]), "stack": cfg["stack"],
-        "reference": cfg["reference"], "gate": cfg["gate"],
+        "estimator": cfg["estimator"],
+        "band": list(cfg["band"]),
+        "window": list(cfg["window"]),
+        "stack": cfg["stack"],
+        "reference": cfg["reference"],
+        "gate": cfg["gate"],
         "target": case.get("target"),
         "eps_max": uc.eps_max(use_case),
+        "codameter_version": __version__,
     }
     try:
         d = _case(case_id)
@@ -190,9 +221,13 @@ def score_cell(case_id: str, config_index: int, cfg: dict) -> dict:
         # to the plain pipeline for single-channel ones.
         dvv, valid = golden.recover(d, cfg, row["eps_max"])
         m = metrics(dvv, d["truth"], d["days"], valid)
-        row.update(rms=golden._rms(dvv, d["truth"], d["days"], valid),
-                   drop_err=m["drop_err"], n_valid=int(np.sum(valid)), ok=True,
-                   error=None)
+        row.update(
+            rms=golden._rms(dvv, d["truth"], d["days"], valid),
+            drop_err=m["drop_err"],
+            n_valid=int(np.sum(valid)),
+            ok=True,
+            error=None,
+        )
     except Exception as exc:  # a bad cell must not kill the shard
         row.update(rms=None, drop_err=None, n_valid=0, ok=False, error=str(exc))
     return row
@@ -205,8 +240,15 @@ def _score_star(args):
 # ---------------------------------------------------------------------------
 # Sweep driver
 # ---------------------------------------------------------------------------
-def run_sweep(*, case_ids: list[str], grid: str, k: int, n: int,
-              jobs: int = 1, progress_every: int = 200) -> list[dict]:
+def run_sweep(
+    *,
+    case_ids: list[str],
+    grid: str,
+    k: int,
+    n: int,
+    jobs: int = 1,
+    progress_every: int = 200,
+) -> list[dict]:
     """Score this shard's cells and return the rows (unwritten)."""
     items = shard(work_items(case_ids, grid), k, n)
     # Pre-generate the shard's unique cases to disk once, so parallel workers
@@ -217,6 +259,7 @@ def run_sweep(*, case_ids: list[str], grid: str, k: int, n: int,
     rows: list[dict] = []
     if jobs and jobs > 1:
         from concurrent.futures import ProcessPoolExecutor
+
         with ProcessPoolExecutor(max_workers=jobs) as ex:
             for i, row in enumerate(ex.map(_score_star, items, chunksize=4), 1):
                 rows.append(row)
@@ -236,12 +279,16 @@ def run_sweep(*, case_ids: list[str], grid: str, k: int, n: int,
 def _write_jsonl(rows: list[dict], out: str, name: str) -> str:
     """Write ``rows`` to ``<out>/<name>``; ``out`` may be a local dir or s3://."""
     body = "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows)
+    return _write_text(body, out, name)
+
+
+def _write_text(body: str, out: str, name: str) -> str:
     if out.startswith("s3://"):
         import tempfile
 
         import boto3  # optional; only needed for s3 output
 
-        bucket, _, prefix = out[len("s3://"):].partition("/")
+        bucket, _, prefix = out[len("s3://") :].partition("/")
         key = f"{prefix.rstrip('/')}/{name}" if prefix else name
         with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False) as fh:
             fh.write(body)
@@ -256,25 +303,80 @@ def _write_jsonl(rows: list[dict], out: str, name: str) -> str:
     return str(path)
 
 
-def _read_jsonl_dir(src: str) -> Iterator[dict]:
+_SHARD_RE = re.compile(r"shard-(\d+)-of-(\d+)\.jsonl$")
+
+
+def _read_jsonl_dir(src: str) -> Iterator[tuple[str, dict]]:
+    """Yield ``(shard_file_name, row)`` for every row under ``src``."""
     if src.startswith("s3://"):
         import boto3
 
-        bucket, _, prefix = src[len("s3://"):].partition("/")
+        bucket, _, prefix = src[len("s3://") :].partition("/")
         s3 = boto3.client("s3")
         for obj in s3.get_paginator("list_objects_v2").paginate(
-                Bucket=bucket, Prefix=prefix):
+            Bucket=bucket, Prefix=prefix
+        ):
             for it in obj.get("Contents", []):
                 if it["Key"].endswith(".jsonl"):
                     body = s3.get_object(Bucket=bucket, Key=it["Key"])["Body"].read()
                     for line in body.decode().splitlines():
                         if line.strip():
-                            yield json.loads(line)
+                            yield Path(it["Key"]).name, json.loads(line)
     else:
         for path in sorted(Path(src).glob("shard-*.jsonl")):
             for line in path.read_text().splitlines():
                 if line.strip():
-                    yield json.loads(line)
+                    yield path.name, json.loads(line)
+
+
+def check_shards(pairs: list[tuple[str, dict]]) -> dict:
+    """Inventory a set of shard rows and list what stops them being merged.
+
+    A merge is complete only if every shard ``k`` of the declared ``N`` is
+    present, every ``(case_id, config_index)`` cell appears exactly once, and
+    all rows come from one codameter version (audit SCALE-02). Retries that
+    rewrite a shard file are fine; a shard appended twice is not.
+    """
+    names = sorted({n for n, _ in pairs})
+    ks: set[int] = set()
+    ns: set[int] = set()
+    unparsed = []
+    for n in names:
+        m = _SHARD_RE.search(n)
+        if not m:
+            unparsed.append(n)
+            continue
+        ks.add(int(m.group(1)))
+        ns.add(int(m.group(2)))
+    problems = []
+    if unparsed:
+        problems.append(f"unrecognised shard file name(s): {unparsed}")
+    if len(ns) > 1:
+        problems.append(f"shard files declare different shard counts: {sorted(ns)}")
+    n_shards = next(iter(ns)) if len(ns) == 1 else 0
+    missing = sorted(set(range(n_shards)) - ks)
+    if missing:
+        problems.append(f"missing shard(s) {missing} of {n_shards}")
+    cells = Counter((r.get("case_id"), r.get("config_index")) for _, r in pairs)
+    dups = sorted(c for c, k in cells.items() if k > 1)
+    if dups:
+        problems.append(
+            f"duplicate cell(s): {dups[:10]}{' ...' if len(dups) > 10 else ''}"
+        )
+    versions = sorted({str(r.get("codameter_version")) for _, r in pairs})
+    if len(versions) > 1:
+        problems.append(f"rows from different codameter versions: {versions}")
+    return {
+        "n_shards": n_shards,
+        "shards_present": sorted(ks),
+        "missing": missing,
+        "duplicate_cells": len(dups),
+        "codameter_versions": versions,
+        "n_rows": len(pairs),
+        "unique_cells": len(cells),
+        "problems": problems,
+        "complete": not problems,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -291,18 +393,24 @@ def _cmd_plan(args) -> int:
     items = work_items(case_ids, args.grid)
     k, n = parse_shard(args.shard)
     per = [len(shard(items, i, n)) for i in range(n)]
-    print(f"grid={args.grid}  cases={len(case_ids)}  configs/case="
-          f"{len(build_grid(golden.CASES_BY_ID[case_ids[0]], args.grid))}")
-    print(f"total cells={len(items)}  shards={n}  "
-          f"cells/shard: min={min(per)} max={max(per)}")
+    print(
+        f"grid={args.grid}  cases={len(case_ids)}  configs/case="
+        f"{len(build_grid(golden.CASES_BY_ID[case_ids[0]], args.grid))}"
+    )
+    print(
+        f"total cells={len(items)}  shards={n}  "
+        f"cells/shard: min={min(per)} max={max(per)}"
+    )
     return 0
 
 
 def _cmd_sweep(args) -> int:
     case_ids = _all_case_ids(args.cases)
     k, n = parse_shard(args.shard)
-    print(f"sweep grid={args.grid} shard={k}/{n} cases={len(case_ids)} "
-          f"jobs={args.jobs}", file=sys.stderr)
+    print(
+        f"sweep grid={args.grid} shard={k}/{n} cases={len(case_ids)} jobs={args.jobs}",
+        file=sys.stderr,
+    )
     rows = run_sweep(case_ids=case_ids, grid=args.grid, k=k, n=n, jobs=args.jobs)
     name = f"shard-{k:05d}-of-{n:05d}.jsonl"
     where = _write_jsonl(rows, args.out, name)
@@ -312,11 +420,32 @@ def _cmd_sweep(args) -> int:
 
 
 def _cmd_aggregate(args) -> int:
-    rows = list(_read_jsonl_dir(args.src))
-    if not rows:
+    pairs = list(_read_jsonl_dir(args.src))
+    if not pairs:
         print("no shard rows found", file=sys.stderr)
         return 1
+    inventory = check_shards(pairs)
+    allow_partial = bool(getattr(args, "allow_partial", False))
+    for problem in inventory["problems"]:
+        print(f"aggregate: {problem}", file=sys.stderr)
+    fatal = [
+        p
+        for p in inventory["problems"]
+        if not (allow_partial and p.startswith("missing shard"))
+    ]
+    if fatal:
+        print(
+            "aggregate: refusing to merge; --allow-partial accepts missing "
+            "shards only, never duplicates or mixed versions",
+            file=sys.stderr,
+        )
+        return 1
+    rows = [r for _, r in pairs]
     where = _write_jsonl(rows, args.out, "sweep.jsonl")
+    inventory["n_ok"] = sum(bool(r.get("ok")) for r in rows)
+    _write_text(
+        json.dumps(inventory, indent=1) + "\n", args.out, "aggregate_manifest.json"
+    )
     # Compact per-case summary: best config by RMS.
     best: dict[str, dict] = {}
     for r in rows:
@@ -328,34 +457,52 @@ def _cmd_aggregate(args) -> int:
     print(f"aggregated {len(rows)} rows -> {where}")
     for cid in sorted(best):
         b = best[cid]
-        print(f"  {cid:<24} best rms={b['rms']*100:.4f}%  "
-              f"{b['estimator']} band={b['band']} ref={b['reference']}")
+        print(
+            f"  {cid:<24} best rms={b['rms'] * 100:.4f}%  "
+            f"{b['estimator']} band={b['band']} ref={b['reference']}"
+        )
     return 0
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="codameter-bench", description=__doc__.split("\n")[0])
+    p = argparse.ArgumentParser(
+        prog="codameter-bench", description=__doc__.split("\n")[0]
+    )
     sub = p.add_subparsers(dest="command", required=True)
 
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--grid", default="multiverse", choices=sorted(GRIDS))
-    common.add_argument("--cases", default="all",
-                        help="'all' or a comma-separated list of case ids")
-    common.add_argument("--shard", default=None,
-                        help="k/N; else read AWS_BATCH_JOB_ARRAY_INDEX + CODAMETER_SHARDS")
+    common.add_argument(
+        "--cases", default="all", help="'all' or a comma-separated list of case ids"
+    )
+    common.add_argument(
+        "--shard",
+        default=None,
+        help="k/N; else read AWS_BATCH_JOB_ARRAY_INDEX + CODAMETER_SHARDS",
+    )
 
     sp = sub.add_parser("plan", parents=[common], help="count work items / shards")
     sp.set_defaults(func=_cmd_plan)
 
     ss = sub.add_parser("sweep", parents=[common], help="score this shard's cells")
     ss.add_argument("--out", required=True, help="local dir or s3:// prefix")
-    ss.add_argument("--jobs", type=int, default=int(os.environ.get("CODAMETER_JOBS", "1")),
-                    help="parallel worker processes for this shard")
+    ss.add_argument(
+        "--jobs",
+        type=int,
+        default=int(os.environ.get("CODAMETER_JOBS", "1")),
+        help="parallel worker processes for this shard",
+    )
     ss.set_defaults(func=_cmd_sweep)
 
     sa = sub.add_parser("aggregate", help="merge shard-*.jsonl into one table")
     sa.add_argument("--src", required=True, help="dir or s3:// prefix of shard files")
     sa.add_argument("--out", required=True, help="local dir or s3:// prefix")
+    sa.add_argument(
+        "--allow-partial",
+        action="store_true",
+        help="merge even if shards are missing (recorded in "
+        "aggregate_manifest.json); duplicates still refuse",
+    )
     sa.set_defaults(func=_cmd_aggregate)
 
     args = p.parse_args(argv)

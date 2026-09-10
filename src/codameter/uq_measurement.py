@@ -51,6 +51,7 @@ References
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass
 
@@ -444,12 +445,21 @@ class GlobalReferenceSolution:
         Number of window pairs used.
     residual_rms : float
         RMS weighted residual of the fit.
+    component : np.ndarray, shape (n_epoch,)
+        Connected-component label of each epoch in the pair graph. Offsets
+        between components are unidentified; each component carries its own
+        sum-zero datum. An epoch in a component of size one is unidentified
+        altogether and has ``dvv`` and ``sigma`` equal to NaN (audit INV-02).
+    n_components : int
+        Number of connected components.
     """
 
     dvv: np.ndarray
     cov: np.ndarray
     n_pairs: int
     residual_rms: float
+    component: np.ndarray | None = None
+    n_components: int = 1
 
     @property
     def sigma(self) -> np.ndarray:
@@ -511,22 +521,49 @@ def global_reference_inversion(
     if np.any(s <= 0):
         raise ValueError("pair_sigma must be positive")
 
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import connected_components
+
     g = np.zeros((n_pairs, n_epoch))
     rows = np.arange(n_pairs)
     g[rows, i_idx] = 1.0
     g[rows, j_idx] = -1.0
     w = 1.0 / s**2
 
+    # Identifiability: the pair graph must connect the epochs. Each connected
+    # component has its own unidentified offset; a lone epoch is unidentified.
+    adjacency = coo_matrix((np.ones(n_pairs), (i_idx, j_idx)), shape=(n_epoch, n_epoch))
+    n_components, labels = connected_components(adjacency, directed=False)
+    isolated = np.bincount(labels, minlength=n_components)[labels] == 1
+    if n_components > 1:
+        warnings.warn(
+            f"pair graph has {n_components} connected components "
+            f"({int(isolated.sum())} isolated epoch(s)); offsets between "
+            "components are unidentified and are set to a per-component datum",
+            UserWarning,
+            stacklevel=2,
+        )
+
     gtwg = g.T @ (w[:, None] * g)
     gtwd = g.T @ (w * d)
     cov = np.linalg.pinv(gtwg)
     m = cov @ gtwd
-    m = m - m.mean()  # impose the sum-zero datum (min-norm gauge)
+    for c in range(n_components):  # per-component sum-zero datum (min-norm gauge)
+        sel = labels == c
+        m[sel] = m[sel] - m[sel].mean()
+    m[isolated] = np.nan
+    cov[isolated, :] = np.nan
+    cov[:, isolated] = np.nan
 
     resid = g @ m - d
     residual_rms = float(np.sqrt(np.mean(w * resid**2)))
     return GlobalReferenceSolution(
-        dvv=m, cov=cov, n_pairs=n_pairs, residual_rms=residual_rms
+        dvv=m,
+        cov=cov,
+        n_pairs=n_pairs,
+        residual_rms=residual_rms,
+        component=labels,
+        n_components=int(n_components),
     )
 
 

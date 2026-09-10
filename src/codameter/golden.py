@@ -39,6 +39,7 @@ from pathlib import Path
 import numpy as np
 
 from . import use_cases as uc
+from ._version import __version__
 from .deviations import run_pipeline
 from .synthetic_demo import _days, _seasonal, daily_ccfs, make_coda
 
@@ -514,43 +515,71 @@ def _recipe_hash(recipe: dict) -> str:
     return hashlib.sha1(blob.encode()).hexdigest()[:8]
 
 
-def generate(case_id: str, *, cache: bool = True) -> dict:
-    """Return the arrays for a case: ``{ccfs, t, days, truth, fs, use_case, grade}``
-    plus ``channels`` (3D) for multi-channel cases.
+def _generator_hash() -> str:
+    """Short digest of the synthesis code: package version plus the source of
+    this module and :mod:`codameter.synthetic_demo`. Part of the cache key, so
+    a generator edit can never serve arrays built by older code (audit DET-02).
+    """
+    import hashlib
 
-    Deterministic in the seed. Cached to ``cache/<id>-<recipe_hash>.npz`` (the hash
-    busts the cache when a recipe changes). ``regenerate_manifest`` uses
-    ``cache=False`` so a synthesis-*code* change (not captured by the hash) never
-    scores against stale arrays.
+    from . import synthetic_demo
+
+    h = hashlib.sha1(__version__.encode())
+    for src in (__file__, synthetic_demo.__file__):
+        h.update(Path(src).read_bytes())
+    return h.hexdigest()[:8]
+
+
+def generate(case_id: str, *, cache: bool = True) -> dict:
+    """Return the arrays for a case: ``{ccfs, t, days, truth, fs, use_case, grade,
+    recipe_hash, generator_hash}`` plus ``channels`` (3D) for multi-channel cases.
+
+    Deterministic in the seed. Cached to
+    ``cache/<id>-<recipe_hash>-<generator_hash>.npz``: the recipe hash busts the
+    cache when a recipe changes, the generator hash when the synthesis code or
+    the package version changes. Arrays are stored at full precision and the
+    file is written atomically, so the cold, warm and ``cache=False`` routes
+    return identical arrays. Stale cache files for the same case are removed.
     """
     recipe = CASES_BY_ID[case_id]
-    cache_file = CACHE_DIR / f"{case_id}-{_recipe_hash(recipe)}.npz"
+    rhash, ghash = _recipe_hash(recipe), _generator_hash()
+    cache_file = CACHE_DIR / f"{case_id}-{rhash}-{ghash}.npz"
     if cache and cache_file.exists():
         z = np.load(cache_file, allow_pickle=False)
         d = {k: z[k] for k in z.files}
         d["fs"] = float(d["fs"])
-        d["use_case"] = str(d["use_case"])
-        d["grade"] = str(d["grade"])
+        for key in ("use_case", "grade", "recipe_hash", "generator_hash"):
+            d[key] = str(d[key])
         return d
     d = _build(recipe)
+    d["recipe_hash"], d["generator_hash"] = rhash, ghash
     if cache:
+        import os
+        import tempfile
+
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        # Downcast the large CCF arrays to float32 to keep the cache small; the
-        # lapse/day/truth axes stay float64.
         payload = {
             "t": d["t"],
             "days": d["days"],
             "truth": d["truth"],
-            "ccfs": np.asarray(d["ccfs"], np.float32),
+            "ccfs": np.asarray(d["ccfs"], np.float64),
             "fs": np.asarray(d["fs"]),
             "use_case": np.asarray(d["use_case"]),
             "grade": np.asarray(d["grade"]),
+            "recipe_hash": np.asarray(rhash),
+            "generator_hash": np.asarray(ghash),
         }
         if "channels" in d:
-            payload["channels"] = np.asarray(d["channels"], np.float32)
+            payload["channels"] = np.asarray(d["channels"], np.float64)
         if "truth_other" in d:
             payload["truth_other"] = d["truth_other"]
-        np.savez_compressed(cache_file, **payload)
+        fd, tmp = tempfile.mkstemp(dir=CACHE_DIR, suffix=".npz.tmp")
+        with os.fdopen(fd, "wb") as fh:
+            np.savez_compressed(fh, **payload)
+        os.replace(tmp, cache_file)
+        for stale in CACHE_DIR.glob(f"{case_id}-*.npz"):
+            if stale != cache_file:
+                stale.unlink(missing_ok=True)
     return d
 
 

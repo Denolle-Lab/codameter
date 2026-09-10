@@ -34,13 +34,17 @@ external sampler). Its two deliverables are
 1. the marginal posterior :math:`p(\mu(t)\mid\{m_k\})` — a single
    :math:`\delta v/v` series with an uncertainty that *includes* the
    processing-choice spread; and
-2. the **data covariance** :math:`C_d = \operatorname{Cov}(\mu\mid\text{data})`
-   — a full, time-dependent :math:`T\times T` matrix, exactly the object a
-   downstream depth/stress inversion (:mod:`codameter.inverse`) should consume
-   instead of a diagonal ``dvv_err``. Its time dependence is real: the posterior
-   is wider where the ensemble disagrees (sharp transients, low coherence) and
-   its off-diagonals encode the temporal correlation the smoothness and the
-   shared methodological bias induce.
+2. a **measurement covariance** :math:`C_d`, *constructed* (not sampled) from
+   the posterior-calibrated within-method floor, the between-configuration
+   spread, an exponential temporal correlation fitted to the ensemble residuals
+   and the common-mode scale :math:`\tau` (see :class:`BayesResult`). It is the
+   object a downstream depth/stress inversion (:mod:`codameter.inverse`) should
+   consume instead of a diagonal ``dvv_err``. It is **not**
+   :math:`\operatorname{Cov}(\mu\mid\text{data})`: that is ``mu_cov``, the
+   precision of the combined estimate, which shrinks with ensemble size. Its
+   time dependence is real: it is wider where the ensemble disagrees (sharp
+   transients, low coherence) and its off-diagonals carry the temporal
+   correlation the stacking and the shared methodological bias induce.
 """
 
 from __future__ import annotations
@@ -48,6 +52,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+from scipy.linalg import cho_solve_banded, cholesky_banded, solve_banded
+from scipy.sparse import diags
 
 from .uq_measurement import (
     effective_sample_size,
@@ -255,6 +261,7 @@ def gibbs_dvv(
     within_sigma,
     times_days,
     *,
+    solver: str = "banded",
     n_iter=1500,
     burn=500,
     thin=2,
@@ -283,8 +290,19 @@ def gibbs_dvv(
     M = np.asarray(members, float)
     S2 = np.clip(np.asarray(within_sigma, float), 1e-9, None) ** 2
     K, T = M.shape
-    D = _second_difference(T)
-    DtD = D.T @ D
+    if solver not in ("banded", "dense"):
+        raise ValueError("solver must be 'banded' or 'dense'")
+    # Second-difference smoothness operator. Its normal matrix D^T D is
+    # pentadiagonal, so the mu-update (a T x T solve per iteration) is done in
+    # banded form: O(T) per iteration instead of O(T^3) time and O(T^2) memory
+    # (audit SCALE-01). ``solver="dense"`` keeps the explicit matrices for
+    # equivalence tests.
+    Dsp = diags([1.0, -2.0, 1.0], [0, 1, 2], shape=(T - 2, T), format="csr")
+    DtD_sp = (Dsp.T @ Dsp).tocsr()
+    dtd_diag = [DtD_sp.diagonal(k) for k in (0, 1, 2)]
+    if solver == "dense":
+        D = _second_difference(T)
+        DtD = D.T @ D
 
     # Initialise.
     mu = M.mean(axis=0)
@@ -298,11 +316,20 @@ def gibbs_dvv(
         # 1. mu | rest : Gaussian with precision Q = diag(prec_t) + lam*DtD.
         prec_t = np.sum(1.0 / (s2 * S2), axis=0)  # (T,)
         rhs = np.sum((M - beta[:, None]) / (s2 * S2), axis=0)  # (T,)
-        Q = np.diag(prec_t) + lam * DtD
-        L = np.linalg.cholesky(Q)
-        mean_mu = np.linalg.solve(Q, rhs)
         z = rng.standard_normal(T)
-        mu = mean_mu + np.linalg.solve(L.T, z)  # ~ N(Q^{-1}rhs, Q^{-1})
+        if solver == "dense":
+            Q = np.diag(prec_t) + lam * DtD
+            L = np.linalg.cholesky(Q)
+            mean_mu = np.linalg.solve(Q, rhs)
+            mu = mean_mu + np.linalg.solve(L.T, z)  # ~ N(Q^{-1}rhs, Q^{-1})
+        else:
+            ab = np.zeros((3, T))  # upper banded storage, two superdiagonals
+            ab[2] = prec_t + lam * dtd_diag[0]
+            ab[1, 1:] = lam * dtd_diag[1]
+            ab[0, 2:] = lam * dtd_diag[2]
+            c = cholesky_banded(ab, lower=False)  # Q = U^T U
+            mean_mu = cho_solve_banded((c, False), rhs)
+            mu = mean_mu + solve_banded((0, 2), c, z)  # U^{-1} z ~ N(0, Q^{-1})
 
         # 2. beta_k | rest : Gaussian.
         for k in range(K):
@@ -319,7 +346,7 @@ def gibbs_dvv(
         s2 = 1.0 / rng.gamma(a0 + K * T / 2.0, 1.0 / (b0 + 0.5 * ss))
 
         # 5. lambda | mu : Gamma (random-walk precision).
-        dm = D @ mu
+        dm = np.diff(mu, n=2)
         lam = rng.gamma(lam_a + (T - 2) / 2.0, 1.0 / (lam_b + 0.5 * np.sum(dm**2)))
 
         if it >= burn and (it - burn) % thin == 0:
