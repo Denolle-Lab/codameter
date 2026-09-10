@@ -6,6 +6,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## Unreleased
 
+### Added
+
+- `codameter.figures`: one driver for every generated paper figure
+  (`python -m codameter.figures --out literature/figs`). Each figure is
+  written with a `.npz` sidecar holding every plotted array (and the
+  generator's result arrays under `data/`) and a `.json` sidecar with the
+  generator, codameter version, git commit, timestamp, library versions and
+  an inventory. `paper/build.py --figures` uses it; previously the build ran
+  only the `synthetic_demo` subset and six of the manuscript's figures had
+  no generator in the build (2026-09-10 audit, REP-01). The three real-data
+  figures are documented as external in `literature/figs/SOURCES.md`.
+
 ### Changed (BREAKING)
 
 - **`weaver_stretching_error` now requires the band width** (`bandwidth_hz`;
@@ -43,6 +55,37 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   carries the rule (`version: 2`). Expected metrics in the manifest are
   unchanged (the reference pipeline has no gaps on its own support). Found by
   the 2026-09-10 pre-submission audit (EV-01).
+
+- **`linear_fit` no longer reports zero uncertainty for a parameter on an
+  active bound.** The covariance keeps the unconstrained curvature and the
+  new `LinearFitResult.at_bound` flags the parameter (also in `to_dict`).
+  A one-sided interval needs a truncated-normal treatment. (INV-02)
+
+- **`global_reference_inversion` checks the pair graph.** Each connected
+  component gets its own sum-zero datum, a warning is issued when there is
+  more than one, and an epoch with no pairs is returned as NaN in `dvv` and
+  `sigma` instead of a spurious zero. `GlobalReferenceSolution` gains
+  `component` and `n_components`. (INV-02)
+
+- **The golden cache is exact and versioned.** `golden.generate` keys the
+  cache on the recipe hash *and* a hash of the package version plus the
+  synthesis source, stores float64 (the warm route used to return float32,
+  differing from the cold route at the 1e-7 level), writes atomically,
+  removes stale files for the case, and returns `recipe_hash` and
+  `generator_hash` on every route. (DET-02)
+
+- **`codameter-bench aggregate` refuses incomplete or duplicated input.**
+  It requires every shard `k` of the declared `N`, each
+  `(case_id, config_index)` cell exactly once, and one codameter version
+  across rows (rows now carry `codameter_version`); `--allow-partial`
+  accepts missing shards only. An `aggregate_manifest.json` records the
+  inventory. `_read_jsonl_dir` now yields `(shard_name, row)`. (SCALE-02)
+
+- **`gibbs_dvv` solves the smoothness-prior update in banded form** (the
+  second-difference normal matrix is pentadiagonal), removing the dense
+  `T x T` Cholesky per iteration; `solver="dense"` keeps the explicit path
+  for equivalence tests. The module docstring no longer calls `Cd` the
+  posterior covariance of `mu`. (SCALE-01, UQ-04 wording)
 
 - **dv/v sign convention is now physical everywhere**: a velocity *increase*
   is positive; every estimator and `run_pipeline` return
