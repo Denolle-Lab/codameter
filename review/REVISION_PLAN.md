@@ -293,3 +293,5 @@ Start R1 with a concise observation-model specification.
 Use existing audit probes as unchanged baseline evidence.
 Then repair sparse scoring in R2 as the first code patch.
 These establish clear contracts before larger statistical changes.
+
+Superseded on 2026-09-10 by `EXECUTION_PLAN.md` (Fable), which records the scope decisions and the step order actually being executed.
