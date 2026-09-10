@@ -28,6 +28,7 @@ skill (live validation), and the FrugalMind ``codameter`` suites
 (:mod:`codameter.frugalmind`). All score through :func:`recover`, so a single
 code path handles both single- and multi-channel cases.
 """
+
 from __future__ import annotations
 
 import json
@@ -596,6 +597,59 @@ def _rms(dvv, truth, days, valid, baseline_frac: float = 0.2) -> float:
     return float(np.sqrt(np.mean((d0 - tr0) ** 2)))
 
 
+def scoring_support(
+    d: dict, cfg: dict, eps_max: float, baseline_frac: float = 0.2
+) -> dict:
+    """Fixed evaluation support for a case, defined by its reference pipeline.
+
+    ``support`` is the sorted list of epoch indices where ``cfg`` (the case's
+    reference configuration) returns a valid estimate; ``baseline`` is the
+    earliest ``baseline_frac`` of those epochs, the datum over which truth and
+    prediction are demeaned in :func:`rms_on_support`. Both are properties of
+    the case, never of a submission, so a submission cannot choose where it is
+    evaluated or where its zero point is taken (audit finding EV-01).
+    """
+    _, valid = recover(d, cfg, eps_max)
+    idx = np.flatnonzero(np.asarray(valid, bool))
+    if idx.size < 10:
+        raise ValueError("reference pipeline valid on fewer than 10 epochs")
+    dd = np.asarray(d["days"], float)[idx]
+    cut = np.quantile(dd, baseline_frac)
+    base = idx[dd <= cut]
+    if base.size < 2:
+        base = idx
+    return {"support": idx.tolist(), "baseline": base.tolist()}
+
+
+def rms_on_support(dvv, truth, support, baseline) -> tuple[float, float]:
+    """Baseline-aligned RMS of ``dvv`` against ``truth`` on a fixed support.
+
+    Truth and prediction are demeaned over the fixed ``baseline`` epochs (the
+    DC offset of a reference-relative dv/v is unobservable). A missing
+    (non-finite) prediction inside the support is scored as the **null
+    prediction**, i.e. zero change from the baseline, so abstaining on an
+    epoch can never improve the score and omitting every epoch scores like a
+    series of zeros. The prediction's own baseline mean is taken over its
+    finite baseline epochs; fewer than two of those means no datum and an
+    RMS of ``nan``.
+
+    Returns ``(rms, availability)`` with ``availability`` the finite fraction
+    of the support.
+    """
+    sup = np.asarray(support, int)
+    base = np.asarray(baseline, int)
+    dv = np.asarray(dvv, float)[sup]
+    tr = np.asarray(truth, float)[sup]
+    finite = np.isfinite(dv)
+    availability = float(finite.mean()) if sup.size else 0.0
+    in_base = np.isin(sup, base)
+    if (finite & in_base).sum() < 2:
+        return float("nan"), availability
+    d0 = np.where(finite, dv - dv[finite & in_base].mean(), 0.0)
+    tr0 = tr - tr[in_base].mean()
+    return float(np.sqrt(np.mean((d0 - tr0) ** 2))), availability
+
+
 def _jsonable(cfg: dict) -> dict:
     """Tuples (band, window) -> lists so the config round-trips through JSON."""
     return {k: (list(v) if isinstance(v, tuple) else v) for k, v in cfg.items()}
@@ -652,8 +706,7 @@ def regenerate_manifest() -> dict:
             entry["target"] = c["target"]
         cases.append(entry)
         print(
-            f"  {c['id']:<26} ch={c['channels']} snr={c['snr']:<4} "
-            f"rms={m['rms']:.5f}"
+            f"  {c['id']:<26} ch={c['channels']} snr={c['snr']:<4} rms={m['rms']:.5f}"
         )
     manifest = {"version": MANIFEST_VERSION, "grades": list(GRADES), "cases": cases}
     DATA_DIR.mkdir(parents=True, exist_ok=True)

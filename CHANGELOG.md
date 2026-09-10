@@ -32,6 +32,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   as `bias` and enters `rmse`, not the centred `sd` (`total` is kept as an
   alias of `sd`). Found by the 2026-09-10 pre-submission audit (UQ-02).
 
+- **The golden scorers evaluate on a fixed support.** `frugalmind._gold` now
+  records per case the epochs where the reference pipeline is valid
+  (`support`) and the earliest 20% of them (`baseline`); both scorers call
+  `golden.rms_on_support`, which demeans truth and prediction over that fixed
+  datum and scores a missing (non-finite) prediction inside the support as
+  the null prediction. Previously the support and the datum came from the
+  submission's own finite values, so ten zeros followed by nulls scored 1.0
+  on every public case. Export version is `v0.2`; `scorer_spec.config`
+  carries the rule (`version: 2`). Expected metrics in the manifest are
+  unchanged (the reference pipeline has no gaps on its own support). Found by
+  the 2026-09-10 pre-submission audit (EV-01).
+
 - **dv/v sign convention is now physical everywhere**: a velocity *increase*
   is positive; every estimator and `run_pipeline` return
   `dv/v = -eps / (1 + eps)` where `eps` is the stretch factor (exact at all
