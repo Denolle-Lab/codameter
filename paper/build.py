@@ -134,6 +134,8 @@ def main() -> int:
 
     if not args.no_survey:
         run([sys.executable, "paper/build_survey.py"], ROOT)
+    # Calibration table from the archived runs (paper/data/calibration/).
+    run([sys.executable, "paper/build_calibration_table.py"], ROOT)
 
     # Quarto reads/writes relative to the .qmd directory.
     run(["quarto", "render", source.name, "--to", "pdf"], HERE)

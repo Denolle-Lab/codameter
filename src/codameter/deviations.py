@@ -23,6 +23,7 @@ Both reuse the real estimators and truth generators in
 departure is an artefact of a choice, not of nature. The baseline and the
 deviation menus are taken from ``literature/best_practices.md``.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -405,12 +406,12 @@ def fig_deviation_ranking(rows=None):
         color=C["truth"],
         ls="--",
         lw=1.2,
-        label=f"best practice ({base.rms*PCT:.3f}%)",
+        label=f"best practice ({base.rms * PCT:.3f}%)",
     )
     ax[0].set(
         yticks=y,
         xlabel="RMS error vs truth (dv/v, %, log)",
-        title="(a) Bias injected by each deviation",
+        title="(a) RMS error of each deviation",
     )
     ax[0].set_yticklabels(labels, fontsize=10.5)
     ax[0].invert_yaxis()
@@ -471,22 +472,35 @@ def fig_multiverse_full(mv=None):
     # the point -- the colourbar flags them) but would otherwise swamp the
     # signal and make the panel unreadable.
     ax[0].set_ylim((-0.8, 0.8))
+    n_off = int(np.sum(np.nanmax(np.abs(curves * PCT), axis=1) > 0.8))
     ax[0].set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
         title=f"(a) {mv['n_pipelines']} pipelines (colour = RMS error)",
     )
-    leg = ax[0].legend(fontsize=10.5, loc="lower left", frameon=True)
-    leg.get_frame().set_facecolor("white")
-    leg.get_frame().set_alpha(0.9)
-    leg.get_frame().set_edgecolor("0.7")
+    ax[0].text(
+        0.02,
+        0.97,
+        f"{n_off} of {mv['n_pipelines']} pipelines leave the axis range",
+        transform=ax[0].transAxes,
+        fontsize=9.5,
+        va="top",
+        color="0.25",
+    )
+    ax[0].legend(
+        fontsize=10,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.18),
+        ncol=3,
+        frameon=False,
+    )
     cbar = fig.colorbar(
         plt.cm.ScalarMappable(norm=norm, cmap=cmap),
         ax=ax[0],
         fraction=0.046,
-        label="RMS vs truth",
+        label="RMS vs truth (dv/v, fraction)",
     )
-    cbar.set_label("RMS vs truth", fontsize=12)
+    cbar.set_label("RMS vs truth (dv/v, fraction)", fontsize=12)
     cbar.ax.tick_params(labelsize=10.5)
 
     # (b) first-order variance attribution.
@@ -522,13 +536,13 @@ def build_figs(outdir):
     fig_deviation_ranking(rows).savefig(
         outdir / "demo_10_deviations.png", bbox_inches="tight"
     )
-    print(f"wrote {outdir/'demo_10_deviations.png'}")
+    print(f"wrote {outdir / 'demo_10_deviations.png'}")
     print("running the full factorial multiverse (this takes a few minutes) ...")
     mv = multiverse()
     fig_multiverse_full(mv).savefig(
         outdir / "demo_11_multiverse.png", bbox_inches="tight"
     )
-    print(f"wrote {outdir/'demo_11_multiverse.png'}")
+    print(f"wrote {outdir / 'demo_11_multiverse.png'}")
     import matplotlib.pyplot as plt
 
     plt.close("all")

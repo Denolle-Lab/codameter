@@ -35,6 +35,7 @@ physical ``dv/v`` via the exact map ``dv/v = -eps/(1+eps)``
 is only accurate to :math:`O(\mathrm{eps}^2)`. A correct measurement returns
 the imposed value (verified in :func:`_self_check`).
 """
+
 from __future__ import annotations
 
 import warnings
@@ -1582,8 +1583,13 @@ def fig_aggregation(seed: int = 88):
         ylim=ylim,
         title="(a) Component aggregation: three recipes",
     )
-    leg = axA.legend(loc="lower left", fontsize=13, frameon=True)
-    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    axA.legend(
+        fontsize=12,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=2,
+        frameon=False,
+    )
     extent = [_yrs(days)[0], _yrs(days)[-1], es[0] * PCT, es[-1] * PCT]
     im = axB.imshow(
         mean_img.T,
@@ -1819,8 +1825,13 @@ def fig_window_band(seed: int = 66):
         ylim=(1e-3, 2),
         title="High-frequency coda\ndecays first",
     )
-    leg = ax.legend(loc="upper right", fontsize=12, frameon=True)
-    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    ax.legend(
+        fontsize=12,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=3,
+        frameon=False,
+    )
     ax.text(28, 1.4e-3, "fixed 20–40 s\n= noise here", color=C["bad"], fontsize=11)
     _boost_fonts(ax, tick=12, label=13.5, title=14)
     fig.tight_layout()
@@ -1934,8 +1945,13 @@ def fig_stacking(seed: int = 22):
         ylabel="dv/v (%)",
         title="Stack length trades noise vs coseismic-step sharpness",
     )
-    leg = ax.legend(loc="lower left", fontsize=12, frameon=True)
-    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    ax.legend(
+        fontsize=12,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=4,
+        frameon=False,
+    )
     _boost_fonts(ax, tick=12, label=14, title=14.5)
     fig.tight_layout()
     return fig
@@ -1990,8 +2006,13 @@ def fig_reference(seed: int = 33):
         ylabel="dv/v (%)",
         title="Uncumulated moving reference removes the trend",
     )
-    leg = ax.legend(loc="lower left", fontsize=12, frameon=True)
-    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    ax.legend(
+        fontsize=12,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=4,
+        frameon=False,
+    )
     _boost_fonts(ax, tick=12, label=14, title=13.5)
     fig.tight_layout()
     return fig
@@ -2130,8 +2151,13 @@ def fig_frequency_depth(seed: int = 44):
         ylabel="dv/v (%)",
         title="Frequency band selects depth,\nand a different signal",
     )
-    leg = ax.legend(loc="lower left", ncol=2, fontsize=11, frameon=True)
-    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    ax.legend(
+        fontsize=11,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=2,
+        frameon=False,
+    )
     _boost_fonts(ax, tick=12, label=14, title=13.5)
     fig.tight_layout()
     return fig
@@ -2534,8 +2560,13 @@ def fig_branch_asymmetry(seed: int = 131):
         yr, truth_c * PCT, color=C["truth"], lw=2.2, ls="--", label="truth (structural)"
     )
     axA.set(xlabel="time (years)", ylabel="dv/v (%)", title="(a) one-sided change")
-    leg = axA.legend(loc="lower left", fontsize=10.5, frameon=True)
-    leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
+    axA.legend(
+        fontsize=10.5,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=2,
+        frameon=False,
+    )
 
     axB.axhline(
         truth_h * PCT, color=C["truth"], lw=2.0, label="true drop (both branches)"

@@ -600,7 +600,7 @@ def _fig_bayes(res, run):
         color=C["volcano"],
         alpha=0.18,
         lw=0,
-        label=r"$\pm2\sigma$ of $C_d$ (data error)",
+        label=r"$\pm2\sigma$ of $C_d$ (single-measurement error)",
     )
     ax0.fill_between(
         yrs,
@@ -614,8 +614,8 @@ def _fig_bayes(res, run):
     ax0.plot(yrs, res.mu_mean * 100, color=C["alt"], lw=1.5, label="posterior mean")
     ax0.set(xlabel="time (years)", ylabel="dv/v (%)", title="(a) Ensemble to posterior")
     ax0.legend(
-        fontsize=11,
-        loc="lower left",
+        fontsize=9,
+        loc="upper right",
         frameon=True,
         facecolor="white",
         framealpha=0.85,
@@ -645,6 +645,7 @@ def _fig_bayes(res, run):
         va="top",
     )
     cbar1 = fig.colorbar(im, ax=ax1, fraction=0.046)
+    cbar1.set_label(r"$C_d$ (dv/v fraction)$^2$", fontsize=11)
     cbar1.ax.tick_params(labelsize=11)
 
     # (c) time-dependent sigma_d(t) and the effective-sample-size collapse.
@@ -654,7 +655,9 @@ def _fig_bayes(res, run):
     ax2.plot(
         yrs, sd_cd * 100, color=C["volcano"], lw=1.6, label=r"$\sigma_d(t)$ (total)"
     )
-    ax2.plot(yrs, res.method_std * 100, color=C["bad"], lw=1.0, label="methodological")
+    ax2.plot(
+        yrs, res.method_std * 100, color=C["bad"], lw=1.0, label="between-configuration"
+    )
     ax2.plot(
         yrs, res.within_std * 100, color=C["landslide"], lw=1.0, label="within-method"
     )

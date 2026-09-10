@@ -2,15 +2,15 @@
  "figure": "demo_10_deviations",
  "generator": "codameter.deviations.oat_effects + fig_deviation_ranking",
  "codameter_version": "0.4.0",
- "git_commit": "141e7bc25bb439420c5ee73223bf78eb4ca7a839",
- "generated_utc": "2026-09-10T18:43:24+00:00",
+ "git_commit": "7bfdcef47453919afb5ee5e32a0d7979330402e0",
+ "generated_utc": "2026-09-10T19:07:17+00:00",
  "python": "3.12.13",
  "numpy": "2.4.3",
  "matplotlib": "3.10.9",
  "axes": [
   {
    "axes": "ax0",
-   "title": "(a) Bias injected by each deviation",
+   "title": "(a) RMS error of each deviation",
    "xlabel": "RMS error vs truth (dv/v, %, log)",
    "ylabel": "",
    "lines": [
