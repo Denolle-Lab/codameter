@@ -146,9 +146,26 @@ disable_error_code = ["no-any-return"]
 module = [
     "codameter.coupling.tier2_damage",
     "codameter.coupling.decision_tree",
-    "codameter.inverse.linear_fit",
 ]
 disable_error_code = ["arg-type"]
+
+[[tool.mypy.overrides]]
+module = "codameter.inverse.linear_fit"
+disable_error_code = ["arg-type", "assignment"]
+
+# Surfaced 2026-09-10, the first time the mypy hook checked the golden/scorer
+# import path. Same rule as above: per file, per error code, shrink as fixed.
+[[tool.mypy.overrides]]
+module = "codameter.golden"
+disable_error_code = ["no-any-return", "has-type", "misc"]
+
+[[tool.mypy.overrides]]
+module = "codameter.frugalmind"
+disable_error_code = ["operator", "no-any-return"]
+
+[[tool.mypy.overrides]]
+module = "codameter.use_cases"
+disable_error_code = ["no-any-return"]
 
 [[tool.mypy.overrides]]
 module = "codameter.data.loaders"
