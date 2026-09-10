@@ -31,6 +31,15 @@ gives, by the law of total variance, a **marginal** measurement variance
     = \underbrace{\mathbb{E}_c[\operatorname{Var}(\delta v/v \mid c)]}_{\text{within-choice floor}}
     + \underbrace{\operatorname{Var}_c[\mathbb{E}(\delta v/v \mid c)]}_{\text{processing-choice spread}} .
 
+The second term needs the **conditional means** :math:`\mathbb{E}(\delta v/v
+\mid c)`, i.e. the estimate each choice returns on the same data. The floor
+alone cannot supply it: choices with different precisions do not thereby
+have different means, and for a zero-mean mixture the spread term is exactly
+zero. :func:`per_band_marginal_error` therefore reports the processing-choice
+spread only when conditional means are passed in, and keeps a known
+systematic bias separate from the centred variance (it enters the RMSE, not
+the SD).
+
 Grouping the samples **by frequency band** yields one marginal error per band —
 the input the depth inversion in :mod:`codameter.uq_depth` needs to turn
 frequency-resolved measurements into a depth profile with propagated error.
@@ -244,15 +253,32 @@ def choice_floor(choice: ProcessingChoice) -> float:
 def per_band_marginal_error(
     choices: Sequence[ProcessingChoice],
     band_bias: Mapping[float, float] | None = None,
+    *,
+    conditional_means: Sequence[float] | None = None,
 ) -> dict[float, dict[str, float]]:
     r"""Marginal :math:`\delta v / v` error per frequency band.
 
-    Groups the sampled choices by band and applies the law of total variance:
-    the **within-choice** variance is the mean squared Weaver floor; the
-    **processing-choice** variance is the spread of the (optional) per-choice
-    systematic ``band_bias`` plus the floor's own variability across choices.
-    The returned ``total`` is the marginal standard error that the depth
-    inversion uses as the per-band measurement uncertainty.
+    Groups the sampled choices by band and applies the law of total variance
+    (module docstring):
+
+    * ``within``: :math:`\sqrt{\mathbb{E}_c[\sigma_c^2]}`, the root mean
+      squared Weaver floor over the band's choices;
+    * ``processing``: :math:`\sqrt{\operatorname{Var}_c[m_c]}` of the
+      supplied conditional means :math:`m_c` (sample variance, ``ddof=1``).
+      Without ``conditional_means`` this is **zero**: a mixture of
+      zero-mean components with different precisions has marginal variance
+      :math:`\mathbb{E}_c[\sigma_c^2]` and no spread term. (Before v0.5 the
+      floor's own variability across choices was added here; that quantity
+      has no probabilistic meaning. Audit finding UQ-02.)
+    * ``sd``: the centred marginal standard deviation
+      :math:`\sqrt{\text{within}^2 + \text{processing}^2}`; ``total`` is
+      kept as an alias;
+    * ``bias``: the known systematic offset from ``band_bias`` (0 if none);
+    * ``rmse``: :math:`\sqrt{\text{sd}^2 + \text{bias}^2}`.
+
+    ``sd`` is the per-band measurement uncertainty for a depth inversion
+    after the bias has been corrected; ``rmse`` is the expected error if it
+    has not.
 
     Parameters
     ----------
@@ -260,34 +286,43 @@ def per_band_marginal_error(
         Sampled processing choices (typically from
         :func:`sample_processing_choices`).
     band_bias
-        Optional mapping ``f_center -> systematic offset`` used to inject a
-        known per-band methodological bias for demonstration; if omitted, the
-        processing-choice variance is estimated from the floor spread alone.
+        Optional mapping ``f_center -> known systematic offset`` per band.
+    conditional_means
+        Optional per-choice central estimates aligned with ``choices``
+        (the :math:`\delta v/v` each configuration returns on the same
+        data), from which the processing-choice spread is computed.
 
     Returns
     -------
     dict
-        ``{f_center: {"within": .., "processing": .., "total": .., "n": ..}}``.
+        ``{f_center: {"within", "processing", "sd", "total", "bias", "rmse", "n"}}``.
     """
-    by_band: dict[float, list[ProcessingChoice]] = {}
-    for c in choices:
-        by_band.setdefault(c.f_center_hz, []).append(c)
+    means: np.ndarray | None = None
+    if conditional_means is not None:
+        means = np.asarray(conditional_means, dtype=float)
+        if means.shape != (len(choices),):
+            raise ValueError("conditional_means must align with choices")
+
+    by_band: dict[float, list[int]] = {}
+    for i, c in enumerate(choices):
+        by_band.setdefault(c.f_center_hz, []).append(i)
 
     result: dict[float, dict[str, float]] = {}
-    for f, group in by_band.items():
-        floors = np.array([choice_floor(c) for c in group], dtype=float)
+    for f, idx in by_band.items():
+        floors = np.array([choice_floor(choices[i]) for i in idx], dtype=float)
         within_var = float(np.mean(floors**2))
-        # processing-choice variance: spread of the per-choice central estimate.
-        # Without reprocessing we proxy it by the spread of the floors (choices
-        # that yield different precisions also yield different estimates); a
-        # supplied band_bias adds a known systematic component.
-        proc_var = float(np.var(floors, ddof=1)) if floors.size > 1 else 0.0
-        if band_bias is not None and f in band_bias:
-            proc_var += float(band_bias[f]) ** 2
+        proc_var = 0.0
+        if means is not None and len(idx) > 1:
+            proc_var = float(np.var(means[idx], ddof=1))
+        bias = float(band_bias[f]) if band_bias is not None and f in band_bias else 0.0
+        sd = (within_var + proc_var) ** 0.5
         result[f] = {
             "within": within_var**0.5,
             "processing": proc_var**0.5,
-            "total": (within_var + proc_var) ** 0.5,
-            "n": float(len(group)),
+            "sd": sd,
+            "total": sd,
+            "bias": bias,
+            "rmse": (sd**2 + bias**2) ** 0.5,
+            "n": float(len(idx)),
         }
     return result

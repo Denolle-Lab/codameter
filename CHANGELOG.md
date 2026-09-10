@@ -23,6 +23,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   ensemble the fitted rescale `s` absorbs the constant; only the relative
   weights of members in different bands change.
 
+- **`per_band_marginal_error` no longer adds the spread of the floors as a
+  "processing-choice" variance.** That term has no probabilistic meaning: a
+  mixture of zero-mean components with different precisions has marginal
+  variance `E_c[sigma_c^2]` and no spread term. The processing-choice spread
+  is now computed only from `conditional_means=` (the estimate each choice
+  returns on the same data) and is zero otherwise. A `band_bias` is reported
+  as `bias` and enters `rmse`, not the centred `sd` (`total` is kept as an
+  alias of `sd`). Found by the 2026-09-10 pre-submission audit (UQ-02).
+
 - **dv/v sign convention is now physical everywhere**: a velocity *increase*
   is positive; every estimator and `run_pipeline` return
   `dv/v = -eps / (1 + eps)` where `eps` is the stretch factor (exact at all
