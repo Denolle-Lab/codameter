@@ -96,6 +96,11 @@ class ProcessingPrior:
         Coda correlation coefficient near the start lapse.
     coherence_decay_s
         E-folding lapse over which the coda coherence decays.
+    relative_bandwidth
+        Band width as a fraction of the centre frequency,
+        :math:`B = \text{relative\_bandwidth}\times f_c`, needed by the
+        Weaver floor. The default 2/3 is a one-octave band :math:`[f, 2f]`
+        (centre :math:`1.5f`, width :math:`f`).
     """
 
     bands_hz: Sequence[float]
@@ -114,10 +119,13 @@ class ProcessingPrior:
     snr0: float = 80.0
     coherence_at_start: float = 0.98
     coherence_decay_s: float = 80.0
+    relative_bandwidth: float = 2.0 / 3.0
 
     def __post_init__(self) -> None:
         if len(self.bands_hz) == 0:
             raise ValueError("bands_hz must be non-empty")
+        if self.relative_bandwidth <= 0:
+            raise ValueError("relative_bandwidth must be positive")
         bad = set(self.rule_weights) - set(WINDOW_RULES)
         if bad:
             raise ValueError(f"unknown window rules: {sorted(bad)}")
@@ -133,6 +141,7 @@ class ProcessingChoice:
 
     rule: str
     f_center_hz: float
+    bandwidth_hz: float
     t1_s: float
     t2_s: float
     cc: float
@@ -206,14 +215,29 @@ def sample_processing_choices(
         else:  # pragma: no cover - guarded by ProcessingPrior
             raise ValueError(f"unknown rule {rule!r}")
         cc = _coherence(0.5 * (t1 + t2), prior)
-        out.append(ProcessingChoice(rule=rule, f_center_hz=f, t1_s=t1, t2_s=t2, cc=cc))
+        out.append(
+            ProcessingChoice(
+                rule=rule,
+                f_center_hz=f,
+                bandwidth_hz=prior.relative_bandwidth * f,
+                t1_s=t1,
+                t2_s=t2,
+                cc=cc,
+            )
+        )
     return out
 
 
 def choice_floor(choice: ProcessingChoice) -> float:
     """Within-choice Weaver/Clarke standard error for one processing choice."""
     return float(
-        weaver_stretching_error(choice.cc, choice.f_center_hz, choice.t1_s, choice.t2_s)
+        weaver_stretching_error(
+            choice.cc,
+            choice.f_center_hz,
+            choice.t1_s,
+            choice.t2_s,
+            choice.bandwidth_hz,
+        )
     )
 
 

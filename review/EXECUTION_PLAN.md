@@ -16,7 +16,7 @@ Consequence: `REVISION_PLAN.md` packages R8 and R9 reduce to the code items list
 
 ## Phase 1: correctness (independent steps, one commit each)
 
-- [ ] **A. Weaver floor (UQ-01).** Required `bandwidth_hz` argument; eq. 20 prefactor; T = sqrt(ln 10)/(pi B), matching band edges to Weaver's -10 dB points; core function taking T directly. Tests: eq. 21 anchor, unit-rescaling invariance, bandwidth monotonicity, existing monotonicity. Update `uq_bayes` and `uq_processing` callers. Regenerate `demo_12_bayes.png`. CHANGELOG entry.
+- [x] **A. Weaver floor (UQ-01).** Required `bandwidth_hz` argument; eq. 20 prefactor; T = sqrt(ln 10)/(pi B), matching band edges to Weaver's -10 dB points; core function taking T directly. Tests: eq. 21 anchor, unit-rescaling invariance, bandwidth monotonicity, existing monotonicity. Update `uq_bayes` and `uq_processing` callers. Regenerate `demo_12_bayes.png`. CHANGELOG entry.
 - [ ] **B. Mixture variance (UQ-02).** `per_band_marginal_error` returns within, processing (zero unless conditional means are supplied), bias, sd and rmse as separate fields. Test against the probe value 1.79521e-6.
 - [ ] **C. Scorer (EV-01).** Gold record carries a fixed support (epochs where the reference pipeline is valid) and fixed baseline epochs; missing values inside the support count as error; scorer spec versioned; availability rule shared with the parameter scorer. Tests: ten zeros plus nulls scores 0; truth on support scores 1; sparse constants score low.
 - [ ] **D. Figure build (REP-01).** `paper/build.py --figures` runs the deviations, multiverse and Bayes generators; every generator writes arrays and metadata beside its PNG. Real-data figures are documented as externally generated with their source run.
@@ -54,3 +54,4 @@ Consequence: `REVISION_PLAN.md` packages R8 and R9 reduce to the code items list
 ## Log
 
 - 2026-09-10: plan written; Phase 1 started on branch `docs/sign-convention-manuscript`.
+- 2026-09-10: step A done. Bayes demo before/after the corrected floor: s 6.16 -> 10.35, tau 3.85e-4 -> 3.72e-4, L 21.2 -> 21.3 d, N_eff 18.0 -> 18.6 of 229, median calibrated within-method sigma 1.87e-3 -> 1.89e-3 (s absorbs the constant, as predicted). Raw floor medians now 2.7e-4 (0.4-1.0 Hz) and 1.8e-4 (0.6-1.4 Hz). The Cd +-1.96 sigma band covers 100% of truth epochs before and after, the posterior band 49-50%: the "nominal rate" sentence in the Bayes section is wrong in the over-wide direction (Phase 2, step G). s of 10 means the residual scatter is an order of magnitude above the coherence floor; report it in Phase 3.

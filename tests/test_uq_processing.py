@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from codameter.uq_processing import (
     ProcessingPrior,
     flatten_end_lapse,
@@ -28,6 +27,10 @@ def test_sample_choices_are_valid_windows():
     assert len(choices) == 500
     assert all(c.t2_s > c.t1_s for c in choices)
     assert all(c.f_center_hz in (0.7, 1.5, 3.0) for c in choices)
+    assert all(
+        c.bandwidth_hz == pytest.approx(prior.relative_bandwidth * c.f_center_hz)
+        for c in choices
+    )
     assert all(0.6 <= c.cc <= 0.999 for c in choices)
     assert {c.rule for c in choices} <= {"fixed", "envelope_pick_flatten", "moving"}
 

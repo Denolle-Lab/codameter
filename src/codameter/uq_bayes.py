@@ -42,6 +42,7 @@ external sampler). Its two deliverables are
    its off-diagonals encode the temporal correlation the smoothness and the
    shared methodological bias induce.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -51,7 +52,7 @@ import numpy as np
 from .uq_measurement import (
     effective_sample_size,
     temporal_error_covariance,
-    weaver_stretching_error,
+    weaver_stretching_error_band,
 )
 
 __all__ = [
@@ -148,8 +149,9 @@ def run_processing_ensemble(
                     **extra,
                 )
             )
-        fc = float(np.mean(band))
-        sig = weaver_stretching_error(np.clip(cc_peak, 0.5, 0.999), fc, win[0], win[1])
+        sig = weaver_stretching_error_band(
+            np.clip(cc_peak, 0.5, 0.999), band, win[0], win[1]
+        )
         labels.append(
             f"{cfg['estimator']} {band[0]:g}-{band[1]:g}Hz {win[0]:g}-{win[1]:g}s"
         )
@@ -490,7 +492,7 @@ def _fig_bayes(res, run):
     ax2.set(
         xlabel="time (years)",
         ylabel=r"$\sigma$ (dv/v, %)",
-        title=f"(c) time-dependent error;  " f"$N_{{eff}}$={res.n_eff:.0f}/{len(yrs)}",
+        title=f"(c) time-dependent error;  $N_{{eff}}$={res.n_eff:.0f}/{len(yrs)}",
     )
     ax2.legend(fontsize=11)
     _boost_fonts(ax0, ax1, ax2, tick=11, label=12, title=13.5)
@@ -510,7 +512,7 @@ def build_figs(outdir):
     res, run = _build_bayes()
     _fig_bayes(res, run).savefig(outdir / "demo_12_bayes.png", bbox_inches="tight")
     print(
-        f"wrote {outdir/'demo_12_bayes.png'}  "
+        f"wrote {outdir / 'demo_12_bayes.png'}  "
         f"(tau={res.tau:.2e}, s={res.s:.2f}, L={res.corr_length_days:.0f}d, "
         f"N_eff={res.n_eff:.0f}/{len(run.times_days)})"
     )

@@ -8,6 +8,21 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Changed (BREAKING)
 
+- **`weaver_stretching_error` now requires the band width** (`bandwidth_hz`;
+  or call `weaver_stretching_error_band(cc, (f1, f2), t1, t2)`). It implements
+  Weaver et al. (2011) eq. 20 with the `sqrt(1-X^2)/(2X)` prefactor and the
+  spectral timescale `T = sqrt(ln 10) / (pi B)` (band edges at the -10 dB
+  points of Weaver's Gaussian spectrum; `bandwidth_timescale`). The native
+  form is exposed as `weaver_rms_dilation(cc, omega_c, t1, t2, T)` and is
+  tested against Weaver's own numerical example (their eq. 21). The previous
+  implementation omitted `T`, so its result was not dimensionless and did not
+  depend on band width, and used `(1-CC^2)/(2CC^2)` for the variance, twice
+  Weaver's. Found by the 2026-09-10 pre-submission audit (UQ-01).
+  `ProcessingChoice` gains a `bandwidth_hz` field and `ProcessingPrior` a
+  `relative_bandwidth` (default 2/3, a one-octave band). In the Bayesian
+  ensemble the fitted rescale `s` absorbs the constant; only the relative
+  weights of members in different bands change.
+
 - **dv/v sign convention is now physical everywhere**: a velocity *increase*
   is positive; every estimator and `run_pipeline` return
   `dv/v = -eps / (1 + eps)` where `eps` is the stretch factor (exact at all

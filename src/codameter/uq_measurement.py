@@ -57,7 +57,10 @@ from dataclasses import dataclass
 import numpy as np
 
 __all__ = [
+    "bandwidth_timescale",
+    "weaver_rms_dilation",
     "weaver_stretching_error",
+    "weaver_stretching_error_band",
     "EnsembleResult",
     "processing_ensemble",
     "temporal_error_covariance",
@@ -73,28 +76,109 @@ __all__ = [
 # ---------------------------------------------------------------------------
 
 
+def bandwidth_timescale(bandwidth_hz: float) -> float:
+    r"""Weaver's spectral timescale :math:`T` for a band-pass of width ``bandwidth_hz``.
+
+    Weaver et al. (2011, eqs 17-20) take the signal spectrum to be Gaussian,
+    :math:`\propto \exp[-(\omega-\omega_c)^2 T^2]`, whose -10 dB points sit at
+    :math:`\omega_c \pm \sqrt{\ln 10}/T`; they call :math:`T` "the inverse of
+    the frequency bandwidth". We identify the band-pass edges :math:`f_1, f_2`
+    with those -10 dB points, so the half-width :math:`\pi (f_2 - f_1)` rad/s
+    gives
+
+    .. math::
+        T = \frac{\sqrt{\ln 10}}{\pi\,(f_2 - f_1)} .
+
+    Any convention with :math:`T \propto 1/B` yields the same
+    :math:`1/\sqrt{B}` scaling of the floor; the constant is fixed here so
+    that floors are comparable across bands and so that the rescale ``s``
+    fitted in :mod:`codameter.uq_bayes` reports calibration against a stated
+    convention.
+
+    Parameters
+    ----------
+    bandwidth_hz
+        Band width :math:`f_2 - f_1` in Hz.
+
+    Returns
+    -------
+    float
+        :math:`T` in seconds.
+    """
+    if bandwidth_hz <= 0:
+        raise ValueError("bandwidth_hz must be positive")
+    return float(np.sqrt(np.log(10.0)) / (np.pi * bandwidth_hz))
+
+
+def weaver_rms_dilation(
+    cc: np.ndarray | float,
+    omega_c: float,
+    t1: float,
+    t2: float,
+    T: float,
+) -> np.ndarray | float:
+    r"""Weaver et al. (2011) eq. 20 in its native variables.
+
+    .. math::
+        \operatorname{rms}\,\varepsilon =
+        \frac{\sqrt{1 - X^2}}{2X}\;
+        \sqrt{\frac{6\sqrt{\pi/2}\;T}{\omega_c^2\,(t_2^3 - t_1^3)}}
+
+    with ``cc`` the dilation correlation coefficient :math:`X`, ``omega_c``
+    the central angular frequency, ``t1``/``t2`` the coda window and ``T``
+    the spectral timescale (:func:`bandwidth_timescale`). Use one consistent
+    time unit throughout; the result is dimensionless. Weaver's own example
+    (their eq. 21: ``t1=12.5``, ``t2=50`` us, ``omega_c=15`` rad/us,
+    ``T=0.56`` us) gives ``4e-4 * sqrt(1-X^2)/(2X)``.
+    """
+    if omega_c <= 0:
+        raise ValueError("omega_c must be positive")
+    if T <= 0:
+        raise ValueError("T must be positive")
+    if not (0 < t1 < t2):
+        raise ValueError("require 0 < t1 < t2")
+    cc_arr = np.asarray(cc, dtype=float)
+    if np.any((cc_arr <= 0) | (cc_arr > 1.0)):
+        raise ValueError("cc must lie in (0, 1]")
+    var = (1.0 - cc_arr**2) / (4.0 * cc_arr**2)
+    var = var * (6.0 * np.sqrt(np.pi / 2.0) * T) / (omega_c**2 * (t2**3 - t1**3))
+    out = np.sqrt(var)
+    return float(out) if out.ndim == 0 else out
+
+
 def weaver_stretching_error(
     cc: np.ndarray | float,
     f_center_hz: float,
     t1_s: float,
     t2_s: float,
+    bandwidth_hz: float,
 ) -> np.ndarray | float:
-    r"""Coherence-based standard error of a single :math:`\delta v / v` estimate.
+    r"""Coherence-based standard error of a single stretch / :math:`\delta v / v` estimate.
 
-    Implements the Weaver et al. (2011) / Clarke et al. (2011) bound on the
-    precision of a relative time shift (hence :math:`\delta v / v`) estimated
-    from a coda window :math:`[t_1, t_2]` with mean correlation coefficient
-    ``cc`` at central angular frequency :math:`\omega_c = 2\pi f_c`:
+    Implements the Weaver et al. (2011) eq. 20 bound (see also Clarke et al.,
+    2011) on the precision of a relative dilation :math:`\varepsilon` estimated
+    from a coda window :math:`[t_1, t_2]` with dilation correlation coefficient
+    ``cc``, central angular frequency :math:`\omega_c = 2\pi f_c` and spectral
+    timescale :math:`T` set by the band width (:func:`bandwidth_timescale`):
 
     .. math::
-        \sigma_{\delta v/v}^2 =
-        \frac{1 - CC^2}{2\,CC^2}\;
-        \frac{6\,\sqrt{\pi/2}}{\omega_c^2\,(t_2^3 - t_1^3)} .
+        \sigma_{\varepsilon}^2 =
+        \frac{1 - CC^2}{4\,CC^2}\;
+        \frac{6\,\sqrt{\pi/2}\;T}{\omega_c^2\,(t_2^3 - t_1^3)} .
 
-    This is the **aleatoric floor** for a fixed processing configuration: the
-    irreducible scatter from finite coda coherence. It captures the levers
-    practitioners actually turn — higher ``cc`` and a longer, later coda window
-    (larger :math:`t_2^3 - t_1^3`) and higher frequency all shrink the error.
+    Since :math:`\delta v/v = -\varepsilon/(1+\varepsilon)`, this is the
+    :math:`\delta v/v` standard error to first order in :math:`\varepsilon`.
+    It is the **aleatoric floor** for a fixed processing configuration: the
+    irreducible scatter from finite coda coherence. Higher ``cc``, a longer or
+    later coda window (larger :math:`t_2^3 - t_1^3`), higher centre frequency
+    and a wider band all shrink it; the band-width dependence is
+    :math:`1/\sqrt{B}`.
+
+    .. note::
+        Before v0.5 this function omitted :math:`T` (so the result was not
+        dimensionless and did not depend on band width) and used
+        :math:`(1-CC^2)/(2CC^2)`, twice Weaver's prefactor. Corrected after the
+        2026-09-10 pre-submission audit (finding UQ-01).
 
     Parameters
     ----------
@@ -104,25 +188,36 @@ def weaver_stretching_error(
         Central frequency of the measurement band, Hz.
     t1_s, t2_s
         Coda window start and end lapse times, seconds (``t2_s > t1_s > 0``).
+    bandwidth_hz
+        Width of the measurement band :math:`f_2 - f_1`, Hz. For a band
+        tuple use :func:`weaver_stretching_error_band`.
 
     Returns
     -------
     np.ndarray or float
-        Standard error on :math:`\delta v / v` (fraction), matching ``cc``.
+        Standard error on :math:`\varepsilon` (fraction), matching ``cc``.
     """
     if f_center_hz <= 0:
         raise ValueError("f_center_hz must be positive")
-    if not (0 < t1_s < t2_s):
-        raise ValueError("require 0 < t1_s < t2_s")
-    cc_arr = np.asarray(cc, dtype=float)
-    if np.any((cc_arr <= 0) | (cc_arr > 1.0)):
-        raise ValueError("cc must lie in (0, 1]")
     omega_c = 2.0 * np.pi * f_center_hz
-    numerator = 6.0 * np.sqrt(np.pi / 2.0)
-    denom = omega_c**2 * (t2_s**3 - t1_s**3)
-    var = (1.0 - cc_arr**2) / (2.0 * cc_arr**2) * (numerator / denom)
-    out = np.sqrt(var)
-    return float(out) if out.ndim == 0 else out
+    T = bandwidth_timescale(bandwidth_hz)
+    return weaver_rms_dilation(cc, omega_c, t1_s, t2_s, T)
+
+
+def weaver_stretching_error_band(
+    cc: np.ndarray | float,
+    band_hz: tuple[float, float],
+    t1_s: float,
+    t2_s: float,
+) -> np.ndarray | float:
+    """:func:`weaver_stretching_error` for a band given as ``(f1, f2)`` in Hz.
+
+    Uses the arithmetic centre :math:`(f_1+f_2)/2` and width :math:`f_2-f_1`.
+    """
+    f1, f2 = float(band_hz[0]), float(band_hz[1])
+    if not (0 < f1 < f2):
+        raise ValueError("band_hz must satisfy 0 < f1 < f2")
+    return weaver_stretching_error(cc, 0.5 * (f1 + f2), t1_s, t2_s, f2 - f1)
 
 
 # ---------------------------------------------------------------------------
