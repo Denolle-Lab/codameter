@@ -10,12 +10,12 @@ description: >
   glacier / geothermal site," or wants their parameter choices adapted to a
   specific monitoring use case. The skill is an orchestrator: it elicits the
   user's use case, maps it to a recommended processing-choice set from the
-  literature survey (codameter.use_cases), then proves the recommendation by
-  running the real synthetic engine live, quantifying the bias and error-bar cost
+  literature survey (codameter.use_cases), then assesses the recommendation conditionally by
+  running the real synthetic engine live, quantifying the recovery error and availability
   of the recommended versus the user's current choices on a matched synthetic
   with known ground truth (codameter.golden + codameter.deviations). It never
   invents parameters from memory; every recommendation is grounded in
-  literature/best_practices.md and validated numerically. Also use it to add or
+  literature/best_practices.md and checked on the stated synthetic scenario. Also use it to add or
   regenerate golden synthetic datasets. Do not use it to review a manuscript
   (that is pre-submission-reviewer).
 ---
@@ -52,7 +52,7 @@ So you split the work into four steps and wire them together:
 1. **Elicit** the use case and the user's current choices.
 2. **Map** to a recommended config from `codameter.use_cases`.
 3. **Validate** live: run the recommended and the user's config on a matched
-   synthetic, report the bias and error-bar difference.
+   synthetic, report the recovery error and availability.
 4. **Report** the config, the rationale with citations, and a reproducible snippet.
 
 You run the Python through `pixi run python` (the default pixi env has codameter
@@ -97,20 +97,24 @@ matter most for this use case.
 
 ## STEP 3: VALIDATE LIVE
 
-Follow `references/validation_loop.md`. Synthesize a matched scenario (reuse a
-golden case when the application maps to one, else `codameter.golden.generate`),
-then run `codameter.deviations.run_pipeline` for the recommended config and for
+Follow `references/validation_loop.md`. Build a public development scenario with `codameter.golden.advisory_case`.
+This supports all six applications independently of the evaluation corpus.
+Run `codameter.golden.recover` for the recommended config and for
 the user's current or a deliberately naive config. Report:
 
 - the RMS error against the known truth for each config,
 - the difference in the recovered signal (for a transient, the recovered drop),
 - for the volcano-style factorial, the first-order variance attribution from
   `codameter.deviations.multiverse` (which choice controls the answer),
-- optionally the marginal measurement covariance `C_d` from
+- optionally the constructed single-member covariance `C_d` from
   `codameter.uq_bayes.bayes_dvv_from_ccfs`.
 
-State the numbers you actually got. If the user's choice is within noise of the
-recommendation, say so; do not manufacture a difference.
+State the numbers you actually got, including availability on fixed support.
+A single seeded RMS comparison cannot establish statistical equivalence.
+Report which elicited properties the scenario represents and which it omits.
+Only the six config axes are executable overrides; site geometry, forcing,
+noise and gaps require explicit scenario construction. Do not imply they were
+modeled merely because the user supplied them.
 
 ## STEP 4: REPORT
 
@@ -126,9 +130,8 @@ caveat that matters most for this use case (the `key_rule`).
 See `references/golden_datasets.md`. The corpus lives in
 `tests/data/golden/manifest.json` (recipes plus expected metrics); arrays are
 regenerated from seeds on demand and cached under `tests/data/golden/cache/`
-(gitignored). To add a case, append a recipe to `codameter.golden.CASES`, then
-run `pixi run golden` to refresh the manifest, and `pixi run -e test pytest
-tests/test_golden.py` to lock it in. Never commit the `.npz` cache.
+(gitignored). For deliberate corpus changes, follow `references/golden_datasets.md`.
+Do not refresh thresholds merely to make a failing check pass. Never commit the `.npz` cache.
 
 ---
 

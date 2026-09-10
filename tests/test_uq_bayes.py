@@ -143,6 +143,40 @@ def test_stack_is_in_days_and_output_is_decimated_after(small_ccfs):
 # ---------------------------------------------------------------------------
 # Sampler semantics: missing data, physical time, priors, shared artefacts
 # ---------------------------------------------------------------------------
+@pytest.mark.parametrize("days", [[0, 1, 3], [0, 2, 4], [2, 1, 0], [0, 1, np.nan]])
+def test_ensemble_rejects_non_daily_ccfs(days):
+    with pytest.raises(ValueError, match="complete daily grid"):
+        B.run_processing_ensemble(np.zeros((3, 5)), np.arange(5), 1.0, [], days=days)
+
+
+@pytest.mark.parametrize("estimator", ["stretching (TS)", "MWCS"])
+def test_moving_reference_gate_masks_low_coherence(estimator, monkeypatch):
+    from codameter import deviations
+
+    def measured(*args, return_cc=False, **kwargs):
+        values, valid = np.ones(3), np.ones(3, dtype=bool)
+        return (
+            (values, valid, np.array([0.55, 0.65, 0.8]))
+            if return_cc
+            else (values, valid)
+        )
+
+    monkeypatch.setattr(deviations, "run_pipeline", measured)
+    config = dict(
+        estimator=estimator,
+        band=(0.4, 1),
+        window=(8, 28),
+        stack=5,
+        reference="moving",
+        gate=True,
+    )
+    result = B.run_processing_ensemble(
+        np.zeros((3, 5)), np.arange(5), 1.0, [config], cadence=1
+    )
+    assert np.isnan(result.members[0, 0])
+    assert np.isfinite(result.members[0, 1:]).all()
+
+
 def _two_level_members(rng, t, K=4, noise=1e-4):
     truth = np.where(t < t[len(t) // 2], 0.0, 1e-3)
     M = truth[None, :] + noise * rng.standard_normal((K, t.size))

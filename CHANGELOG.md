@@ -8,10 +8,40 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- `golden.advisory_case`: public seasonal development examples for all six
+  applications, independent of private evaluation records. Advisor snippets
+  use per-channel recovery, fixed scoring support, and report availability.
+  Conditional synthetic checks no longer claim proof of field performance
+  or statistical equivalence from one seeded RMS comparison. (AG-01/02/03)
+
+### Fixed
+
+- Enlarge the calibration table, preserve nonzero Monte Carlo standard errors,
+  correct abstract percent formatting, and keep the running title within the
+  page margin. (FIG-03, FMT-01)
+
+- Reject non-daily CCF input in the processing ensemble. Already measured
+  irregular series remain supported by `gibbs_dvv`. Moving-reference and
+  non-stretching ensemble members now honor the coherence gate. (UQ-05)
+- Calibration excludes unavailable member epochs, including invalid floors,
+  from conditional coverage and reports their availability separately.
+  The archived 600 locked runs have zero missing fraction; their reported
+  results are unchanged by this correction. (SCI-05)
+- Include use-case synthesis geometry source in golden cache identity. (DET-02)
+- Distinguish joint hierarchical fitting from pipeline mixture marginalization
+  in the manuscript and API. Near-nominal 95% pointwise member coverage does
+  not establish covariance calibration: 68% intervals overcover, and the
+  combined estimate's credible band undercovers. Downstream covariance and
+  shared errors remain unvalidated. (UQ-03/04, INV-01)
+- Correct field-data availability and review-adjudication statements to
+  reflect the missing run provenance and pending author inputs. (REP-02, COMP-01)
+
+### Added
+
 - `codameter.calibration`: repeated-realisation coverage calibration of the
   Bayesian measurement covariance (`python -m codameter.calibration --n 200
-  --scenario clean|shared_drift --out ...`): pointwise 68/95 percent coverage
-  of the truth by `mu +- z sqrt(diag Cd)`, credible-band coverage, width,
+  --scenario clean|shared_source|clock_drift --out ...`): pointwise 68/95 percent coverage
+  of member errors, credible-band coverage of the combined estimate, width,
   bias, RMSE and failures per realisation, with standard errors across
   realisations and a predefined acceptance margin. (SCI-05)
 

@@ -68,6 +68,15 @@ def test_golden_cache_is_exact_and_versioned(tmp_path, monkeypatch):
     assert not stale.exists()
 
 
+def test_golden_cache_identity_includes_application_geometry(tmp_path, monkeypatch):
+    source = tmp_path / "use_cases.py"
+    source.write_text("geometry = 1\n")
+    monkeypatch.setattr(golden.uc, "__file__", str(source))
+    before = golden._generator_hash()
+    source.write_text("geometry = 2\n")
+    assert golden._generator_hash() != before
+
+
 def test_aggregate_rejects_missing_shards_and_duplicates(tmp_path, capsys):
     """SCALE-02: an incomplete or duplicated shard set is not merged silently."""
     row = {

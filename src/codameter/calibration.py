@@ -151,16 +151,25 @@ def run_realization(
         err = res.mu_mean - tr
         sd = np.sqrt(np.diag(res.Cd))
         member_err = run.members - tr[None, :]
+        observed = (
+            np.isfinite(member_err)
+            & np.isfinite(run.within_sigma)
+            & (run.within_sigma > 0)
+            & np.isfinite(sd[None, :])
+        )
+        if not observed.any():
+            raise ValueError("no observed member epochs for coverage calibration")
+        # Comparing NaN with a width returns False, not NaN. Mask before the
+        # comparison so warm-up / gated cells are not counted as misses.
+        member_abs_error = np.abs(member_err[observed])
+        member_sd = np.broadcast_to(sd, member_err.shape)[observed]
         out.update(
             ok=True,
             n_epochs=int(tr.size),
-            member_coverage68=float(
-                np.nanmean(np.abs(member_err) <= Z68 * sd[None, :])
-            ),
-            member_coverage95=float(
-                np.nanmean(np.abs(member_err) <= Z95 * sd[None, :])
-            ),
-            member_rmse=float(np.sqrt(np.nanmean(member_err**2))),
+            n_member_epochs=int(observed.sum()),
+            member_coverage68=float(np.mean(member_abs_error <= Z68 * member_sd)),
+            member_coverage95=float(np.mean(member_abs_error <= Z95 * member_sd)),
+            member_rmse=float(np.sqrt(np.mean(member_abs_error**2))),
             shared_bias=float(np.mean(err)),
             coverage68=float(np.mean(np.abs(err) <= Z68 * sd)),
             coverage95=float(np.mean(np.abs(err) <= Z95 * sd)),
@@ -174,7 +183,7 @@ def run_realization(
             s=float(res.s),
             corr_length_days=float(res.corr_length_days),
             n_eff=float(res.n_eff),
-            missing_fraction=float(np.mean(~np.isfinite(run.members))),
+            missing_fraction=float(np.mean(~observed)),
             prior_weight_tau2=float((res.prior_weight or {}).get("tau2", np.nan)),
             prior_weight_s2=float((res.prior_weight or {}).get("s2", np.nan)),
             prior_weight_lambda=float((res.prior_weight or {}).get("lambda", np.nan)),

@@ -504,6 +504,28 @@ def recover(d: dict, cfg: dict, eps_max: float):
     return run_pipeline(d["ccfs"], d["t"], d["fs"], cfg, eps_max=eps_max)
 
 
+def advisory_case(use_case: str, *, years: float = 3.0, seed: int | None = None):
+    """Build a public seasonal development example for any supported application.
+
+    This route is independent of the installed evaluation corpus. It never
+    opens private recipes or substitutes a depth-targeted case for the generic
+    application. The returned ``recipe`` records the settings for replay.
+    Synthetic recovery is conditional evidence, not field validation.
+    """
+    app = uc.resolve(use_case)
+    if not np.isfinite(years) or years <= 0:
+        raise ValueError("years must be finite and positive")
+    recipe = next(
+        dict(c) for c in _build_cases() if c["use_case"] == app and c["grade"] == "easy"
+    )
+    recipe["years"] = float(years)
+    if seed is not None:
+        recipe["seed"] = int(seed)
+    data = _build(recipe)
+    data["recipe"] = recipe
+    return data
+
+
 # ---------------------------------------------------------------------------
 # Cache
 # ---------------------------------------------------------------------------
@@ -517,7 +539,7 @@ def _recipe_hash(recipe: dict) -> str:
 
 def _generator_hash() -> str:
     """Short digest of the synthesis code: package version plus the source of
-    this module and :mod:`codameter.synthetic_demo`. Part of the cache key, so
+    this module, :mod:`codameter.synthetic_demo` and :mod:`codameter.use_cases`. Part of the cache key, so
     a generator edit can never serve arrays built by older code (audit DET-02).
     """
     import hashlib
@@ -525,7 +547,7 @@ def _generator_hash() -> str:
     from . import synthetic_demo
 
     h = hashlib.sha1(__version__.encode())
-    for src in (__file__, synthetic_demo.__file__):
+    for src in (__file__, synthetic_demo.__file__, uc.__file__):
         h.update(Path(src).read_bytes())
     return h.hexdigest()[:8]
 
@@ -656,9 +678,9 @@ def rms_on_support(dvv, truth, support, baseline) -> tuple[float, float]:
     Truth and prediction are demeaned over the fixed ``baseline`` epochs (the
     DC offset of a reference-relative dv/v is unobservable). A missing
     (non-finite) prediction inside the support is scored as the **null
-    prediction**, i.e. zero change from the baseline, so abstaining on an
-    epoch can never improve the score and omitting every epoch scores like a
-    series of zeros. The prediction's own baseline mean is taken over its
+    prediction**, i.e. zero change from the baseline, so missing epochs do not disappear from the error denominator. Replacing
+    a poor prediction by null can still improve the score; availability must
+    be reported separately. The prediction's own baseline mean is taken over its
     finite baseline epochs; fewer than two of those means no datum and an
     RMS of ``nan``.
 

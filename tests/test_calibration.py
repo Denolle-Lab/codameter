@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
 from codameter import calibration as C
+from codameter import uq_bayes
 
 _BASE = {
     "coverage68": 0.9,
@@ -28,6 +30,45 @@ _BASE = {
     "prior_weight_s2": 1e-10,
     "prior_weight_lambda": 0.05,
 }
+
+
+def test_missing_members_do_not_count_as_coverage_misses(monkeypatch):
+    # Two of six cells are observed. One covers truth, one misses. A finite
+    # member without a usable coherence floor is also unobserved by the fit.
+    members = np.array([[0.0, np.nan, 0.0], [3.0, np.nan, np.nan]])
+    sigmas = np.ones_like(members)
+    sigmas[0, 2] = np.nan
+    run = SimpleNamespace(truth=np.zeros(3), members=members, within_sigma=sigmas)
+    result = SimpleNamespace(
+        mu_mean=np.zeros(3),
+        Cd=np.eye(3),
+        mu_lo=-np.ones(3),
+        mu_hi=np.ones(3),
+        tau=0.0,
+        s=1.0,
+        corr_length_days=1.0,
+        n_eff=3,
+        prior_weight={},
+    )
+    monkeypatch.setattr(
+        C,
+        "make_realization",
+        lambda *a, **kw: (
+            SimpleNamespace(t=np.arange(5), fs=1),
+            np.arange(3),
+            np.zeros(3),
+            np.zeros((3, 5)),
+        ),
+    )
+    monkeypatch.setattr(uq_bayes, "bayes_dvv_from_ccfs", lambda *a, **kw: (result, run))
+    row = C.run_realization(1)
+    assert row["ok"]
+    assert row["n_member_epochs"] == 2
+    assert row["member_coverage68"] == row["member_coverage95"] == 0.5
+    assert row["missing_fraction"] == pytest.approx(2 / 3)
+    assert row["member_rmse"] == pytest.approx(np.sqrt(4.5))
+    members[:] = np.nan
+    assert not C.run_realization(1)["ok"]
 
 
 def test_summarize_reports_mean_se_and_margin():

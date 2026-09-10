@@ -1,51 +1,26 @@
-r"""A Bayesian measurement model for :math:`\delta v/v` — the *new* best practice.
+r"""A working Bayesian model for an ensemble of dv/v processing outputs.
 
-The deviation/multiverse experiments (:mod:`codameter.deviations`) show that the
-processing choice, not the data, often controls a :math:`\delta v/v` estimate.
-The honest response is not to crown one pipeline but to treat the choice as a
-**nuisance parameter** with a prior, run an ensemble of defensible pipelines, and
-*marginalise* the choice out. This module does exactly that, as a Bayesian
-hierarchical inversion.
+The likelihood is ``m_k(t) = mu(t) + beta_k + epsilon_k(t)``, with normal
+configuration offsets of variance ``tau**2`` and conditionally independent
+residuals of variance ``s**2 * sigma_k(t)**2``. ``sigma_k`` is the Weaver
+floor. A second-difference prior on the physical time grid smooths ``mu``;
+missing observations carry zero precision.
 
-Model
------
-For configuration :math:`k` (an estimator/band/window/stack/reference choice
-drawn from a prior over defensible pipelines) we obtain a measured series
-:math:`m_k(t)` with a coherence-limited within-method standard error
-:math:`\sigma_k(t)` (Weaver/Clarke; :func:`codameter.uq_measurement.weaver_stretching_error`).
-We posit
+All configurations reuse the same waveform data. Conditional independence is
+therefore a working assumption, not an established property. Jointly fitting
+these outputs is not discrete mixture marginalization over pipelines.
 
-.. math::
-    m_k(t) = \mu(t) + \beta_k + \varepsilon_k(t),
-    \qquad
-    \beta_k \sim \mathcal N(0,\tau^2),
-    \quad
-    \varepsilon_k(t) \sim \mathcal N\!\big(0,\, s^2\,\sigma_k(t)^2\big),
+``mu_cov`` and the credible band describe the combined estimate under that
+likelihood. ``Cd`` is constructed separately from the fitted floor, excess
+configuration spread, a fitted exponential temporal correlation, and a rank-one
+term using ``tau``. It targets a randomly selected member's error, not the
+combined estimate. Between-configuration offsets cannot identify common bias.
 
-with a smoothness (2nd-difference random-walk) prior of precision :math:`\lambda`
-on the latent true series :math:`\mu(t)`, built on the physical time grid so
-gaps are gaps. Missing members (warm-up, gated epochs) carry no information. Here :math:`\beta_k` is the
-configuration's **methodological bias** (e.g. the systematic MWCS-vs-stretching
-offset), :math:`\tau^2` its variance across the ensemble, and :math:`s^2`
-rescales the Weaver floor so the data tell us whether it is calibrated.
-
-The posterior is sampled by a conjugate **Gibbs sampler** (pure NumPy, no
-external sampler). Its two deliverables are
-
-1. the marginal posterior :math:`p(\mu(t)\mid\{m_k\})` — a single
-   :math:`\delta v/v` series with an uncertainty that *includes* the
-   processing-choice spread; and
-2. a **measurement covariance** :math:`C_d`, *constructed* (not sampled) from
-   the posterior-calibrated within-method floor, the between-configuration
-   spread, an exponential temporal correlation fitted to the ensemble residuals
-   and the common-mode scale :math:`\tau` (see :class:`BayesResult`). It is the
-   object a downstream depth/stress inversion (:mod:`codameter.inverse`) should
-   consume instead of a diagonal ``dvv_err``. It is **not**
-   :math:`\operatorname{Cov}(\mu\mid\text{data})`: that is ``mu_cov``, the
-   precision of the combined estimate, which shrinks with ensemble size. Its
-   time dependence is real: it is wider where the ensemble disagrees (sharp
-   transients, low coherence) and its off-diagonals carry the temporal
-   correlation the stacking and the shared methodological bias induce.
+Repeated waveform realizations give near-nominal 95 percent pointwise member
+coverage, but 68 percent intervals overcover and the combined estimate's
+credible band undercovers. These checks do not validate temporal covariance,
+cross-band covariance, or downstream inversion intervals. See
+:mod:`codameter.calibration` and the manuscript's calibration table.
 """
 
 from __future__ import annotations
@@ -139,7 +114,8 @@ def run_processing_ensemble(
     property of the data and window, not of the estimator) through the Weaver
     floor. Coherence below :data:`MIN_COHERENCE` gives a NaN floor and the
     epoch is missing rather than clipped. ``reference="inversion"`` has no
-    per-epoch coherence and is rejected.
+    per-epoch coherence and is rejected. Input CCF rows must form a complete
+    daily grid; irregular already-measured series can be passed to ``gibbs_dvv``.
     """
     from .deviations import run_pipeline
 
@@ -148,6 +124,15 @@ def run_processing_ensemble(
     days_arr = np.arange(n, dtype=float) if days is None else np.asarray(days, float)
     if days_arr.shape != (n,):
         raise ValueError("days must have one entry per CCF row")
+    if not np.isfinite(days_arr).all() or not np.allclose(
+        np.diff(days_arr), 1.0, rtol=0.0, atol=1e-8
+    ):
+        raise ValueError(
+            "CCFs must be on a complete daily grid for day-based stacking; "
+            "gibbs_dvv accepts irregular times for already measured series"
+        )
+    if not isinstance(cadence, int | np.integer) or cadence < 1:
+        raise ValueError("cadence must be a positive integer")
     idx = np.arange(0, n, cadence)
     truth_s = None if truth is None else np.asarray(truth, float)[idx]
 
@@ -172,8 +157,11 @@ def run_processing_ensemble(
             dvv, valid = dvv_ts, valid_ts
         else:
             dvv, valid = run_pipeline(ccfs, t, fs, cfg, eps_max=eps_max)
-            if cfg["gate"]:
-                valid = valid & valid_ts  # gate every estimator on the same coherence
+        if cfg["gate"]:
+            # The legacy pipeline gates fixed-reference stretching only.
+            # Apply the same observed-coherence threshold to every ensemble
+            # estimator and reference, including moving-reference estimates.
+            valid = valid & valid_ts & np.isfinite(cc) & (cc > 0.6)
         dvv = np.where(valid, np.asarray(dvv, float), np.nan)
         cc = np.asarray(cc, float)
         ok = np.isfinite(cc) & (cc >= MIN_COHERENCE)
@@ -210,11 +198,11 @@ class BayesResult:
         Central 95% credible band on :math:`\mu` (the *estimator* precision).
     mu_cov : np.ndarray (T, T)
         Posterior covariance :math:`\operatorname{Cov}(\mu\mid\text{data})` — the
-        uncertainty of the *combined* estimate. It shrinks with ensemble size and
-        is **not** the object to propagate downstream.
+        model-conditional uncertainty of the *combined* estimate. It shrinks
+        with ensemble size under the working likelihood, but does not include
+        shared model error. Its downstream use requires separate calibration.
     Cd : np.ndarray (T, T)
-        The **constructed measurement covariance** to hand a downstream
-        depth/stress inversion: :math:`C_d = D R D + \tau^2 \mathbf{1}\mathbf{1}^T`
+        A **constructed single-member error covariance**: :math:`C_d = D R D + \tau^2 \mathbf{1}\mathbf{1}^T`
         with :math:`D = \operatorname{diag}(\text{total\_std})`, an exponential
         temporal correlation of length ``corr_length_days`` fitted to the
         ensemble residuals, and the common-mode scale ``tau``. It is derived
@@ -223,7 +211,7 @@ class BayesResult:
         moves all members together and leaves no trace in their spread; see
         ``tests/test_uq_bayes.py::test_shared_artifact_is_not_detected``).
     tau, s : float
-        Posterior-mean scale of the per-configuration offsets :math:`\beta_k`
+        Square root of posterior-mean variance of the per-configuration offsets :math:`\beta_k`
         and of the Weaver-floor rescale.
     corr_length_days : float
         Temporal correlation length estimated from the ensemble residuals.
@@ -244,14 +232,14 @@ class BayesResult:
     n_obs : np.ndarray (T,)
         Number of configurations observed (finite member and floor) per epoch.
     prior_weight : dict
-        Share of each scale posterior that comes from its hyper-prior rather
-        than the data, evaluated at the posterior means:
+        Prior scale contribution to each conditional posterior rate, evaluated
+        at the posterior means. This is not the total influence of the prior:
         ``b0 / (b0 + 0.5 * sum(beta**2))`` for tau^2,
         ``b0 / (b0 + 0.5 * sum(resid**2 / sigma**2))`` for s^2, and
         ``lam_b / (lam_b + 0.5 * sum((D mu)**2))`` for lambda. Small values
-        mean data-dominated; a value near one means the prior scale is setting
-        the answer, which happens for tau^2 with few configurations and tiny
-        offsets.
+        mean the prior rate term is small. The shape parameters and
+        smoothness assumptions can still matter; this is not a convergence
+        diagnostic or a substitute for prior sensitivity checks.
     samples_mu : np.ndarray (n_keep, T)
     """
 
