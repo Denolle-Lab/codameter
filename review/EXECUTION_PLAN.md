@@ -26,17 +26,17 @@ Consequence: `REVISION_PLAN.md` packages R8 and R9 reduce to the code items list
 
 - [x] **F. Ensemble semantics (UQ-05).** Honor `reference` and `gate` or raise; stack in physical days before decimating; mask low coherence instead of clipping; time-aware second-difference prior or reject irregular grids.
 - [x] **G. Measurement covariance (UQ-03/04).** Between-configuration variance with within-method variance removed; prior-sensitivity test; shared-artifact limitation stated with the four-sinusoids case.
-- [~] **H. Calibration (SCI-05).** Driver and tests done; pilot running, locked run pending. Script over independent realizations: 68/95 percent pointwise coverage, width, bias, failures, plus one shared-drift scenario. Pilot 20 seeds, then 200. Predefined margin: coverage within 3 points of nominal. Table replaces the single-realization sentence.
+- [x] **H. Calibration (SCI-05).** Driver, tests and 20-realisation pilots done (three scenarios); locked 200-realisation runs in progress, numbers in the manuscript to be refreshed from them. Script over independent realizations: 68/95 percent pointwise coverage, width, bias, failures, plus one shared-drift scenario. Pilot 20 seeds, then 200. Predefined margin: coverage within 3 points of nominal. Table replaces the single-realization sentence.
 
 ## Phase 3: manuscript pass (R1 + R10)
 
-- [ ] Estimand table cited by every caption (SCI-01); Table 2 split.
-- [ ] Single-paragraph abstract narrowed per the decisions (SCI-06, EV-04, FMT-01).
-- [ ] WCC/MWCS sign (SCI-10); signed recovery errors (SCI-11); predefined branch rule (SCI-09).
-- [ ] Trailing reference presented as an ablation (SCI-03); estimator prescriptions qualified against Yuan et al. 2021 (SCI-04); conditional wording for dominance and the surrogate (SCI-02).
-- [ ] LJR count from an explicit mask, NZ/NE label, statistics from one output (SCI-07, FIG-02); survey bound direction and extraction statuses (SCI-08).
-- [ ] Figure 1c trace vs caption, units, legends, full-range views (FIG-01, FIG-03).
-- [ ] Data availability and end matter (COMP-01, REP-02, REP-03).
+- [x] Estimand table cited by every caption (SCI-01); Table 2 split.
+- [x] Single-paragraph abstract narrowed per the decisions (SCI-06, EV-04, FMT-01).
+- [x] WCC/MWCS sign (SCI-10); signed recovery errors (SCI-11); predefined branch rule (SCI-09).
+- [x] Trailing reference presented as an ablation (SCI-03); estimator prescriptions qualified against Yuan et al. 2021 (SCI-04); conditional wording for dominance and the surrogate (SCI-02).
+- [x] LJR count from an explicit mask, NZ/NE label, statistics from one output (SCI-07, FIG-02); survey bound direction and extraction statuses (SCI-08).
+- [x] Figure 1c trace vs caption, units, legends, full-range views (FIG-01, FIG-03).
+- [~] Data availability and end matter (COMP-01, REP-02, REP-03): availability statement and AI disclosure drafted; funding, contributions, archive DOI and the noisepy-dvv-cloud commit need Marine.
 
 ## Phase 4
 
@@ -62,3 +62,5 @@ Consequence: `REVISION_PLAN.md` packages R8 and R9 reduce to the code items list
 - 2026-09-10, Phase 3 in progress. Pilot calibration, clean scenario, 20 realisations: member-level coverage 0.955 +- 0.001 at 95% (within the predefined 3-point margin) and 0.804 +- 0.003 at 68%; credible band on mu covers the truth 0.593 +- 0.011; mu +- sigma_Cd covers 1.000 (the comparison the draft quoted; dropped); s = 11.7 +- 0.1; tau^2 prior share 0.10 +- 0.03; N_eff 33 +- 2 of 229. Field comparison recomputed by scripts/compare_gate1.py under stated rules: LJR 0.985 on 579 d (slope 1.07), ARV 0.905 on 357 d (slope 2.15), RXH 0.829 on 446 d (slope 0.81); the draft's 681 days was the raw daily overlap. Figure 1c checked from its sidecar: WCS fails on the noisy landslide signal (3.8% RMS) and the caption now says so. Manuscript part 1 applied (abstract, introduction, estimand table, results wording, branches, stacking, deployment, discussion, conclusions, appendices, availability, AI disclosure draft); part 2 (Bayes section) waits for the shared-drift pilot. Legends moved off the data in seven figures; deviations panel retitled RMS.
 - 2026-09-10, calibration scenarios. The clock-drift pilot (20 realisations) is indistinguishable from clean (member 95% coverage 0.953, credible band 0.61, no shared bias): a lapse-independent shift has opposite signs on the two branches and every default configuration measures both, so it cancels, as Section 3.9 says. The scenario is kept under its real name (clock_drift) as an immunity test, the manuscript sentences that asserted a shared drift bias were removed before any commit, and a genuine shared artefact (seasonal late-coda source noise beyond 6 s lapse, 0.2% spurious seasonal dv/v) is added as shared_source and piloted. Locked 200-realisation runs will use single-threaded BLAS; six workers with default threading drove the load average past 200.
 - 2026-09-10: full test suite after Phases 1-3 code: 327 passed, 1 skipped (disba present), 19 min on a loaded machine. Closure re-runs of Astra's probes are under review/evidence/closure/.
+- 2026-09-10: Phase 3 committed (b426c4e). Manuscript builds to 80 pages with no unresolved references. Locked calibration runs (200 realisations, seeds 2000-2199, single-threaded BLAS, 6 workers) started 12:54 for clean, shared_source, clock_drift in that order; when they land, regenerate calibration_table.tex, refresh the abstract and Bayes-section numbers, rebuild, commit. Phase 4 (reviewer iteration 2 against b6dbbd0) is ready to run.
+- 2026-09-10: Gate 1 error columns rescaled to the corrected floor (scripts/correct_gate1_within_error.py; factor 0.328 at 2-4 Hz, originals kept, log in dvv2y/correction.json); the member windows were not needed because all members share the band. noisepy-dvv-cloud/src/noisepy_dvv_cloud/dvv.py switched to weaver_stretching_error_band (edited in that repository, left uncommitted for Marine). Still needed from Marine: the Gate 1 run commit and --use-case.

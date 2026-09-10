@@ -33,9 +33,26 @@ slope 0.81. The earlier headline (0.990 / 0.66-0.92 / 0.68, "681 days")
 came from noisepy-dvv-cloud `scripts/compare_cd2022.py` under rules
 not recorded here; 681 is the raw daily overlap for LJR.
 
+Error-column correction (2026-09-10): the archived `dvv_err_within`
+was computed with the codameter 0.4 Weaver floor (no spectral timescale,
+variance prefactor twice Weaver eq. 20) and a geometric-mean centre
+frequency. Every ensemble member shares the band, so the corrected floor
+is the archived one times a constant per band (0.463, 0.328, 0.232 and
+0.164 for the 1-2, 2-4, 4-8 and 8-16 Hz products). The columns under
+`dvv2y/` have been rescaled in place by
+`scripts/correct_gate1_within_error.py`, `dvv_err` recomputed, the
+originals kept as `CI.<STA>.v040.parquet`, and the factors and
+before/after medians logged in `dvv2y/correction.json`. The comparison
+statistics do not use these columns. The figures in `../figures/gate1/`
+still show the uncorrected bars.
+
+Ensemble members (from `noisepy_dvv_cloud/dvv.py`): the codameter
+recommendation for the `--use-case` passed to the run, at the product's
+band, plus four perturbations (stack halved, stack doubled, coda window
+shifted later by a quarter of its length, fixed reference swapped to
+moving). `config_hash` covers the NoisePy correlation settings only.
+
 Provenance still to pin (audit REP-02): the noisepy-dvv-cloud commit of
-the Gate 1 run and of the figure scripts, and the per-member
-configurations (in particular the coda window) behind `config_hash`,
-which are needed to recompute `dvv_err_within` under the corrected
-Weaver floor (codameter 0.5: bandwidth term and eq. 20 prefactor; the
-archived column is over-estimated by a constant factor).
+the Gate 1 run (candidates: bbd1b02, 341b83b, be1538b, all dated
+2026-08-09) and the `--use-case` it was given, neither of which the
+products record.

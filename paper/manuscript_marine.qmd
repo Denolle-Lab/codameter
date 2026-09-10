@@ -1344,8 +1344,11 @@ CI.RXH & centred & 554 & 0.620 & 0.035 & 0.52 \\
   itself and is not regenerated from this repository; its annotated $r$ values
   correspond to the centred rule of Table~\ref{tab:gate1} (0.87, 0.37 and
   0.62 for LJR, ARV and RXH from the archived products), not to the matched
-  rule quoted in the text. The error bars predate the Weaver-floor correction
-  of the present revision and are over-estimated by a constant factor.}
+  rule quoted in the text. The error bars drawn here predate the Weaver-floor
+  correction of the present revision and are too large by a factor of 3.1 at
+  2--4\,Hz (the archived columns have since been rescaled by
+  \texttt{scripts/correct\_gate1\_within\_error.py}; the externally produced
+  figure has not been regenerated).}
   \label{fig:realdata-validation}
 \end{figure}
 
