@@ -295,3 +295,5 @@ Then repair sparse scoring in R2 as the first code patch.
 These establish clear contracts before larger statistical changes.
 
 Superseded on 2026-09-10 by `EXECUTION_PLAN.md` (Fable), which records the scope decisions and the step order actually being executed.
+
+Current implementation evidence and remaining tasks: [REVISION_STATUS.md](REVISION_STATUS.md).

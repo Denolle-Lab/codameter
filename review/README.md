@@ -1,5 +1,9 @@
 # Codameter scientific audit
 
+This page preserves the iteration-1 assessment. See the current
+[revision reconciliation](REVISION_STATUS.md) for implemented repairs,
+verification evidence, and remaining submission work.
+
 **Major revision is required before GJI submission.**
 
 The premise is scientifically useful: quantify processing sensitivity explicitly. Seeded experiments, inspectable configurations, and independent product comparisons are strengths. However, the current uncertainty calculations contain substantive defects. The golden scorer can reward nearly empty predictions perfectly. Several manuscript claims exceed the demonstrated evidence.

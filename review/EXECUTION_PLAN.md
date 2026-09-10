@@ -65,3 +65,10 @@ Consequence: `REVISION_PLAN.md` packages R8 and R9 reduce to the code items list
 - 2026-09-10: Phase 3 committed (b426c4e). Manuscript builds to 80 pages with no unresolved references. Locked calibration runs (200 realisations, seeds 2000-2199, single-threaded BLAS, 6 workers) started 12:54 for clean, shared_source, clock_drift in that order; when they land, regenerate calibration_table.tex, refresh the abstract and Bayes-section numbers, rebuild, commit. Phase 4 (reviewer iteration 2 against b6dbbd0) is ready to run.
 - 2026-09-10: Gate 1 error columns rescaled to the corrected floor (scripts/correct_gate1_within_error.py; factor 0.328 at 2-4 Hz, originals kept, log in dvv2y/correction.json); the member windows were not needed because all members share the band. noisepy-dvv-cloud/src/noisepy_dvv_cloud/dvv.py switched to weaver_stretching_error_band (edited in that repository, left uncommitted for Marine). Still needed from Marine: the Gate 1 run commit and --use-case.
 - 2026-09-10: locked runs done (200 realisations each, seeds 2000-2199, 56-58 min per scenario). Clean: member 95% 0.956 +- 0.000, 68% 0.808, credible band 0.590 +- 0.004, s 11.67. Shared source: member 95% 0.950, credible band 0.340, RMSE(mu) 0.161% vs 0.067%. Clock drift: member 95% 0.954, credible band 0.604 (immune, as stated). Table regenerated from the locked runs; manuscript numbers refreshed; PDF 80 pages, clean. Phase 4 is next and is Marine's call.
+
+- 2026-09-10, Codex reconciliation: inspected commits through `62b63b5` against
+  the original audit. Repaired advisor routes, non-daily input acceptance,
+  moving-reference gating, missing-member coverage, and cache geometry identity.
+  Narrowed covariance and availability claims further. See `REVISION_STATUS.md`
+  for all 37 findings and outstanding tasks. This bounded check does not mark
+  the full reviewer iteration complete or close the historical ledger.
