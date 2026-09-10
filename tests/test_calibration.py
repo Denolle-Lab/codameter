@@ -81,7 +81,7 @@ def test_cli_writes_json(tmp_path):
             "--n",
             "2",
             "--scenario",
-            "shared_drift",
+            "clock_drift",
             "--years",
             "0.5",
             "--cadence",
@@ -98,6 +98,6 @@ def test_cli_writes_json(tmp_path):
     )
     assert rc == 0
     payload = json.loads(out.read_text())
-    assert payload["settings"]["scenario"] == "shared_drift"
+    assert payload["settings"]["scenario"] == "clock_drift"
     assert len(payload["results"]) == 2 and payload["summary"]["n_realizations"] == 2
     assert "member_coverage95_within_margin" in payload["summary"]

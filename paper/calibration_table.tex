@@ -1,12 +1,15 @@
 \begin{table}
 \footnotesize
-\caption{Coverage calibration of the Bayesian measurement model over independent synthetic realisations of the volcano scenario (2.5 years, SNR 7, 4-day cadence, 12-member ensemble). Member coverage: fraction of member epochs with $|m_k(t)-\mathrm{truth}(t)|\le z\,\sigma_{C_d}(t)$, the quantity $C_d$ is a covariance of. Posterior: fraction of epochs whose 95\% credible band on $\mu$ contains the truth. $\mu\pm\sigma_{C_d}$: the comparison an earlier draft quoted, which mixes the ensemble mean with a single-measurement scale. Means with standard errors across realisations; $\sigma_{C_d}$, bias and RMSE in percent; prior shares are the fraction of the $\tau^2$ and $\lambda$ posteriors supplied by their hyper-priors. Shared drift: a clock drift of $4\times10^{-5}$\,s/day from 40\% of the record, seen by every configuration. Generated from \texttt{paper/data/calibration/} by \texttt{paper/build\_calibration\_table.py}.}
+\caption{Coverage calibration of the Bayesian measurement model over independent synthetic realisations of the volcano scenario (2.5 years, SNR 7, 4-day cadence, 12-member ensemble). Member coverage: fraction of member epochs with $|m_k(t)-\mathrm{truth}(t)|\le z\,\sigma_{C_d}(t)$, the quantity $C_d$ is a covariance of. Posterior: fraction of epochs whose 95\% credible band on $\mu$ contains the truth. $\mu\pm\sigma_{C_d}$: the comparison an earlier draft quoted, which mixes the ensemble mean with a single-measurement scale, is 1.000 in every scenario and is not tabulated. Means with standard errors across realisations; no realisation failed; $\sigma_{C_d}$, bias and RMSE in percent; prior $\tau^2$ is the fraction of the $\tau^2$ posterior supplied by its hyper-prior (the $\lambda$ share is below 0.01 throughout). Clock drift: $4\times10^{-5}$\,s/day from 40\% of the record; the two-branch measurement cancels it. Shared source: a seasonal source effect warping the coda beyond 6\,s lapse with a spurious 0.2\% seasonal \dvv, seen by every configuration. Generated from \texttt{paper/data/calibration/} by \texttt{paper/build\_calibration\_table.py}.}
 \label{tab:calibration}
-\begin{tabular}{@{}lrrllllrrrrr@{}}
+\scriptsize
+\begin{tabular}{@{}lrlllrrrr@{}}
 \toprule
-Scenario & $n$ & failed & member 68\% & member 95\% & posterior 95\% & $\mu\pm\sigma_{C_d}$ 95\% & med.\ $\sigma_{C_d}$ & bias & RMSE($\mu$) & prior $\tau^2$ & prior $\lambda$ \\
+Scenario & $n$ & member 68\% & member 95\% & posterior 95\% & med.\ $\sigma_{C_d}$ & bias & RMSE($\mu$) & prior $\tau^2$ \\
 \midrule
-clean & 20 & 0 & 0.804 $\pm$ 0.003 & 0.955 $\pm$ 0.001 & 0.593 $\pm$ 0.011 & 1.000 $\pm$ 0.000 & 0.227 $\pm$ 0.002 & -0.017 $\pm$ 0.001 & 0.070 $\pm$ 0.002 & 0.09 $\pm$ 0.03 & 0.00 $\pm$ 0.00 \\
+clean & 20 & 0.804 $\pm$ 0.003 & 0.955 $\pm$ 0.001 & 0.593 $\pm$ 0.011 & 0.227 $\pm$ 0.002 & -0.017 $\pm$ 0.001 & 0.070 $\pm$ 0.002 & 0.09 $\pm$ 0.03 \\
+clock drift & 20 & 0.799 $\pm$ 0.003 & 0.953 $\pm$ 0.001 & 0.612 $\pm$ 0.011 & 0.224 $\pm$ 0.002 & -0.018 $\pm$ 0.001 & 0.069 $\pm$ 0.002 & 0.09 $\pm$ 0.02 \\
+shared source & 20 & 0.794 $\pm$ 0.004 & 0.950 $\pm$ 0.001 & 0.352 $\pm$ 0.011 & 0.332 $\pm$ 0.004 & -0.046 $\pm$ 0.002 & 0.159 $\pm$ 0.004 & 0.02 $\pm$ 0.01 \\
 \bottomrule
 \end{tabular}
 \end{table}

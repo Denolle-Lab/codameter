@@ -28,9 +28,19 @@ values are means over realisations with standard errors across them
 
 Scenarios::
 
-    clean         independent noise only (the model's own assumptions)
-    shared_drift  plus a station clock drift every configuration sees
-                  (a shared artefact the ensemble spread cannot reveal)
+    clean          independent noise only (the model's own assumptions)
+    clock_drift    plus a station clock drift every configuration sees. A
+                   lapse-independent shift appears with opposite signs on the
+                   causal and acausal branches, and every configuration in
+                   the default ensemble measures both branches together, so
+                   the drift cancels: this scenario tests that immunity, not
+                   a shared bias (the 20-realisation pilot was
+                   indistinguishable from clean).
+    shared_source  plus a seasonally varying noise source that warps the
+                   late coda every configuration measures (the
+                   waveform-level version of Zhan et al. 2013): a bias
+                   every member shares, which the ensemble spread cannot
+                   reveal.
 
 Run::
 
@@ -66,7 +76,7 @@ __all__ = [
     "summarize",
 ]
 
-SCENARIOS = ("clean", "shared_drift")
+SCENARIOS = ("clean", "clock_drift", "shared_source")
 #: Predefined acceptance margin on 95 percent pointwise coverage.
 COVERAGE_MARGIN = 0.03
 Z68, Z95 = 1.0, 1.959964
@@ -76,7 +86,14 @@ def make_realization(
     seed: int, scenario: str = "clean", *, years: float = 2.5, snr: float = 7.0
 ):
     """Synthetic CCFs for one realisation: ``(synth, days, truth, ccfs)``."""
-    from .synthetic_demo import Synth, _days, add_clock_drift, daily_ccfs, volcano_truth
+    from .synthetic_demo import (
+        Synth,
+        _days,
+        add_clock_drift,
+        add_seasonal_late_noise,
+        daily_ccfs,
+        volcano_truth,
+    )
 
     if scenario not in SCENARIOS:
         raise ValueError(f"scenario must be one of {SCENARIOS}")
@@ -84,12 +101,19 @@ def make_realization(
     days = _days(years)
     truth = volcano_truth(days)
     ccfs = daily_ccfs(s.t, [s.ref], [truth], fs=s.fs, snr=snr, seed=seed)
-    if scenario == "shared_drift":
+    if scenario == "clock_drift":
         # A clock drift of 4e-5 s/day from 40% of the record: ~0.02 s by the
-        # end, an apparent dv/v of order 1e-3 in a ~18 s coda window, seen
-        # identically by every configuration.
+        # end, an apparent dv/v of order 1e-3 per branch in a ~18 s coda
+        # window, with opposite signs on the two branches.
         ccfs = add_clock_drift(
             ccfs, s.t, drift_s_per_day=4e-5, onset_day=int(0.4 * days.size)
+        )
+    elif scenario == "shared_source":
+        # A seasonal source effect confined to lapse > 6 s, i.e. to the whole
+        # of every configuration's coda window (8-28 s and 12-34 s): a
+        # spurious seasonal dv/v of 0.2% amplitude that every member sees.
+        ccfs = add_seasonal_late_noise(
+            ccfs, s.t, days, fs=s.fs, onset_s=6.0, dvv_amp=0.002, seed=seed
         )
     return s, days, truth, ccfs
 

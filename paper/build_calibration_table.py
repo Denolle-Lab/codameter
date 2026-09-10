@@ -37,12 +37,11 @@ def main() -> int:
         s, st = d["summary"], d["settings"]
         label = st["scenario"].replace("_", " ")
         rows.append(
-            f"{label} & {s['n_realizations']} & {s['n_failed']} & "
+            f"{label} & {s['n_realizations']} & "
             f"{_pm(s['member_coverage68'])} & {_pm(s['member_coverage95'])} & "
-            f"{_pm(s['coverage95_posterior'])} & {_pm(s['coverage95'])} & "
+            f"{_pm(s['coverage95_posterior'])} & "
             f"{_pm(s['median_sd'], 100, 3)} & {_pm(s['shared_bias'], 100, 3)} & "
-            f"{_pm(s['rmse'], 100, 3)} & {_pm(s['prior_weight_tau2'], 1, 2)} & "
-            f"{_pm(s['prior_weight_lambda'], 1, 2)} \\\\"
+            f"{_pm(s['rmse'], 100, 3)} & {_pm(s['prior_weight_tau2'], 1, 2)} \\\\"
         )
     body = "\n".join(rows) if rows else "(no calibration runs archived) \\\\"
     OUT.write_text(
@@ -54,17 +53,21 @@ def main() -> int:
         "quantity $C_d$ is a covariance of. Posterior: fraction of epochs whose 95\\% "
         "credible band on $\\mu$ contains the truth. $\\mu\\pm\\sigma_{C_d}$: the "
         "comparison an earlier draft quoted, which mixes the ensemble mean with a "
-        "single-measurement scale. Means with standard errors across realisations; "
-        "$\\sigma_{C_d}$, bias and RMSE in percent; prior shares are the fraction of "
-        "the $\\tau^2$ and $\\lambda$ posteriors supplied by their hyper-priors. "
-        "Shared drift: a clock drift of $4\\times10^{-5}$\\,s/day from 40\\% of the "
-        "record, seen by every configuration. Generated from "
+        "single-measurement scale, is 1.000 in every scenario and is not tabulated. "
+        "Means with standard errors across realisations; no realisation failed; "
+        "$\\sigma_{C_d}$, bias and RMSE in percent; prior $\\tau^2$ is the fraction of "
+        "the $\\tau^2$ posterior supplied by its hyper-prior (the $\\lambda$ share is "
+        "below 0.01 throughout). "
+        "Clock drift: $4\\times10^{-5}$\\,s/day from 40\\% of the record; the "
+        "two-branch measurement cancels it. Shared source: a seasonal source "
+        "effect warping the coda beyond 6\\,s lapse with a spurious 0.2\\% "
+        "seasonal \\dvv, seen by every configuration. Generated from "
         "\\texttt{paper/data/calibration/} by \\texttt{paper/build\\_calibration\\_table.py}.}\n"
         "\\label{tab:calibration}\n"
-        "\\begin{tabular}{@{}lrrllllrrrrr@{}}\n\\toprule\n"
-        "Scenario & $n$ & failed & member 68\\% & member 95\\% & posterior 95\\% & "
-        "$\\mu\\pm\\sigma_{C_d}$ 95\\% & med.\\ $\\sigma_{C_d}$ & bias & RMSE($\\mu$) & "
-        "prior $\\tau^2$ & prior $\\lambda$ \\\\\n\\midrule\n"
+        "\\scriptsize\n"
+        "\\begin{tabular}{@{}lrlllrrrr@{}}\n\\toprule\n"
+        "Scenario & $n$ & member 68\\% & member 95\\% & posterior 95\\% & "
+        "med.\\ $\\sigma_{C_d}$ & bias & RMSE($\\mu$) & prior $\\tau^2$ \\\\\n\\midrule\n"
         + body
         + "\n\\bottomrule\n\\end{tabular}\n\\end{table}\n"
     )
