@@ -1,0 +1,31 @@
+{
+ "figure": "demo_16_band_sensitivity",
+ "generator": "codameter.synthetic_demo.fig_band_sensitivity",
+ "codameter_version": "0.4.0",
+ "git_commit": "141e7bc25bb439420c5ee73223bf78eb4ca7a839",
+ "generated_utc": "2026-09-10T18:35:20+00:00",
+ "python": "3.12.13",
+ "numpy": "2.4.3",
+ "matplotlib": "3.10.9",
+ "axes": [
+  {
+   "axes": "ax0",
+   "title": "RMS is flat within the layer's band, then rises sharply past its edge",
+   "xlabel": "band-center offset from the true band, $\\Delta f$ (Hz)",
+   "ylabel": "RMS error vs truth (dv/v, %)",
+   "lines": [
+    "_child0",
+    "true band center"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 0
+  }
+ ],
+ "arrays": [
+  "ax0/line0/x",
+  "ax0/line0/y",
+  "ax0/line1/x",
+  "ax0/line1/y"
+ ]
+}

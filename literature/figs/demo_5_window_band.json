@@ -1,0 +1,36 @@
+{
+ "figure": "demo_5_window_band",
+ "generator": "codameter.synthetic_demo.fig_window_band",
+ "codameter_version": "0.4.0",
+ "git_commit": "141e7bc25bb439420c5ee73223bf78eb4ca7a839",
+ "generated_utc": "2026-09-10T18:31:07+00:00",
+ "python": "3.12.13",
+ "numpy": "2.4.3",
+ "matplotlib": "3.10.9",
+ "axes": [
+  {
+   "axes": "ax0",
+   "title": "High-frequency coda\ndecays first",
+   "xlabel": "lapse time (s)",
+   "ylabel": "coda envelope (norm.)",
+   "lines": [
+    "low band",
+    "high band",
+    "noise floor"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 2
+  }
+ ],
+ "arrays": [
+  "ax0/line0/x",
+  "ax0/line0/y",
+  "ax0/line1/x",
+  "ax0/line1/y",
+  "ax0/line2/x",
+  "ax0/line2/y",
+  "ax0/patch0/xywh",
+  "ax0/patch1/xywh"
+ ]
+}

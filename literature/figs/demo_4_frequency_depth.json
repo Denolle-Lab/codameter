@@ -1,0 +1,37 @@
+{
+ "figure": "demo_4_frequency_depth",
+ "generator": "codameter.synthetic_demo.fig_frequency_depth",
+ "codameter_version": "0.4.0",
+ "git_commit": "141e7bc25bb439420c5ee73223bf78eb4ca7a839",
+ "generated_utc": "2026-09-10T18:31:07+00:00",
+ "python": "3.12.13",
+ "numpy": "2.4.3",
+ "matplotlib": "3.10.9",
+ "axes": [
+  {
+   "axes": "ax0",
+   "title": "Frequency band selects depth,\nand a different signal",
+   "xlabel": "time (years)",
+   "ylabel": "dv/v (%)",
+   "lines": [
+    "truth: shallow",
+    "truth: deep",
+    "high band -> shallow",
+    "low band -> deep"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 0
+  }
+ ],
+ "arrays": [
+  "ax0/line0/x",
+  "ax0/line0/y",
+  "ax0/line1/x",
+  "ax0/line1/y",
+  "ax0/line2/x",
+  "ax0/line2/y",
+  "ax0/line3/x",
+  "ax0/line3/y"
+ ]
+}

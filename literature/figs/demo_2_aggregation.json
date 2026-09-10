@@ -1,0 +1,96 @@
+{
+ "figure": "demo_2_aggregation",
+ "generator": "codameter.synthetic_demo.fig_aggregation",
+ "codameter_version": "0.4.0",
+ "git_commit": "1374e81e863346a84aeb8ce28a0f58d876454009",
+ "generated_utc": "2026-09-10T18:22:18+00:00",
+ "python": "3.12.13",
+ "numpy": "2.4.3",
+ "matplotlib": "3.10.9",
+ "axes": [
+  {
+   "axes": "ax0",
+   "title": "(a) Component aggregation: three recipes",
+   "xlabel": "time (years)",
+   "ylabel": "dv/v (%)",
+   "lines": [
+    "_child0",
+    "_child1",
+    "_child2",
+    "_child3",
+    "_child4",
+    "_child5",
+    "A: avg dv/v (unweighted)",
+    "A: avg dv/v (CC-weighted)",
+    "B: avg CC images, then peak",
+    "truth"
+   ],
+   "images": 0,
+   "collections": [
+    "B uncertainty = CC-peak width"
+   ],
+   "patches": 0
+  },
+  {
+   "axes": "ax1",
+   "title": "(b) averaged CC(dv/v, t) image (B)",
+   "xlabel": "time (years)",
+   "ylabel": "dv/v candidate (%)",
+   "lines": [
+    "peak of mean CC (B)",
+    "truth"
+   ],
+   "images": 1,
+   "collections": [],
+   "patches": 0
+  },
+  {
+   "axes": "ax2",
+   "title": "",
+   "xlabel": "",
+   "ylabel": "coherence CC (dark = high)",
+   "lines": [],
+   "images": 0,
+   "collections": [
+    "_child0",
+    "_child1"
+   ],
+   "patches": 0
+  }
+ ],
+ "arrays": [
+  "ax0/collection0/offsets",
+  "ax0/collection0/path_lengths",
+  "ax0/collection0/vertices",
+  "ax0/line0/x",
+  "ax0/line0/y",
+  "ax0/line1/x",
+  "ax0/line1/y",
+  "ax0/line2/x",
+  "ax0/line2/y",
+  "ax0/line3/x",
+  "ax0/line3/y",
+  "ax0/line4/x",
+  "ax0/line4/y",
+  "ax0/line5/x",
+  "ax0/line5/y",
+  "ax0/line6/x",
+  "ax0/line6/y",
+  "ax0/line7/x",
+  "ax0/line7/y",
+  "ax0/line8/x",
+  "ax0/line8/y",
+  "ax0/line9/x",
+  "ax0/line9/y",
+  "ax1/image0",
+  "ax1/image0/extent",
+  "ax1/line0/x",
+  "ax1/line0/y",
+  "ax1/line1/x",
+  "ax1/line1/y",
+  "ax2/collection0/offsets",
+  "ax2/collection1/offsets",
+  "ax2/collection1/path_lengths",
+  "ax2/collection1/vertices"
+ ]
+}

@@ -1,0 +1,57 @@
+{
+ "figure": "demo_13_branch_asymmetry",
+ "generator": "codameter.synthetic_demo.fig_branch_asymmetry",
+ "codameter_version": "0.4.0",
+ "git_commit": "141e7bc25bb439420c5ee73223bf78eb4ca7a839",
+ "generated_utc": "2026-09-10T18:34:27+00:00",
+ "python": "3.12.13",
+ "numpy": "2.4.3",
+ "matplotlib": "3.10.9",
+ "axes": [
+  {
+   "axes": "ax0",
+   "title": "(a) one-sided change",
+   "xlabel": "time (years)",
+   "ylabel": "dv/v (%)",
+   "lines": [
+    "quiet branch (acausal)",
+    "greatest-change branch (causal)",
+    "mean of branches (dilutes)",
+    "truth (structural)"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 0
+  },
+  {
+   "axes": "ax1",
+   "title": "(b) same change, both branches",
+   "xlabel": "SNR",
+   "ylabel": "median recovered dv/v (%)",
+   "lines": [
+    "true drop (both branches)",
+    "mean of branches",
+    "greatest change (biased)"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 0
+  }
+ ],
+ "arrays": [
+  "ax0/line0/x",
+  "ax0/line0/y",
+  "ax0/line1/x",
+  "ax0/line1/y",
+  "ax0/line2/x",
+  "ax0/line2/y",
+  "ax0/line3/x",
+  "ax0/line3/y",
+  "ax1/line0/x",
+  "ax1/line0/y",
+  "ax1/line1/x",
+  "ax1/line1/y",
+  "ax1/line2/x",
+  "ax1/line2/y"
+ ]
+}
