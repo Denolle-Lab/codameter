@@ -1,0 +1,1274 @@
+{
+  "entries": {
+    "poupinet84": {
+      "author": "Poupinet, G. and Ellsworth, W. L. and Frechet, J.",
+      "year": "1984",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Monitoring velocity variations in the crust using earthquake doublets: An application to the {Calaveras} Fault, {California}",
+      "doi": "10.1029/jb089ib07p05719"
+    },
+    "lobkis03": {
+      "author": "Lobkis, Oleg I. and Weaver, Richard L.",
+      "year": "2003",
+      "journal": "Physical Review Letters",
+      "title": "Coda-Wave Interferometry in Finite Solids: Recovery of {P}-to-{S} Conversion Rates in an Elastodynamic Billiard",
+      "doi": "10.1103/PhysRevLett.90.254302"
+    },
+    "SensSchonfelder2006": {
+      "author": "Sens-Sch{\\\"o}nfelder, Christoph and Wegler, Ulrich",
+      "year": "2006",
+      "journal": "Geophysical Research Letters",
+      "title": "Passive image interferometry and seasonal variations of seismic velocities at {Merapi} Volcano, {Indonesia}",
+      "doi": "10.1029/2006GL027797"
+    },
+    "Snieder2002": {
+      "author": "Snieder, Roel and Gr{\\^e}t, Alexandre and Douma, Huub and Scales, John",
+      "year": "2002",
+      "journal": "Science",
+      "title": "Coda wave interferometry for estimating nonlinear behavior in seismic velocity",
+      "doi": "10.1126/science.1070015"
+    },
+    "Bensen2007": {
+      "author": "Bensen, G. D. and Ritzwoller, M. H. and Barmin, M. P. and Levshin, A. L. and Lin, F. and Moschetti, M. P. and Shapiro, N. M. and Yang, Y.",
+      "year": "2007",
+      "journal": "Geophysical Journal International",
+      "title": "Processing seismic ambient noise data to obtain reliable broad-band surface wave dispersion measurements",
+      "doi": "10.1111/j.1365-246X.2007.03374.x"
+    },
+    "Clarke2011": {
+      "author": "Clarke, D. and Zaccarelli, L. and Shapiro, N. M. and Brenguier, F.",
+      "year": "2011",
+      "journal": "Geophysical Journal International",
+      "title": "Assessment of resolution and accuracy of the Moving Window Cross Spectral technique for monitoring crustal temporal variations using ambient seismic noise",
+      "doi": "10.1111/j.1365-246X.2011.05074.x"
+    },
+    "Weaver2011": {
+      "author": "Weaver, Richard L. and Hadziioannou, C{\\'e}line and Larose, Eric and Campillo, Michel",
+      "year": "2011",
+      "journal": "Geophysical Journal International",
+      "title": "On the precision of noise correlation interferometry",
+      "doi": "10.1111/j.1365-246X.2011.05015.x"
+    },
+    "Brenguier2014": {
+      "author": "Brenguier, F. and Campillo, M. and Takeda, T. and Aoki, Y. and Shapiro, N. M. and Briand, X. and Emoto, K. and Miyake, H.",
+      "year": "2014",
+      "journal": "Science",
+      "title": "Mapping pressurized volcanic fluids from induced crustal seismic velocity drops",
+      "doi": "10.1126/science.1254073"
+    },
+    "Mikesell2015": {
+      "author": "Mikesell, T. Dylan and Malcolm, Alison E. and Yang, Di and Haney, Matthew M.",
+      "year": "2015",
+      "journal": "Geophysical Journal International",
+      "title": "A comparison of methods to estimate seismic phase delays: numerical examples for coda wave interferometry",
+      "doi": "10.1093/gji/ggv138"
+    },
+    "Lecocq2014": {
+      "author": "Lecocq, Thomas and Caudron, Corentin and Brenguier, Florent",
+      "year": "2014",
+      "journal": "Seismological Research Letters",
+      "title": "{MSNoise}, a {Python} package for monitoring seismic velocity changes using ambient seismic noise",
+      "doi": "10.1785/0220130073"
+    },
+    "Jiang2020": {
+      "author": "Jiang, Chengxin and Denolle, Marine A.",
+      "year": "2020",
+      "journal": "Seismological Research Letters",
+      "title": "{NoisePy}: a new high-performance python tool for ambient-noise seismology",
+      "doi": "10.1785/0220190364"
+    },
+    "Yuan2021": {
+      "author": "Yuan, Congcong and Bryan, Jared and Denolle, Marine",
+      "year": "2021",
+      "journal": "Geophysical Journal International",
+      "title": "Numerical comparison of time-, frequency- and wavelet-domain methods for coda wave interferometry",
+      "doi": "10.1093/gji/ggab140"
+    },
+    "Mao2020": {
+      "author": "Mao, Shujuan and Mordret, Aur{\\'e}lien and Campillo, Michel and Fang, Hongjian and van der Hilst, Robert D.",
+      "year": "2020",
+      "journal": "Geophysical Journal International",
+      "title": "On the measurement of seismic traveltime changes in the time--frequency domain with wavelet cross-spectrum analysis",
+      "doi": "10.1093/gji/ggz495"
+    },
+    "Sato1993": {
+      "author": "Sato, Haruo",
+      "year": "1993",
+      "journal": "Geophysical Journal International",
+      "title": "Energy transportation in one- and two-dimensional scattering media: analytic solutions of the multiple isotropic scattering model",
+      "doi": "10.1111/j.1365-246X.1993.tb01443.x"
+    },
+    "Paasschens1997": {
+      "author": "Paasschens, J. C. J.",
+      "year": "1997",
+      "journal": "Physical Review E",
+      "title": "Solution of the time-dependent Boltzmann equation",
+      "doi": "10.1103/PhysRevE.56.1135"
+    },
+    "Margerin1998": {
+      "author": "Margerin, Ludovic and Campillo, Michel and Van Tiggelen, Bart",
+      "year": "1998",
+      "journal": "Geophysical Journal International",
+      "title": "Radiative transfer and diffusion of waves in a layered medium: new insight into coda Q",
+      "doi": "10.1046/j.1365-246x.1998.00571.x"
+    },
+    "Obermann2013": {
+      "author": "Obermann, Anne and Plan{\\`e}s, Thomas and Larose, Eric and Sens-Sch{\\\"o}nfelder, Christoph and Campillo, Michel",
+      "year": "2013",
+      "journal": "Geophysical Journal International",
+      "title": "Depth sensitivity of seismic coda waves to velocity perturbations in an elastic heterogeneous medium",
+      "doi": "10.1093/gji/ggt043"
+    },
+    "Obermann2016": {
+      "author": "Obermann, Anne and Plan{\\`e}s, Thomas and Hadziioannou, C{\\'e}line and Campillo, Michel",
+      "year": "2016",
+      "journal": "Geophysical Journal International",
+      "title": "Lapse-time-dependent coda-wave depth sensitivity to local velocity perturbations in 3-D heterogeneous elastic media",
+      "doi": "10.1093/gji/ggw264"
+    },
+    "Zhan2013": {
+      "author": "Zhan, Zhongwen and Tsai, Victor C. and Clayton, Robert W.",
+      "year": "2013",
+      "journal": "Geophysical Journal International",
+      "title": "Spurious velocity changes caused by temporal variations in ambient noise frequency content",
+      "doi": "10.1093/gji/ggt170"
+    },
+    "Clements2018": {
+      "author": "Clements, Timothy and Denolle, Marine A.",
+      "year": "2018",
+      "journal": "Geophysical Research Letters",
+      "title": "Tracking groundwater levels using the ambient seismic field",
+      "doi": "10.1029/2018GL077706"
+    },
+    "Stehly2015": {
+      "author": "Stehly, L. and Froment, B. and Campillo, M. and Liu, Q. Y. and Chen, J. H.",
+      "year": "2015",
+      "journal": "Geophysical Journal International",
+      "title": "Monitoring seismic wave velocity changes associated with the {Mw} 7.9 {Wenchuan} earthquake: increasing the temporal resolution using curvelet filters",
+      "doi": "10.1093/gji/ggv110"
+    },
+    "Lin2008": {
+      "author": "Lin, Fan-Chi and Moschetti, Morgan P. and Ritzwoller, Michael H.",
+      "year": "2008",
+      "journal": "Geophysical Journal International",
+      "title": "Surface wave tomography of the western {United States} from ambient seismic noise: {Rayleigh} and {Love} wave phase velocity maps",
+      "doi": "10.1111/j.1365-246X.2008.03720.x"
+    },
+    "Stehly2006": {
+      "author": "Stehly, Laurent and Campillo, Michel and Shapiro, Nikolai M.",
+      "year": "2006",
+      "journal": "Journal of Geophysical Research",
+      "title": "A study of the seismic noise from its long-range correlation properties",
+      "doi": "10.1029/2005JB004237"
+    },
+    "Hennino2001": {
+      "author": "Hennino, R. and Tr{\\'e}gour{\\`e}s, N. and Shapiro, N. M. and Margerin, L. and Campillo, M. and van Tiggelen, B. A. and Weaver, R. L.",
+      "year": "2001",
+      "journal": "Physical Review Letters",
+      "title": "Observation of Equipartition of Seismic Waves",
+      "doi": "10.1103/PhysRevLett.86.3447"
+    },
+    "Margerin2019": {
+      "author": "Margerin, Ludovic and Bajaras, Andres and Campillo, Michel",
+      "year": "2019",
+      "journal": "Geophysical Journal International",
+      "title": "A scalar radiative transfer model including the coupling between surface and body waves",
+      "doi": "10.1093/gji/ggz348"
+    },
+    "Steegen2016": {
+      "author": "Steegen, Sara and Tuerlinckx, Francis and Gelman, Andrew and Vanpaemel, Wolf",
+      "year": "2016",
+      "journal": "Perspectives on Psychological Science",
+      "title": "Increasing transparency through a multiverse analysis",
+      "doi": "10.1177/1745691616658637"
+    },
+    "Gelman2013": {
+      "author": "Gelman, Andrew and Loken, Eric",
+      "year": "2013",
+      "journal": "Department of Statistics, Columbia University (working paper)",
+      "title": "The garden of forking paths",
+      "doi": ""
+    },
+    "Pacheco2005": {
+      "author": "Pacheco, Carlos and Snieder, Roel",
+      "year": "2005",
+      "journal": "The Journal of the Acoustical Society of America",
+      "title": "Time-lapse travel time change of multiply scattered acoustic waves",
+      "doi": "10.1121/1.1979437"
+    },
+    "Okubo2024": {
+      "author": "Okubo, Kurama and Delbridge, Brent G. and Denolle, Marine A.",
+      "year": "2024",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Monitoring Velocity Change Over 20 Years at Parkfield",
+      "doi": "10.1029/2023JB028084"
+    },
+    "Denolle25b": {
+      "author": "Denolle, Marine A. and Shi, Qibin and Clements, Tim and Viens, Lo{\\\"\\i}c and Rodriguez-Tribaldos, Veronica and Cotton, Fabrice",
+      "year": "2025",
+      "journal": "Comptes Rendus. G\\'eoscience",
+      "title": "Ambient field seismology in critical zone hydrological sciences",
+      "doi": "10.5802/crgeos.310"
+    },
+    "Kidiwela2026": {
+      "author": "Kidiwela, Maleen and Denolle, Marine A. and Wilcock, William S. D. and Feng, K. F.",
+      "year": "2026",
+      "journal": "Science Advances",
+      "title": "Active protothrusts and fluid highways: Seismic noise reveals hidden subduction dynamics in Cascadia",
+      "doi": "10.1126/sciadv.aea3684"
+    },
+    "Gassmann1951": {
+      "author": "Gassmann, Fritz",
+      "year": "1951",
+      "journal": "Vierteljahrsschrift der Naturforschenden Gesellschaft in Z{\\\"u}rich",
+      "title": "{\\\"U}ber die Elastizit{\\\"a}t por{\\\"o}ser Medien",
+      "doi": ""
+    },
+    "Mavko2009": {
+      "author": "Mavko, Gary and Mukerji, Tapan and Dvorkin, Jack",
+      "year": "2009",
+      "journal": "",
+      "title": "The Rock Physics Handbook: Tools for Seismic Analysis of Porous Media",
+      "doi": "10.1017/CBO9780511626753"
+    },
+    "CubukSabuncu2021": {
+      "author": "Cubuk-Sabuncu, Ye{\\c s}im and J{\\'o}nsd{\\'o}ttir, Krist\u00edn and Caudron, Corentin and Lecocq, Thomas and Parks, Michelle and Geirsson, Halld{\\'o}r and Mordret, Aur{\\'e}lien",
+      "year": "2021",
+      "journal": "Geophysical Research Letters",
+      "title": "Temporal Seismic Velocity Changes During the 2020 Rapid Inflation at Mt. {\\th}orbj{\\\"o}rn-Svartsengi, Iceland, Using Seismic Ambient Noise",
+      "doi": "10.1029/2020GL092265"
+    },
+    "Ouellet2022": {
+      "author": "Ouellet, Susanne M. and Dettmer, Jan and Olivier, Gerrit and de Wit, Tjaart and Lato, Matt",
+      "year": "2022",
+      "journal": "Communications Earth \\& Environment",
+      "title": "Advanced monitoring of tailings dam performance using seismic noise and stress models",
+      "doi": "10.1038/s43247-022-00629-w"
+    },
+    "Planes2016": {
+      "author": "Plan{\\`e}s, Thomas and Mooney, Michael A. and Rittgers, Jacob B. R. and Parekh, Malcolm L. and Behm, Michael and Snieder, Roel",
+      "year": "2016",
+      "journal": "G{\\'e}otechnique",
+      "title": "Time-lapse monitoring of internal erosion in earthen dams and levees using ambient seismic noise",
+      "doi": "10.1680/jgeot.14.P.268"
+    },
+    "Tsuji2021": {
+      "author": "Tsuji, Takeshi and Ikeda, Tatsunori and Matsuura, Ryosuke and Mukumoto, Kota and Hutapea, Fernando Lawrens and Kimura, Tsunehisa and Yamaoka, Koshun and Shinohara, Masanao",
+      "year": "2021",
+      "journal": "Scientific Reports",
+      "title": "Continuous monitoring system for safe managements of {CO2} storage and geothermal reservoirs",
+      "doi": "10.1038/s41598-021-97881-5"
+    },
+    "Rivet2014": {
+      "author": "Rivet, Diane and Brenguier, Florent and Clarke, Daniel and Shapiro, Nikola{\\\"i} M. and Peltier, Aline",
+      "year": "2014",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Long-term dynamics of {Piton de la Fournaise} volcano from 13 years of seismic velocity change measurements and {GPS} observations",
+      "doi": "10.1002/2014JB011307"
+    },
+    "SensSchonfelder2014": {
+      "author": "Sens-Sch{\\\"o}nfelder, Christoph and Pomponi, Eraldo and Peltier, Aline",
+      "year": "2014",
+      "journal": "Journal of Volcanology and Geothermal Research",
+      "title": "Dynamics of {Piton de la Fournaise} volcano observed by passive image interferometry with multiple references",
+      "doi": "10.1016/j.jvolgeores.2014.02.012"
+    },
+    "James2017": {
+      "author": "James, S. R. and Knox, H. A. and Abbott, R. E. and Screaton, E. J.",
+      "year": "2017",
+      "journal": "Geophysical Research Letters",
+      "title": "Improved moving window cross-spectral analysis for resolving large temporal seismic velocity changes in permafrost",
+      "doi": "10.1002/2016GL072468"
+    },
+    "ZotzWilson2019": {
+      "author": "Zotz-Wilson, Reuben and Boerrigter, Thijs and Barnhoorn, Auke",
+      "year": "2019",
+      "journal": "The Journal of the Acoustical Society of America",
+      "title": "Coda-wave monitoring of continuously evolving material properties and the precursory detection of yielding",
+      "doi": "10.1121/1.5091012"
+    },
+    "Hadziioannou2011": {
+      "author": "Hadziioannou, C. and Larose, E. and Baig, A. and Roux, P. and Campillo, M.",
+      "year": "2011",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Improving temporal resolution in ambient noise monitoring of seismic wave speed",
+      "doi": "10.1029/2011JB008200"
+    },
+    "Moreau2017": {
+      "author": "Moreau, L. and Stehly, L. and Bou\u00e9, P. and Lu, Y. and Larose, E. and Campillo, M.",
+      "year": "2017",
+      "journal": "Geophysical Journal International",
+      "title": "Improving ambient noise correlation functions with an {SVD}-based {W}iener filter",
+      "doi": "10.1093/gji/ggx306"
+    },
+    "Mao2019": {
+      "author": "Mao, Shujuan and Campillo, Michel and van der Hilst, Robert D. and Brenguier, Florent and Stehly, Laurent and Hillers, Gregor",
+      "year": "2019",
+      "journal": "Geophysical Research Letters",
+      "title": "High temporal resolution monitoring of small variations in crustal strain by dense seismic arrays",
+      "doi": "10.1029/2018GL079944"
+    },
+    "Viens2020": {
+      "author": "Viens, Lo\u00efc and Van Houtte, Chris",
+      "year": "2020",
+      "journal": "Geophysical Journal International",
+      "title": "Denoising ambient seismic field correlation functions with convolutional autoencoders",
+      "doi": "10.1093/gji/ggz509"
+    },
+    "Brenguier2008": {
+      "author": "Brenguier, Florent and Shapiro, Nikolai M. and Campillo, Michel and Ferrazzini, Val{\\'e}rie and Duputel, Zacharie and Coutant, Olivier and Nercessian, Alexandre",
+      "year": "2008",
+      "journal": "Nature Geoscience",
+      "title": "Towards forecasting volcanic eruptions using seismic noise",
+      "doi": "10.1038/ngeo104"
+    },
+    "Duputel2009": {
+      "author": "Duputel, Zacharie and Ferrazzini, Val{\\'e}rie and Brenguier, Florent and Shapiro, Nikolai and Campillo, Michel and Nercessian, Alexandre",
+      "year": "2009",
+      "journal": "Journal of Volcanology and Geothermal Research",
+      "title": "Real time monitoring of relative velocity changes using ambient seismic noise at the Piton de la Fournaise volcano (La R{\\'e}union) from January 2006 to June 2007",
+      "doi": "10.1016/j.jvolgeores.2008.11.024"
+    },
+    "HotovecEllis2014": {
+      "author": "HotovecEllis, A. J. and Gomberg, J. and Vidale, J. E. and Creager, K. C.",
+      "year": "2014",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "A continuous record of intereruption velocity change at Mount St. Helens from coda wave interferometry",
+      "doi": "10.1002/2013jb010742"
+    },
+    "HotovecEllis2015": {
+      "author": "HotovecEllis, A. J. and Vidale, J. E. and Gomberg, J. and Thelen, W. and Moran, S. C.",
+      "year": "2015",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Changes in seismic velocity during the first 14 months of the 20042008 eruption of Mount St. Helens, Washington",
+      "doi": "10.1002/2015jb012101"
+    },
+    "Rivet2015": {
+      "author": "Rivet, Diane and Brenguier, Florent and Cappa, Fr{\\'e}d{\\'e}ric",
+      "year": "2015",
+      "journal": "Geophysical Research Letters",
+      "title": "Improved detection of preeruptive seismic velocity drops at the Piton de La Fournaise volcano",
+      "doi": "10.1002/2015gl064835"
+    },
+    "DePlaen2016": {
+      "author": "De Plaen, Raphael S. M. and Lecocq, Thomas and Caudron, Corentin and Ferrazzini, Val{\\'e}rie and Francis, Olivier",
+      "year": "2016",
+      "journal": "Geophysical Research Letters",
+      "title": "Singlestation monitoring of volcanoes using seismic ambient noise",
+      "doi": "10.1002/2016gl070078"
+    },
+    "Donaldson2017": {
+      "author": "Donaldson, Clare and Caudron, Corentin and Green, Robert G. and Thelen, Weston A. and White, Robert S.",
+      "year": "2017",
+      "journal": "Science Advances",
+      "title": "Relative seismic velocity variations correlate with deformation at K{\\=i}lauea volcano",
+      "doi": "10.1126/sciadv.1700219"
+    },
+    "Takano2017": {
+      "author": "Takano, Tomoya and Nishimura, Takeshi and Nakahara, Hisashi",
+      "year": "2017",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Seismic velocity changes concentrated at the shallow structure as inferred from correlation analyses of ambient noise during volcano deformation at IzuOshima, Japan",
+      "doi": "10.1002/2017jb014340"
+    },
+    "Lesage2018": {
+      "author": "Lesage, Philippe and Carrara, Alexandre and Pinel, Virginie and Ar{\\'a}mbula-Mendoza, Raul",
+      "year": "2018",
+      "journal": "Frontiers in Earth Science",
+      "title": "Absence of Detectable Precursory Deformation and Velocity Variation Before the Large Dome Collapse of July 2015 at Volc{\\'a}n de Colima, Mexico",
+      "doi": "10.3389/feart.2018.00093"
+    },
+    "DePlaen2019": {
+      "author": "De Plaen, Raphael S. M. and Cannata, Andrea and Cannavo', Flavio and Caudron, Corentin and Lecocq, Thomas and Francis, Olivier",
+      "year": "2019",
+      "journal": "Frontiers in Earth Science",
+      "title": "Temporal Changes of Seismic Velocity Caused by Volcanic Activity at Mt. Etna Revealed by the Autocorrelation of Ambient Seismic Noise",
+      "doi": "10.3389/feart.2018.00251"
+    },
+    "Donaldson2019": {
+      "author": "Donaldson, C. and Winder, T. and Caudron, C. and White, R. S.",
+      "year": "2019",
+      "journal": "Science Advances",
+      "title": "Crustal seismic velocity responds to a magmatic intrusion and seasonal loading in Icelands Northern Volcanic Zone",
+      "doi": "10.1126/sciadv.aax6642"
+    },
+    "Olivier2019": {
+      "author": "Olivier, G. and Brenguier, F. and Carey, R. and Okubo, P. and Donaldson, C.",
+      "year": "2019",
+      "journal": "Geophysical Research Letters",
+      "title": "Decrease in Seismic Velocity Observed Prior to the 2018 Eruption of K{\\=i}lauea Volcano With Ambient Seismic Noise Interferometry",
+      "doi": "10.1029/2018gl081609"
+    },
+    "Yates2019": {
+      "author": "Yates, A. S. and Savage, M. K. and Jolly, A. D. and Caudron, C. and Hamling, I. J.",
+      "year": "2019",
+      "journal": "Geophysical Research Letters",
+      "title": "Volcanic, Coseismic, and Seasonal Changes Detected at White Island (Whakaari) Volcano, New Zealand, Using Seismic Ambient Noise",
+      "doi": "10.1029/2018gl080580"
+    },
+    "Feng2020": {
+      "author": "Feng, Kuan-Fu and Huang, Hsin-Hua and Wu, Yih-Min",
+      "year": "2020",
+      "journal": "Earth, Planets and Space",
+      "title": "Detecting pre-eruptive magmatic processes of the 2018 eruption at Kilauea, Hawaii volcano with ambient noise interferometry",
+      "doi": "10.1186/s40623-020-01199-x"
+    },
+    "HotovecEllis2022": {
+      "author": "HotovecEllis, Alicia J. and Shiro, Brian R. and Shelly, David R. and Anderson, Kyle R. and Haney, Matthew M. and Thelen, Weston A. and MontgomeryBrown, Emily K. and Johanson, Ingrid A.",
+      "year": "2022",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "EarthquakeDerived Seismic Velocity Changes During the 2018 Caldera Collapse of K{\\=i}lauea Volcano",
+      "doi": "10.1029/2021jb023324"
+    },
+    "Kopfli2024": {
+      "author": "K{\\\"o}pfli, Manuela and Denolle, Marine A. and Thelen, Weston A. and Makus, Peter and Malone, Stephen D.",
+      "year": "2024",
+      "journal": "Seismological Research Letters",
+      "title": "Examining 22 Years of Ambient Seismic Wavefield at Mount St. Helens",
+      "doi": "10.1785/0220240079"
+    },
+    "Yates2024": {
+      "author": "Yates, Alexander S. and Caudron, Corentin and Mordret, Aur{\\'e}lien and Lesage, Philippe and Pinel, Virginie and Lecocq, Thomas and Miller, Craig A. and Lamb, Oliver D. and Fournier, Nicolas",
+      "year": "2024",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Seasonal Snow Cycles and Their Possible Influence on Seismic Velocity Changes and Eruptive Activity at Ruapehu Volcano, New Zealand",
+      "doi": "10.1029/2024jb029568"
+    },
+    "Yukutake2025": {
+      "author": "Yukutake, Yohei and Taira, Taka'aki and Onizawa, Shin'ya and Morita, Yuichi",
+      "year": "2025",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Decadal Monitoring of Seismic Velocity Changes Beneath IzuOshima, Central Japan, Using Ambient Seismic Noise Records",
+      "doi": "10.1029/2025jb031170"
+    },
+    "Schaff2004": {
+      "author": "Schaff, David P. and Beroza, Gregory C.",
+      "year": "2004",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Coseismic and postseismic velocity changes measured by repeating earthquakes",
+      "doi": "10.1029/2004jb003011"
+    },
+    "Rubinstein2005": {
+      "author": "Rubinstein, Justin L. and Beroza, Gregory C.",
+      "year": "2005",
+      "journal": "Geophysical Research Letters",
+      "title": "Depth constraints on nonlinear strong ground motion from the 2004 Parkfield earthquake",
+      "doi": "10.1029/2005gl023189"
+    },
+    "Wegler2007": {
+      "author": "Wegler, U. and Sens-Sch{\\\"o}nfelder, C.",
+      "year": "2007",
+      "journal": "Geophysical Journal International",
+      "title": "Fault zone monitoring with passive image interferometry",
+      "doi": "10.1111/j.1365-246x.2006.03284.x"
+    },
+    "Brenguier2008b": {
+      "author": "Brenguier, F. and Campillo, M. and Hadziioannou, C. and Shapiro, N. M. and Nadeau, R. M. and Larose, E.",
+      "year": "2008",
+      "journal": "Science",
+      "title": "Postseismic Relaxation Along the San Andreas Fault at Parkfield from Continuous Seismological Observations",
+      "doi": "10.1126/science.1160943"
+    },
+    "Hadziioannou2009": {
+      "author": "Hadziioannou, C{\\'e}line and Larose, Eric and Coutant, Olivier and Roux, Philippe and Campillo, Michel",
+      "year": "2009",
+      "journal": "The Journal of the Acoustical Society of America",
+      "title": "Stability of monitoring weak changes in multiply scattering media with ambient noise correlation: Laboratory experiments",
+      "doi": "10.1121/1.3125345"
+    },
+    "Sawazaki2009": {
+      "author": "Sawazaki, K. and Sato, H. and Nakahara, H. and Nishimura, T.",
+      "year": "2009",
+      "journal": "Bulletin of the Seismological Society of America",
+      "title": "Time-Lapse Changes of Seismic Velocity in the Shallow Ground Caused by Strong Ground Motion Shock of the 2000 Western-Tottori Earthquake, Japan, as Revealed from Coda Deconvolution Analysis",
+      "doi": "10.1785/0120080058"
+    },
+    "Wegler2009": {
+      "author": "Wegler, U. and Nakahara, H. and SensSch{\\\"o}nfelder, C. and Korn, M. and Shiomi, K.",
+      "year": "2009",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Sudden drop of seismic velocity after the 2004 M\\textsubscript{w} 6.6 midNiigata earthquake, Japan, observed with Passive Image Interferometry",
+      "doi": "10.1029/2008jb005869"
+    },
+    "Chen2010": {
+      "author": "Chen, Jiu Hui and Froment, B{\\'e}r{\\'e}nice and Liu, Qi Yuan and Campillo, Michel",
+      "year": "2010",
+      "journal": "Geophysical Research Letters",
+      "title": "Distribution of seismic wave speed changes associated with the 12 May 2008 Mw 7.9 Wenchuan earthquake",
+      "doi": "10.1029/2010gl044582"
+    },
+    "Nakata2011": {
+      "author": "Nakata, N. and Snieder, R.",
+      "year": "2011",
+      "journal": "Geophysical Research Letters",
+      "title": "Near-surface weakening in Japan after the 2011 Tohoku-Oki earthquake",
+      "doi": "10.1029/2011gl048800"
+    },
+    "Rivet2011": {
+      "author": "Rivet, Diane and Campillo, Michel and Shapiro, Nikolai M. and Cruz-Atienza, Victor and Radiguet, Mathilde and Cotte, Nathalie and Kostoglodov, Vladimir",
+      "year": "2011",
+      "journal": "Geophysical Research Letters",
+      "title": "Seismic evidence of nonlinear crustal deformation during a large slow slip event in Mexico",
+      "doi": "10.1029/2011gl047151"
+    },
+    "Hobiger2012": {
+      "author": "Hobiger, M. and Wegler, U. and Shiomi, K. and Nakahara, H.",
+      "year": "2012",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Coseismic and postseismic elastic wave velocity variations caused by the 2008 IwateMiyagi Nairiku earthquake, Japan",
+      "doi": "10.1029/2012jb009402"
+    },
+    "Minato2012": {
+      "author": "Minato, Shohei and Tsuji, Takeshi and Ohmi, Shiro and Matsuoka, Toshifumi",
+      "year": "2012",
+      "journal": "Geophysical Research Letters",
+      "title": "Monitoring seismic velocity change caused by the 2011 Tohokuoki earthquake using ambient noise records",
+      "doi": "10.1029/2012gl051405"
+    },
+    "Liu2014": {
+      "author": "Liu, Zhikun and Huang, Jinli and Peng, Zhigang and Su, Jinrong",
+      "year": "2014",
+      "journal": "Geophysical Research Letters",
+      "title": "Seismic velocity changes in the epicentral region of the 2008 Wenchuan earthquake measured from threecomponent ambient noise correlation techniques",
+      "doi": "10.1002/2013gl058682"
+    },
+    "Taira2015": {
+      "author": "Taira, Taka'aki and Brenguier, Florent and Kong, Qingkai",
+      "year": "2015",
+      "journal": "Geophysical Research Letters",
+      "title": "Ambient noisebased monitoring of seismic velocity changes associated with the 2014 M\\textsubscript{w} 6.0 South Napa earthquake",
+      "doi": "10.1002/2015gl065308"
+    },
+    "Gassenmeier2016": {
+      "author": "Gassenmeier, M. and Sens-Sch{\\\"o}nfelder, C. and Eulenfeld, T. and Bartsch, M. and Victor, P. and Tilmann, F. and Korn, M.",
+      "year": "2016",
+      "journal": "Geophysical Journal International",
+      "title": "Field observations of seismic velocity changes caused by shaking-induced damage and healing due to mesoscopic nonlinearity",
+      "doi": "10.1093/gji/ggv529"
+    },
+    "Hillers2019": {
+      "author": "Hillers, G. and Campillo, M. and Brenguier, F. and Moreau, L. and Agnew, D. C. and BenZion, Y.",
+      "year": "2019",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Seismic Velocity Change Patterns Along the San Jacinto Fault Zone Following the 2010 M7.2 El MayorCucapah and M5.4 Collins Valley Earthquakes",
+      "doi": "10.1029/2018jb017143"
+    },
+    "Wang2019": {
+      "author": "Wang, QingYu and Campillo, Michel and Brenguier, Florent and Lecointre, Albanne and Takeda, Tetsuya and Hashima, Akinori",
+      "year": "2019",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Evidence of Changes of Seismic Properties in the Entire Crust Beneath Japan After the M\\textsubscript{w} 9.0, 2011 Tohokuoki Earthquake",
+      "doi": "10.1029/2019jb017803"
+    },
+    "Poli2020": {
+      "author": "Poli, Piero and Marguin, Valentin and Wang, Qingyu and D'Agostino, Nicola and Johnson, Paul",
+      "year": "2020",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Seasonal and Coseismic Velocity Variation in the Region of L'Aquila From Single Station Measurements and Implications for Crustal Rheology",
+      "doi": "10.1029/2019jb019316"
+    },
+    "Boschelli2021": {
+      "author": "Boschelli, Joshua and Moschetti, Morgan P. and SensSch{\\\"o}nfelder, Christoph",
+      "year": "2021",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Temporal Seismic Velocity Variations: Recovery Following From the 2019 M\\textsubscript{w} 7.1 Ridgecrest, California Earthquake",
+      "doi": "10.1029/2020jb021465"
+    },
+    "Lu2021": {
+      "author": "Lu, Y and Ben-Zion, Y",
+      "year": "2021",
+      "journal": "Geophysical Journal International",
+      "title": "Regional seismic velocity changes following the 2019 Mw 7.1 Ridgecrest, California earthquake from autocorrelations and P/S converted waves",
+      "doi": "10.1093/gji/ggab350"
+    },
+    "Sheng2022": {
+      "author": "Sheng, Y. and Mordret, A. and Sager, K. and Brenguier, F. and Bou{\\'e}, P. and Rousset, B. and Vernon, F. and Higueret, Q. and BenZion, Y.",
+      "year": "2022",
+      "journal": "Geophysical Research Letters",
+      "title": "Monitoring Seismic Velocity Changes Across the San Jacinto Fault Using TrainGenerated Seismic Tremors",
+      "doi": "10.1029/2022gl098509"
+    },
+    "Mainsant2012": {
+      "author": "Mainsant, Gu{\\'e}nol{\\'e} and Larose, Eric and Br{\\\"o}nnimann, Cornelia and Jongmans, Denis and Michoud, Cl{\\'e}ment and Jaboyedoff, Michel",
+      "year": "2012",
+      "journal": "Journal of Geophysical Research: Earth Surface",
+      "title": "Ambient seismic noise monitoring of a clay landslide: Toward failure prediction",
+      "doi": "10.1029/2011jf002159"
+    },
+    "Voisin2016": {
+      "author": "Voisin, Christophe and Garambois, St{\\'e}phane and Massey, Chris and Brossier, Romain",
+      "year": "2016",
+      "journal": "Interpretation",
+      "title": "Seismic noise monitoring of the water table in a deep-seated, slow-moving landslide",
+      "doi": "10.1190/int-2016-0010.1"
+    },
+    "Harba2017": {
+      "author": "Harba, Paulina and Pilecki, Zenon",
+      "year": "2016",
+      "journal": "Landslides",
+      "title": "Assessment of timespatial changes of shear wave velocities of flysch formation prone to mass movements by seismic interferometry with the use of ambient noise",
+      "doi": "10.1007/s10346-016-0779-2"
+    },
+    "Bertello2018": {
+      "author": "Bertello, Lara and Berti, Matteo and Castellaro, Silvia and Squarzoni, Gabriela",
+      "year": "2018",
+      "journal": "Journal of Geophysical Research: Earth Surface",
+      "title": "Dynamics of an Active Earthflow Inferred From Surface Wave Monitoring",
+      "doi": "10.1029/2017jf004233"
+    },
+    "Bievre2018": {
+      "author": "Bi{\\`e}vre, Gr{\\'e}gory and Franz, Martin and Larose, Eric and Carri{\\`e}re, Simon and Jongmans, Denis and Jaboyedoff, Michel",
+      "year": "2018",
+      "journal": "Engineering Geology",
+      "title": "Influence of environmental parameters on the seismic velocity changes in a clayey mudflow (Pont-Bourquin Landslide, Switzerland)",
+      "doi": "10.1016/j.enggeo.2018.08.013"
+    },
+    "Colombero2018": {
+      "author": "Colombero, C and Baillet, L and Comina, C and Jongmans, D and Larose, E and Valentin, J and Vinciguerra, S",
+      "year": "2018",
+      "journal": "Geophysical Journal International",
+      "title": "Integration of ambient seismic noise monitoring, displacement and meteorological measurements to infer the temperature-controlled long-term evolution of a complex prone-to-fall cliff",
+      "doi": "10.1093/gji/ggy090"
+    },
+    "Bontemps2020": {
+      "author": "Bontemps, No{\\'e}lie and Lacroix, Pascal and Larose, Eric and Jara, Jorge and Taipe, Edu",
+      "year": "2020",
+      "journal": "Nature Communications",
+      "title": "Rain and small earthquakes maintain a slow-moving landslide in a persistent critical state",
+      "doi": "10.1038/s41467-020-14445-3"
+    },
+    "Fiolleau2020": {
+      "author": "Fiolleau, S and Jongmans, D and Bi{\\`e}vre, G and Chambon, G and Baillet, L and Vial, B",
+      "year": "2020",
+      "journal": "Geophysical Journal International",
+      "title": "Seismic characterization of a clay-block rupture in Harmali{\\`e}re landslide, French Western Alps",
+      "doi": "10.1093/gji/ggaa050"
+    },
+    "LeBreton2021": {
+      "author": "Le Breton, Mathieu and Bontemps, No{\\'e}lie and Guillemot, Antoine and Baillet, Laurent and Larose, {\\'E}ric",
+      "year": "2021",
+      "journal": "Earth-Science Reviews",
+      "title": "Landslide monitoring using seismic ambient noise correlation: challenges and applications",
+      "doi": "10.1016/j.earscirev.2021.103518"
+    },
+    "Fan2023": {
+      "author": "Xie, Fan and Larose, Eric and Wang, Qingyu and Zhang, Yuxiang",
+      "year": "2023",
+      "journal": "Engineering Geology",
+      "title": "In-situ monitoring of rock slope destabilization with ambient seismic noise interferometry in southwest China",
+      "doi": "10.1016/j.enggeo.2022.106922"
+    },
+    "Liu2025": {
+      "author": "Liu, Zhiqiang and Li, Huailiang and Liang, Chuntao and Zhang, Tuo and Jiang, Hao and Huang, Huixuan",
+      "year": "2026",
+      "journal": "Geophysical Journal International",
+      "title": "Enhanced visualization of rainfall infiltration in landslides using high-resolution 4-D noise-based velocity change imaging",
+      "doi": "10.1093/gji/ggag037"
+    },
+    "Whiteley2026": {
+      "author": "Watlet, Arnaud and Whiteley, Jim and Dashwood, Ben and Morgan, Dave and Lane, Victoria and Finch, Lucy and Gunn, David and Lecocq, Thomas and Chambers, Jonathan",
+      "year": "2026",
+      "journal": "Seismica",
+      "title": "Seismic response of a slow-moving landslide: exploring data from two years of seismic monitoring at the Hollin Hill Landslide Observatory (UK)",
+      "doi": "10.26443/seismica.v5i1.1478"
+    },
+    "deWit2026": {
+      "author": "De Wit, Tjaart and Snieder, Roelof",
+      "year": "2026",
+      "journal": "Seismica",
+      "title": "Did they blow it? Time-lapse velocity variations during an open-pit mine slope failure using seismic noise interferometry",
+      "doi": "10.26443/seismica.v5i1.1902"
+    },
+    "Tsai2011": {
+      "author": "Tsai, Victor C.",
+      "year": "2011",
+      "journal": "Journal of Geophysical Research",
+      "title": "A model for seasonal changes in GPS positions and seismic wave speeds due to thermoelastic and hydrologic variations",
+      "doi": "10.1029/2010jb008156"
+    },
+    "Hillers2014": {
+      "author": "Hillers, G. and Campillo, M. and Ma, K.-F.",
+      "year": "2014",
+      "journal": "Earth and Planetary Science Letters",
+      "title": "Seismic velocity variations at TCDP are controlled by MJO driven precipitation pattern and high fluid discharge properties",
+      "doi": "10.1016/j.epsl.2014.01.040"
+    },
+    "Lecocq2017": {
+      "author": "Lecocq, Thomas and Longuevergne, Laurent and Pedersen, Helle Anette and Brenguier, Florent and Stammler, Klaus",
+      "year": "2017",
+      "journal": "Scientific Reports",
+      "title": "Monitoring ground water storage at mesoscale using seismic noise: 30 years of continuous observation and thermo-elastic and hydrological modeling",
+      "doi": "10.1038/s41598-017-14468-9"
+    },
+    "Nimiya2017": {
+      "author": "Nimiya, Hiro and Ikeda, Tatsunori and Tsuji, Takeshi",
+      "year": "2017",
+      "journal": "Science Advances",
+      "title": "Spatial and temporal seismic velocity changes on Kyushu Island during the 2016 Kumamoto earthquake",
+      "doi": "10.1126/sciadv.1700813"
+    },
+    "Wang2017": {
+      "author": "Wang, QingYu and Brenguier, Florent and Campillo, Michel and Lecointre, Albanne and Takeda, Tetsuya and Aoki, Yosuke",
+      "year": "2017",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Seasonal Crustal Seismic Velocity Changes Throughout Japan",
+      "doi": "10.1002/2017jb014307"
+    },
+    "Kim2019": {
+      "author": "Kim, D. and Lekic, V.",
+      "year": "2019",
+      "journal": "Geophysical Research Letters",
+      "title": "Groundwater Variations From Autocorrelation and Receiver Functions",
+      "doi": "10.1029/2019gl084719"
+    },
+    "Andajani2020": {
+      "author": "Andajani, Rezkia Dewi and Tsuji, Takeshi and Snieder, Roel and Ikeda, Tatsunori",
+      "year": "2020",
+      "journal": "Earth, Planets and Space",
+      "title": "Spatial and temporal influence of rainfall on crustal pore pressure based on seismic velocity monitoring",
+      "doi": "10.1186/s40623-020-01311-1"
+    },
+    "GaubertBastide2022": {
+      "author": "GaubertBastide, T. and Garambois, S. and Bordes, C. and Voisin, C. and Oxarango, L. and Brito, D. and Roux, P.",
+      "year": "2022",
+      "journal": "Water Resources Research",
+      "title": "HighResolution Monitoring of Controlled Water Table Variations From Dense SeismicNoise Acquisitions",
+      "doi": "10.1029/2021wr030680"
+    },
+    "Illien2022": {
+      "author": "Illien, Luc and SensSch{\\\"o}nfelder, Christoph and Andermann, Christoff and Marc, Odin and Cook, Kristen L. and Adhikari, Lok B. and Hovius, Niels",
+      "year": "2022",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Seismic Velocity Recovery in the Subsurface: Transient Damage and Groundwater Drainage Following the 2015 Gorkha Earthquake, Nepal",
+      "doi": "10.1029/2021jb023402"
+    },
+    "Mao2022": {
+      "author": "Mao, Shujuan and Lecointre, Albanne and van der Hilst, Robert D. and Campillo, Michel",
+      "year": "2022",
+      "journal": "Nature Communications",
+      "title": "Space-time monitoring of groundwater fluctuations with passive seismic interferometry",
+      "doi": "10.1038/s41467-022-32194-3"
+    },
+    "Clements2023": {
+      "author": "Clements, T. and Denolle, M. A.",
+      "year": "2023",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "The Seismic Signature of California's Earthquakes, Droughts, and Floods",
+      "doi": "10.1029/2022jb025553"
+    },
+    "Delouche2023": {
+      "author": "Delouche, E. and Stehly, L.",
+      "year": "2023",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Seasonal Seismic Velocity Variations Measured Using Seismic Noise Autocorrelations to Monitor the Dynamic of Aquifers in Greece",
+      "doi": "10.1029/2023jb026759"
+    },
+    "Ermert2023": {
+      "author": "Ermert, Laura A. and Cabral-Cano, Enrique and Chaussard, Estelle and Solano-Rojas, Dar{\\'i}o and Quintanar, Luis and Morales Padilla, Diana and Fern{\\'a}ndez-Torres, Enrique A. and Denolle, Marine A.",
+      "year": "2023",
+      "journal": "Solid Earth",
+      "title": "Probing environmental and tectonic changes underneath Mexico City with the urban seismic field",
+      "doi": "10.5194/se-14-529-2023"
+    },
+    "Fokker2023": {
+      "author": "Fokker, Eldert and Ruigrok, Elmer and Hawkins, Rhys and Trampert, Jeannot",
+      "year": "2023",
+      "journal": "Geophysical Research Letters",
+      "title": "4D PhysicsBased Pore Pressure Monitoring Using Passive Image Interferometry",
+      "doi": "10.1029/2022gl101254"
+    },
+    "Zhang2023": {
+      "author": "Zhang, Shuo and Luo, Bingxu and BenZion, Yehuda and Lumley, David E. and Zhu, Hejun",
+      "year": "2023",
+      "journal": "Geophysical Research Letters",
+      "title": "Monitoring Terrestrial Water Storage, Drought and Seasonal Changes in Central Oklahoma With Ambient Seismic Noise",
+      "doi": "10.1029/2023gl103419"
+    },
+    "Mao2025": {
+      "author": "Mao, Shujuan and Ellsworth, William L. and Zheng, Yujie and Beroza, Gregory C.",
+      "year": "2025",
+      "journal": "Science",
+      "title": "Depth-dependent seismic sensing of groundwater recovery from the atmospheric-river storms of 2023",
+      "doi": "10.1126/science.adr6139"
+    },
+    "Mordret2016": {
+      "author": "Mordret, Aur{\\'e}lien and Mikesell, T. Dylan and Harig, Christopher and Lipovsky, Bradley P. and Prieto, Germ{\\'a}n A.",
+      "year": "2016",
+      "journal": "Science Advances",
+      "title": "Monitoring southwest Greenlands ice sheet melt with ambient seismic noise",
+      "doi": "10.1126/sciadv.1501538"
+    },
+    "James2019": {
+      "author": "James, S. R. and Knox, H. A. and Abbott, R. E. and Panning, M. P. and Screaton, E. J.",
+      "year": "2019",
+      "journal": "Journal of Geophysical Research: Earth Surface",
+      "title": "Insights Into Permafrost and Seasonal ActiveLayer Dynamics From Ambient Seismic Noise Monitoring",
+      "doi": "10.1029/2019jf005051"
+    },
+    "Guillemot2020": {
+      "author": "Guillemot, Antoine and Helmstetter, Agn{\\`e}s and Larose, {\\'E}ric and Baillet, Laurent and Garambois, St{\\'e}phane and Mayoraz, Rapha{\\\"e}l and Delaloye, Reynald",
+      "year": "2020",
+      "journal": "Geophysical Journal International",
+      "title": "Seismic monitoring in the Gugla rock glacier (Switzerland): ambient noise correlation, microseismicity and modelling",
+      "doi": "10.1093/gji/ggaa097"
+    },
+    "Guillemot2021": {
+      "author": "Guillemot, Antoine and Baillet, Laurent and Garambois, St{\\'e}phane and Bodin, Xavier and Helmstetter, Agn{\\`e}s and Mayoraz, Rapha{\\\"e}l and Larose, Eric",
+      "year": "2021",
+      "journal": "The Cryosphere",
+      "title": "Modal sensitivity of rock glaciers to elastic changes from spectral seismic noise monitoring and modeling",
+      "doi": "10.5194/tc-15-501-2021"
+    },
+    "Lindner2021": {
+      "author": "Lindner, Fabian and Wassermann, Joachim and Igel, Heiner",
+      "year": "2021",
+      "journal": "Geophysical Research Letters",
+      "title": "Seasonal FreezeThaw Cycles and Permafrost Degradation on Mt. Zugspitze (German/Austrian Alps) Revealed by SingleStation Seismic Monitoring",
+      "doi": "10.1029/2021gl094659"
+    },
+    "Luo2023": {
+      "author": "Luo, Bingxu and Zhang, Shuo and Zhu, Hejun",
+      "year": "2023",
+      "journal": "Geophysical Research Letters",
+      "title": "Monitoring Seasonal Fluctuation and LongTerm Trends for the Greenland Ice Sheet Using Seismic Noise AutoCorrelations",
+      "doi": "10.1029/2022gl102146"
+    },
+    "Gassenmeier2015": {
+      "author": "Gassenmeier, M. and Sens-Sch{\\\"o}nfelder, C. and Delatre, M. and Korn, M.",
+      "year": "2014",
+      "journal": "Geophysical Journal International",
+      "title": "Monitoring of environmental influences on seismic velocity at the geological storage site for CO2 in Ketzin (Germany) with ambient seismic noise",
+      "doi": "10.1093/gji/ggu413"
+    },
+    "Hillers2015": {
+      "author": "Hillers, Gregor and Husen, Stephan and Obermann, Anne and Plan{\\`e}s, Thomas and Larose, Eric and Campillo, Michel",
+      "year": "2015",
+      "journal": "Geophysics",
+      "title": "Noise-based monitoring and imaging of aseismic transient deformation induced by the 2006 Basel reservoir stimulation",
+      "doi": "10.1190/geo2014-0455.1"
+    },
+    "Obermann2015": {
+      "author": "Obermann, A. and Kraft, T. and Larose, E. and Wiemer, S.",
+      "year": "2015",
+      "journal": "Journal of Geophysical Research: Solid Earth",
+      "title": "Potential of ambient seismic noise techniques to monitor the St. Gallen geothermal site (Switzerland)",
+      "doi": "10.1002/2014jb011817"
+    },
+    "Czarny2016": {
+      "author": "Czarny, Rafa{\\l} and Marcak, Henryk and Nakata, Nori and Pilecki, Zenon and Isakow, Zbigniew",
+      "year": "2016",
+      "journal": "Pure and Applied Geophysics",
+      "title": "Monitoring Velocity Changes Caused By Underground Coal Mining Using Seismic Noise",
+      "doi": "10.1007/s00024-015-1234-3"
+    },
+    "Olivier2017": {
+      "author": "Olivier, Gerrit and Brenguier, Florent and de Wit, Tjaart and Lynch, Richard",
+      "year": "2017",
+      "journal": "The Leading Edge",
+      "title": "Monitoring the stability of tailings dam walls with ambient seismic noise",
+      "doi": "10.1190/tle36040350a1.1"
+    },
+    "Taira2018": {
+      "author": "Taira, Takaaki and Nayak, Avinash and Brenguier, Florent and Manga, Michael",
+      "year": "2018",
+      "journal": "Science Advances",
+      "title": "Monitoring reservoir response to earthquakes and fluid extraction, Salton Sea geothermal field, California",
+      "doi": "10.1126/sciadv.1701536"
+    },
+    "Kristjansdottir2019": {
+      "author": "Kristj{\\'a}nsd{\\'o}ttir and others",
+      "year": "2019",
+      "journal": "",
+      "title": "",
+      "doi": ""
+    },
+    "Daskalakis2016": {
+      "author": "Daskalakis, E. and Evangelidis, C.P. and Garnier, J. and Melis, N.S. and Papanicolaou, G. and Tsogka, C.",
+      "year": "2016",
+      "journal": "Geophysical Journal International",
+      "title": "Robust seismic velocity change estimation using ambient noise recordings",
+      "doi": "10.1093/gji/ggw142"
+    },
+    "Obermann2019": {
+      "author": "Obermann and Hillers",
+      "year": "2019",
+      "journal": "Advances in Geophysics",
+      "title": "Seismic time-lapse interferometry across scales",
+      "doi": "10.1016/bs.agph.2019.06.001"
+    },
+    "Wang2020": {
+      "author": "Wang, Qing-Yu and Yao, HuaJian",
+      "year": "2020",
+      "journal": "Earth and Planetary Physics",
+      "title": "Monitoring of velocity changes based on seismic ambient noise: A brief review and perspective",
+      "doi": "10.26464/epp2020048"
+    }
+  },
+  "cited_keys": [
+    "Andajani2020",
+    "Bensen2007",
+    "Bertello2018",
+    "Bievre2018",
+    "Bontemps2020",
+    "Boschelli2021",
+    "Brenguier2008",
+    "Brenguier2008b",
+    "Brenguier2014",
+    "Chen2010",
+    "Clarke2011",
+    "Clements2018",
+    "Clements2023",
+    "Colombero2018",
+    "CubukSabuncu2021",
+    "Czarny2016",
+    "Daskalakis2016",
+    "DePlaen2016",
+    "DePlaen2019",
+    "Delouche2023",
+    "Denolle25b",
+    "Donaldson2017",
+    "Donaldson2019",
+    "Duputel2009",
+    "Ermert2023",
+    "Fan2023",
+    "Feng2020",
+    "Fiolleau2020",
+    "Fokker2023",
+    "Gassenmeier2015",
+    "Gassenmeier2016",
+    "Gassmann1951",
+    "GaubertBastide2022",
+    "Gelman2013",
+    "Guillemot2020",
+    "Guillemot2021",
+    "Hadziioannou2009",
+    "Hadziioannou2011",
+    "Harba2017",
+    "Hennino2001",
+    "Hillers2014",
+    "Hillers2015",
+    "Hillers2019",
+    "Hobiger2012",
+    "HotovecEllis2014",
+    "HotovecEllis2015",
+    "HotovecEllis2022",
+    "Illien2022",
+    "James2017",
+    "James2019",
+    "Jiang2020",
+    "Kidiwela2026",
+    "Kim2019",
+    "Kopfli2024",
+    "Kristjansdottir2019",
+    "LeBreton2021",
+    "Lecocq2014",
+    "Lecocq2017",
+    "Lesage2018",
+    "Lin2008",
+    "Lindner2021",
+    "Liu2014",
+    "Liu2025",
+    "Lu2021",
+    "Luo2023",
+    "Mainsant2012",
+    "Mao2019",
+    "Mao2020",
+    "Mao2022",
+    "Mao2025",
+    "Margerin1998",
+    "Margerin2019",
+    "Mavko2009",
+    "Mikesell2015",
+    "Minato2012",
+    "Mordret2016",
+    "Moreau2017",
+    "Nakata2011",
+    "Nimiya2017",
+    "Obermann2013",
+    "Obermann2015",
+    "Obermann2016",
+    "Obermann2019",
+    "Okubo2024",
+    "Olivier2017",
+    "Olivier2019",
+    "Ouellet2022",
+    "Paasschens1997",
+    "Pacheco2005",
+    "Planes2016",
+    "Poli2020",
+    "Rivet2011",
+    "Rivet2014",
+    "Rivet2015",
+    "Rubinstein2005",
+    "Sato1993",
+    "Sawazaki2009",
+    "Schaff2004",
+    "SensSchonfelder2006",
+    "SensSchonfelder2014",
+    "Sheng2022",
+    "Snieder2002",
+    "Steegen2016",
+    "Stehly2006",
+    "Stehly2015",
+    "Taira2015",
+    "Taira2018",
+    "Takano2017",
+    "Tsai2011",
+    "Tsuji2021",
+    "Viens2020",
+    "Voisin2016",
+    "Wang2017",
+    "Wang2019",
+    "Wang2020",
+    "Weaver2011",
+    "Wegler2007",
+    "Wegler2009",
+    "Whiteley2026",
+    "Yates2019",
+    "Yates2024",
+    "Yuan2021",
+    "Yukutake2025",
+    "Zhan2013",
+    "Zhang2023",
+    "ZotzWilson2019",
+    "deWit2026",
+    "lobkis03",
+    "poupinet84"
+  ],
+  "qmd_citations": [
+    "Brenguier2008",
+    "Duputel2009",
+    "CubukSabuncu2021",
+    "Olivier2017",
+    "Ouellet2022",
+    "Clements2018",
+    "Mao2022",
+    "LeBreton2021",
+    "Planes2016",
+    "Tsuji2021",
+    "Mikesell2015",
+    "Mao2020",
+    "Yuan2021",
+    "Obermann2013",
+    "Obermann2016",
+    "Brenguier2014",
+    "Ermert2023",
+    "Okubo2024",
+    "Hadziioannou2011",
+    "Moreau2017",
+    "Mao2019",
+    "Viens2020",
+    "Hobiger2012",
+    "Zhan2013",
+    "Clarke2011",
+    "Weaver2011",
+    "Denolle25b",
+    "Gelman2013",
+    "Steegen2016",
+    "Obermann2013",
+    "Sato1993",
+    "Paasschens1997",
+    "Margerin1998",
+    "Obermann2013",
+    "Obermann2016",
+    "Yuan2021",
+    "Jiang2020",
+    "lobkis03",
+    "poupinet84",
+    "Mikesell2015",
+    "Clarke2011",
+    "Mao2020",
+    "Yuan2021",
+    "Mikesell2015",
+    "Yuan2021",
+    "Clarke2011",
+    "Weaver2011",
+    "Wang2017",
+    "Obermann2019",
+    "Jiang2020",
+    "Lin2008",
+    "Stehly2006",
+    "Hennino2001",
+    "Margerin2019",
+    "Liu2014",
+    "Hobiger2012",
+    "DePlaen2016",
+    "Clarke2011",
+    "Brenguier2008",
+    "Clements2018",
+    "Clements2018",
+    "Brenguier2014",
+    "James2017",
+    "Rivet2011",
+    "James2017",
+    "ZotzWilson2019",
+    "Rivet2014",
+    "SensSchonfelder2014",
+    "Ermert2023",
+    "Hadziioannou2011",
+    "Moreau2017",
+    "Mao2019",
+    "Viens2020",
+    "Stehly2006",
+    "Snieder2002",
+    "Hadziioannou2009",
+    "Kidiwela2026",
+    "Obermann2013",
+    "Zhan2013",
+    "Brenguier2008",
+    "Brenguier2014",
+    "Weaver2011",
+    "Clarke2011",
+    "Snieder2002",
+    "Clarke2011",
+    "Weaver2011",
+    "Brenguier2014",
+    "Wang2017",
+    "Obermann2019",
+    "Weaver2011",
+    "Clarke2011",
+    "Obermann2013",
+    "Obermann2016",
+    "Takano2017",
+    "Feng2020",
+    "Mao2022",
+    "Mao2025",
+    "Rubinstein2005",
+    "Gassmann1951",
+    "Mavko2009",
+    "Clements2018",
+    "James2019",
+    "Clements2023",
+    "Jiang2020",
+    "Clements2023",
+    "Clements2023",
+    "Clarke2011",
+    "Weaver2011",
+    "Clements2023",
+    "Weaver2011",
+    "Clarke2011",
+    "Mao2020",
+    "Zhan2013",
+    "Mikesell2015",
+    "Yuan2021",
+    "Clarke2011",
+    "Mao2020",
+    "Obermann2013",
+    "Obermann2016",
+    "Obermann2013",
+    "Wang2017",
+    "Brenguier2014",
+    "Wang2017",
+    "Clarke2011",
+    "Weaver2011",
+    "Clarke2011",
+    "Clements2023"
+  ],
+  "appendix_citations": [
+    "Brenguier2008",
+    "Duputel2009",
+    "Obermann2013",
+    "HotovecEllis2014",
+    "HotovecEllis2015",
+    "Rivet2015",
+    "DePlaen2016",
+    "Donaldson2017",
+    "Takano2017",
+    "Lesage2018",
+    "DePlaen2019",
+    "Donaldson2019",
+    "Olivier2019",
+    "Yates2019",
+    "Feng2020",
+    "HotovecEllis2022",
+    "Kopfli2024",
+    "Yates2024",
+    "Yukutake2025",
+    "Schaff2004",
+    "Pacheco2005",
+    "Rubinstein2005",
+    "Wegler2007",
+    "Brenguier2008b",
+    "Hadziioannou2009",
+    "Sawazaki2009",
+    "Wegler2009",
+    "Chen2010",
+    "Nakata2011",
+    "Rivet2011",
+    "Hobiger2012",
+    "Minato2012",
+    "Obermann2013",
+    "Brenguier2014",
+    "Liu2014",
+    "Taira2015",
+    "Gassenmeier2016",
+    "Hillers2019",
+    "Wang2019",
+    "Mao2020",
+    "Poli2020",
+    "Boschelli2021",
+    "Lu2021",
+    "Sheng2022",
+    "Mainsant2012",
+    "Voisin2016",
+    "Harba2017",
+    "Bertello2018",
+    "Bievre2018",
+    "Colombero2018",
+    "Bontemps2020",
+    "Fiolleau2020",
+    "LeBreton2021",
+    "Fan2023",
+    "Liu2025",
+    "Whiteley2026",
+    "deWit2026",
+    "SensSchonfelder2006",
+    "Tsai2011",
+    "Hillers2014",
+    "Lecocq2017",
+    "Nimiya2017",
+    "Wang2017",
+    "Clements2018",
+    "Kim2019",
+    "Andajani2020",
+    "GaubertBastide2022",
+    "Illien2022",
+    "Mao2022",
+    "Clements2023",
+    "Delouche2023",
+    "Ermert2023",
+    "Fokker2023",
+    "Zhang2023",
+    "Mao2025",
+    "Mordret2016",
+    "James2019",
+    "Guillemot2020",
+    "Guillemot2021",
+    "Lindner2021",
+    "Luo2023",
+    "Gassenmeier2015",
+    "Hillers2015",
+    "Obermann2015",
+    "Czarny2016",
+    "Olivier2017",
+    "Taira2018",
+    "Kristjansdottir2019",
+    "Snieder2002",
+    "Bensen2007",
+    "Clarke2011",
+    "Hadziioannou2011",
+    "Weaver2011",
+    "Zhan2013",
+    "Lecocq2014",
+    "Mikesell2015",
+    "Stehly2015",
+    "Daskalakis2016",
+    "Obermann2016",
+    "Obermann2019",
+    "Jiang2020",
+    "Wang2020",
+    "Yuan2021"
+  ],
+  "missing": [],
+  "duplicates": []
+}
