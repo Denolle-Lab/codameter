@@ -26,8 +26,8 @@ abstract: |
   choices by the error they induce. We then propose a hierarchical Bayesian
   measurement model that runs an ensemble of defensible pipelines on the same
   correlations and marginalises the processing choice into a single \dvv\ series and a time-dependent single-measurement covariance $C_d$.
-  On 20 independent synthetic realisations of a volcano scenario, $C_d$ covers
-  95.5\,\% of individual member errors at the 95\,\% level, whereas the
+  On 200 independent synthetic realisations of a volcano scenario, $C_d$ covers
+  95.6\,\% of individual member errors at the 95\,\% level, whereas the
   credible band on the ensemble mean covers the truth only 59\,\% of the time
   because the configurations share time-varying biases; a seasonal source
   artefact seen by every configuration halves that coverage again and doubles
@@ -1123,9 +1123,9 @@ cannot answer, so we repeat the whole measurement on independent
 realisations of the same scenario (Table\ \ref{tab:calibration}; the driver
 is \texttt{codameter.calibration}). Three coverages answer three different
 questions. The fraction of member epochs whose error against the truth lies
-within $1.96\,\sigma_{C_d}$ is 0.955, within the margin of $\pm 0.03$ fixed
+within $1.96\,\sigma_{C_d}$ is 0.956 on 200 realisations, within the margin of $\pm 0.03$ fixed
 before the run: $C_d$ is calibrated as the covariance of a single measurement
-at the 95\,\% level. At the 68\,\% level it covers 0.80, so the member
+at the 95\,\% level. At the 68\,\% level it covers 0.81, so the member
 residuals are more peaked than a Gaussian. The 95\,\% credible band on
 $\mu$ contains the truth at only 0.59 of the epochs: the ensemble mean
 inherits the biases its members share (the stacking that rounds the drop, the
@@ -1144,8 +1144,8 @@ measurement, not evidence that the ensemble could have detected it.
 A seasonal source effect confined to the late coda, the waveform-level
 artefact of @Zhan2013 (Section\ \ref{sec:artifacts}), is the genuine shared
 error: it warps the coda every configuration measures, and on that scenario
-the credible band covers the truth at only 0.35 of the epochs and the RMSE of
-$\mu$ doubles, from 0.070 to 0.159\,\%, while the member-level coverage of
+the credible band covers the truth at only 0.34 of the epochs and the RMSE of
+$\mu$ more than doubles, from 0.067 to 0.161\,\%, while the member-level coverage of
 $C_d$ stays at 0.95. That last number is right for a reason that gives no
 comfort: the artefact also inflates the scatter that $s$ absorbs, so $C_d$
 widens, but its coherent part biases every member and the ensemble mean

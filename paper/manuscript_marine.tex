@@ -271,8 +271,8 @@ quantities that studies rarely distinguish. A one-at-a-time sweep and a
 they induce. We then propose a hierarchical Bayesian measurement model
 that runs an ensemble of defensible pipelines on the same correlations
 and marginalises the processing choice into a single \dvv~series and a
-time-dependent single-measurement covariance \(C_d\). On 20 independent
-synthetic realisations of a volcano scenario, \(C_d\) covers 95.5,\% of
+time-dependent single-measurement covariance \(C_d\). On 200 independent
+synthetic realisations of a volcano scenario, \(C_d\) covers 95.6,\% of
 individual member errors at the 95,\% level, whereas the credible band
 on the ensemble mean covers the truth only 59,\% of the time because the
 configurations share time-varying biases; a seasonal source artefact
@@ -1444,41 +1444,42 @@ cannot answer, so we repeat the whole measurement on independent
 realisations of the same scenario (Table~\ref{tab:calibration}; the
 driver is \texttt{codameter.calibration}). Three coverages answer three
 different questions. The fraction of member epochs whose error against
-the truth lies within \(1.96\,\sigma_{C_d}\) is 0.955, within the margin
-of \(\pm 0.03\) fixed before the run: \(C_d\) is calibrated as the
-covariance of a single measurement at the 95,\% level. At the 68,\%
-level it covers 0.80, so the member residuals are more peaked than a
-Gaussian. The 95,\% credible band on \(\mu\) contains the truth at only
-0.59 of the epochs: the ensemble mean inherits the biases its members
-share (the stacking that rounds the drop, the estimator biases at low
-coherence), and no amount of averaging over configurations removes them,
-which is what the posterior's precision cannot know. An earlier draft of
-this paper compared \(\mu\) with \(\pm 2\sigma_{C_d}\) and read the
-resulting 100,\% coverage as nominal; that comparison mixes the ensemble
-mean with a single-measurement scale and over-covers by construction,
-and we no longer make it. The other two scenarios of
-Table~\ref{tab:calibration} inject artefacts that every configuration
-sees identically. A station clock drift leaves every statistic
-unchanged, because a lapse-independent shift appears with opposite signs
-on the causal and acausal branches (Section~\ref{sec:artifacts}) and
-every configuration in this ensemble measures both branches together, so
-the drift cancels in the estimate; that is a property of the two-branch
-measurement, not evidence that the ensemble could have detected it. A
-seasonal source effect confined to the late coda, the waveform-level
-artefact of \citet{Zhan2013} (Section~\ref{sec:artifacts}), is the
-genuine shared error: it warps the coda every configuration measures,
-and on that scenario the credible band covers the truth at only 0.35 of
-the epochs and the RMSE of \(\mu\) doubles, from 0.070 to 0.159,\%,
-while the member-level coverage of \(C_d\) stays at 0.95. That last
-number is right for a reason that gives no comfort: the artefact also
-inflates the scatter that \(s\) absorbs, so \(C_d\) widens, but its
-coherent part biases every member and the ensemble mean together and
-leaves no trace in their spread. That is the limit of the method, not a
-defect of the fit: an ensemble over processing choices can only reveal
-the errors on which its members disagree, and an error shared by every
-pipeline (a source change, a contaminated reference, a clock drift
-measured on one branch) needs an independent diagnostic, such as the
-branch asymmetry of Section~\ref{sec:artifacts}.
+the truth lies within \(1.96\,\sigma_{C_d}\) is 0.956 on 200
+realisations, within the margin of \(\pm 0.03\) fixed before the run:
+\(C_d\) is calibrated as the covariance of a single measurement at the
+95,\% level. At the 68,\% level it covers 0.81, so the member residuals
+are more peaked than a Gaussian. The 95,\% credible band on \(\mu\)
+contains the truth at only 0.59 of the epochs: the ensemble mean
+inherits the biases its members share (the stacking that rounds the
+drop, the estimator biases at low coherence), and no amount of averaging
+over configurations removes them, which is what the posterior's
+precision cannot know. An earlier draft of this paper compared \(\mu\)
+with \(\pm 2\sigma_{C_d}\) and read the resulting 100,\% coverage as
+nominal; that comparison mixes the ensemble mean with a
+single-measurement scale and over-covers by construction, and we no
+longer make it. The other two scenarios of Table~\ref{tab:calibration}
+inject artefacts that every configuration sees identically. A station
+clock drift leaves every statistic unchanged, because a
+lapse-independent shift appears with opposite signs on the causal and
+acausal branches (Section~\ref{sec:artifacts}) and every configuration
+in this ensemble measures both branches together, so the drift cancels
+in the estimate; that is a property of the two-branch measurement, not
+evidence that the ensemble could have detected it. A seasonal source
+effect confined to the late coda, the waveform-level artefact of
+\citet{Zhan2013} (Section~\ref{sec:artifacts}), is the genuine shared
+error: it warps the coda every configuration measures, and on that
+scenario the credible band covers the truth at only 0.34 of the epochs
+and the RMSE of \(\mu\) more than doubles, from 0.067 to 0.161,\%, while
+the member-level coverage of \(C_d\) stays at 0.95. That last number is
+right for a reason that gives no comfort: the artefact also inflates the
+scatter that \(s\) absorbs, so \(C_d\) widens, but its coherent part
+biases every member and the ensemble mean together and leaves no trace
+in their spread. That is the limit of the method, not a defect of the
+fit: an ensemble over processing choices can only reveal the errors on
+which its members disagree, and an error shared by every pipeline (a
+source change, a contaminated reference, a clock drift measured on one
+branch) needs an independent diagnostic, such as the branch asymmetry of
+Section~\ref{sec:artifacts}.
 
 \begin{figure}
   \centering
@@ -1673,8 +1674,11 @@ CI.RXH & centred & 554 & 0.620 & 0.035 & 0.52 \\
   itself and is not regenerated from this repository; its annotated $r$ values
   correspond to the centred rule of Table~\ref{tab:gate1} (0.87, 0.37 and
   0.62 for LJR, ARV and RXH from the archived products), not to the matched
-  rule quoted in the text. The error bars predate the Weaver-floor correction
-  of the present revision and are over-estimated by a constant factor.}
+  rule quoted in the text. The error bars drawn here predate the Weaver-floor
+  correction of the present revision and are too large by a factor of 3.1 at
+  2--4\,Hz (the archived columns have since been rescaled by
+  \texttt{scripts/correct\_gate1\_within\_error.py}; the externally produced
+  figure has not been regenerated).}
   \label{fig:realdata-validation}
 \end{figure}
 

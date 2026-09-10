@@ -30,7 +30,8 @@ def _pm(m: dict, scale: float = 1.0, digits: int = 3) -> str:
 
 
 def main() -> int:
-    files = sorted(SRC.glob("*.json"))
+    files = sorted(SRC.glob("locked_*.json")) or sorted(SRC.glob("*.json"))
+    files = sorted(files, key=lambda f: ("clean" not in f.name, "clock" in f.name))
     rows = []
     for f in files:
         d = json.loads(f.read_text())
