@@ -1,92 +1,158 @@
 # Revision plan, iteration 3
 
-Owner: Fable (Claude), with Marine Denolle. Created 2026-09-11.
-Inputs: the iteration-2 review (`reviews/codameter-gji.iter2.report.md`, ledger `reviews/codameter-gji.review.json`: 24 partially addressed prior findings, 24 introduced-in-revision entries, the S-PR register bucket, and the author-requested item AUTH-01).
-Principle: the manuscript stays about the science. Every package below either corrects a scientific statement, makes a result reproducible, or states the paper's impact at the level the results support. Nothing is added that the results do not show.
+Scientific lead: Marine Denolle. Implementation and editorial support: coding assistants, with Marine reviewing the scientific interpretation. Revised 2026-09-11.
 
-## Order and ownership
+This plan responds to the [iteration-2 review](../reviews/codameter-gji.iter2.report.md) and its [issue ledger](../reviews/codameter-gji.review.json). It retains the P0–P7 package labels so that the work remains traceable.
 
-| Package | What | Owner | Size | Closes |
-|---|---|---|---|---|
-| P0 | Regressions introduced by the revision | Fable | hours | S-ME.N1, S-FD.1, S-FD.2, S-ME.N3/S-RE.6, S-CD.1, S-DI.R1, S-AB.N1-N5, S-IN.11-12, S-CO.12-14, S-RE.7-9, S-FD.6-11 |
-| P1 | Science corrections in the results and methods | Fable, Marine adjudicates | days | S-RE.2, S-RE.3, S-RE.4, S-FD.3, UQ-05 (multiverse), DET-01, SCI-05, UQ-03/04 residual, SCI-06/INV-01, SCI-04, SCI-03, SCI-09, SCI-02, S-ME.N4, S-DI.R2-R6 |
-| P2 | Impact and application framing | Marine with Fable | days | AUTH-01, SCI-04 (novelty sentence), C7 |
-| P3 | Provenance, release and real-data figures | Fable, needs Marine's inputs | days | REP-02, REP-03, S-RP.1-4, FIG-02, SCI-07, COMP-01 (part) |
-| P4 | Survey hygiene | Fable, Marine verifies rows | day | S-CD.1-3, SCI-08 |
-| P5 | Register pass | Marine | hours | S-PR.1-40 |
-| P6 | End matter and disclosure | Marine | hours | COMP-01, FMT-01 (placeholder) |
-| P7 | Iteration 3 of the reviewer under the `denolle` profile | Fable | hours | ledger reconciliation |
+## What I want this revision to establish
 
-P0 first: it removes errors the revision itself created. P1 and P2 can run in parallel once P0 is committed. P3 waits on Marine's inputs but its code parts can start now. P4 is independent. P5 and P6 are the author's.
+As an observational seismologist, my first concern is whether a measured change reflects the medium, the observations available to us, or the choices we made while processing them. A small uncertainty bar is useful only when we understand what it includes and what it misses. Reproducibility matters for the same reason: another researcher should be able to recover the measurement, examine its assumptions, and determine whether those assumptions apply to a different network or monitoring problem.
 
-## P0. Regressions introduced by the revision (all Fable)
+The paper should make a stronger case for why this problem matters. Existing seismic networks offer an opportunity to observe evolving material properties and, with additional physical constraints, investigate deformation, damage, and rheology. Realizing that opportunity requires separating physical changes from processing sensitivity. Our contribution is to make that sensitivity measurable, examine an uncertainty model under controlled conditions, and show where the present assessment remains inadequate.
 
-- [ ] Appendix A (S-ME.N1): restore the DTW/WTDTW statement to "the slope of the lag against lapse is 1/(1+eps) - 1 = dv/v, reported directly"; state the Fourier convention and write phi = -2 pi f dt for MWCS/WCS; replace "every estimator returns eps, mapped exactly" with which estimators apply the exact map (TS, WCC, WTS) and which report the fitted delay slope, first order in eps (MWCS, WCS, DTW, WTDTW). Verify each statement against the code paths named in the block.
-- [ ] Fig 8 (S-FD.1): fix `fig_stacking` layout (two-column legend, constrained layout, wider figure), add panel letters to the four tiles, regenerate; or drop tiles a, c, d, which duplicate Figs 5 to 7, and keep (b). Decision for Marine: keep or drop the composite.
-- [ ] Comma artefacts (S-FD.2): move every `\,\%` into math or write `\%` at the 16 sites; grep the qmd for `\\,\\%` outside `$...$` and rebuild; check the PDF text for ",%".
-- [ ] "A station clock drift leaves every statistic unchanged" (S-ME.N3/S-RE.6): "changes no coverage by more than 0.015 and adds no shared bias; the drift lowers the peak coherence, so s falls from 11.7 to 10.9".
-- [ ] Survey denominator (S-CD.1, part of P4 but a one-line text fix now): "103 rows for 103 publications" pending the key fix.
-- [ ] Pre-correction coefficients (S-DI.R1): archive the pre-correction comparison output under `paper/data/gate1/` if it exists in the noisepy-dvv-cloud smoke outputs, else drop the three numbers and keep the qualitative statement.
-- [ ] Abstract (S-AB.N1-N5): "matches the shape of a published product after matched smoothing (r 0.83 to 0.99 on 357 to 579 days), with amplitudes that differ by up to a factor of two at one station"; "a per-band covariance of the same construction" for the depth sentence; drop "fixed scoring support and null-change penalty" or define them in the Introduction; parenthesise the list of choices; add the two-orders-of-magnitude spread.
-- [ ] Introduction (S-IN.11-12): cite NoisePy at first use; "processing-choice advisor" with a one-clause gloss instead of "advisor skill".
-- [ ] Conclusions (S-CO.12-14): "more than two orders of magnitude (0.02 to 2.8 percent) across 108 pipelines on one synthetic volcano scenario"; reword the "remain unvalidated" sentence (temporal: untested; cross-band: not constructed; shared errors: demonstrably invisible); gloss "target" and "member".
-- [ ] Stale numbers after regeneration (S-RE.8): 0.741 percent at 1 day; Fig 9 caption 104x; Fig 1 panel (c) title "both phase methods fail"; give L for the single realisation (39 d) and the 200-run mean (30 d).
-- [ ] Figure captions and legends (S-FD.6-11, S-RE.7, S-RE.9): Fig 17 member counts; Table 2 cites Section 5 not Table 5; Fig 10b and 13b legends outside; Fig 14 legend labels to match the caption and "encloses 95 percent of member epochs"; Fig 12 bar label "uncumulated trailing reference"; Fig 13 band drawn as lines or inset; move interpretive caption text to prose; note that two deviations beat the baseline.
+The revision must distinguish three sources of evidence: recovery of known changes in synthetic data, agreement with an independently processed field product, and behavior of the proposed uncertainty model. Agreement between field products does not establish accuracy. Coverage of individual processing results does not, by itself, validate their covariance or the uncertainty of a combined estimate. Shared errors can remain invisible to agreement among processing choices.
 
-Acceptance: PDF rebuilds; no ",%" in the text; Fig 8 legible at print size; Appendix A statements each traced to a code line in the commit message.
+A useful outcome may therefore include negative results. If the covariance model fails a diagnostic, we should repair it or limit the claim. We should not make an experiment pass by changing its target after seeing the result.
 
-## P1. Science corrections
+## Work sequence and responsibilities
 
-- [ ] Multiverse on the daily grid (UQ-05 residual, S-RP R5, S-RE.2): make `deviations.multiverse` stack daily CCFs and decimate only the output, as `run_processing_ensemble` does; rerun (about 15 min); report n = 96 valid pipelines, name the failing MWCS x 4 to 14 s combination and its cause, count it in the panel annotation and the Sobol basis; update the Section 4 numbers and Fig 13 from the new sidecar. Expect the Sobol ranking to move; report the new one.
-- [ ] Step-error metric (S-RE.3): define the metric in the Fig 9 caption; replace the post-event minimum with a robust drop estimate (post-window median or a fitted step); regenerate demo_18; rewrite the Section 3.6 direction statement from the new sidecar. Marine to confirm the estimator choice.
-- [ ] Branch rule (S-RE.4, SCI-09): rewrite as a recommendation and state that the present pipeline fits both branches jointly with no branch term in C_d; delete "preferring the branch of greatest change is a researcher's judgement". Implementing per-branch measurement with a between-branch term is deferred and said so.
-- [ ] Reference datum per experiment (S-FD.3/S-RE.1/S-ME.N2): split the Table 2 row: generating noise-free reference for the per-choice figures (best-case numbers), first-60 percent stack for OAT, multiverse and Bayes, the five named schemes for Section 3.5; add the estimator defaults (MWCS/WCC 6 s windows, 3 s step; DTW gamma 0.3, max lag 0.8 s).
-- [ ] DET-01: reject or label the inversion-reference combinations that ignore the estimator and stack; apply the coherence gate consistently across the reference axis or state the asymmetry; report common-support RMS with availability for the OAT sweep; add paired-seed replicates (three seeds) to the OAT figure with a spread. Regenerate demo_10.
-- [ ] SCI-05 residual: state hyperpriors, chain length, burn-in, thinning, seeds and the MIN_COHERENCE rule in the Bayes section (S-ME.N4); add a split-member coverage check (fit s on half the members, score the other half) and a two-chain convergence diagnostic (split-chain R-hat on tau^2, s^2, lambda) to `codameter.calibration`; rerun the clean scenario with them; say that realisations redraw noise on one fixed coda (S-DI.R2) in text and table caption.
-- [ ] UQ-03/04 residual: add a duplicate-configuration invariance test and a whitened-residual check of R on the clean runs (a script that reports the autocorrelation of C_d-whitened member residuals); state the result; keep the working-likelihood wording.
-- [ ] Depth section (SCI-06/INV-01): delete the density-field "documented extension (Section discussion)" sentence or make it a stated future extension; reword "The width of C_m(z) is the deliverable" and "inherits the temporal correlation and common-mode structure of C_d" to "inherits whatever correlation the supplied per-band covariance carries"; reconcile "in development" (1200) with "implemented" (1230) as "implemented, not evaluated here"; fix the `uq_measurement` and `uq_depth` docstrings that still promise the loop is closed.
-- [ ] Estimator prescriptions (SCI-04, S-CD.2): make Table 4 line 1017 agree with Results 345-348; state the Yuan et al. (2021) regime after Marine confirms Table B3.
-- [ ] Trailing reference (SCI-03): Table 3 row and the "Scale of effect" sentence to name the ablation; Fig 12 bar label.
-- [ ] Synthetic framework (SCI-02): "single-scattering solution" versus "multiply-scattered coda" wording; "every departure ... is an artefact of the processing, not of the data" to exclude additive noise; RT-inspired envelope wording.
-- [ ] Discussion (S-DI.R3-R6): two-band ensemble sees one imposed dv/v on the synthetic; name the comparator for "more than the measurement noise"; "committed as produced by the cloud run".
+Start with immediate corrections, then specify the measurement targets and record provenance before generating new results. Repair the numerical comparisons and run diagnostic pilots next. Once the experiment settings and evaluation rules are fixed, regenerate the results, revise the figures and scientific claims, and complete the final review. Prepare the release throughout this process; publish the final artifacts after review.
 
-Acceptance: every changed number traces to a regenerated sidecar; the calibration table regenerates from archived runs; tests pass.
+The impact paragraph and literature survey can progress alongside the computational work. Marine's input is needed for physical interpretation, unresolved source information, and final author statements. Routine implementation and editorial decisions can proceed within this plan.
 
-## P2. Impact and application framing (AUTH-01)
+| Package | Purpose | Responsibility | Addresses |
+|---|---|---|---|
+| P0 | Correct existing errors and improve figure readability | Implementation support | S-ME.N1, S-FD.1–2, S-ME.N3/S-RE.6, S-DI.R1, S-IN.11–12; presentation parts of S-AB.N1–N5, S-CO.12–14, S-RE.7–9, S-FD.6–11 |
+| P1 | Establish fair comparisons and evaluate measurement uncertainty | Implementation support; Marine reviews interpretation | UQ-03–05, DET-01, SCI-02–06, SCI-09, INV-01; S-RE.1–4, S-FD.3, S-ME.N2/N4, S-DI.R2–R6 |
+| P2 | Explain the observational value and application scope | Marine with editorial and literature support | AUTH-01, SCI-04, C7; final abstract and conclusions |
+| P3 | Make results reproducible and prepare the archive | Implementation support; Marine supplies external provenance and rights information | REP-02–03, S-RP findings, FIG-02, SCI-07, S-RE.5/S-FD.4–5, part of COMP-01 |
+| P4 | Verify the survey and its reporting statistics | Implementation support; Marine adjudicates ambiguous coding | S-CD.1–3, SCI-08 |
+| P5 | Revise the prose for scientific clarity | Editorial support; Marine approves the voice | S-PR.1–40 |
+| P6 | Complete author information and disclose assistance | Marine with editorial support | COMP-01, FMT-01 |
+| P7 | Reconcile the evidence with the review | Review support; Marine makes the submission decision | All outstanding ledger entries |
 
-Marine's brief: the impact should be stated more strongly. Repurposing seismic sensors to monitor internal rheology and deformation is hard and important, and the applications reach beyond the four monitoring targets named now.
+These packages address findings; completing a task does not automatically close its associated finding. The reconciliation must distinguish a demonstrated repair, a withdrawn claim, and a deferred limitation. Runtime estimates should follow the diagnostic pilots, especially where additional sampling may be necessary.
 
-- [ ] Introduction: one paragraph stating the impact directly: what it means to turn a passive sensor network into a monitor of internal rheology and deformation, why that is hard (the measurement is a small relative change buried in processing choices), and why the paper's contribution (choice accounting plus a calibrated covariance) is what makes such a monitor trustworthy.
-- [ ] Application breadth: a paragraph connecting the same measurement to the engineering and experimental CWI literature, with verified references. Candidates from the 2026-09-11 search (verify DOIs and read before citing): Planes and Larose 2013 (review of ultrasonic CWI in concrete); Schurr et al. 2011 (damage detection in concrete); Niederleithinger et al. 2018 (load tests of concrete beams, doi 10.3390/s18061971); the 2021 Materials virtual-concrete-lab and reinforced-specimen studies; the 2020 Sensors acoustoelastic-modulus study; the 2024 thermo-acoustoelastic third-order-constants study; Gret et al. 2006 (in situ mine stress); Singh et al. 2019 (experimental rock physics, doi 10.1029/2019JB017577); the 2017 Materials composites study. Already cited: Snieder et al. 2002, Hadziioannou et al. 2009, Weaver et al. 2011, Zotz-Wilson et al. 2019, Olivier et al. 2017, Ouellet et al. 2022, Planes et al. 2016.
-- [ ] Gaps to state honestly or search further: the search found no timber or wood CWI study and no direct concrete-dam CWI study; dam monitoring appears only as a possible application in Snieder et al. 2002. Marine to decide whether to search engineering venues (Structural Health Monitoring, NDT&E International, Construction and Building Materials) or to name these as open applications.
-- [ ] Discussion and Conclusions: carry the strengthened impact statement through, within what the results show (the calibration limits stay).
-- [ ] Guardrail: the reviewer's C4 check applies to the new text; the profile's novelty appetite is "defend-heterodox", not "unbounded".
+## P0. Correct errors and make the figures readable
 
-## P3. Provenance, release, real-data figures
+- [ ] Correct Appendix A's sign and coordinate conventions. Define the order of reference and current traces, the Fourier convention, the lag sign, and the independent variable used in each fit. Identify which estimators apply the exact stretch-to-velocity conversion and which report a delay slope. Distinguish exact identities from small-change approximations. Support the text with the quantitative checks in P1, as well as the corresponding code paths (S-ME.N1).
+- [ ] Repair the percentage-spacing artifacts and the incorrect table and section references. Cite NoisePy at first use. Introduce the advisor as a tool that recommends processing choices, with a brief explanation of its role (S-FD.2, S-IN.11–12).
+- [ ] Make Fig. 8 readable at publication size. The preferred revision is to retain the panel that adds information and remove panels that repeat Figs 5–7. If the composite is retained, give every panel a label and provide sufficient space for the legends (S-FD.1).
+- [ ] Move overlapping legends, make line and interval labels consistent, and distinguish individual processing results from their combined estimate. Label the trailing-reference ablation explicitly. Keep captions focused on what was measured and plotted; move interpretation into the Results or Discussion (S-FD.6–11, S-RE.7/9).
+- [ ] Remove the assertion that station clock drift leaves every statistic unchanged. Describe the quantities evaluated and their observed changes. Do not attribute a parameter change to coherence without evidence for that explanation (S-ME.N3/S-RE.6).
+- [ ] Locate and archive the source of the pre-correction field-comparison coefficients. If it cannot be recovered, remove those numerical claims and retain only a supported qualitative account (S-DI.R1).
 
-- [ ] Marine: the noisepy-dvv-cloud commit and `--use-case` of the Gate 1 run; redistribution rights for the SCEDC-derived products; the archive target.
-- [ ] Fable: archive the 2 to 4 Hz daily products with sha256 and a licence file; cite SCEDC and the Clements and Denolle 2023 data release with DOIs (S-RP.2); write an in-repo generator for the comparison figure (Fig 15) from the archived products and comparison.json with corrected bars (S-RE.5/S-FD.4/S-FD.5); keep the interferogram and warm-up figures external and say why (CCFs not archived).
-- [ ] Fable: sidecar dirty-tree flag and generator source hash (S-RP.1); generator hash and commit in bench rows and `check_shards` (S-RP.4); a `figures --check` mode; state the calibration invocations in Data availability (S-RP.3); bump the version, tag a release from a clean tree after regenerating every figure and the calibration table at that tag, deposit to Zenodo (release.yml), update CITATION.cff and the README placeholders (REP-03).
+Numerical captions, pipeline counts, survey denominators, ratios, and abstract or conclusion values must be updated after P1 and P4. The current values are results to verify, not acceptance targets.
 
-## P4. Survey hygiene
+**Completion evidence:** a rebuilt PDF without the spacing artifacts, figures inspected at their intended print size, and a record of the corrected statements. Appendix A remains open until its numerical checks pass.
 
-- [ ] Fix the key collision in `paper/build_survey.py` (compare the row DOI with the references.bib DOI even when the key exists; disambiguate to Obermann2013b); regenerate survey.bib and appendix_table.tex; "103 rows for 103 publications"; reconcile lines 161, 787 and the caption (S-CD.1).
-- [ ] Report the verified reporting rates per field for the full-text dv/v rows with a coding rule separating an error estimate from a QC threshold; say that 21 rows are abstract-derived and excluded (S-CD.3, SCI-08).
-- [ ] Add search dates, queries and inclusion rules (one sentence each).
-- [ ] Marine: verify the seven identical-cell row pairs and the Snieder2002 row description.
+## P1. Establish what the measurements and uncertainties mean
 
-## P5. Register pass (Marine)
+### P1a. Define the comparisons before rerunning them
 
-The 40 S-PR candidates in `reviews/iter2/block_S-PR.md`, each with one word-swap; the anthropomorphism cluster in the new Bayes and Discussion text first (lines 1083, 1125, 1147, 1163, 1488). Author's call throughout.
+- [ ] For each experiment, state the quantity being estimated, its units and sign, its reference datum, its temporal support, and the available ground truth. Distinguish an individual processing configuration, an unseen configuration, and the combined estimate. Define which of these each uncertainty interval is intended to describe.
+- [ ] Expand the experiment-settings table. Separate the noise-free generating reference used in the per-choice experiments from the first-60-percent stack used in the OAT, multiverse, and Bayesian experiments, and from the five reference schemes compared in Section 3.5. Record estimator windows, steps, DTW settings, coherence thresholds, and relevant defaults from the actual invocations (S-FD.3, S-RE.1, S-ME.N2/N4).
+- [ ] Specify a common datum and common evaluation dates for controlled comparisons. Define missing-data treatment before evaluating errors. Report availability alongside error on common support, so that a method cannot appear more accurate simply by failing on difficult dates (DET-01).
+- [ ] Define the Fig. 9 response metric before regenerating it. For a descriptive comparison, use fixed pre-event and post-event windows and compare against the imposed signal evaluated with the same temporal support. A post-event median measures a window-averaged response when healing is present. If the intended target is the instantaneous step, use an explicit step-and-recovery model and assess the effect of stacking on that estimate (S-RE.3).
 
-## P6. End matter and disclosure (Marine)
+### P1b. Repair the deterministic experiments
 
-Funding, contributions, thanks; the AI-review disclosure stamp from the iteration-2 report (two iterations); the collaboration record `review/HUMAN_AI_COLLABORATION.md` as the basis of the AI-assistance statement; Zenodo DOI once P3 deposits.
+- [ ] Make `deviations.multiverse` stack the daily CCFs before decimating the output, consistent with `run_processing_ensemble`. Verify the resulting time grid, reference construction, and support before rerunning the experiment (UQ-05, S-RE.2, S-RP multiverse finding).
+- [ ] Audit all requested configurations. Identify structural failures, including the short-window MWCS combination, from their actual requirements. Define a valid factorial design before assessing recovery and factor importance. Report unsupported combinations and data-dependent failures separately. Do not silently drop failures or prescribe a final count of 96 configurations.
+- [ ] Reassess the Sobol-style summary after defining that design. Establish whether the retained configurations support the stated variance decomposition. If failures make the design unbalanced, use an appropriate analysis or narrow the interpretation; changing the denominator alone is insufficient.
+- [ ] Reject unsupported inversion-reference combinations or implement the requested estimator and stacking behavior. Exclude combinations that ignore those settings from controlled comparisons. Apply equivalent coherence-gating rules where comparable, and explain any scientifically necessary differences (DET-01).
+- [ ] Use paired noise realizations across processing choices. Start with three paired seeds as a diagnostic pilot. Use the pilot to set a Monte Carlo precision criterion for the reported contrasts, then fix the replicate count and evaluation rules before the final run. Three seeds alone do not establish stable rankings. Regenerate `demo_10` and `demo_18` after these choices are fixed.
+- [ ] Test every estimator with known positive and negative delays and dilations. Include finite changes as well as the small-change regime, and separate a constant delay from a time-dependent dilation. Quantify sign, magnitude, and approximation error. Use these results to finalize Appendix A (S-ME.N1).
 
-## P7. Iteration 3
+### P1c. Evaluate the uncertainty model against explicit targets
 
-Run the reviewer in reconciliation mode under `profiles/denolle.md` with a diff against c10a108; the ledger is `reviews/codameter-gji.review.json` at iteration 2.
+- [ ] Document the likelihood, hyperpriors, fitted quantities, chain settings, seeds, coherence rule, and construction of the reported covariance. Retain the traces needed to diagnose both the latent time series and the covariance parameters (SCI-05, S-ME.N4).
+- [ ] Use four dispersed chains as the default for the diagnostic assessment. Report rank-normalized split R-hat, bulk and tail effective sample sizes, and Monte Carlo standard errors for scientifically relevant summaries, including the latent change through time. Aim for R-hat below 1.01 and sufficient effective samples and Monte Carlo precision for the conclusions. Diagnose failures before interpreting coverage. These checks assess sampling, not model validity; follow the [Stan diagnostic guidance](https://mc-stan.org/learn-stan/diagnostics-warnings.html).
+- [ ] Add a held-out-configuration experiment. Fit the uncertainty scales, temporal correlation, and common-mode terms using only the training configurations. Specify how the fitted model predicts errors for the held-out configurations without using them to tune the model. Report this as a configuration-generalization check: both halves still share waveforms and reference construction.
+- [ ] Evaluate single-configuration coverage and combined-estimate coverage separately, at both 68 and 95 percent nominal levels. Report bias, interval width, and uncertainty on the coverage estimates. Account for dependence among epochs and configurations when quantifying that uncertainty.
+- [ ] State that the existing noise replicates reuse one source coda. Independent noise realizations assess performance conditional on that coda. Broader claims require independently generated codas and additional physical conditions. If those experiments are outside this revision, retain the fixed-coda limitation explicitly (S-DI.R2).
+- [ ] Test the effect of duplicating a processing configuration. An exact duplicate supplies no new observation and should not increase the claimed information. If it does, deduplicate configurations, revise their weighting or dependence model, or restrict the combined-inference claim. Document the remedy and repeat the affected assessment (UQ-03/04).
+- [ ] Evaluate covariance-whitened errors against known truth on held-out realizations. Examine mean bias, marginal variance, temporal dependence, and relevant dependence among configurations. In-sample residual autocorrelation alone is insufficient. Record the response to failure: revise the covariance, qualify the interval interpretation, or withdraw the claim that this covariance is validated (UQ-03/04).
+- [ ] Keep shared-error experiments visible. Configuration agreement cannot identify every error common to all configurations. Describe the current model as a working likelihood wherever the diagnostics do not support a stronger interpretation.
 
-## Log
+### P1d. Align physical interpretation with the implemented experiments
 
-- 2026-09-11: plan written from the iteration-2 review; author profile created; AUTH-01 added to the ledger.
+- [ ] Present branch selection as a recommendation. State that the present pipeline fits the branches jointly without a between-branch covariance term. Defer branch-specific uncertainty explicitly, and remove language that could justify choosing the branch with the largest apparent change (SCI-09, S-RE.4).
+- [ ] Describe depth inference as implemented but not evaluated here. State what covariance is supplied and propagated. Do not imply that separate per-band covariance matrices establish cross-band dependence or calibrated uncertainty at depth. Remove or label the density-field extension as future work, and correct the `uq_measurement` and `uq_depth` docstrings (SCI-06, INV-01).
+- [ ] Reconcile Table 4's estimator recommendations with the Results. Verify the experimental regime supporting the Yuan et al. (2021) interpretation before retaining that prescription (SCI-04, S-CD.2).
+- [ ] Identify the trailing-reference ablation and its comparison baseline consistently in Table 3, Fig. 12, and the prose (SCI-03).
+- [ ] Describe the synthetic construction precisely, including its scattering assumptions, envelope, additive noise, and imposed changes. Do not describe every departure from truth as processing error when the data also contain noise (SCI-02).
+- [ ] State that the two synthetic bands share one imposed velocity change. Name the comparator in claims such as “larger than measurement noise.” Separate physical implications from properties imposed by the simulation (S-DI.R3–R6).
+
+**Completion evidence:** a fixed experiment specification, archived settings and outputs, appropriate software checks, and a scientific assessment of each diagnostic. Every revised numerical claim must trace to an output. Passing software tests establishes implementation behavior; the experiments establish which scientific claims survive.
+
+## P2. Explain why these observations matter
+
+The impact should come from the observational problem and the evidence, rather than from stronger adjectives. The paper can argue that processing sensitivity must be assessed before small velocity changes are interpreted physically. It should explain what this assessment enables now and what additional constraints are needed to infer material properties or processes.
+
+- [ ] Revise the Introduction around the opportunity to use existing seismic observations to monitor evolving media. Explain why small relative changes are difficult to interpret and how systematic comparison of processing choices helps.
+- [ ] Connect this problem to engineering and laboratory coda-wave interferometry. Use a small number of verified studies that illustrate distinct observations or physical mechanisms. Distinguish a demonstrated application from a prospective one.
+- [ ] Verify and read the earlier search leads before citing them: Planes and Larose (2013), Schurr et al. (2011), Niederleithinger et al. (2018; candidate DOI `10.3390/s18061971`), Gret et al. (2006), Singh et al. (2019; candidate DOI `10.1029/2019JB017577`), and the incompletely identified concrete, composites, acoustoelasticity, and thermo-acoustoelasticity studies. Check their contribution against the literature already cited. These are search leads, not verified evidence.
+- [ ] If timber or dam monitoring would materially strengthen the argument, search the relevant engineering literature. Do not infer that an application is absent because an initial search found no paper. Otherwise omit those examples or clearly identify them as prospective.
+- [ ] Rewrite the abstract and conclusions after P1. Describe field-product agreement in terms of matched support, smoothing, shape, and amplitude differences. State the configuration-spread result for the scenario actually tested. Distinguish tested pointwise coverage, unresolved covariance properties, and unobserved shared errors. Avoid “calibrated covariance” unless the new evidence supports that description (S-AB.N1–N5, S-CO.12–14).
+
+**Completion evidence:** every application and quantitative impact statement has a source or a result, and the abstract accurately represents both the contribution and its limits.
+
+## P3. Preserve provenance before generation; archive after review
+
+### Establish the record now
+
+- [ ] Record the generating source commit, dirty-tree status, generator hash, input hashes, settings, random seeds, software environment, and exact command in each relevant result sidecar. Include code changes if a dirty tree is used for a pilot. Final results should use a clean, identified source state.
+- [ ] Add the generator hash and source commit to benchmark records and shard checks. Implement `figures --check` to detect missing or stale artifacts. Record runtime, resource use, and parallel settings where scalability is discussed. Keep scaling claims within the deployments actually tested (S-RP.1/4).
+- [ ] Record the exact calibration invocations and the steps needed to regenerate tables and figures from archived outputs (S-RP.3).
+- [ ] Recover the external `noisepy-dvv-cloud` commit, Gate 1 `--use-case`, and settings. Marine supplies information unavailable in the repository, confirms redistribution rights for the SCEDC-derived products, and identifies the archive destination.
+
+### Make the field comparison reproducible
+
+- [ ] Subject to confirmed redistribution rights, archive the 2–4 Hz daily products with SHA-256 hashes and licensing information. Verify the SCEDC and Clements and Denolle (2023) data citations and identifiers (S-RP.2).
+- [ ] Add an in-repository generator for Fig. 15 using the archived products and `comparison.json`, including the corrected error bars. Distinguish reproduction of this comparison from reproduction of the upstream waveform processing (S-RE.5, S-FD.4–5).
+- [ ] State why the interferogram and warm-up figures still depend on external CCFs if those inputs remain unavailable. Preserve available provenance and describe the remaining reproducibility limit (FIG-02, SCI-07).
+
+### Finalize the release after the scientific review
+
+- [ ] Use a clean source commit to generate the final outputs. Record that generating commit in the artifacts. Commit the artifacts and manuscript afterward, then identify the release commit or tag separately. An artifact need not contain the hash of the later commit that first includes it.
+- [ ] Verify the archive contents: code and environment, settings, permitted field products, synthetic and calibration outputs, provenance, and reproduction instructions. Check that the selected release mechanism actually deposits those materials. The current distribution-release workflow alone does not establish that field products or a complete research archive are deposited.
+- [ ] Verify the archive DOI and contents before updating `CITATION.cff`, README placeholders, and Data availability (REP-02/03).
+
+**Completion evidence:** a documented reproduction check from the archived inputs, with any external dependencies identified, and verified release identifiers. A successful package upload alone does not complete this package.
+
+## P4. Verify the survey before interpreting its counts
+
+- [ ] Fix DOI matching in `paper/build_survey.py`, including rows whose citation key already exists. Resolve the Obermann key collision and regenerate the bibliography and appendix table (S-CD.1).
+- [ ] Derive the number of unique publications from the corrected records. Reconcile every denominator in the manuscript. Do not assume that the current count of 103 remains correct.
+- [ ] Define the coding rule that separates a measurement-error estimate from a quality-control threshold. Calculate reporting rates by field using the eligible full-text records. Verify the number of abstract-derived records and report their exclusion explicitly (S-CD.3, SCI-08).
+- [ ] Record search dates, queries, and inclusion criteria. Check the seven identical-cell row pairs and the Snieder (2002) description against their sources. Marine adjudicates cases where the scientific coding remains ambiguous.
+
+**Completion evidence:** corrected records, a reproducible table, and a documented numerator, denominator, and coding rule for each reported rate.
+
+## P5. Make the prose sound like an observational paper
+
+Use the 40 candidates in [the register review](../reviews/iter2/block_S-PR.md) as prompts for an editorial pass. Explain what the data show, what the method estimates, and what remains uncertain. Replace anthropomorphic descriptions of the Bayesian model with descriptions of its assumptions and behavior. Define “member,” “target,” and the processing-choice advisor when first needed.
+
+The purpose is clear scientific communication, not 40 mandatory word substitutions. Editorial support can prepare the changes; Marine reviews the physical meaning and final voice after the numerical results are stable.
+
+## P6. Complete author information and disclosure
+
+- [ ] Complete funding, contributions, and acknowledgments from confirmed author information.
+- [ ] Use the [human–AI collaboration record](HUMAN_AI_COLLABORATION.md) to describe assistance accurately. Distinguish implementation, editorial assistance, automated review, and author adjudication. Update the number of review iterations to match the work actually completed.
+- [ ] Insert the archive DOI only after it exists and has been verified. Remove remaining submission placeholders.
+
+## P7. Review the revised evidence and decide readiness
+
+- [ ] Run the iteration-3 review in reconciliation mode using the [Denolle author profile](../.claude/skills/pre-submission-reviewer/profiles/denolle.md), the diff against `c10a108`, and the live iteration-2 ledger. This is a later execution task, not part of rewriting this plan.
+- [ ] For every finding, record the change, its evidence, and its disposition: repaired, claim withdrawn, or limitation explicitly deferred. Identify unresolved findings even when they sit outside the main packages, including dense-output scaling (SCALE-01), advisor evaluation isolation and holdout design (EV-02/03), and network-scale comparison (SCI-01). Do not imply that manuscript edits validate these capabilities.
+- [ ] Check that all tables, captions, counts, and conclusions reflect the final outputs. Inspect the complete rendered manuscript, including appendices, at publication size.
+- [ ] Record the limits of the review's independence where implementation and review share an agent lineage. Marine makes the final scientific and submission judgment.
+
+The submission decision should rest on a defensible measurement claim, transparent uncertainty limits, and a reproducible body of evidence. Additional experiments belong in this revision when they are necessary to support a retained claim; otherwise, narrow the claim and identify the remaining question.
+
+## Revision record
+
+- 2026-09-11: Initial plan assembled from the iteration-2 review and AUTH-01.
+- 2026-09-11: Rewritten for Marine Denolle's observational priorities, with explicit measurement targets, diagnostic failure responses, provenance requirements, and evidence-based completion criteria. No experiments or implementation tasks are marked complete by this rewrite.
+- 2026-09-11: GitHub issues opened under milestone "Iteration 3 revision": P0 #38, P1 #39, P2 #40, P3 #41, P4 #42, P5 #43, P6 #44, P7 #45; author inputs #46 (Gate 1 provenance and rights, blocks P3), #47 (Yuan 2021 Table B3, blocks P1 and P4), #48 (survey rows and search rules, blocks P4), #49 (Fig 8 keep, trim or drop, blocks P0), #50 (step-error metric, blocks P1). Status is tracked in the issues; this file changes only by ticking boxes and appending to this record.
