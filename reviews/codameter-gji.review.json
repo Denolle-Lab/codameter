@@ -4,7 +4,7 @@
  "skill_version": "2.5",
  "skill_commit": "211bcc1",
  "model": "claude-fable-5-1",
- "profile": "default",
+ "profile": "denolle (created 2026-09-11 from the author's stated preferences; iteration 2 ran under default)",
  "target_journal": "GJI (Geophysical Journal International)",
  "manuscript_type": "Research paper with methods emphasis",
  "iteration": 2,
@@ -17,7 +17,7 @@
  "updated": "2026-09-10",
  "readiness": "Revise before submission",
  "readiness_note": "No Fatal finding remains; both iteration-1 Fatal uncertainty defects and the scorer exploit are fixed and verified. 13 of 37 prior findings RESOLVED, 24 PARTIALLY ADDRESSED, none NOT ADDRESSED or REGRESSED. The revision introduced 2 Poor and 15 Fair findings (Appendix A estimator sign statements; an unreadable panel; comma artefacts; a false survey denominator with a mis-citation; undisclosed empty pipelines; a misread step-error sign; an unimplemented branch rule; provenance gaps). Hard gates independent of tier: archive with DOI, field-product provenance, end matter.",
- "open": 49,
+ "open": 50,
  "history": [
   {
    "iteration": 1,
@@ -1342,6 +1342,29 @@
    "required_evidence": "none required; see reviews/iter2/block_S-PR.md",
    "report": "reviews/codameter-gji.iter2.report.md",
    "plan_package": []
+  },
+  {
+   "id": "AUTH-01",
+   "criterion": "C7/C6",
+   "tier": "Fair",
+   "status": "OPEN",
+   "bucket": "AUTHOR-REQUESTED",
+   "summary": "Author request (2026-09-11): state the impact more strongly, that repurposing seismic sensors to monitor internal rheology and deformation is hard and important, and broaden the application framing with the engineering and experimental CWI literature (concrete, laboratory rock physics, composites; dams and timber if studies exist). The current Introduction and Discussion frame impact at the level of the four cited monitoring applications only.",
+   "location": "Introduction 75-97; Discussion 1417-1543; Conclusions 1544-1568",
+   "section": "Introduction; Discussion; Conclusions",
+   "scope": [
+    "S-IN",
+    "S-DI",
+    "S-CO",
+    "S-CD"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "required_evidence": "Changed text with verified citations (DOIs resolved by the author); reviewer checks that the strengthened claim stays within what the paper shows.",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": [
+    "P2"
+   ]
   }
  ],
  "review_mode": "Reconciliation, delta vs iteration 1: ten subagents dispatched in parallel on changed scope (change map reviews/codameter-gji.changes.json), code verified by probe re-runs, targeted tests and a bit-identical calibration replay",

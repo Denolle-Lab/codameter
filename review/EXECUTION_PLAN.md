@@ -72,3 +72,4 @@ Consequence: `REVISION_PLAN.md` packages R8 and R9 reduce to the code items list
   Narrowed covariance and availability claims further. See `REVISION_STATUS.md`
   for all 37 findings and outstanding tasks. This bounded check does not mark
   the full reviewer iteration complete or close the historical ledger.
+- 2026-09-11: iteration-2 review complete (reviews/codameter-gji.iter2.report.md). Next plan: review/REVISION_PLAN_ITER3.md. Collaboration record: review/HUMAN_AI_COLLABORATION.md. Author profile: .claude/skills/pre-submission-reviewer/profiles/denolle.md.
