@@ -1,1005 +1,1557 @@
 {
-  "manuscript_id": "codameter-gji",
-  "title": "The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring",
-  "skill_version": "2.4",
-  "skill_commit": "f230303",
-  "model": "GPT-6 / Codex; exact runtime model identifier not exposed",
-  "profile": "default",
-  "target_journal": "GJI (Geophysical Journal International)",
-  "manuscript_type": "Research paper with methods emphasis",
-  "iteration": 1,
-  "manuscript_hash": "sha256:582a09ee97ca6f86d80ac3a61301bab8dd5089477fe780cd86c70452dbba0ec0",
-  "hash_method": "sha256 of the raw bytes of paper/manuscript_marine.qmd (no normalization)",
-  "manuscript_path": "paper/manuscript_marine.qmd",
-  "manuscript_ref": "b6dbbd03ad3a9e7b8daac3847a470b93b6918cc8:paper/manuscript_marine.qmd",
-  "repository_commit": "b6dbbd03ad3a9e7b8daac3847a470b93b6918cc8",
-  "created": "2026-09-10",
-  "updated": "2026-09-10",
-  "readiness": "Major revision required",
-  "readiness_note": "Major revision required; UQ and evaluation claims blocked pending correction",
-  "open": 37,
-  "history": [],
-  "ledger": [
-    {
-      "id": "UQ-01",
-      "criterion": "C2",
-      "tier": "Fatal",
-      "status": "OPEN",
-      "summary": "Weaver floor omits bandwidth timescale and differs in prefactor.",
-      "location": "src/codameter/uq_measurement.py:76",
-      "section": "code / repository",
-      "scope": [
-        "S-RP",
-        "S-ME"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Correct formula; verify dimensional consistency and independent bandwidth calibration.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R3"
-      ]
-    },
-    {
-      "id": "UQ-02",
-      "criterion": "C2",
-      "tier": "Fatal",
-      "status": "OPEN",
-      "summary": "Floor variability is substituted for conditional-mean variability.",
-      "location": "src/codameter/uq_processing.py:220",
-      "section": "code / repository",
-      "scope": [
-        "S-RP",
-        "S-ME"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Recover exact zero-mean mixture variance; separate bias and MSE.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R3"
-      ]
-    },
-    {
-      "id": "UQ-03",
-      "criterion": "C2",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "Shared-data pipeline estimates are treated as independent observations.",
-      "location": "src/codameter/uq_bayes.py:297",
-      "section": "code / repository",
-      "scope": [
-        "S-RP",
-        "S-ME"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Derive joint likelihood or mixture; check duplicate-pipeline invariance.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R1",
-        "R5"
-      ]
-    },
-    {
-      "id": "UQ-04",
-      "criterion": "C2",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "Constructed Cd is not derived or calibrated for shared errors.",
-      "location": "src/codameter/uq_bayes.py:328",
-      "section": "code / repository",
-      "scope": [
-        "S-RP",
-        "S-ME"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Derive covariance; test shared bias, temporal dependence, and component accounting.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R1",
-        "R5",
-        "R6"
-      ]
-    },
-    {
-      "id": "UQ-05",
-      "criterion": "C2",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Bayesian pipeline ignores config axes and changes physical stacking durations.",
-      "location": "src/codameter/uq_bayes.py:121",
-      "section": "code / repository",
-      "scope": [
-        "S-RP",
-        "S-ME"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Honor or reject config; preserve physical time under cadence and gaps.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R4"
-      ]
-    },
-    {
-      "id": "DET-01",
-      "criterion": "C2",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "RMS, valid supports, reference observables, and requested estimators differ.",
-      "location": "src/codameter/deviations.py:174",
-      "section": "code / repository",
-      "scope": [
-        "S-RP",
-        "S-ME"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Align datum/support; expose unsupported configurations; replicate paired comparisons.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R1",
-        "R4"
-      ]
-    },
-    {
-      "id": "DET-02",
-      "criterion": "C3",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Cache inputs depend on warmth and lack generator-code identity.",
-      "location": "src/codameter/golden.py:508",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Consistent precision, versioned cache key, and atomic writes.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R4"
-      ]
-    },
-    {
-      "id": "INV-01",
-      "criterion": "C2",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "Temporal Cd is not connected to diagonal stress inversion or cross-band depth input.",
-      "location": "src/codameter/inverse/linear_fit.py:430",
-      "section": "code / repository",
-      "scope": [
-        "S-RP",
-        "S-ME"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Demonstrate GLS and explicit time-band covariance propagation.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R5"
-      ]
-    },
-    {
-      "id": "INV-02",
-      "criterion": "C2",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "Bounds and disconnected reference nodes can have zero reported uncertainty.",
-      "location": "src/codameter/inverse/linear_fit.py:544; src/codameter/uq_measurement.py:419",
-      "section": "code / repository",
-      "scope": [
-        "S-RP",
-        "S-ME"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Use bounded uncertainty; identify graph components and null spaces.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R5"
-      ]
-    },
-    {
-      "id": "SCALE-01",
-      "criterion": "C3",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Dense Gibbs covariance path is cubic in epoch count.",
-      "location": "src/codameter/uq_bayes.py:299",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Use structured algebra; report memory/runtime scaling and equivalence.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R9"
-      ]
-    },
-    {
-      "id": "SCALE-02",
-      "criterion": "C3",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Shard aggregation accepts duplicates and missing shards.",
-      "location": "src/codameter/bench.py:314",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Require complete unique task inventory and matched provenance.",
-      "report": "review/02_software_and_uncertainty.md",
-      "plan_package": [
-        "R9"
-      ]
-    },
-    {
-      "id": "AG-01",
-      "criterion": "C3",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Public advisor routes fail for three applications and mismatch hard-case targets.",
-      "location": ".claude/skills/codameter-advisor/references/validation_loop.md:37",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Provide executable matched public cases for all applications.",
-      "report": "review/03_advisor_and_golden_dataset.md",
-      "plan_package": [
-        "R8"
-      ]
-    },
-    {
-      "id": "AG-02",
-      "criterion": "C2",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Elicited constraints and error-bar comparisons lack executable evaluation.",
-      "location": ".claude/skills/codameter-advisor/references/validation_loop.md:45",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Validate overrides, safeguards, equivalence, and repeated-seed differences.",
-      "report": "review/03_advisor_and_golden_dataset.md",
-      "plan_package": [
-        "R4",
-        "R8"
-      ]
-    },
-    {
-      "id": "AG-03",
-      "criterion": "C4",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Matched synthetic recommendations are described as proven field choices.",
-      "location": ".claude/skills/codameter-advisor/SKILL.md:3",
-      "section": "code / repository",
-      "scope": [
-        "S-RP",
-        "S-DI"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "State conditional scope; validate independent field/simulator transfer.",
-      "report": "review/03_advisor_and_golden_dataset.md",
-      "plan_package": [
-        "R6",
-        "R8"
-      ]
-    },
-    {
-      "id": "EV-01",
-      "criterion": "C4",
-      "tier": "Fatal",
-      "status": "OPEN",
-      "summary": "Sparse zero predictions score perfectly on all public cases.",
-      "location": "src/codameter/frugalmind.py:299; src/codameter/golden.py:578",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Fix score support and missingness; rerun adversarial and model evaluations.",
-      "report": "review/03_advisor_and_golden_dataset.md",
-      "plan_package": [
-        "R2"
-      ]
-    },
-    {
-      "id": "EV-02",
-      "criterion": "C3",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Truth-free function is not demonstrated sandbox isolation.",
-      "location": "src/codameter/golden.py:560; src/codameter/frugalmind.py:117",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Prove separate scorer/agent access boundaries with observables-only artifacts.",
-      "report": "review/03_advisor_and_golden_dataset.md",
-      "plan_package": [
-        "R8"
-      ]
-    },
-    {
-      "id": "EV-03",
-      "criterion": "C2",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Gold corpus shares generator families and derives thresholds from baseline implementation.",
-      "location": "src/codameter/private_golden.py:85; src/codameter/golden.py:604",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Freeze independent benchmark; distinguish parameter and simulator holdout.",
-      "report": "review/03_advisor_and_golden_dataset.md",
-      "plan_package": [
-        "R2",
-        "R6",
-        "R8"
-      ]
-    },
-    {
-      "id": "EV-04",
-      "criterion": "C4",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "No executed agent evaluation supports the robust-evaluation claim.",
-      "location": "paper/manuscript_marine.qmd:41",
-      "section": "Front matter / Abstract",
-      "scope": [
-        "S-AB",
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Archive model protocols, runs, baselines, scores, costs, and uncertainties.",
-      "report": "review/03_advisor_and_golden_dataset.md",
-      "plan_package": [
-        "R8"
-      ]
-    },
-    {
-      "id": "SCI-01",
-      "criterion": "C2",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "SD/SE/network heterogeneity are conflated with one measurement uncertainty.",
-      "location": "paper/manuscript_marine.qmd:446",
-      "section": "Results 3.3 Station-pair aggregation and uncertainty",
-      "scope": [
-        "S-RE",
-        "S-FD"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Define estimands and hypotheses; use network covariance propagation.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R1",
-        "R10"
-      ]
-    },
-    {
-      "id": "SCI-02",
-      "criterion": "C4",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Conditional surrogate experiments are generalized to observational dominance and depth.",
-      "location": "paper/manuscript_marine.qmd:180; paper/manuscript_marine.qmd:1207",
-      "section": "Synthetic framework; Discussion",
-      "scope": [
-        "S-ME",
-        "S-DI"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Add independent wavefields and qualify surrogate physical interpretations.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R1",
-        "R6",
-        "R10"
-      ]
-    },
-    {
-      "id": "SCI-03",
-      "criterion": "C4",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Raw trailing references are presented as common defensible comparisons.",
-      "location": "paper/manuscript_marine.qmd:540",
-      "section": "Results 3.5 Reference",
-      "scope": [
-        "S-RE"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Benchmark comparable registered observables and surveyed reference workflows.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R1",
-        "R10"
-      ]
-    },
-    {
-      "id": "SCI-04",
-      "criterion": "C6",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Estimator prescriptions and novelty boundary exceed cited conditional evidence.",
-      "location": "paper/manuscript_marine.qmd:309",
-      "section": "Results: parameter-dependent dv/v",
-      "scope": [
-        "S-RE",
-        "S-DI",
-        "S-CD"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Compare tuned methods; delimit contribution relative to Yuan2021 and other work.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R1",
-        "R10"
-      ]
-    },
-    {
-      "id": "SCI-05",
-      "criterion": "C2",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "Nominal interval coverage lacks repeated independent validation and chain diagnostics.",
-      "location": "paper/manuscript_marine.qmd:995",
-      "section": "Bayesian measurement model",
-      "scope": [
-        "S-RE",
-        "S-ME"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Report held-out coverage, uncertainty, width, convergence, and failure rates.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R3",
-        "R5",
-        "R6"
-      ]
-    },
-    {
-      "id": "SCI-06",
-      "criterion": "C4",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "Depth and operational claims exceed demonstrated results.",
-      "location": "paper/manuscript_marine.qmd:36; paper/manuscript_marine.qmd:1298",
-      "section": "Front matter / Abstract; Discussion",
-      "scope": [
-        "S-AB",
-        "S-DI",
-        "S-CO"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Add actual depth/resolution and scaling results or narrow claims consistently.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R5",
-        "R10"
-      ]
-    },
-    {
-      "id": "SCI-07",
-      "criterion": "C4",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "Field comparison counts, masks, correlations, and physical attribution are inconsistent.",
-      "location": "paper/manuscript_marine.qmd:1133",
-      "section": "Scalable deployment / real data",
-      "scope": [
-        "S-RE",
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Publish exact comparison driver and date masks; recompute statistics and labels.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R7"
-      ]
-    },
-    {
-      "id": "SCI-08",
-      "criterion": "C6",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Abstract-only survey gaps cannot establish full-paper nonreporting.",
-      "location": "paper/manuscript_marine.qmd:1414",
-      "section": "Appendix C Literature survey",
-      "scope": [
-        "S-CD"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Separate extraction statuses and deduplicate study denominators; repair groundwater attribution.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R7"
-      ]
-    },
-    {
-      "id": "SCI-09",
-      "criterion": "C2",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Largest-magnitude and coherence branch selection can bias inference.",
-      "location": "paper/manuscript_marine.qmd:788",
-      "section": "Results 3.8 Causal/acausal branches",
-      "scope": [
-        "S-RE"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Predefine selection or validate it on independent data.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R1",
-        "R10"
-      ]
-    },
-    {
-      "id": "SCI-10",
-      "criterion": "C2",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Appendix WCC delay sign contradicts the defined dilation convention.",
-      "location": "paper/manuscript_marine.qmd:1345",
-      "section": "Appendix A Estimator definitions",
-      "scope": [
-        "S-ME"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Correct analytical pulse example and propagate finite-change Jacobian.",
-      "report": "review/evidence/methods_figures.md",
-      "plan_package": [
-        "R1",
-        "R10"
-      ]
-    },
-    {
-      "id": "SCI-11",
-      "criterion": "C4",
-      "tier": "Good",
-      "status": "OPEN",
-      "summary": "Universal stack underestimation contradicts reported bias zero crossing.",
-      "location": "paper/manuscript_marine.qmd:669",
-      "section": "Results 3.6 Substacking",
-      "scope": [
-        "S-RE"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Describe signed, scenario-specific recovery errors.",
-      "report": "review/evidence/methods_figures.md",
-      "plan_package": [
-        "R1",
-        "R10"
-      ]
-    },
-    {
-      "id": "FIG-01",
-      "criterion": "C4",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Figure1 WCS trajectory contradicts its caption.",
-      "location": "paper/manuscript_marine.qmd:367; PDF p11",
-      "section": "Results 3.1 Estimator family",
-      "scope": [
-        "S-FD"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Reconcile saved numerical traces and recovery claim.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R7",
-        "R10"
-      ]
-    },
-    {
-      "id": "FIG-02",
-      "criterion": "C5",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Real-data figures conflict on components, dates, statistics, and counts.",
-      "location": "paper/manuscript_marine.qmd:1176; PDF pp36–38",
-      "section": "Scalable deployment / real data",
-      "scope": [
-        "S-FD"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Generate labels and reported metrics from the same validated products.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R7",
-        "R10"
-      ]
-    },
-    {
-      "id": "FIG-03",
-      "criterion": "C5",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Missing units, clipped ensembles, occluding legends, and mixed RMS/bias labels.",
-      "location": "PDF pp13,22,25,28,29,32,37",
-      "section": "code / repository",
-      "scope": [
-        "S-FD"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Add units and full-range views; move legends; label statistical objects.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R7",
-        "R10"
-      ]
-    },
-    {
-      "id": "FMT-01",
-      "criterion": "C5",
-      "tier": "Good",
-      "status": "OPEN",
-      "summary": "Summary paragraphs, figure order, duplicated presentation, and placeholders need revision.",
-      "location": "paper/manuscript_marine.qmd:10; paper/manuscript_marine.qmd:140",
-      "section": "Front matter / Abstract; Introduction",
-      "scope": [
-        "S-AB",
-        "S-IN",
-        "S-FD"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Single summary paragraph; resolve placeholders and figure order; clarify acronyms/history.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R10"
-      ]
-    },
-    {
-      "id": "REP-01",
-      "criterion": "C3",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "Advertised figure build omits six graphics and can preserve stale results.",
-      "location": "paper/build.py:124",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "One driver regenerates all graphics from versioned numerical manifests.",
-      "report": "review/evidence/reproducibility.md",
-      "plan_package": [
-        "R7"
-      ]
-    },
-    {
-      "id": "REP-02",
-      "criterion": "C3",
-      "tier": "Poor",
-      "status": "OPEN",
-      "summary": "Field products are ignored by Git and comparison driver is external.",
-      "location": "paper/data/gate1/README.md:25",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Archive field products and dependencies with exact hashes and executable driver.",
-      "report": "review/evidence/reproducibility.md",
-      "plan_package": [
-        "R7"
-      ]
-    },
-    {
-      "id": "REP-03",
-      "criterion": "C3",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Paper experiment settings, version metadata, and replay manifests are incomplete.",
-      "location": "CITATION.cff; src/codameter/workflow.py:696",
-      "section": "code / repository",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Pin environments, settings, hardware, source and input hashes, seeds, and invocation.",
-      "report": "review/evidence/reproducibility.md",
-      "plan_package": [
-        "R7",
-        "R9"
-      ]
-    },
-    {
-      "id": "COMP-01",
-      "criterion": "C8",
-      "tier": "Fair",
-      "status": "OPEN",
-      "summary": "Acknowledgements, AI disclosure, and full data access/licensing statements are unfinished.",
-      "location": "paper/manuscript_marine.qmd:1427",
-      "section": "Data availability",
-      "scope": [
-        "S-RP"
-      ],
-      "first_seen": 1,
-      "last_changed": 1,
-      "bucket": null,
-      "required_evidence": "Complete authorship/funding/disclosure and actual data/software access statements.",
-      "report": "review/01_manuscript_and_figures.md",
-      "plan_package": [
-        "R10"
-      ]
-    }
-  ],
-  "review_mode": "Full first review; nine focused scopes across three subagents, primary scientific code/scorer audit",
-  "prior_manifest_found": false,
-  "author_verification_performed": false,
-  "review_reports": [
-    "review/README.md",
-    "review/01_manuscript_and_figures.md",
-    "review/02_software_and_uncertainty.md",
-    "review/03_advisor_and_golden_dataset.md"
-  ],
-  "evidence_dir": "review/evidence",
-  "execution_evidence": {
-    "numerical_probes": "evidence/audit_probes.json",
-    "downstream_probes": "evidence/downstream_probes.json",
-    "reproduction_probes": "evidence/reproduction_probes.json",
-    "test_metadata": "evidence/pytest_targeted_metadata.json",
-    "full_test_metadata": "evidence/pytest_metadata.json",
-    "render_metadata": "evidence/paper_build_cached_metadata.json",
-    "targeted_tests": {
-      "passed": 144,
-      "skipped": 0,
-      "complete": true
-    },
-    "full_suite": {
-      "status": "timeout",
-      "limit_seconds": 540,
-      "visible_passes": 261,
-      "visible_skips": 1,
-      "unfinished": 39,
-      "complete": false,
-      "note": "Partial progress counts; targeted suite overlaps."
-    },
-    "fresh_pdf_pages": 74,
-    "visual_qa": {
-      "existing_pages": 26,
-      "all_17_figure_pages_inspected": true,
-      "fresh_pages": [
-        1,
-        11,
-        29,
-        32,
-        36,
-        37
-      ]
-    }
+ "manuscript_id": "codameter-gji",
+ "title": "The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring",
+ "skill_version": "2.5",
+ "skill_commit": "211bcc1",
+ "model": "claude-fable-5-1",
+ "profile": "default",
+ "target_journal": "GJI (Geophysical Journal International)",
+ "manuscript_type": "Research paper with methods emphasis",
+ "iteration": 2,
+ "manuscript_hash": "sha256:6b4b9eb91fb2c0701d0f3cca9e8279ae8bcc1a29795de3b5d563556a86059ae4",
+ "hash_method": "sha256 of the raw bytes of paper/manuscript_marine.qmd (no normalization)",
+ "manuscript_path": "paper/manuscript_marine.qmd",
+ "manuscript_ref": "b6dbbd03ad3a9e7b8daac3847a470b93b6918cc8:paper/manuscript_marine.qmd",
+ "repository_commit": "c10a1085cdc97d0c436180105c099dc92fd28e7c",
+ "created": "2026-09-10",
+ "updated": "2026-09-10",
+ "readiness": "Revise before submission",
+ "readiness_note": "No Fatal finding remains; both iteration-1 Fatal uncertainty defects and the scorer exploit are fixed and verified. 13 of 37 prior findings RESOLVED, 24 PARTIALLY ADDRESSED, none NOT ADDRESSED or REGRESSED. The revision introduced 2 Poor and 15 Fair findings (Appendix A estimator sign statements; an unreadable panel; comma artefacts; a false survey denominator with a mis-citation; undisclosed empty pipelines; a misread step-error sign; an unimplemented branch rule; provenance gaps). Hard gates independent of tier: archive with DOI, field-product provenance, end matter.",
+ "open": 49,
+ "history": [
+  {
+   "iteration": 1,
+   "date": "2026-09-10",
+   "model": "GPT-6 / Codex; exact runtime model identifier not exposed",
+   "skill_version": "2.4",
+   "skill_commit": "f230303",
+   "readiness": "Major revision required",
+   "open": 37,
+   "manuscript_hash": "sha256:582a09ee97ca6f86d80ac3a61301bab8dd5089477fe780cd86c70452dbba0ec0"
+  }
+ ],
+ "ledger": [
+  {
+   "id": "UQ-01",
+   "criterion": "C2",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Weaver floor omits bandwidth timescale and differs in prefactor.",
+   "location": "src/codameter/uq_measurement.py:76",
+   "section": "code / repository",
+   "scope": [
+    "S-RP",
+    "S-ME"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Correct formula; verify dimensional consistency and independent bandwidth calibration.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R3"
+   ],
+   "tier_iter1": "Fatal",
+   "iteration2_evidence": "S-ME: uq_measurement.py:80-147 implements Weaver eq. 20 with T; Appendix eq:weaver 1585-1591; eq. 21 anchor, unit invariance and 1/sqrt(B) tests pass."
   },
-  "limits": [
-    "No hidden corpus accessed",
-    "No external model evaluation performed",
-    "No cloud deployment or benchmark performed",
-    "Existing figures reused for isolated manuscript compilation",
-    "No full raw-waveform real-data reproduction performed"
-  ],
-  "disclosure": "This draft received an advisory AI-assisted review using Denolle Group Pre-Submission Reviewer v2.4 with Codex/GPT-6, iteration 1. The audit included local code execution and selected primary-source checks. It does not endorse manuscript validity. Authors must adjudicate findings before submission; that adjudication has not yet been recorded.",
-  "source_file_hashes": {
-    ".claude/skills/codameter-advisor/SKILL.md": "sha256:6daf68288e89f93cfe46ab57a54300228bd9536d17af9c529d4a92c0e101716b",
-    ".claude/skills/codameter-advisor/references/golden_datasets.md": "sha256:7aaf3fd20e26d84bf1ba7aead158f3cd5cb7aebf9c0a0c20de3f3937a032065c",
-    ".claude/skills/codameter-advisor/references/parameter_map.md": "sha256:bf008b1e0922a56b13251d24ca4477d4c9d927325e7fb4597ee002a599435434",
-    ".claude/skills/codameter-advisor/references/report_format.md": "sha256:53b4ad8d26caada2c149f2ea9d96bbed8cf11b3ed2787d287a1ae3b4ead155c7",
-    ".claude/skills/codameter-advisor/references/use_case_elicitation.md": "sha256:20f21a64396abaa19786e0b5396f466be6843697a045e32c9c5ca9f377f5b90e",
-    ".claude/skills/codameter-advisor/references/validation_loop.md": "sha256:a8e51cf050463a141680976bcc0bf06fd2ca6be0bd07f304a41eb56bf8162806",
-    "literature/.crossref_cache.json": "sha256:2ba8ffbb03257794a241f7489ef9819968a15780d960e1ed5b4b01f12590b84b",
-    "literature/ACCESS.md": "sha256:c2344c9ce6632b60871be3eb8053954d823ef91f2012c03cafe00b59ca14654e",
-    "literature/README.md": "sha256:69418a72b0b72dbd920c8bc08c9f792e61c0bcfaacee9e7423d943fb34149848",
-    "literature/best_practices.md": "sha256:08dff657c576aabcc986e8d6e46c5fb4943bad9db5d2c2acf62b8e170739e247",
-    "literature/build_quarto_refs.py": "sha256:62cf6f90bbd525f321048a83fd35c76309236a9d5bb7d58109f009c2a06af6e1",
-    "literature/build_table.py": "sha256:5a66dfcd167da2fcae8e16074956fa676a0ab54eba821aaf78187c76d4eb53b0",
-    "literature/dvv_processing_parameters.csv": "sha256:d1178a1b3a6e442a0638491236adfaa9d995f4722a629d30c86e31af2678aae2",
-    "literature/dvv_processing_parameters.md": "sha256:55f00c094e6f675c2c4c1761a9374045007a1550f5a8d420b84c6f54aefb4405",
-    "literature/figs/demo_10_deviations.png": "sha256:6fa18f678925cdc261f191a296ed932e32c72aa769659883ba421d604c06340b",
-    "literature/figs/demo_11_multiverse.png": "sha256:75f3a557e8d2b900522959f89cabb6ef86b753d16e0bf44bc35432b7181adf48",
-    "literature/figs/demo_12_bayes.png": "sha256:5ec259557489329b35d56a966e47683d4206a68d9fd97047eedfb0abcad2cdc3",
-    "literature/figs/demo_13_branch_asymmetry.png": "sha256:d167a4ff35df6bfab45bc1dd928135feaa014f2a1cc177f308411ccf99196daa",
-    "literature/figs/demo_14_network_pairs.png": "sha256:d0d01f5a273edd52c709a13e5e821551560d909bf92a42f6a9e69ad8c15f2bdc",
-    "literature/figs/demo_15_window_envelope.png": "sha256:bc88316402dcb5a7c841c996ec6a110322157b72e9af5a8f92871f8d14befce8",
-    "literature/figs/demo_16_band_sensitivity.png": "sha256:5622d8a45989a020f4522c497888d26a94ccad94b7192e9fb8773c2c95b99220",
-    "literature/figs/demo_17_reference_schemes.png": "sha256:ea87965d83f242d406c9315c6b570285af0859984228b92180c31a88e849fd72",
-    "literature/figs/demo_18_stack_coherence.png": "sha256:defa8771b14540add4279723f7e7a0e08a172da7c503b97e765f39c322aa4f5b",
-    "literature/figs/demo_1_methods.png": "sha256:864d7835944d42158992ada370c8da05623527de62a139d08f54a68367a691b4",
-    "literature/figs/demo_2_aggregation.png": "sha256:713828944d7d893cccd488be242088704aacfd7e4abfc09e3a28cb0b4e66b807",
-    "literature/figs/demo_3_uncertainty.png": "sha256:38574d2b102c67a1330925dd2c9fbebb2897d21cb0329612d66bf698c2e8ab61",
-    "literature/figs/demo_4_frequency_depth.png": "sha256:2cc5f4615e22525720a843e35225a9cd5b27c8351778b4a51a9e21ed4c361c20",
-    "literature/figs/demo_5_window_band.png": "sha256:490ef1c7f1962020f84b4298ffef349adc76850cbefa787f8b81c4a9278e4f82",
-    "literature/figs/demo_6_stacking.png": "sha256:9a23225d91a027e339ffbf1da990edff84167c150a0086c5640a026f5826e653",
-    "literature/figs/demo_7_reference.png": "sha256:d04da8057f9e00a872f656b400fc305761a67701624b6f2a7bf623556a497616",
-    "literature/figs/demo_8_artifacts.png": "sha256:5dd57681749c9924f9b07b1d635e8c16e6b7054ddec53d4ae8a614372d897477",
-    "literature/figs/demo_9_multiverse.png": "sha256:0e2bd424d1dd921f1546dd4095e34d6fbc26beef72e54211d5274c9c13ded353",
-    "literature/figs/realdata_1_validation.png": "sha256:9f74681a0ddefc6a6d9b80dd2eef15a856f5bff4f0503b66e25a58e28ccaddb8",
-    "literature/figs/realdata_2_interferograms.png": "sha256:a15d51eae10aac10b5f5dba48fb4b19a439cbededb1cb29f36f6f098e2598a81",
-    "literature/figs/realdata_3_warmup.png": "sha256:00df9e0f5632013f0dd97c8a2143e60c3348530b05b37756c7ca9f0b89bec83b",
-    "literature/merge_verified.py": "sha256:261c1238bb039c83b1d7de26b030ec206b4b8476a81c8aeeea1f8983e8c132a6",
-    "literature/raw/cryosphere_geothermal.json": "sha256:f71f77982ec57ec3ea43a07ce5cc6ba121dd32bba79d29fb983c9c5dee78f5c2",
-    "literature/raw/earthquake.json": "sha256:7447031b92216341d104367de5599dd2c055c2a9d4a4aed37e5bf29e9d5e52b2",
-    "literature/raw/groundwater.json": "sha256:3f3c092f00a984c033bebfac3965ff1be14565353abc6a6b544df4b22da1df59",
-    "literature/raw/landslide.json": "sha256:b52509a914372f4027979f584fa5fe2c1bf92dc61ac1b92ae65dc3d18c13d5cf",
-    "literature/raw/methodology.json": "sha256:d7975b35d826e748accb1b329dc66e1abc63b8e6a57ce33b7fbe9aef1de801b9",
-    "literature/raw/volcano.json": "sha256:4b1cad33974bda5dcdacb01716a2974c62f26f39ddef3707dfa0b683836ecd16",
-    "literature/synthetic_dvv_demo.py": "sha256:acdc072a152128236a25f9252d272488dc3f531b3c12271885c70cc0041dfa37",
-    "literature/verified_fulltext.jsonl": "sha256:91d275aa20a4c85d2aaad978688d279ec44370733e1d8874b67a1e1add9209ae",
-    "paper/README.md": "sha256:cf85ea212054426cfa19f6fd75850480eece828db580e28c8019462dcc289e97",
-    "paper/_preamble.tex": "sha256:1b908dc23177955883d2e790ba50af4828b29ca42351439ee5e5b70daa5f724a",
-    "paper/appendix_table.tex": "sha256:1536016349243c060be06d8a47eaa0424aae72af0b7a81579daab623b41d346d",
-    "paper/build.py": "sha256:e5d71be0c524dfc29194b3d6d4b137273dcd0b6f1ebbd44e434e5900977c4a65",
-    "paper/build_survey.py": "sha256:c259d46f25b29a61e6f6f5d7791ab68d3bfd25a60a70339c8669db49b3b507cd",
-    "paper/data/gate1/README.md": "sha256:6dbfc6332c3b6c2dc1865cc0cacfc427781dfd03cf1442402a4183a51305849a",
-    "paper/data/gate1/legacy_cd2022/CI.ARV.arrow": "sha256:7956fc2e2b070a1dc3933ff818efd4f34f0c2d2e695260d1a532d8fd47906c65",
-    "paper/data/gate1/legacy_cd2022/CI.LJR.arrow": "sha256:85e33fa2611f6b7a3beccbfb368abc42573a0f9da142df346a71b8cb9d6658f7",
-    "paper/data/gate1/legacy_cd2022/CI.RXH.arrow": "sha256:f0ab6c687b75e06ae19fa5a10668bc95515c8fdeab00e2d8a0ab5787772ccc19",
-    "paper/figures/gate1/dvv_smoke_check_90d.png": "sha256:00df9e0f5632013f0dd97c8a2143e60c3348530b05b37756c7ca9f0b89bec83b",
-    "paper/figures/gate1/gate1_final_2y.png": "sha256:9f74681a0ddefc6a6d9b80dd2eef15a856f5bff4f0503b66e25a58e28ccaddb8",
-    "paper/figures/gate1/gate1_heatmaps_zoom.png": "sha256:a15d51eae10aac10b5f5dba48fb4b19a439cbededb1cb29f36f6f098e2598a81",
-    "paper/figures/gate1/gate1_validation.png": "sha256:9f442edaff04e16b7e128906787b614192e4e9bcfaad73576671d744da6e0d6f",
-    "paper/manuscript.tex": "sha256:9bb7332eeee4a702c86c3659bc5548d6b77e49764ae80e3c43998ce4350834fe",
-    "paper/manuscript_marine.qmd": "sha256:582a09ee97ca6f86d80ac3a61301bab8dd5089477fe780cd86c70452dbba0ec0",
-    "paper/manuscript_marine.tex": "sha256:a60d872160bbb418b71093932c486d5f420a10008dd210441191118051542dc0",
-    "paper/references.bib": "sha256:f5263a55a6fd3ee7ad5bbd536ea492ef8c841583590f85e636b957dfc8f7e1fb",
-    "paper/survey.bib": "sha256:7acfc0836dcf4924ea98fdc2d493ddd53246454eb71194d7ce2bae9a16ddd6a9",
-    "src/codameter/__init__.py": "sha256:692e434d63a1752f08bf7ce7abce9fcee2dd4d2a4627b599316f85e2ffee86cc",
-    "src/codameter/_version.py": "sha256:db4a8260ba9c834fb069e7425479b3ece5d95afb06478a3f08c119acbc64b4a0",
-    "src/codameter/anomaly/__init__.py": "sha256:255edcc88170406cfca35319211f9880ee0e4791edd6548a0c787a7c928e373d",
-    "src/codameter/anomaly/attribution.py": "sha256:ef52decf86eb7c303a3b80eeb6930ba9ea078ae4f77e4315a73bcd8bcec55fbc",
-    "src/codameter/anomaly/detection.py": "sha256:a2ca317c98fba066123a8efdccd64f3249d0ddc63ace033c589bf198fb2f4d94",
-    "src/codameter/anomaly/residual_patterns.py": "sha256:91c9534ad5cf7a31eddf02f367c71ceeeccbade915358a3c31157722943fde86",
-    "src/codameter/bench.py": "sha256:cd2fb3d9fe31ab5a7cadb3834b4871a9af33ac08f2d84cd24e6d84cceb2fd8d1",
-    "src/codameter/cli.py": "sha256:ab0054ebfae035f5627513d7338bdaf0d0b93d7fe846114d2245d6d9233ee71c",
-    "src/codameter/config.py": "sha256:94180cce8f6c5c397e27339caa698b6d54e24c57e34421fcedfc048f7c48b86d",
-    "src/codameter/coupling/__init__.py": "sha256:5e804b1f0d7ad8f1e53891b5aac1436b86d25694101344f72e23651ddd78b32f",
-    "src/codameter/coupling/decision_tree.py": "sha256:58d290e1931622bc500c77c2ebac01c88f48ea43ffc1d130d13538355b1b6621",
-    "src/codameter/coupling/tier1_poroelastic.py": "sha256:3d09e1f9bb38a7fc7794f4ed363b2405dff42c0fe6e0d7ba786bf9c2b89bfa5f",
-    "src/codameter/coupling/tier2_damage.py": "sha256:45c3f07f5d704a26523c8eee2c96b8fcee254f4c4fee2e7b97f560203bffa51d",
-    "src/codameter/coupling/tier3_saturation.py": "sha256:25e23ee88f29b94a9f6b357e43a5c7c476ba57816e69184e2daf2fde86927b4b",
-    "src/codameter/coupling/tier4_thermo_capillary.py": "sha256:d40141149d37b7a2382df532925485bffdb0bc490955302ca10895b2e0e8cb8c",
-    "src/codameter/data/__init__.py": "sha256:642bba2e6b9a28ff42cf95aacaca2a08062cbc6a09e8e2d34bcee1531af0a7bb",
-    "src/codameter/data/covariates.py": "sha256:eb2e43b8d888c23a7c7947fc1d2811c321ccf23e5fd7ad85e3eaa26955aaa3d3",
-    "src/codameter/data/loaders.py": "sha256:9ed451225a0e219223ff089503f415118a63bebbf7f75703e518b8daeb42db38",
-    "src/codameter/data/property_providers.py": "sha256:08044fc0500b73c33af9c37cc37e1efab05615e7f631075d488ef20220310d11",
-    "src/codameter/data/qc.py": "sha256:26a4a3dbd645a429a97e43db00e2e9423d1132e9d96f8fe96fff80043c712c22",
-    "src/codameter/data/readiness.py": "sha256:733aaae0a323065f934cf42f261739c6675ae586e00e396069edc9aac2aee1ff",
-    "src/codameter/deviations.py": "sha256:fd7c3c2965d8c281035f516c9afd5a13f32209f7f825a64daf95167a8e3c7387",
-    "src/codameter/forcing_models.py": "sha256:ebd5f7879cba31a4a50fca8a6bb20f7e1aab5ae07cd63a3a2b967d6abe800988",
-    "src/codameter/forward/__init__.py": "sha256:8fdf2cac2650a750ee24c396061de761612d8bbbdb0a30642d44f82ea167040b",
-    "src/codameter/forward/capillary.py": "sha256:9cb8cbb2faaf37fd5b017da5784cfe9229a04404691df7a587acae1abb2875c6",
-    "src/codameter/forward/damage.py": "sha256:5cf75bf0b28c4e0807d516ec90491ea784630a6b11801d0128239388377217b0",
-    "src/codameter/forward/loading.py": "sha256:def69d6ea560e1af691ed47afcf5df0feb58e4ffe7296dcc06ee4da55a1e1061",
-    "src/codameter/forward/poroelastic.py": "sha256:ab886b9db53292ef80d62c6e2bc81f4e7a235b2fdd5cb8073f5dfc22a6f2d384",
-    "src/codameter/forward/thermoelastic.py": "sha256:61446165c22a84378ca606160841cad78d5517d9f519276f0c023b100c225d30",
-    "src/codameter/frugalmind.py": "sha256:8203df997d814b9fcdccd663a6ed2eb9947f79d0586e75439e16ed39f0c8db94",
-    "src/codameter/golden.py": "sha256:430dcf6b3640a4bb1d02e2c6fb4be3e98b60e32b03b62c70273f8dbb7573649b",
-    "src/codameter/interpretation/__init__.py": "sha256:10ef78d1dda57756eacc2c767ef92c6e38bdb32bc1e6942e3dec395fab412314",
-    "src/codameter/interpretation/stress_at_depth.py": "sha256:47ad193ad7e499df36700c0e84996978eb655692c2d6ee941ef00b1ebdaaf9e8",
-    "src/codameter/interpretation/water_table.py": "sha256:d21eb5c713017c40c9c62bfc4ab9c2602fdae41618290413d6e92adbeee7758d",
-    "src/codameter/inverse/__init__.py": "sha256:a88b0ec206fde27babff959b8965366f7c23b11c7de7fb24733ede6d10e416fb",
-    "src/codameter/inverse/coupled_inversion.py": "sha256:bf7a4e4b12244642c73b51547c9d81c7cc28c432a288cefc7c512c8d6ca4e5f3",
-    "src/codameter/inverse/linear_fit.py": "sha256:8af574f45cdf3efcf77420911a55b4f24c33e5326ca889635fc06f5a7d6cd78a",
-    "src/codameter/inverse/posterior.py": "sha256:2f2f5cc5a1db8ba82bb8de90a8a2518f039238fdb0d9d40e76f5b0fb7ec3dbb5",
-    "src/codameter/inverse/priors.py": "sha256:98fff20b216a75aaf270ce391ea2f0867efc345234bddcf6e8577438f470b0a7",
-    "src/codameter/kernels/__init__.py": "sha256:a736590dd5d00d4347c90c2ec9fa33debf1e216f3536bde8406b642d00ec302f",
-    "src/codameter/kernels/depth_resolution.py": "sha256:2071660152fd6d78849a1a39b1cd3a155eb308bd9d1ab860be0073d400a505c6",
-    "src/codameter/kernels/disba_wrapper.py": "sha256:a8d02a10a0ec829dd75ab7a2b6c97e7ba5e1015d566677af05827c1b8c24a8d9",
-    "src/codameter/kernels/velocity_models.py": "sha256:7e7984a15e546a346806701824aa3e611891ece3719a4aa4f3d1e6332a35af38",
-    "src/codameter/plotting.py": "sha256:824f8c9fd004ae9de8e8503fdccde504a4922fe19ab68f5e050c2a4ad9850d35",
-    "src/codameter/private_golden.py": "sha256:a94ec6d930e8b987fb2f1effc234045f1e7975224a9cfdfaf134b16aada94959",
-    "src/codameter/synthetic_demo.py": "sha256:ca8bb17a57df8712ee8d1019389ddfa718aaf034b9faa0df610d530dd9cee871",
-    "src/codameter/uq-measurement.py": "sha256:7bc7fd441d494935cb6f7ba4ead86bc0b9d357ddaced7890dadbc7d4243c6ada",
-    "src/codameter/uq_bayes.py": "sha256:f0822286e6794a908e0cb5adb1c303bca20e6c9d214647a50e252a1d72753d37",
-    "src/codameter/uq_depth.py": "sha256:e956d77cf0306b1f731d09a6c2039271968928da0763623b619ccc9d92a5cef3",
-    "src/codameter/uq_measurement.py": "sha256:010c68110aa963d9bdd382d8a4445a73e72d2c0f7ceec357d744df27c16b2b3a",
-    "src/codameter/uq_processing.py": "sha256:ce650937591e67ff46a0bde018ae9d26d79e3ea316fac06db720ae3f74ac8fd3",
-    "src/codameter/use_cases.py": "sha256:981ebead6a158e09a943c50d7ad9238921075b32b6cc737967df0d70b3694fe9",
-    "src/codameter/workflow.py": "sha256:a037eb72a98f54388953e371ea53c9d38d61492242f108f41e955b259c474871",
-    "tests/conftest.py": "sha256:7125550878e4080d47c85ad06f0596ac72815757dca12e855a3a2facb9a37ee6",
-    "tests/data/golden/manifest.json": "sha256:fb0abc1057a577bce1b68e73e0e684a2b871d2a70bbc4ebe04dcfa770f8ca5a1",
-    "tests/test_bench.py": "sha256:92d8dbcd534e2979e3cac1ffe18c4063b799c832b1b8e9faf101f35d0676c96b",
-    "tests/test_cli.py": "sha256:43f942ef2b7a68ab0f37f1912913d7d6edced54dc26a86cd426958cf2c73edcf",
-    "tests/test_coupling.py": "sha256:600fd0fcdf919568864f0b446577b977a89680ec94f1c73f084901d92feb880e",
-    "tests/test_coupling_tiers.py": "sha256:3e861e12bdb0bffd0c1c1dd2fe5aadf1e3535e06951a94932807a58f3db80d7e",
-    "tests/test_data_loaders.py": "sha256:b763795081ee19dd4ecd35e46b73682b38d5947109ad02626e62fad6a9e7fb5e",
-    "tests/test_data_readiness.py": "sha256:25f54eb9920ff4ac4cccf34a43e12bae39a52775e7b894a0ea5884d443cc1c61",
-    "tests/test_deviations.py": "sha256:e36c9f83d314b604af930c381fa9058fffea401710585cb207c7feca49328860",
-    "tests/test_forcing_models.py": "sha256:d6cfaef86b667d71987a4cd4fd5371d35e868d99d1e793fb457b8ee4aef0af48",
-    "tests/test_forward_models.py": "sha256:0a8514e648e8c216664f6c7b29431b733e87f9756ee3703c54af51e8cf32e989",
-    "tests/test_frugalmind_export.py": "sha256:3a63e24a4f6eac884c25e299012da8febe1cc7cd8903cfced97752b1f72a51e8",
-    "tests/test_golden.py": "sha256:e5bf032f3ffe1a1b11dbebbc311355c3f4dec3c81fa6491a93638232a5aa2d61",
-    "tests/test_kernels.py": "sha256:4a4b72d7469a1dd758c1107367358c6826ba330931ebab3f92b899506ccbf2f0",
-    "tests/test_linear_inversion.py": "sha256:27e98bd63a592f7e001364d6f0503c59a340966fb4a071d7693b1544495c036f",
-    "tests/test_private_golden.py": "sha256:bafcad630f9a59e2cfee1665a168fc90f462bd7e48ee3b4874c0f999267989e0",
-    "tests/test_property_providers.py": "sha256:a01cdc179fb0237c427bf87937bb6e51bb775a4da95a220c5c3d74b7f36659a1",
-    "tests/test_sign_convention.py": "sha256:ce9d272ca44b8ed119afbd20af1f22268e97a95cfc7c9991abf56d5b3f0938e4",
-    "tests/test_staged_workflow.py": "sha256:ba0842d261e858c9678605f85dbec77bb25122edf69d11fd1238ce4c7fe49f32",
-    "tests/test_stretching_interpolation.py": "sha256:a7770b6198ab437e2d96c5bd6e0a7f758e1b25e0e7f80e0653ec62257c9daec4",
-    "tests/test_synthetic_demo.py": "sha256:569e59c69d86394dca2c227438120f3a404cf4e89d1d949a3ef023612da5cc1a",
-    "tests/test_synthetic_parkfield.py": "sha256:e396e4c18d31c9bc6ea1ad014134fe0d679c0906458153247fbff852cd6429e9",
-    "tests/test_uq_bayes.py": "sha256:90a3469cbf275353eab666cd8f0c619dd425acf5ab9f307f0d6e84bedbeed097",
-    "tests/test_uq_depth.py": "sha256:b06dba43ffe88467f2006ca43b449580794936da1c488cf497a0fdb1fc0f2cef",
-    "tests/test_uq_measurement.py": "sha256:710fb57836ba0c4514cf60a8361540f02b5ed7aa324c0e85de88bef70f79ca71",
-    "tests/test_uq_processing.py": "sha256:9aa29e01010e30d36103c2f6b6f59c675857f6303cd821a3bad7f1b8f7ad1e7f",
-    "tests/test_use_cases.py": "sha256:d71d01f78877720faef8312018b4d3ae31f05195fc88134bd114b35fade1784d"
+  {
+   "id": "UQ-02",
+   "criterion": "C2",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Floor variability is substituted for conditional-mean variability.",
+   "location": "src/codameter/uq_processing.py:220",
+   "section": "code / repository",
+   "scope": [
+    "S-RP",
+    "S-ME"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Recover exact zero-mean mixture variance; separate bias and MSE.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R3"
+   ],
+   "tier_iter1": "Fatal",
+   "iteration2_evidence": "S-ME: uq_processing.py:253-328, zero-mean mixture test; feeds no manuscript number."
   },
-  "conversion_note": "Converted 2026-09-10 from review/codameter-gji.review.json (Astra, iteration 1, frozen). Added section, scope, plan_package, hash_method, manuscript_ref, open; renamed verification -> execution_evidence to avoid collision with the S-AV verification log. No finding text, tier, status or ID changed."
+  {
+   "id": "UQ-03",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Shared-data pipeline estimates are treated as independent observations.",
+   "location": "src/codameter/uq_bayes.py:297",
+   "section": "code / repository",
+   "scope": [
+    "S-RP",
+    "S-ME"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Derive joint likelihood or mixture; check duplicate-pipeline invariance.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R1",
+    "R5"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-ME: working-likelihood caveat 1073-1077 and measured consequence (posterior 0.59); code still sums precisions (uq_bayes.py:425-426); no joint likelihood, no duplicate-pipeline test; prior share 0.09 reported."
+  },
+  {
+   "id": "UQ-04",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Constructed Cd is not derived or calibrated for shared errors.",
+   "location": "src/codameter/uq_bayes.py:328",
+   "section": "code / repository",
+   "scope": [
+    "S-RP",
+    "S-ME"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Derive covariance; test shared bias, temporal dependence, and component accounting.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R1",
+    "R5",
+    "R6"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-ME: double count removed (uq_bayes.py:488 = eq:cd); docstrings fixed; shared-error limit tested and quantified (0.34 posterior coverage); R and tau^2 11^T unvalidated, no derivation from a stated error model (text says so, 1114-1120)."
+  },
+  {
+   "id": "UQ-05",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Bayesian pipeline ignores config axes and changes physical stacking durations.",
+   "location": "src/codameter/uq_bayes.py:121",
+   "section": "code / repository",
+   "scope": [
+    "S-RP",
+    "S-ME"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Honor or reject config; preserve physical time under cadence and gaps.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R4"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-ME: Bayesian ensemble fixed (uq_bayes.py:96-186, tests); S-RP: deviations.multiverse still decimates CCFs before stacking (deviations.py:345-346), so the 108-pipeline factorial's 10-day stack spans 28 days and text 924/936 does not say so; REPRODUCTION-STOP R5."
+  },
+  {
+   "id": "DET-01",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "RMS, valid supports, reference observables, and requested estimators differ.",
+   "location": "src/codameter/deviations.py:174",
+   "section": "code / repository",
+   "scope": [
+    "S-RP",
+    "S-ME"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Align datum/support; expose unsupported configurations; replicate paired comparisons.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R1",
+    "R4"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-ME: datum and support stated (363-366, Table 2) but code unchanged: gated fixed baseline vs ungated moving/inversion on the reference axis; inversion ignores estimator; single seed; not closable by narrowing."
+  },
+  {
+   "id": "DET-02",
+   "criterion": "C3",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Cache inputs depend on warmth and lack generator-code identity.",
+   "location": "src/codameter/golden.py:508",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Consistent precision, versioned cache key, and atomic writes.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R4"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-RP: golden.generate 555-605 float64, atomic write, key = recipe + generator hash (version + source of golden, synthetic_demo, use_cases); probe float64/float64 array_equal True; two tests."
+  },
+  {
+   "id": "INV-01",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Temporal Cd is not connected to diagonal stress inversion or cross-band depth input.",
+   "location": "src/codameter/inverse/linear_fit.py:430",
+   "section": "code / repository",
+   "scope": [
+    "S-RP",
+    "S-ME"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Demonstrate GLS and explicit time-band covariance propagation.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R5"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-ME/S-DI: narrowed at 1118-1120, 1227-1228, 171-173; but 1233-1234 still says C_m inherits C_d's temporal structure and uq_measurement.py:33-35 still says the full C_d closes the loop; no GLS path."
+  },
+  {
+   "id": "INV-02",
+   "criterion": "C2",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Bounds and disconnected reference nodes can have zero reported uncertainty.",
+   "location": "src/codameter/inverse/linear_fit.py:544; src/codameter/uq_measurement.py:419",
+   "section": "code / repository",
+   "scope": [
+    "S-RP",
+    "S-ME"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Use bounded uncertainty; identify graph components and null spaces.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R5"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-ME: linear_fit.py:528-575 at_bound; uq_measurement.py:536-554 components; tests pass; residual: summary() symmetric intervals can cross the bound."
+  },
+  {
+   "id": "SCALE-01",
+   "criterion": "C3",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Dense Gibbs covariance path is cubic in epoch count.",
+   "location": "src/codameter/uq_bayes.py:299",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Use structured algebra; report memory/runtime scaling and equivalence.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R9"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-RP: banded mu-update (uq_bayes.py:404-441, equivalence test); no scaling claim remains in the text (1095-1096); mu_cov, Cd and samples stay dense O(T^2); no runtime/memory scaling reported."
+  },
+  {
+   "id": "SCALE-02",
+   "criterion": "C3",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Shard aggregation accepts duplicates and missing shards.",
+   "location": "src/codameter/bench.py:314",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Require complete unique task inventory and matched provenance.",
+   "report": "review/02_software_and_uncertainty.md",
+   "plan_package": [
+    "R9"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-RP: bench.check_shards 332-379 and _cmd_aggregate 422-442 refuse missing shards, duplicate cells, mixed versions; aggregate_manifest.json; test passed."
+  },
+  {
+   "id": "AG-01",
+   "criterion": "C3",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Public advisor routes fail for three applications and mismatch hard-case targets.",
+   "location": ".claude/skills/codameter-advisor/references/validation_loop.md:37",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Provide executable matched public cases for all applications.",
+   "report": "review/03_advisor_and_golden_dataset.md",
+   "plan_package": [
+    "R8"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-RP: golden.advisory_case 507-526 for every application; tests/test_advisor_validation.py parametrised over all use cases; validation_loop.md routes through it. Residual: MAINSTREAM_BY_USE_CASE still has three keys (public trap)."
+  },
+  {
+   "id": "AG-02",
+   "criterion": "C2",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Elicited constraints and error-bar comparisons lack executable evaluation.",
+   "location": ".claude/skills/codameter-advisor/references/validation_loop.md:45",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Validate overrides, safeguards, equivalence, and repeated-seed differences.",
+   "report": "review/03_advisor_and_golden_dataset.md",
+   "plan_package": [
+    "R4",
+    "R8"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-RP: validation_loop.md 49-60 removes the 20% equivalence rule and separates executable axes from context; manuscript 184-185. Residual: recommend() validates keys not values."
+  },
+  {
+   "id": "AG-03",
+   "criterion": "C4",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Matched synthetic recommendations are described as proven field choices.",
+   "location": ".claude/skills/codameter-advisor/SKILL.md:3",
+   "section": "code / repository",
+   "scope": [
+    "S-RP",
+    "S-DI"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "State conditional scope; validate independent field/simulator transfer.",
+   "report": "review/03_advisor_and_golden_dataset.md",
+   "plan_package": [
+    "R6",
+    "R8"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-DI: SKILL.md 'assesses conditionally'; no advisor claim in the paper; S-RP to confirm."
+  },
+  {
+   "id": "EV-01",
+   "criterion": "C4",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Sparse zero predictions score perfectly on all public cases.",
+   "location": "src/codameter/frugalmind.py:299; src/codameter/golden.py:578",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Fix score support and missingness; rerun adversarial and model evaluations.",
+   "report": "review/03_advisor_and_golden_dataset.md",
+   "plan_package": [
+    "R2"
+   ],
+   "tier_iter1": "Fatal",
+   "iteration2_evidence": "S-RP: inline probe sparse 0.0 / truth 1.0; _gold fixes support and baseline (frugalmind.py:179-203, golden.py:651-701); SCORER_CONFIG v2; tests passed. Residual: availability computed but discarded."
+  },
+  {
+   "id": "EV-02",
+   "criterion": "C3",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Truth-free function is not demonstrated sandbox isolation.",
+   "location": "src/codameter/golden.py:560; src/codameter/frugalmind.py:117",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Prove separate scorer/agent access boundaries with observables-only artifacts.",
+   "report": "review/03_advisor_and_golden_dataset.md",
+   "plan_package": [
+    "R8"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-RP: documented, not implemented: truth keys stripped in-process (golden.py:608-624); rows export recommended_config (frugalmind.py:242-244); manuscript claims only a hidden-truth variant (183-184)."
+  },
+  {
+   "id": "EV-03",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Gold corpus shares generator families and derives thresholds from baseline implementation.",
+   "location": "src/codameter/private_golden.py:85; src/codameter/golden.py:604",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Freeze independent benchmark; distinguish parameter and simulator holdout.",
+   "report": "review/03_advisor_and_golden_dataset.md",
+   "plan_package": [
+    "R2",
+    "R6",
+    "R8"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-RP: counts reconciled (golden_datasets.md 3-7); thresholds still manifest-derived; families shared; not claimed as a result in the paper."
+  },
+  {
+   "id": "EV-04",
+   "criterion": "C4",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "No executed agent evaluation supports the robust-evaluation claim.",
+   "location": "paper/manuscript_marine.qmd:41",
+   "section": "Front matter / Abstract",
+   "scope": [
+    "S-AB",
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Archive model protocols, runs, baselines, scores, costs, and uncertainties.",
+   "report": "review/03_advisor_and_golden_dataset.md",
+   "plan_package": [
+    "R8"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-AB: claim withdrawn (abstract 47-48, intro 184-185); S-RP to confirm no residual claim in code docs."
+  },
+  {
+   "id": "SCI-01",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "SD/SE/network heterogeneity are conflated with one measurement uncertainty.",
+   "location": "paper/manuscript_marine.qmd:446",
+   "section": "Results 3.3 Station-pair aggregation and uncertainty",
+   "scope": [
+    "S-RE",
+    "S-FD"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Define estimands and hypotheses; use network covariance propagation.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R1",
+    "R10"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-RE/S-FD: estimands defined (Table 2, 517-534), mixed row deleted; pair covariance named not computed; Table 2 datum wrong for Section 3 (S-RE.1/S-FD.3/S-ME.N2); Fig 3 caption unchanged. Tier Poor -> Fair."
+  },
+  {
+   "id": "SCI-02",
+   "criterion": "C4",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Conditional surrogate experiments are generalized to observational dominance and depth.",
+   "location": "paper/manuscript_marine.qmd:180; paper/manuscript_marine.qmd:1207",
+   "section": "Synthetic framework; Discussion",
+   "scope": [
+    "S-ME",
+    "S-DI"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Add independent wavefields and qualify surrogate physical interpretations.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R1",
+    "R6",
+    "R10"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-DI/S-ME: dominance conditioned (1419-1427); realisations redraw noise on one fixed coda and the text does not say so (S-DI.R2); framework 191/209 and 228-229 unchanged."
+  },
+  {
+   "id": "SCI-03",
+   "criterion": "C4",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Raw trailing references are presented as common defensible comparisons.",
+   "location": "paper/manuscript_marine.qmd:540",
+   "section": "Results 3.5 Reference",
+   "scope": [
+    "S-RE"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Benchmark comparable registered observables and surveyed reference workflows.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R1",
+    "R10"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-RE: ablation wording in Table 4 (1030-1032) and 941-945; Table 3 row 395-396, 'Scale of effect' 704-707 and the Fig 12 bar label still price 'moving'; no cumulated/stitched benchmark."
+  },
+  {
+   "id": "SCI-04",
+   "criterion": "C6",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Estimator prescriptions and novelty boundary exceed cited conditional evidence.",
+   "location": "paper/manuscript_marine.qmd:309",
+   "section": "Results: parameter-dependent dv/v",
+   "scope": [
+    "S-RE",
+    "S-DI",
+    "S-CD"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Compare tuned methods; delimit contribution relative to Yuan2021 and other work.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R1",
+    "R10"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-IN/S-RE/S-DI/S-CD: novelty delimited (143-146) and Results conditional (345-348); Table 4 line 1017 still cites Yuan2021 for 'robust at low SNR'; Yuan regime unstated; no tuned comparison."
+  },
+  {
+   "id": "SCI-05",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Nominal interval coverage lacks repeated independent validation and chain diagnostics.",
+   "location": "paper/manuscript_marine.qmd:995",
+   "section": "Bayesian measurement model",
+   "scope": [
+    "S-RE",
+    "S-ME"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Report held-out coverage, uncertainty, width, convergence, and failure rates.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R3",
+    "R5",
+    "R6"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-ME/S-RE: 200 realisations, prefixed margin, values verified against locked JSONs; coverage is in-sample (calibration.py:150-171), single chain with no convergence diagnostic and settings unstated, one truth class; 68% fails margin (stated). Tier Poor -> Fair."
+  },
+  {
+   "id": "SCI-06",
+   "criterion": "C4",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Depth and operational claims exceed demonstrated results.",
+   "location": "paper/manuscript_marine.qmd:36; paper/manuscript_marine.qmd:1298",
+   "section": "Front matter / Abstract; Discussion",
+   "scope": [
+    "S-AB",
+    "S-DI",
+    "S-CO"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Add actual depth/resolution and scaling results or narrow claims consistently.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R5",
+    "R10"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-AB/S-IN/S-CO: abstract, intro, Discussion, Conclusions consistent (described, not evaluated); S-DI: depth 1251-1253 still promises a density-field 'documented extension (Section discussion)' that does not exist and 1232-1234 reads as delivered; one sentence from RESOLVED."
+  },
+  {
+   "id": "SCI-07",
+   "criterion": "C4",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Field comparison counts, masks, correlations, and physical attribution are inconsistent.",
+   "location": "paper/manuscript_marine.qmd:1133",
+   "section": "Scalable deployment / real data",
+   "scope": [
+    "S-RE",
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Publish exact comparison driver and date masks; recompute statistics and labels.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R7"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-RP: compare_gate1.py reproduces comparison.json byte-identically; Table 6 and text match. S-RE/S-FD: Fig 15 annotations (0.86/0.58/0.37) do not match the caption (0.87/0.37/0.62), bars 3.1x too large, 1299-1300 'near 0.7' conflicts with Table 6, RXH attribution without metadata. Tier Poor -> Fair."
+  },
+  {
+   "id": "SCI-08",
+   "criterion": "C6",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Abstract-only survey gaps cannot establish full-paper nonreporting.",
+   "location": "paper/manuscript_marine.qmd:1414",
+   "section": "Appendix C Literature survey",
+   "scope": [
+    "S-CD"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Separate extraction statuses and deduplicate study denominators; repair groundwater attribution.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R7"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-IN/S-CD: bound direction and groundwater attribution corrected; denominator now mis-stated (S-CD.1: two Obermann 2013 papers collide on one key; Piton row mis-cited); verified rate never reported; no search rules."
+  },
+  {
+   "id": "SCI-09",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Largest-magnitude and coherence branch selection can bias inference.",
+   "location": "paper/manuscript_marine.qmd:788",
+   "section": "Results 3.8 Causal/acausal branches",
+   "scope": [
+    "S-RE"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Predefine selection or validate it on independent data.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R1",
+    "R10"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-RE: rule predefined (871-874) but not what the pipeline does (branch='both' fits one stretch; no branch term in C_d, S-RE.4); 865-866 'researcher's judgement' remains."
+  },
+  {
+   "id": "SCI-10",
+   "criterion": "C2",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Appendix WCC delay sign contradicts the defined dilation convention.",
+   "location": "paper/manuscript_marine.qmd:1345",
+   "section": "Appendix A Estimator definitions",
+   "scope": [
+    "S-ME"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Correct analytical pulse example and propagate finite-change Jacobian.",
+   "report": "review/evidence/methods_figures.md",
+   "plan_package": [
+    "R1",
+    "R10"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-ME: delay convention 1607-1613 consistent with Introduction; WCC sign; Jacobian; regression test. The same revision introduced S-ME.N1 (Poor): DTW/WTDTW slope statement wrong and 'every estimator returns eps mapped exactly' false for four estimators."
+  },
+  {
+   "id": "SCI-11",
+   "criterion": "C4",
+   "tier": "Good",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Universal stack underestimation contradicts reported bias zero crossing.",
+   "location": "paper/manuscript_marine.qmd:669",
+   "section": "Results 3.6 Substacking",
+   "scope": [
+    "S-RE"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Describe signed, scenario-specific recovery errors.",
+   "report": "review/evidence/methods_figures.md",
+   "plan_package": [
+    "R1",
+    "R10"
+   ],
+   "tier_iter1": "Good",
+   "iteration2_evidence": "S-RE: contradiction removed, zero crossing confirmed by rerun; but the metric's sign is misread (negative = drop over-estimated; -5.4% at 1 day is extreme-value bias of a minimum), S-RE.3. Tier Good."
+  },
+  {
+   "id": "FIG-01",
+   "criterion": "C4",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Figure1 WCS trajectory contradicts its caption.",
+   "location": "paper/manuscript_marine.qmd:367; PDF p11",
+   "section": "Results 3.1 Estimator family",
+   "scope": [
+    "S-FD"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Reconcile saved numerical traces and recovery claim.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R7",
+    "R10"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-FD/S-RE: caption 441-444 and text 419-426 match demo_1_methods.npz; residual: panel (c) title still 'MWCS cycle-skips' only."
+  },
+  {
+   "id": "FIG-02",
+   "criterion": "C5",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Real-data figures conflict on components, dates, statistics, and counts.",
+   "location": "paper/manuscript_marine.qmd:1176; PDF pp36–38",
+   "section": "Scalable deployment / real data",
+   "scope": [
+    "S-FD"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Generate labels and reported metrics from the same validated products.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R7",
+    "R10"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-FD: Fig 16 NZ matches plot; Table 7 exact; Fig 15 annotation/title/error-bar statements contradict the plot; Fig 17 title vs panel counts."
+  },
+  {
+   "id": "FIG-03",
+   "criterion": "C5",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Missing units, clipped ensembles, occluding legends, and mixed RMS/bias labels.",
+   "location": "PDF pp13,22,25,28,29,32,37",
+   "section": "code / repository",
+   "scope": [
+    "S-FD"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Add units and full-range views; move legends; label statistical objects.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R7",
+    "R10"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-FD: units and RMS labels fixed, legends moved on Figs 1, 2, 10a; Fig 13a band invisible, fraction/percent mixed, Fig 14a legend covers the band, Fig 16 no colourbar; Fig 8 regressed (S-FD.1)."
+  },
+  {
+   "id": "FMT-01",
+   "criterion": "C5",
+   "tier": "Good",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Summary paragraphs, figure order, duplicated presentation, and placeholders need revision.",
+   "location": "paper/manuscript_marine.qmd:10; paper/manuscript_marine.qmd:140",
+   "section": "Front matter / Abstract; Introduction",
+   "scope": [
+    "S-AB",
+    "S-IN",
+    "S-FD"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Single summary paragraph; resolve placeholders and figure order; clarify acronyms/history.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R10"
+   ],
+   "tier_iter1": "Good",
+   "iteration2_evidence": "S-AB/S-FD/S-IN: one-paragraph abstract, 'Figure x' gone; Acknowledgements placeholder (1725), citation order unchanged, Fig 8 duplicates Figs 5-7, Table 6 never cited."
+  },
+  {
+   "id": "REP-01",
+   "criterion": "C3",
+   "tier": "Resolved",
+   "status": "RESOLVED",
+   "summary": "Advertised figure build omits six graphics and can preserve stale results.",
+   "location": "paper/build.py:124",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "One driver regenerates all graphics from versioned numerical manifests.",
+   "report": "review/evidence/reproducibility.md",
+   "plan_package": [
+    "R7"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-RP: figures.py registry 18 generators + 3 declared external; build.py --figures; test ties every includegraphics to a generator or a declared source; demo_1/8/9 regenerated equal committed sidecars. Residual: sidecar git_commit lacks a dirty flag (S-RP.1)."
+  },
+  {
+   "id": "REP-02",
+   "criterion": "C3",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Field products are ignored by Git and comparison driver is external.",
+   "location": "paper/data/gate1/README.md:25",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Archive field products and dependencies with exact hashes and executable driver.",
+   "report": "review/evidence/reproducibility.md",
+   "plan_package": [
+    "R7"
+   ],
+   "tier_iter1": "Poor",
+   "iteration2_evidence": "S-RP: in-repo driver verified; README documents rules and the error-column rescale; availability now honest (1714-1721). Products still untracked with no sha256, run commit one of three candidates, --use-case unknown, three figures not regenerated. BLOCKING reproduction stop R4. Tier Poor -> Fair."
+  },
+  {
+   "id": "REP-03",
+   "criterion": "C3",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Paper experiment settings, version metadata, and replay manifests are incomplete.",
+   "location": "CITATION.cff; src/codameter/workflow.py:696",
+   "section": "code / repository",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Pin environments, settings, hardware, source and input hashes, seeds, and invocation.",
+   "report": "review/evidence/reproducibility.md",
+   "plan_package": [
+    "R7",
+    "R9"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "S-RP: calibration JSON and sidecars record commit, versions, seeds; seed-2000 replay exact. CITATION.cff still 0.1.0 with a JGR preferred citation; version not bumped for any fix (tag v0.4.0 predates them); no versions, hardware or invocation in the text."
+  },
+  {
+   "id": "COMP-01",
+   "criterion": "C8",
+   "tier": "Fair",
+   "status": "PARTIALLY ADDRESSED",
+   "summary": "Acknowledgements, AI disclosure, and full data access/licensing statements are unfinished.",
+   "location": "paper/manuscript_marine.qmd:1427",
+   "section": "Data availability",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 1,
+   "last_changed": 2,
+   "bucket": null,
+   "required_evidence": "Complete authorship/funding/disclosure and actual data/software access statements.",
+   "report": "review/01_manuscript_and_figures.md",
+   "plan_package": [
+    "R10"
+   ],
+   "tier_iter1": "Fair",
+   "iteration2_evidence": "Orchestrator C8: Data availability (1701-1721) now states what is and is not archived; AI-assistance disclosure present (1725-1732, names Codex and Claude); funding, contributions, archive DOI still placeholders; CITATION.cff version 0.1.0 vs package 0.4.0; disclosure must record this second iteration."
+  },
+  {
+   "id": "S-ME.N1",
+   "criterion": "C2",
+   "tier": "Poor",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Appendix A (1607-1632): DTW/WTDTW slope statement wrong (slope of l(i)/f_s vs lapse is 1/(1+eps)-1 = dv/v, code returns it as dv/v); MWCS/WCS phase sign under numpy's convention is -2 pi f dt and the slope is returned directly as dv/v; 'every estimator returns eps, mapped exactly' false for four estimators.",
+   "location": "Appendix A",
+   "section": "Appendix A",
+   "scope": [
+    "S-ME"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-ME.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-FD.1",
+   "criterion": "C5",
+   "tier": "Poor",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Fig 8 panel (d) (demo_6_stacking) collapsed to a sliver after the legend/layout change; (a),(b) legends overprint the x labels; no panel letters.",
+   "location": "Fig 8",
+   "section": "Fig 8",
+   "scope": [
+    "S-FD"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-FD.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-FD.2",
+   "criterion": "C5",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Sixteen '\\\\,\\\\%' outside math render as a literal comma ('0.04,%', '95,%') in the headline Fig 1 RMS values and the calibration coverages.",
+   "location": "qmd 414, 420-426, 520, 1140-1143, 1161, 1494-1495, 1557-1558",
+   "section": "qmd 414, 420-426, 520, 1140-1143, 1161, 1494-1495, 1557-1558",
+   "scope": [
+    "S-FD"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-FD.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-FD.3",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Table 2 says every recovery RMS uses a fixed reference from the first 60% of the record; true only for Section 4 (deviations.py:182). Section 3 figures use the noise-free generating reference, a 0.8-yr stack, or the five named schemes, so those RMS values are best-case numbers. (Also S-RE.1, S-ME.N2.)",
+   "location": "Table 2, qmd 313-320",
+   "section": "Table 2, qmd 313-320",
+   "scope": [
+    "S-FD",
+    "S-RE",
+    "S-ME"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-FD.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-RE.2",
+   "criterion": "C4",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Twelve of the 108 multiverse pipelines (MWCS x 4-14 s window) return no epochs; the RMS range, per-day SD, Sobol indices and the panel's off-axis count are computed on 96 without saying so.",
+   "location": "Fig 13, qmd 963-996; deviations.py:317-330, 475",
+   "section": "Fig 13, qmd 963-996; deviations.py:317-330, 475",
+   "scope": [
+    "S-RE"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-RE.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-RE.3",
+   "criterion": "C4",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "The stacking step-error metric (minimum over 120 post-event epochs minus pre-event median) is negative when the drop is over-estimated, not under-estimated; the -5.4% value at 1 day is the extreme-value bias of a minimum over noisy epochs. Direction misread in both drafts.",
+   "location": "qmd 749-754; synthetic_demo.py:2343-2350",
+   "section": "qmd 749-754; synthetic_demo.py:2343-2350",
+   "scope": [
+    "S-RE"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-RE.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-RE.4",
+   "criterion": "C2",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "The stated branch rule ('measure both branches ... carry the between-branch difference as a term of C_d') is not what the pipeline does: branch='both' fits one stretch over |t|, and C_d has no branch term.",
+   "location": "qmd 871-876; synthetic_demo.py:344-351; uq_bayes.py:488-494",
+   "section": "qmd 871-876; synthetic_demo.py:344-351; uq_bayes.py:488-494",
+   "scope": [
+    "S-RE"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-RE.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-RE.5",
+   "criterion": "C5",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Fig 15 caption asserts centred-rule annotations 0.87/0.37/0.62 but the plot prints 0.86/0.58/0.37 (0.58 matches no rule), the title still says 'smoothing-matched', and the caption describes error bars that are not in the legend and are 3.1x too large. (Also S-FD.4, S-FD.5.)",
+   "location": "Fig 15 caption 1355-1366",
+   "section": "Fig 15 caption 1355-1366",
+   "scope": [
+    "S-RE",
+    "S-FD"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-RE.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-CD.1",
+   "criterion": "C6",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "'103 rows for 102 publications, Obermann2013 contributing two rows' is false: the two rows are different papers (JGR 10.1002/2013JB010399 and GJI 10.1093/gji/ggt043) colliding on one key in build_survey.py; the Piton row is mis-cited and the JGR paper is missing from the reference list.",
+   "location": "Appendix C 1677-1679; paper/build_survey.py",
+   "section": "Appendix C 1677-1679; paper/build_survey.py",
+   "scope": [
+    "S-CD"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-CD.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-ME.N3",
+   "criterion": "C4",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "'A station clock drift leaves every statistic unchanged' is contradicted at the table's own precision (s 10.88 vs 11.67 +- 0.03; member 95% 0.9543 vs 0.9561 +- 0.0003). (Also S-RE.6.)",
+   "location": "qmd 1151",
+   "section": "qmd 1151",
+   "scope": [
+    "S-ME",
+    "S-RE"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-ME.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-ME.N4",
+   "criterion": "C3",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Hyperprior values (InvGamma(2, 1e-8) for tau^2 and s^2, Gamma(2, 1e-10) for lambda), chain settings (one chain, 1200 sweeps, 400 burn-in, thin 2) and the MIN_COHERENCE = 0.5 missingness rule are absent from the text.",
+   "location": "qmd 1084-1094",
+   "section": "qmd 1084-1094",
+   "scope": [
+    "S-ME",
+    "S-RP"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-ME.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-AB.N1",
+   "criterion": "C4",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "'reproduces a published dv/v product' overstates a shape agreement after matched smoothing with amplitude slopes 1.07, 2.15 and 0.81.",
+   "location": "abstract 38-41",
+   "section": "abstract 38-41",
+   "scope": [
+    "S-AB"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-AB.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-DI.R1",
+   "criterion": "C4",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "The pre-correction anticorrelations r = -0.69, -0.45, -0.40 are cited to the v0.4.0 release notes, which do not contain them; the numbers exist nowhere in the repository.",
+   "location": "qmd 1516-1517",
+   "section": "qmd 1516-1517",
+   "scope": [
+    "S-DI"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-DI.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-RP.1",
+   "criterion": "C3",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Figure sidecars record git HEAD without a dirty-tree flag or source digest; nine figures record commit 7bfdcef although built from a tree whose generator edits landed later.",
+   "location": "figures.py:66-79",
+   "section": "figures.py:66-79",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-RP.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-RP.2",
+   "criterion": "C3",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Data availability names no tag, commit or archive; the committed artifacts come from five unreleased commits and the only tag predates every fix.",
+   "location": "qmd 1701-1721",
+   "section": "qmd 1701-1721",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-RP.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-RP.3",
+   "criterion": "C3",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "'python -m codameter.calibration reproduces Table' is not the command that produced it (three scenarios, --n 200 --start-seed 2000, ~58 min each); settings live only in the JSON.",
+   "location": "qmd 1710-1712",
+   "section": "qmd 1710-1712",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-RP.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-RP.4",
+   "criterion": "C3",
+   "tier": "Fair",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Shard provenance is keyed on the unbumped version string, so pre- and post-fix shards merge silently.",
+   "location": "bench.py:202-216, 332-379",
+   "section": "bench.py:202-216, 332-379",
+   "scope": [
+    "S-RP"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-RP.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-AB.N2-N5",
+   "criterion": "C4/C5",
+   "tier": "Good",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Abstract: temporal C_d named as the depth input where a per-band covariance is meant; 'fixed scoring support' and 'null-change penalty' undefined in the body; 54-word list sentence; the two-orders-of-magnitude RMS spread absent from the abstract.",
+   "location": "abstract",
+   "section": "abstract",
+   "scope": [
+    "S-AB"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-AB.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-IN.11-12",
+   "criterion": "C5",
+   "tier": "Good",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "NoisePy uncited at first body use (178); 'advisor skill' undefined jargon (180).",
+   "location": "Introduction",
+   "section": "Introduction",
+   "scope": [
+    "S-IN"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-IN.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-CO.12-14",
+   "criterion": "C4/C7",
+   "tier": "Good",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "'up to two orders of magnitude' understates the body; the 'remain unvalidated' sentence misdescribes cross-band (not constructed) and shared errors (demonstrably invisible); 'target' and 'member' unglossed.",
+   "location": "Conclusions 1549-1561",
+   "section": "Conclusions 1549-1561",
+   "scope": [
+    "S-CO"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-CO.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-DI.R2-R6",
+   "criterion": "C4/C7",
+   "tier": "Good",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Calibration realisations redraw noise on one fixed coda and the text does not say so ('first step' overstates); two-band ensemble vs one-estimand rule unstated; depth 1226-1233 self-contradiction on what C_m inherits; 'more than the measurement noise' has no comparator; 'archived' vs 'not yet deposited'.",
+   "location": "Discussion, depth",
+   "section": "Discussion, depth",
+   "scope": [
+    "S-DI"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-DI.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-FD.6-11",
+   "criterion": "C5",
+   "tier": "Good",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Fig 17 caption member counts; Table 2 cites Table 5 before 3-4; Fig 10b and 13b legends cover data; Fig 14 caption vs legend labels and 'encloses the members'; Fig 12 bar label 'moving' vs text; interpretive caption text in Figs 12, 13, 14c, 16 and Table 5.",
+   "location": "figures",
+   "section": "figures",
+   "scope": [
+    "S-FD"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-FD.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-RE.7-9",
+   "criterion": "C5",
+   "tier": "Good",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Fig 14 legend labels; stale numbers after regeneration (0.71 vs 0.741; ~93x vs 104x; Fig 1c title; L about 40 vs 30 d mean); Fig 12 caption omits that two deviations beat the baseline.",
+   "location": "Results",
+   "section": "Results",
+   "scope": [
+    "S-RE"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-RE.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-CD.2-3",
+   "criterion": "C6",
+   "tier": "Good",
+   "status": "INTRODUCED-IN-REVISION",
+   "summary": "Yuan et al. (2021) ranking cited without its regime (|dv/v| <= 0.5%, 0-30% noise); the 'verified reporting rate' is named but never reported (per-field counts available from the CSV).",
+   "location": "Results 346-348; Appendix C 1696-1697",
+   "section": "Results 346-348; Appendix C 1696-1697",
+   "scope": [
+    "S-CD"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-IN-REVISION",
+   "required_evidence": "Changed text or code that fixes it; see reviews/iter2/block_S-CD.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  },
+  {
+   "id": "S-PR.1-40",
+   "criterion": "C5",
+   "tier": "Good",
+   "status": "INTRODUCED-BY-RECALIBRATION",
+   "summary": "Scientific-register candidates from the new v2.5 scan (40 hits: 8 in new text, 24 unchanged); author's call, never a tier change. Cluster of anthropomorphism in the new Bayes/Discussion text (1083, 1125, 1147, 1163, 1488).",
+   "location": "whole manuscript",
+   "section": "whole manuscript",
+   "scope": [
+    "S-PR"
+   ],
+   "first_seen": 2,
+   "last_changed": 2,
+   "bucket": "INTRODUCED-BY-RECALIBRATION",
+   "required_evidence": "none required; see reviews/iter2/block_S-PR.md",
+   "report": "reviews/codameter-gji.iter2.report.md",
+   "plan_package": []
+  }
+ ],
+ "review_mode": "Reconciliation, delta vs iteration 1: ten subagents dispatched in parallel on changed scope (change map reviews/codameter-gji.changes.json), code verified by probe re-runs, targeted tests and a bit-identical calibration replay",
+ "prior_manifest_found": true,
+ "author_verification_performed": false,
+ "review_reports": [
+  "review/README.md",
+  "review/01_manuscript_and_figures.md",
+  "review/02_software_and_uncertainty.md",
+  "review/03_advisor_and_golden_dataset.md"
+ ],
+ "evidence_dir": "review/evidence",
+ "execution_evidence": {
+  "numerical_probes": "evidence/audit_probes.json",
+  "downstream_probes": "evidence/downstream_probes.json",
+  "reproduction_probes": "evidence/reproduction_probes.json",
+  "test_metadata": "evidence/pytest_targeted_metadata.json",
+  "full_test_metadata": "evidence/pytest_metadata.json",
+  "render_metadata": "evidence/paper_build_cached_metadata.json",
+  "targeted_tests": {
+   "passed": 144,
+   "skipped": 0,
+   "complete": true
+  },
+  "full_suite": {
+   "status": "timeout",
+   "limit_seconds": 540,
+   "visible_passes": 261,
+   "visible_skips": 1,
+   "unfinished": 39,
+   "complete": false,
+   "note": "Partial progress counts; targeted suite overlaps."
+  },
+  "fresh_pdf_pages": 74,
+  "visual_qa": {
+   "existing_pages": 26,
+   "all_17_figure_pages_inspected": true,
+   "fresh_pages": [
+    1,
+    11,
+    29,
+    32,
+    36,
+    37
+   ]
+  }
+ },
+ "limits": [
+  "No hidden corpus accessed",
+  "No external model evaluation performed",
+  "No cloud deployment or benchmark performed",
+  "Existing figures reused for isolated manuscript compilation",
+  "No full raw-waveform real-data reproduction performed"
+ ],
+ "disclosure": "This manuscript was checked with the Denolle Group Pre-Submission Reviewer (v2.4 with Codex/GPT-6, then v2.5 with claude-fable-5-1), an advisory AI tool, through two review iterations prior to submission; the second iteration included local code execution. All findings are reviewed and adjudicated by the author; the tool does not resolve links or confirm results and does not endorse the manuscript's validity.",
+ "source_file_hashes": {
+  ".claude/skills/codameter-advisor/SKILL.md": "sha256:6daf68288e89f93cfe46ab57a54300228bd9536d17af9c529d4a92c0e101716b",
+  ".claude/skills/codameter-advisor/references/golden_datasets.md": "sha256:7aaf3fd20e26d84bf1ba7aead158f3cd5cb7aebf9c0a0c20de3f3937a032065c",
+  ".claude/skills/codameter-advisor/references/parameter_map.md": "sha256:bf008b1e0922a56b13251d24ca4477d4c9d927325e7fb4597ee002a599435434",
+  ".claude/skills/codameter-advisor/references/report_format.md": "sha256:53b4ad8d26caada2c149f2ea9d96bbed8cf11b3ed2787d287a1ae3b4ead155c7",
+  ".claude/skills/codameter-advisor/references/use_case_elicitation.md": "sha256:20f21a64396abaa19786e0b5396f466be6843697a045e32c9c5ca9f377f5b90e",
+  ".claude/skills/codameter-advisor/references/validation_loop.md": "sha256:a8e51cf050463a141680976bcc0bf06fd2ca6be0bd07f304a41eb56bf8162806",
+  "literature/.crossref_cache.json": "sha256:2ba8ffbb03257794a241f7489ef9819968a15780d960e1ed5b4b01f12590b84b",
+  "literature/ACCESS.md": "sha256:c2344c9ce6632b60871be3eb8053954d823ef91f2012c03cafe00b59ca14654e",
+  "literature/README.md": "sha256:69418a72b0b72dbd920c8bc08c9f792e61c0bcfaacee9e7423d943fb34149848",
+  "literature/best_practices.md": "sha256:08dff657c576aabcc986e8d6e46c5fb4943bad9db5d2c2acf62b8e170739e247",
+  "literature/build_quarto_refs.py": "sha256:62cf6f90bbd525f321048a83fd35c76309236a9d5bb7d58109f009c2a06af6e1",
+  "literature/build_table.py": "sha256:5a66dfcd167da2fcae8e16074956fa676a0ab54eba821aaf78187c76d4eb53b0",
+  "literature/dvv_processing_parameters.csv": "sha256:d1178a1b3a6e442a0638491236adfaa9d995f4722a629d30c86e31af2678aae2",
+  "literature/dvv_processing_parameters.md": "sha256:55f00c094e6f675c2c4c1761a9374045007a1550f5a8d420b84c6f54aefb4405",
+  "literature/figs/demo_10_deviations.png": "sha256:6fa18f678925cdc261f191a296ed932e32c72aa769659883ba421d604c06340b",
+  "literature/figs/demo_11_multiverse.png": "sha256:75f3a557e8d2b900522959f89cabb6ef86b753d16e0bf44bc35432b7181adf48",
+  "literature/figs/demo_12_bayes.png": "sha256:5ec259557489329b35d56a966e47683d4206a68d9fd97047eedfb0abcad2cdc3",
+  "literature/figs/demo_13_branch_asymmetry.png": "sha256:d167a4ff35df6bfab45bc1dd928135feaa014f2a1cc177f308411ccf99196daa",
+  "literature/figs/demo_14_network_pairs.png": "sha256:d0d01f5a273edd52c709a13e5e821551560d909bf92a42f6a9e69ad8c15f2bdc",
+  "literature/figs/demo_15_window_envelope.png": "sha256:bc88316402dcb5a7c841c996ec6a110322157b72e9af5a8f92871f8d14befce8",
+  "literature/figs/demo_16_band_sensitivity.png": "sha256:5622d8a45989a020f4522c497888d26a94ccad94b7192e9fb8773c2c95b99220",
+  "literature/figs/demo_17_reference_schemes.png": "sha256:ea87965d83f242d406c9315c6b570285af0859984228b92180c31a88e849fd72",
+  "literature/figs/demo_18_stack_coherence.png": "sha256:defa8771b14540add4279723f7e7a0e08a172da7c503b97e765f39c322aa4f5b",
+  "literature/figs/demo_1_methods.png": "sha256:864d7835944d42158992ada370c8da05623527de62a139d08f54a68367a691b4",
+  "literature/figs/demo_2_aggregation.png": "sha256:713828944d7d893cccd488be242088704aacfd7e4abfc09e3a28cb0b4e66b807",
+  "literature/figs/demo_3_uncertainty.png": "sha256:38574d2b102c67a1330925dd2c9fbebb2897d21cb0329612d66bf698c2e8ab61",
+  "literature/figs/demo_4_frequency_depth.png": "sha256:2cc5f4615e22525720a843e35225a9cd5b27c8351778b4a51a9e21ed4c361c20",
+  "literature/figs/demo_5_window_band.png": "sha256:490ef1c7f1962020f84b4298ffef349adc76850cbefa787f8b81c4a9278e4f82",
+  "literature/figs/demo_6_stacking.png": "sha256:9a23225d91a027e339ffbf1da990edff84167c150a0086c5640a026f5826e653",
+  "literature/figs/demo_7_reference.png": "sha256:d04da8057f9e00a872f656b400fc305761a67701624b6f2a7bf623556a497616",
+  "literature/figs/demo_8_artifacts.png": "sha256:5dd57681749c9924f9b07b1d635e8c16e6b7054ddec53d4ae8a614372d897477",
+  "literature/figs/demo_9_multiverse.png": "sha256:0e2bd424d1dd921f1546dd4095e34d6fbc26beef72e54211d5274c9c13ded353",
+  "literature/figs/realdata_1_validation.png": "sha256:9f74681a0ddefc6a6d9b80dd2eef15a856f5bff4f0503b66e25a58e28ccaddb8",
+  "literature/figs/realdata_2_interferograms.png": "sha256:a15d51eae10aac10b5f5dba48fb4b19a439cbededb1cb29f36f6f098e2598a81",
+  "literature/figs/realdata_3_warmup.png": "sha256:00df9e0f5632013f0dd97c8a2143e60c3348530b05b37756c7ca9f0b89bec83b",
+  "literature/merge_verified.py": "sha256:261c1238bb039c83b1d7de26b030ec206b4b8476a81c8aeeea1f8983e8c132a6",
+  "literature/raw/cryosphere_geothermal.json": "sha256:f71f77982ec57ec3ea43a07ce5cc6ba121dd32bba79d29fb983c9c5dee78f5c2",
+  "literature/raw/earthquake.json": "sha256:7447031b92216341d104367de5599dd2c055c2a9d4a4aed37e5bf29e9d5e52b2",
+  "literature/raw/groundwater.json": "sha256:3f3c092f00a984c033bebfac3965ff1be14565353abc6a6b544df4b22da1df59",
+  "literature/raw/landslide.json": "sha256:b52509a914372f4027979f584fa5fe2c1bf92dc61ac1b92ae65dc3d18c13d5cf",
+  "literature/raw/methodology.json": "sha256:d7975b35d826e748accb1b329dc66e1abc63b8e6a57ce33b7fbe9aef1de801b9",
+  "literature/raw/volcano.json": "sha256:4b1cad33974bda5dcdacb01716a2974c62f26f39ddef3707dfa0b683836ecd16",
+  "literature/synthetic_dvv_demo.py": "sha256:acdc072a152128236a25f9252d272488dc3f531b3c12271885c70cc0041dfa37",
+  "literature/verified_fulltext.jsonl": "sha256:91d275aa20a4c85d2aaad978688d279ec44370733e1d8874b67a1e1add9209ae",
+  "paper/README.md": "sha256:cf85ea212054426cfa19f6fd75850480eece828db580e28c8019462dcc289e97",
+  "paper/_preamble.tex": "sha256:1b908dc23177955883d2e790ba50af4828b29ca42351439ee5e5b70daa5f724a",
+  "paper/appendix_table.tex": "sha256:1536016349243c060be06d8a47eaa0424aae72af0b7a81579daab623b41d346d",
+  "paper/build.py": "sha256:e5d71be0c524dfc29194b3d6d4b137273dcd0b6f1ebbd44e434e5900977c4a65",
+  "paper/build_survey.py": "sha256:c259d46f25b29a61e6f6f5d7791ab68d3bfd25a60a70339c8669db49b3b507cd",
+  "paper/data/gate1/README.md": "sha256:6dbfc6332c3b6c2dc1865cc0cacfc427781dfd03cf1442402a4183a51305849a",
+  "paper/data/gate1/legacy_cd2022/CI.ARV.arrow": "sha256:7956fc2e2b070a1dc3933ff818efd4f34f0c2d2e695260d1a532d8fd47906c65",
+  "paper/data/gate1/legacy_cd2022/CI.LJR.arrow": "sha256:85e33fa2611f6b7a3beccbfb368abc42573a0f9da142df346a71b8cb9d6658f7",
+  "paper/data/gate1/legacy_cd2022/CI.RXH.arrow": "sha256:f0ab6c687b75e06ae19fa5a10668bc95515c8fdeab00e2d8a0ab5787772ccc19",
+  "paper/figures/gate1/dvv_smoke_check_90d.png": "sha256:00df9e0f5632013f0dd97c8a2143e60c3348530b05b37756c7ca9f0b89bec83b",
+  "paper/figures/gate1/gate1_final_2y.png": "sha256:9f74681a0ddefc6a6d9b80dd2eef15a856f5bff4f0503b66e25a58e28ccaddb8",
+  "paper/figures/gate1/gate1_heatmaps_zoom.png": "sha256:a15d51eae10aac10b5f5dba48fb4b19a439cbededb1cb29f36f6f098e2598a81",
+  "paper/figures/gate1/gate1_validation.png": "sha256:9f442edaff04e16b7e128906787b614192e4e9bcfaad73576671d744da6e0d6f",
+  "paper/manuscript.tex": "sha256:9bb7332eeee4a702c86c3659bc5548d6b77e49764ae80e3c43998ce4350834fe",
+  "paper/manuscript_marine.qmd": "sha256:582a09ee97ca6f86d80ac3a61301bab8dd5089477fe780cd86c70452dbba0ec0",
+  "paper/manuscript_marine.tex": "sha256:a60d872160bbb418b71093932c486d5f420a10008dd210441191118051542dc0",
+  "paper/references.bib": "sha256:f5263a55a6fd3ee7ad5bbd536ea492ef8c841583590f85e636b957dfc8f7e1fb",
+  "paper/survey.bib": "sha256:7acfc0836dcf4924ea98fdc2d493ddd53246454eb71194d7ce2bae9a16ddd6a9",
+  "src/codameter/__init__.py": "sha256:692e434d63a1752f08bf7ce7abce9fcee2dd4d2a4627b599316f85e2ffee86cc",
+  "src/codameter/_version.py": "sha256:db4a8260ba9c834fb069e7425479b3ece5d95afb06478a3f08c119acbc64b4a0",
+  "src/codameter/anomaly/__init__.py": "sha256:255edcc88170406cfca35319211f9880ee0e4791edd6548a0c787a7c928e373d",
+  "src/codameter/anomaly/attribution.py": "sha256:ef52decf86eb7c303a3b80eeb6930ba9ea078ae4f77e4315a73bcd8bcec55fbc",
+  "src/codameter/anomaly/detection.py": "sha256:a2ca317c98fba066123a8efdccd64f3249d0ddc63ace033c589bf198fb2f4d94",
+  "src/codameter/anomaly/residual_patterns.py": "sha256:91c9534ad5cf7a31eddf02f367c71ceeeccbade915358a3c31157722943fde86",
+  "src/codameter/bench.py": "sha256:cd2fb3d9fe31ab5a7cadb3834b4871a9af33ac08f2d84cd24e6d84cceb2fd8d1",
+  "src/codameter/cli.py": "sha256:ab0054ebfae035f5627513d7338bdaf0d0b93d7fe846114d2245d6d9233ee71c",
+  "src/codameter/config.py": "sha256:94180cce8f6c5c397e27339caa698b6d54e24c57e34421fcedfc048f7c48b86d",
+  "src/codameter/coupling/__init__.py": "sha256:5e804b1f0d7ad8f1e53891b5aac1436b86d25694101344f72e23651ddd78b32f",
+  "src/codameter/coupling/decision_tree.py": "sha256:58d290e1931622bc500c77c2ebac01c88f48ea43ffc1d130d13538355b1b6621",
+  "src/codameter/coupling/tier1_poroelastic.py": "sha256:3d09e1f9bb38a7fc7794f4ed363b2405dff42c0fe6e0d7ba786bf9c2b89bfa5f",
+  "src/codameter/coupling/tier2_damage.py": "sha256:45c3f07f5d704a26523c8eee2c96b8fcee254f4c4fee2e7b97f560203bffa51d",
+  "src/codameter/coupling/tier3_saturation.py": "sha256:25e23ee88f29b94a9f6b357e43a5c7c476ba57816e69184e2daf2fde86927b4b",
+  "src/codameter/coupling/tier4_thermo_capillary.py": "sha256:d40141149d37b7a2382df532925485bffdb0bc490955302ca10895b2e0e8cb8c",
+  "src/codameter/data/__init__.py": "sha256:642bba2e6b9a28ff42cf95aacaca2a08062cbc6a09e8e2d34bcee1531af0a7bb",
+  "src/codameter/data/covariates.py": "sha256:eb2e43b8d888c23a7c7947fc1d2811c321ccf23e5fd7ad85e3eaa26955aaa3d3",
+  "src/codameter/data/loaders.py": "sha256:9ed451225a0e219223ff089503f415118a63bebbf7f75703e518b8daeb42db38",
+  "src/codameter/data/property_providers.py": "sha256:08044fc0500b73c33af9c37cc37e1efab05615e7f631075d488ef20220310d11",
+  "src/codameter/data/qc.py": "sha256:26a4a3dbd645a429a97e43db00e2e9423d1132e9d96f8fe96fff80043c712c22",
+  "src/codameter/data/readiness.py": "sha256:733aaae0a323065f934cf42f261739c6675ae586e00e396069edc9aac2aee1ff",
+  "src/codameter/deviations.py": "sha256:fd7c3c2965d8c281035f516c9afd5a13f32209f7f825a64daf95167a8e3c7387",
+  "src/codameter/forcing_models.py": "sha256:ebd5f7879cba31a4a50fca8a6bb20f7e1aab5ae07cd63a3a2b967d6abe800988",
+  "src/codameter/forward/__init__.py": "sha256:8fdf2cac2650a750ee24c396061de761612d8bbbdb0a30642d44f82ea167040b",
+  "src/codameter/forward/capillary.py": "sha256:9cb8cbb2faaf37fd5b017da5784cfe9229a04404691df7a587acae1abb2875c6",
+  "src/codameter/forward/damage.py": "sha256:5cf75bf0b28c4e0807d516ec90491ea784630a6b11801d0128239388377217b0",
+  "src/codameter/forward/loading.py": "sha256:def69d6ea560e1af691ed47afcf5df0feb58e4ffe7296dcc06ee4da55a1e1061",
+  "src/codameter/forward/poroelastic.py": "sha256:ab886b9db53292ef80d62c6e2bc81f4e7a235b2fdd5cb8073f5dfc22a6f2d384",
+  "src/codameter/forward/thermoelastic.py": "sha256:61446165c22a84378ca606160841cad78d5517d9f519276f0c023b100c225d30",
+  "src/codameter/frugalmind.py": "sha256:8203df997d814b9fcdccd663a6ed2eb9947f79d0586e75439e16ed39f0c8db94",
+  "src/codameter/golden.py": "sha256:430dcf6b3640a4bb1d02e2c6fb4be3e98b60e32b03b62c70273f8dbb7573649b",
+  "src/codameter/interpretation/__init__.py": "sha256:10ef78d1dda57756eacc2c767ef92c6e38bdb32bc1e6942e3dec395fab412314",
+  "src/codameter/interpretation/stress_at_depth.py": "sha256:47ad193ad7e499df36700c0e84996978eb655692c2d6ee941ef00b1ebdaaf9e8",
+  "src/codameter/interpretation/water_table.py": "sha256:d21eb5c713017c40c9c62bfc4ab9c2602fdae41618290413d6e92adbeee7758d",
+  "src/codameter/inverse/__init__.py": "sha256:a88b0ec206fde27babff959b8965366f7c23b11c7de7fb24733ede6d10e416fb",
+  "src/codameter/inverse/coupled_inversion.py": "sha256:bf7a4e4b12244642c73b51547c9d81c7cc28c432a288cefc7c512c8d6ca4e5f3",
+  "src/codameter/inverse/linear_fit.py": "sha256:8af574f45cdf3efcf77420911a55b4f24c33e5326ca889635fc06f5a7d6cd78a",
+  "src/codameter/inverse/posterior.py": "sha256:2f2f5cc5a1db8ba82bb8de90a8a2518f039238fdb0d9d40e76f5b0fb7ec3dbb5",
+  "src/codameter/inverse/priors.py": "sha256:98fff20b216a75aaf270ce391ea2f0867efc345234bddcf6e8577438f470b0a7",
+  "src/codameter/kernels/__init__.py": "sha256:a736590dd5d00d4347c90c2ec9fa33debf1e216f3536bde8406b642d00ec302f",
+  "src/codameter/kernels/depth_resolution.py": "sha256:2071660152fd6d78849a1a39b1cd3a155eb308bd9d1ab860be0073d400a505c6",
+  "src/codameter/kernels/disba_wrapper.py": "sha256:a8d02a10a0ec829dd75ab7a2b6c97e7ba5e1015d566677af05827c1b8c24a8d9",
+  "src/codameter/kernels/velocity_models.py": "sha256:7e7984a15e546a346806701824aa3e611891ece3719a4aa4f3d1e6332a35af38",
+  "src/codameter/plotting.py": "sha256:824f8c9fd004ae9de8e8503fdccde504a4922fe19ab68f5e050c2a4ad9850d35",
+  "src/codameter/private_golden.py": "sha256:a94ec6d930e8b987fb2f1effc234045f1e7975224a9cfdfaf134b16aada94959",
+  "src/codameter/synthetic_demo.py": "sha256:ca8bb17a57df8712ee8d1019389ddfa718aaf034b9faa0df610d530dd9cee871",
+  "src/codameter/uq-measurement.py": "sha256:7bc7fd441d494935cb6f7ba4ead86bc0b9d357ddaced7890dadbc7d4243c6ada",
+  "src/codameter/uq_bayes.py": "sha256:f0822286e6794a908e0cb5adb1c303bca20e6c9d214647a50e252a1d72753d37",
+  "src/codameter/uq_depth.py": "sha256:e956d77cf0306b1f731d09a6c2039271968928da0763623b619ccc9d92a5cef3",
+  "src/codameter/uq_measurement.py": "sha256:010c68110aa963d9bdd382d8a4445a73e72d2c0f7ceec357d744df27c16b2b3a",
+  "src/codameter/uq_processing.py": "sha256:ce650937591e67ff46a0bde018ae9d26d79e3ea316fac06db720ae3f74ac8fd3",
+  "src/codameter/use_cases.py": "sha256:981ebead6a158e09a943c50d7ad9238921075b32b6cc737967df0d70b3694fe9",
+  "src/codameter/workflow.py": "sha256:a037eb72a98f54388953e371ea53c9d38d61492242f108f41e955b259c474871",
+  "tests/conftest.py": "sha256:7125550878e4080d47c85ad06f0596ac72815757dca12e855a3a2facb9a37ee6",
+  "tests/data/golden/manifest.json": "sha256:fb0abc1057a577bce1b68e73e0e684a2b871d2a70bbc4ebe04dcfa770f8ca5a1",
+  "tests/test_bench.py": "sha256:92d8dbcd534e2979e3cac1ffe18c4063b799c832b1b8e9faf101f35d0676c96b",
+  "tests/test_cli.py": "sha256:43f942ef2b7a68ab0f37f1912913d7d6edced54dc26a86cd426958cf2c73edcf",
+  "tests/test_coupling.py": "sha256:600fd0fcdf919568864f0b446577b977a89680ec94f1c73f084901d92feb880e",
+  "tests/test_coupling_tiers.py": "sha256:3e861e12bdb0bffd0c1c1dd2fe5aadf1e3535e06951a94932807a58f3db80d7e",
+  "tests/test_data_loaders.py": "sha256:b763795081ee19dd4ecd35e46b73682b38d5947109ad02626e62fad6a9e7fb5e",
+  "tests/test_data_readiness.py": "sha256:25f54eb9920ff4ac4cccf34a43e12bae39a52775e7b894a0ea5884d443cc1c61",
+  "tests/test_deviations.py": "sha256:e36c9f83d314b604af930c381fa9058fffea401710585cb207c7feca49328860",
+  "tests/test_forcing_models.py": "sha256:d6cfaef86b667d71987a4cd4fd5371d35e868d99d1e793fb457b8ee4aef0af48",
+  "tests/test_forward_models.py": "sha256:0a8514e648e8c216664f6c7b29431b733e87f9756ee3703c54af51e8cf32e989",
+  "tests/test_frugalmind_export.py": "sha256:3a63e24a4f6eac884c25e299012da8febe1cc7cd8903cfced97752b1f72a51e8",
+  "tests/test_golden.py": "sha256:e5bf032f3ffe1a1b11dbebbc311355c3f4dec3c81fa6491a93638232a5aa2d61",
+  "tests/test_kernels.py": "sha256:4a4b72d7469a1dd758c1107367358c6826ba330931ebab3f92b899506ccbf2f0",
+  "tests/test_linear_inversion.py": "sha256:27e98bd63a592f7e001364d6f0503c59a340966fb4a071d7693b1544495c036f",
+  "tests/test_private_golden.py": "sha256:bafcad630f9a59e2cfee1665a168fc90f462bd7e48ee3b4874c0f999267989e0",
+  "tests/test_property_providers.py": "sha256:a01cdc179fb0237c427bf87937bb6e51bb775a4da95a220c5c3d74b7f36659a1",
+  "tests/test_sign_convention.py": "sha256:ce9d272ca44b8ed119afbd20af1f22268e97a95cfc7c9991abf56d5b3f0938e4",
+  "tests/test_staged_workflow.py": "sha256:ba0842d261e858c9678605f85dbec77bb25122edf69d11fd1238ce4c7fe49f32",
+  "tests/test_stretching_interpolation.py": "sha256:a7770b6198ab437e2d96c5bd6e0a7f758e1b25e0e7f80e0653ec62257c9daec4",
+  "tests/test_synthetic_demo.py": "sha256:569e59c69d86394dca2c227438120f3a404cf4e89d1d949a3ef023612da5cc1a",
+  "tests/test_synthetic_parkfield.py": "sha256:e396e4c18d31c9bc6ea1ad014134fe0d679c0906458153247fbff852cd6429e9",
+  "tests/test_uq_bayes.py": "sha256:90a3469cbf275353eab666cd8f0c619dd425acf5ab9f307f0d6e84bedbeed097",
+  "tests/test_uq_depth.py": "sha256:b06dba43ffe88467f2006ca43b449580794936da1c488cf497a0fdb1fc0f2cef",
+  "tests/test_uq_measurement.py": "sha256:710fb57836ba0c4514cf60a8361540f02b5ed7aa324c0e85de88bef70f79ca71",
+  "tests/test_uq_processing.py": "sha256:9aa29e01010e30d36103c2f6b6f59c675857f6303cd821a3bad7f1b8f7ad1e7f",
+  "tests/test_use_cases.py": "sha256:d71d01f78877720faef8312018b4d3ae31f05195fc88134bd114b35fade1784d"
+ },
+ "conversion_note": "Converted 2026-09-10 from review/codameter-gji.review.json (Astra, iteration 1, frozen). Added section, scope, plan_package, hash_method, manuscript_ref, open; renamed verification -> execution_evidence to avoid collision with the S-AV verification log. No finding text, tier, status or ID changed.",
+ "manuscript_file_hash": "sha256:6b4b9eb91fb2c0701d0f3cca9e8279ae8bcc1a29795de3b5d563556a86059ae4",
+ "criterion_tiers": {
+  "C1": "Good",
+  "C2": "Fair (from Fatal)",
+  "C3": "Fair (from Poor)",
+  "C4": "Fair (from Poor)",
+  "C5": "Fair",
+  "C6": "Fair",
+  "C7": "Good",
+  "C8": "Fair"
+ },
+ "conflict_note": "The iteration-2 orchestrator (claude-fable-5-1) is the agent lineage that drafted most of the revision; the ten subagents ran as independent contexts and their stricter verdicts govern. A parallel Codex session committed three further revision commits (af35b27, 359727a, c10a108) before this run; those changes were reviewed as part of the current text."
 }
