@@ -1319,7 +1319,7 @@ the CD2023 90-day-comp product is a *trailing* 90-day stack, so it lags a
 centered-smoothed daily series by about 45 days, and comparing a centred
 45-day mean against it without matching the smoothing lowers the
 correlation to 0.87, 0.37 and 0.62 at the three stations (the centred rule
-of Table~\ref{tab:gate1}) against 0.99, 0.90 and 0.83 under the matched
+of Table\ \ref{tab:gate1}) against 0.99, 0.90 and 0.83 under the matched
 rule, even on a real annual cycle. We match by applying the same
 trailing 90-day mean to the daily series (at least 45 finite days in the
 window), compare demeaned --- the two products reference different epochs,

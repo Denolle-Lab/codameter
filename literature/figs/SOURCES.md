@@ -20,10 +20,13 @@ prints the registry. `paper/build.py --figures` runs the driver.
 
 | `realdata_1_validation` | `codameter.gate1.fig_gate1_comparison`: needs the untracked daily products under `paper/data/gate1/dvv2y/` (skipped with a message where they are absent); every plotted array is in the sidecar |
 
-Every `.json` sidecar records `git_commit`, `git_dirty` (true when tracked
-files under `src/` differed from that commit when the figure was made) and
-`generator_digest` (a digest of the package version and the figure-generating
-modules, so two sidecars with the same digest came from the same figure code).
+Every `.json` sidecar records `git_commit`; sidecars written since
+2026-09-13 also record `git_dirty` (true when tracked files under `src/`
+differed from that commit when the figure was made) and `generator_digest`
+(a digest of the package version and the figure-generating modules, so two
+sidecars with the same digest came from the same figure code). Older sidecars
+gain the two fields when their figure is next regenerated; the release step
+regenerates every figure from a clean tree at the tag.
 `python -m codameter.figures --check [--skip-slow]` regenerates the figures in
 memory and reports any array that differs from the committed sidecar; the
 `paper` workflow runs it on every pull request to the manuscript branch.

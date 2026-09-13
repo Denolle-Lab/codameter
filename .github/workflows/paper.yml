@@ -87,9 +87,10 @@ jobs:
           n_unresolved=$(grep -c '??' /tmp/paper.txt || true)
           n_commapct=$(grep -c ',%' /tmp/paper.txt || true)
           n_lt=$(grep -c '<<' /tmp/paper.txt || true)
+          n_tilde=$(grep -cE '(Table|Fig\.|Section|eq\.)~' /tmp/paper.txt || true)
           echo "pages: $(pdfinfo paper/manuscript_marine.pdf | awk '/Pages/{print $2}')"
-          echo "unresolved: $n_unresolved  commapct: $n_commapct  lt: $n_lt"
-          test "$n_unresolved" -eq 0 && test "$n_commapct" -eq 0 && test "$n_lt" -eq 0
+          echo "unresolved: $n_unresolved  commapct: $n_commapct  lt: $n_lt  tilde: $n_tilde"
+          test "$n_unresolved" -eq 0 && test "$n_commapct" -eq 0 && test "$n_lt" -eq 0 && test "$n_tilde" -eq 0
       - name: upload the PDF
         if: always()
         uses: actions/upload-artifact@v4
