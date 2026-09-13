@@ -327,3 +327,16 @@ def test_corr_length_recovers_exponential_decay_and_ignores_noise_floor():
     assert abs(rho[1] - phi) < 0.08
     # White residuals: no lag exceeds the floor, so L is the cadence.
     assert B._estimate_corr_length(rng.standard_normal((K, T)), times) == dt
+
+
+def test_residual_autocorrelation_excludes_constant_rows():
+    rng = np.random.default_rng(1)
+    R = rng.standard_normal((4, 50))
+    rho_ref = B.residual_autocorrelation(R, maxlag=3)
+    # A constant row and an all-NaN row carry no autocorrelation and must not
+    # pull the mean towards zero.
+    R2 = np.vstack([R, np.full((1, 50), 0.3), np.full((1, 50), np.nan)])
+    rho = B.residual_autocorrelation(R2, maxlag=3)
+    assert rho[0] == 1.0
+    np.testing.assert_allclose(rho, rho_ref)
+    assert np.isnan(B.residual_autocorrelation(np.ones((2, 50)), maxlag=3)).all()

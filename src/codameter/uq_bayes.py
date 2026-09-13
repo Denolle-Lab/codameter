@@ -305,15 +305,23 @@ def residual_autocorrelation(residuals: np.ndarray, maxlag: int = 40) -> np.ndar
     R = np.asarray(residuals, float)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN rows/lags
+        scale = np.nanmean(R**2, axis=1, keepdims=True)  # before demeaning
         R = R - np.nanmean(R, axis=1, keepdims=True)
         T = R.shape[1]
         var = np.nanmean(R**2, axis=1, keepdims=True)
+        # A row with zero or undefined variance (constant up to rounding, or
+        # too few valid epochs) has no autocorrelation: exclude it rather
+        # than count it as 0.
+        ok = np.isfinite(var) & (var > 0) & (var > 1e-12 * scale)
+        var = np.where(ok, var, np.nan)
         maxlag = min(T - 1, maxlag)
         rho = np.full(maxlag + 1, np.nan)
         for lag in range(maxlag + 1):
             prod = R[:, : T - lag] * R[:, lag:]
-            c = np.nanmean(prod, axis=1, keepdims=True) / (var + 1e-30)
+            c = np.nanmean(prod, axis=1, keepdims=True) / var
             rho[lag] = np.nanmean(c)
+    if np.isfinite(rho[0]):
+        rho[0] = 1.0
     return rho
 
 
