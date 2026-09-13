@@ -258,3 +258,72 @@ def test_shared_artifact_is_not_detected():
     res = B.gibbs_dvv(M, S, t, n_iter=600, burn=200, thin=2, seed=11)
     err_rms = np.sqrt(np.mean(res.mu_mean**2))
     assert err_rms > 10 * np.median(np.sqrt(np.diag(res.Cd)))
+
+
+def test_split_rhat_near_one_for_iid_and_large_for_shifted_chains():
+    from codameter.uq_bayes import split_rhat
+
+    rng = np.random.default_rng(0)
+    iid = rng.standard_normal((2, 400))
+    assert abs(split_rhat(iid) - 1.0) < 0.05
+    shifted = np.vstack([iid[0], iid[1] + 5.0])
+    assert split_rhat(shifted) > 1.5
+    assert np.isnan(split_rhat(np.ones((2, 40))))
+    assert np.isnan(split_rhat(np.arange(6.0)[None, :]))
+
+
+def test_gibbs_keeps_hyperparameter_chains(bayes_run):
+    res, _ = bayes_run
+    assert res.samples_hyper is not None
+    n = res.samples_mu.shape[0]
+    for key in ("tau2", "s2", "lambda"):
+        assert res.samples_hyper[key].shape == (n,)
+        assert np.all(res.samples_hyper[key] > 0)
+
+
+def test_duplicating_the_ensemble_is_not_new_information(bayes_run):
+    """Audit UQ-03: what duplicating every member does to the two objects.
+
+    Under the working likelihood (independent residuals) duplicated members
+    count as new data, so a data-dominated credible band on mu would shrink by
+    1/sqrt(2). It does not, because the smoothness prior sets the precision
+    of mu at these settings; the single-member covariance C_d, a mean of
+    within variances plus a spread, is close to invariant. The numbers are
+    reported in the manuscript; this test pins the behaviour.
+    """
+    res, run = bayes_run
+    kw = dict(n_iter=600, burn=200, thin=2, seed=0)
+    r1 = B.gibbs_dvv(run.members, run.within_sigma, run.times_days, **kw)
+    M2 = np.vstack([run.members, run.members])
+    S2 = np.vstack([run.within_sigma, run.within_sigma])
+    r2 = B.gibbs_dvv(M2, S2, run.times_days, **kw)
+    half1 = np.median(r1.mu_hi - r1.mu_lo)
+    half2 = np.median(r2.mu_hi - r2.mu_lo)
+    # far from the 1/sqrt(2) = 0.71 that independent new data would give
+    assert 0.85 < half2 / half1 < 1.2
+    cd_ratio = np.median(np.diag(r2.Cd) / np.diag(r1.Cd))
+    assert 0.8 < cd_ratio < 1.2
+    assert np.max(np.abs(r2.mu_mean - r1.mu_mean)) < 1e-3
+
+
+def test_corr_length_recovers_exponential_decay_and_ignores_noise_floor():
+    """AR(1) residuals with a known length: the fit reads the short-lag decay
+    and is not flattened by the noise floor of the long-lag autocorrelation."""
+    rng = np.random.default_rng(3)
+    dt, L_true, K, T = 4.0, 6.0, 12, 300
+    phi = np.exp(-dt / L_true)
+    R = np.empty((K, T))
+    for k in range(K):
+        x = np.zeros(T)
+        x[0] = rng.standard_normal()
+        for i in range(1, T):
+            x[i] = phi * x[i - 1] + np.sqrt(1 - phi**2) * rng.standard_normal()
+        R[k] = x
+    times = np.arange(T) * dt
+    L = B._estimate_corr_length(R, times)
+    assert 0.7 * L_true < L < 1.4 * L_true
+    rho = B.residual_autocorrelation(R)
+    assert rho[0] == pytest.approx(1.0)
+    assert abs(rho[1] - phi) < 0.08
+    # White residuals: no lag exceeds the floor, so L is the cadence.
+    assert B._estimate_corr_length(rng.standard_normal((K, T)), times) == dt

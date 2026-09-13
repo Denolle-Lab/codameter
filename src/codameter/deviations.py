@@ -26,6 +26,7 @@ deviation menus are taken from ``literature/best_practices.md``.
 
 from __future__ import annotations
 
+import inspect
 from dataclasses import dataclass
 from itertools import product
 
@@ -44,6 +45,7 @@ from .synthetic_demo import (
     measure_inversion,
     measure_stretching,
     measure_stretching_trailing,
+    step_amplitude,
     volcano_truth,
 )
 
@@ -82,6 +84,9 @@ DEVIATIONS = {
 }
 
 ERUPT_DAY = int(2.0 * YEAR_D)
+GATE_CC = (
+    0.6  # coherence gate: epochs with peak stretching CC at or below this are dropped
+)
 
 
 # ---------------------------------------------------------------------------
@@ -212,17 +217,47 @@ def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False, prefiltered
                 name, stacked, t, band=band, fs=fs, window=window, **extra
             )
     elif ref == "inversion":  # Brenguier et al. (2014) joint inversion (stretching)
+        if name != "stretching (TS)":
+            raise ValueError(
+                "reference='inversion' is a stretching-based joint inversion; "
+                f"it cannot be combined with estimator={name!r}"
+            )
+        # The stack axis sets the block length, so a 10-day stack means
+        # 10-day blocks here as it means 10-day trailing stacks elsewhere.
         dvv = measure_inversion(
-            ccfs, t, band=band, fs=fs, window=window, prefiltered=prefiltered
+            ccfs,
+            t,
+            band=band,
+            fs=fs,
+            window=window,
+            block_days=int(k),
+            prefiltered=prefiltered,
         )
     else:
         raise ValueError(ref)
 
     dvv = np.asarray(dvv, float)
     valid = np.isfinite(dvv)
-    if cfg.get("gate") and ref == "fixed" and cc is not None:
-        keep = cc > 0.6
-        valid &= keep
+    if cfg.get("gate") and ref in ("fixed", "moving"):
+        # The gate is a property of the data at this band, window, stack and
+        # reference, read from the stretching coherence; estimators without a
+        # coherence of their own are gated by the same probe (as in
+        # uq_bayes.run_processing_ensemble). The joint inversion has no
+        # per-epoch coherence, so ``gate`` has no effect on it.
+        if cc is None:
+            probe = dict(cfg, estimator="stretching (TS)")
+            _, _, cc_probe = run_pipeline(
+                ccfs,
+                t,
+                fs,
+                probe,
+                eps_max=eps_max,
+                return_cc=True,
+                prefiltered=prefiltered,
+            )
+        else:
+            cc_probe = np.asarray(cc, float)
+        valid &= np.isfinite(cc_probe) & (cc_probe > GATE_CC)
     if return_cc:
         cc_arr = np.full(dvv.shape, np.nan) if cc is None else np.asarray(cc, float)
         return dvv, valid, cc_arr
@@ -233,12 +268,13 @@ def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False, prefiltered
 # Metrics against the known truth.
 # ---------------------------------------------------------------------------
 def _drop_amplitude(dvv, days, valid, eq_day=ERUPT_DAY, span=120):
-    """Recovered co-eruptive drop: min dv/v in [eq, eq+span] minus pre-eq level."""
-    pre = (days < eq_day) & (days > eq_day - 120) & valid
-    post = (days >= eq_day) & (days < eq_day + span) & valid
-    if pre.sum() < 3 or post.sum() < 3:
-        return np.nan
-    return np.nanmin(dvv[post]) - np.nanmedian(dvv[pre])
+    """Recovered co-eruptive drop: post-window median minus pre-window median.
+
+    Delegates to :func:`codameter.synthetic_demo.step_amplitude`; before the
+    2026-09 revision this took the minimum over the post-event window, whose
+    extreme-value bias grows with the noise (review finding S-RE.3).
+    """
+    return step_amplitude(dvv, days, valid, eq_day, span=span)
 
 
 def metrics(dvv, truth, days, valid):
@@ -261,11 +297,29 @@ def metrics(dvv, truth, days, valid):
 # ---------------------------------------------------------------------------
 @dataclass
 class OATRow:
+    """One row of the one-at-a-time sweep.
+
+    ``rms`` and ``drop_err`` are means over the paired seeds; ``rms_lo`` /
+    ``rms_hi`` and ``drop_lo`` / ``drop_hi`` are the min and max over seeds.
+    ``rms_common`` is the RMS on the epochs every row of the sweep produced
+    (the common support), ``availability`` the fraction of epochs this row
+    produced on its own support, both averaged over seeds.
+    """
+
     axis: str
     option: str
     is_best: bool
     rms: float
     drop_err: float
+    rms_lo: float = np.nan
+    rms_hi: float = np.nan
+    drop_lo: float = np.nan
+    drop_hi: float = np.nan
+    rms_common: float = np.nan
+    rms_common_lo: float = np.nan
+    rms_common_hi: float = np.nan
+    availability: float = np.nan
+    n_seeds: int = 1
 
 
 def _label(axis, opt):
@@ -274,29 +328,94 @@ def _label(axis, opt):
     return str(opt)
 
 
-def oat_effects(*, years=3.0, snr=7.0, seed=55):
-    """One-at-a-time: flip each axis off best practice, measure the damage."""
+OAT_SEEDS = (55, 56, 57)
+
+
+def _nanstat(values, fn) -> float:
+    """``fn`` over the finite entries of ``values``; NaN when there are none."""
+    v = np.asarray(values, float)
+    v = v[np.isfinite(v)]
+    return float(fn(v)) if v.size else float("nan")
+
+
+def _oat_configs():
+    """(axis label, option label, is_best, cfg) for the baseline and every deviation."""
+    out = [("baseline", "best practice", True, dict(BASELINE))]
+    for axis, (lbl, opts, best) in DEVIATIONS.items():
+        for opt in opts:
+            out.append(
+                (lbl, _label(axis, opt), opt in best, dict(BASELINE, **{axis: opt}))
+            )
+    return out
+
+
+def _oat_one_seed(*, years, snr, seed):
+    """Run every OAT configuration on one noise realisation; return per-row metrics."""
     s = Synth()
     days = _days(years)
     truth = volcano_truth(days)
     ccfs = daily_ccfs(s.t, [s.ref], [truth], fs=s.fs, snr=snr, seed=seed)
+    series, valids = [], []
+    for _, _, _, cfg in _oat_configs():
+        dvv, valid = run_pipeline(ccfs, s.t, s.fs, cfg)
+        series.append(np.asarray(dvv, float))
+        valids.append(valid & np.isfinite(dvv))
+    common = np.logical_and.reduce(valids)
+    rows = []
+    for dvv, valid in zip(series, valids, strict=True):
+        m = metrics(dvv, truth, days, valid)
+        m["rms_common"] = (
+            float(np.sqrt(np.mean((dvv[common] - truth[common]) ** 2)))
+            if common.sum() > 10
+            else np.nan
+        )
+        m["availability"] = float(valid.mean())
+        rows.append(m)
+    return rows, dict(days=days, truth=truth, ccfs=ccfs, s=s, common=common)
 
+
+def oat_effects(*, years=3.0, snr=7.0, seed=55, seeds=None):
+    """One-at-a-time: flip each axis off best practice, measure the damage.
+
+    ``seeds`` (default :data:`OAT_SEEDS`) are paired noise realisations: every
+    configuration runs on the same realisation, and the row statistics are the
+    mean, min and max over seeds. Pass ``seeds=(seed,)`` for a single
+    realisation. The returned context is that of the first seed.
+    """
+    seeds = tuple(seeds) if seeds is not None else OAT_SEEDS
+    if not seeds:
+        seeds = (seed,)
+    per_seed, ctx = [], None
+    for sd in seeds:
+        rows_sd, ctx_sd = _oat_one_seed(years=years, snr=snr, seed=sd)
+        per_seed.append(rows_sd)
+        ctx = ctx if ctx is not None else ctx_sd
     rows: list[OATRow] = []
-    # Baseline first.
-    dvv, valid = run_pipeline(ccfs, s.t, s.fs, BASELINE)
-    base = metrics(dvv, truth, days, valid)
-    rows.append(
-        OATRow("baseline", "best practice", True, base["rms"], base["drop_err"])
-    )
-    for axis, (lbl, opts, best) in DEVIATIONS.items():
-        for opt in opts:
-            cfg = dict(BASELINE, **{axis: opt})
-            dvv, valid = run_pipeline(ccfs, s.t, s.fs, cfg)
-            m = metrics(dvv, truth, days, valid)
-            rows.append(
-                OATRow(lbl, _label(axis, opt), opt in best, m["rms"], m["drop_err"])
+    for i, (lbl, opt, is_best, _) in enumerate(_oat_configs()):
+        rms = np.array([r[i]["rms"] for r in per_seed], float)
+        rmsc = np.array([r[i]["rms_common"] for r in per_seed], float)
+        drop = np.array([r[i]["drop_err"] for r in per_seed], float)
+        avail = np.array([r[i]["availability"] for r in per_seed], float)
+        rows.append(
+            OATRow(
+                lbl,
+                opt,
+                is_best,
+                _nanstat(rms, np.mean),
+                _nanstat(drop, np.mean),
+                rms_lo=_nanstat(rms, np.min),
+                rms_hi=_nanstat(rms, np.max),
+                drop_lo=_nanstat(drop, np.min),
+                drop_hi=_nanstat(drop, np.max),
+                rms_common=_nanstat(rmsc, np.mean),
+                rms_common_lo=_nanstat(rmsc, np.min),
+                rms_common_hi=_nanstat(rmsc, np.max),
+                availability=_nanstat(avail, np.mean),
+                n_seeds=len(seeds),
             )
-    return rows, dict(days=days, truth=truth, ccfs=ccfs, s=s)
+        )
+    assert ctx is not None
+    return rows, ctx
 
 
 # ---------------------------------------------------------------------------
@@ -332,10 +451,15 @@ def _sobol_first_order(labels_per_axis, values):
 def multiverse(*, years=2.5, cadence=3, snr=7.0, seed=55, axes=None):
     """Run the full factorial of choices on one dataset; attribute the variance.
 
-    ``cadence`` sub-samples the daily CCFs (a moving reference reruns the
-    estimator per epoch, so the cadence keeps the factorial tractable). Returns
-    the per-pipeline recovered curves, their RMS-vs-truth, the recovered drop,
-    and the first-order variance attribution over the axes.
+    Every pipeline stacks and references on the daily CCF grid; only the
+    *output* is decimated by ``cadence``, so a 10-day stack is ten days and a
+    45-day moving reference is 45 days at any cadence. (Before the 2026-09
+    revision the CCFs were decimated first, which stretched every stack and
+    reference by the cadence; audit UQ-05.) The RMS against the truth and the
+    recovered drop are computed on the decimated epochs the pipeline produced.
+    Pipelines that return no epoch at all are listed in ``empty`` with the
+    reason, counted in ``n_empty`` and excluded from the variance attribution,
+    which uses the ``n_valid`` remaining pipelines.
     """
     axes = axes or MULTIVERSE_AXES
     s = Synth()
@@ -343,19 +467,29 @@ def multiverse(*, years=2.5, cadence=3, snr=7.0, seed=55, axes=None):
     truth_full = volcano_truth(days_full)
     ccfs_full = daily_ccfs(s.t, [s.ref], [truth_full], fs=s.fs, snr=snr, seed=seed)
     idx = np.arange(0, len(days_full), cadence)
-    days, truth, ccfs = days_full[idx], truth_full[idx], ccfs_full[idx]
+    days, truth = days_full[idx], truth_full[idx]
     eq = np.argmin(np.abs(days - ERUPT_DAY))
 
     keys = list(axes)
     combos = list(product(*(axes[k] for k in keys)))
-    curves, rms, drop = [], [], []
+    curves, rms, drop, empty = [], [], [], []
     per_axis_labels = {k: [] for k in keys}
     for combo in combos:
         cfg = dict(BASELINE, gate=False, **dict(zip(keys, combo, strict=True)))
-        dvv, valid = run_pipeline(ccfs, s.t, s.fs, cfg, eps_max=0.06)
+        dvv_full, valid_full = run_pipeline(ccfs_full, s.t, s.fs, cfg, eps_max=0.06)
+        dvv, valid = np.asarray(dvv_full, float)[idx], np.asarray(valid_full)[idx]
         curve = np.where(valid, dvv, np.nan)
         curves.append(curve)
         v = valid & np.isfinite(dvv)
+        if not np.any(valid_full & np.isfinite(dvv_full)):
+            empty.append(
+                {
+                    "config": {
+                        k: _label(k, lvl) for k, lvl in zip(keys, combo, strict=True)
+                    },
+                    "reason": _empty_reason(cfg),
+                }
+            )
         rms.append(
             float(np.sqrt(np.mean((dvv[v] - truth[v]) ** 2)))
             if v.sum() > 10
@@ -365,24 +499,59 @@ def multiverse(*, years=2.5, cadence=3, snr=7.0, seed=55, axes=None):
         for k, lvl in zip(keys, combo, strict=True):
             per_axis_labels[k].append(_label(k, lvl))
 
+    rms_arr = np.array(rms)
     return {
         "days": days,
         "truth": truth,
         "curves": np.array(curves),
-        "rms": np.array(rms),
+        "rms": rms_arr,
         "drop": np.array(drop),
         "sobol_rms": _sobol_first_order(per_axis_labels, rms),
         "sobol_drop": _sobol_first_order(per_axis_labels, drop),
         "n_pipelines": len(combos),
+        "n_valid": int(np.isfinite(rms_arr).sum()),
+        "n_empty": len(empty),
+        "empty": empty,
+        "cadence": int(cadence),
         "axes": keys,
     }
+
+
+def _empty_reason(cfg) -> str:
+    """Why a pipeline configuration can return no epoch (the known cases)."""
+    if cfg["estimator"] == "MWCS":
+        from .synthetic_demo import measure_mwcs
+
+        sig = inspect.signature(measure_mwcs)
+        sub = sig.parameters["subwin_s"].default
+        step = sig.parameters["step_s"].default
+        w0, w1 = cfg["window"]
+        n_sub = len(np.arange(w0 + sub / 2, w1 - sub / 2, step))
+        if n_sub < 3:
+            return (
+                f"MWCS needs at least three sub-windows for the delay-versus-lapse "
+                f"fit; the {w0:g}-{w1:g} s window holds {n_sub} at {sub:g} s length "
+                f"and {step:g} s step"
+            )
+    return "no valid epoch"
 
 
 # ---------------------------------------------------------------------------
 # Figures.
 # ---------------------------------------------------------------------------
+def _rms_field(r):
+    """Common-support RMS when the sweep computed it, else the own-support RMS."""
+    return r.rms_common if np.isfinite(r.rms_common) else r.rms
+
+
 def fig_deviation_ranking(rows=None):
-    """Bar chart: RMS error and recovered-drop error of each deviation vs best."""
+    """Bar chart: RMS error and recovered-drop error of each deviation vs best.
+
+    Bars are the common-support RMS (epochs every configuration produced),
+    averaged over the paired seeds; the whiskers span the min and max over
+    seeds. Rows that produced fewer epochs than the others carry their
+    availability in the label.
+    """
     import matplotlib.pyplot as plt
 
     if rows is None:
@@ -392,41 +561,82 @@ def fig_deviation_ranking(rows=None):
     items += [
         r for r in rows if r.axis == "Reference scheme" and r.option == "inversion"
     ]
-    items.sort(key=lambda r: -(r.rms if np.isfinite(r.rms) else 0))
+    items.sort(key=lambda r: -(_rms_field(r) if np.isfinite(_rms_field(r)) else 0))
     # display names: "moving" is the uncumulated trailing reference of the text
     shown = {"moving": "uncumulated trailing", "False": "off"}
-    labels = [f"{r.axis}: {shown.get(r.option, r.option)}" for r in items]
-    rms = [r.rms * PCT for r in items]
+    labels = []
+    for r in items:
+        axis = "Reference" if r.axis == "Reference scheme" else r.axis
+        lab = f"{axis}: {shown.get(r.option, r.option)}"
+        if np.isfinite(r.availability) and r.availability < 0.99:
+            lab += f" ({r.availability:.0%})"
+        labels.append(lab)
+    rms = np.array([_rms_field(r) * PCT for r in items])
+    base_rms = _rms_field(base)
+    lo = np.array(
+        [
+            (r.rms_common_lo if np.isfinite(r.rms_common) else r.rms_lo) * PCT
+            for r in items
+        ]
+    )
+    hi = np.array(
+        [
+            (r.rms_common_hi if np.isfinite(r.rms_common) else r.rms_hi) * PCT
+            for r in items
+        ]
+    )
     fig, ax = plt.subplots(
         1, 2, figsize=(7.9, 4.6), gridspec_kw={"width_ratios": [1.35, 1]}
     )
     y = np.arange(len(items))
-    cols = [C["volcano"] if r.rms > 3 * base.rms else C["bad"] for r in items]
+    cols = [C["volcano"] if _rms_field(r) > 3 * base_rms else C["bad"] for r in items]
     ax[0].barh(y, rms, color=cols, log=True)
+    if np.isfinite(lo).all() and np.isfinite(hi).all():
+        ax[0].errorbar(
+            rms,
+            y,
+            xerr=[np.maximum(rms - lo, 0), np.maximum(hi - rms, 0)],
+            fmt="none",
+            ecolor="0.2",
+            elinewidth=0.9,
+            capsize=2,
+        )
     ax[0].axvline(
-        base.rms * PCT,
+        base_rms * PCT,
         color=C["truth"],
         ls="--",
         lw=1.2,
-        label=f"best practice ({base.rms * PCT:.3f}%)",
+        label=f"best practice ({base_rms * PCT:.3f}%)",
     )
     ax[0].set(
         yticks=y,
         xlabel="RMS error vs truth (dv/v, %, log)",
-        title="(a) RMS error of each deviation",
+        title="(a) RMS error, common support",
     )
     ax[0].set_yticklabels(labels, fontsize=10.5)
     ax[0].invert_yaxis()
     ax[0].legend(fontsize=10.5, frameon=False, loc="lower right")
-    drop = [r.drop_err * PCT for r in items]
+    drop = np.array([r.drop_err * PCT for r in items])
     ax[1].barh(y, drop, color=cols)
+    dlo = np.array([r.drop_lo * PCT for r in items])
+    dhi = np.array([r.drop_hi * PCT for r in items])
+    if np.isfinite(dlo).all() and np.isfinite(dhi).all():
+        ax[1].errorbar(
+            drop,
+            y,
+            xerr=[np.maximum(drop - dlo, 0), np.maximum(dhi - drop, 0)],
+            fmt="none",
+            ecolor="0.2",
+            elinewidth=0.9,
+            capsize=2,
+        )
     ax[1].axvline(0, color=C["truth"], lw=1)
     ax[1].set_xscale("symlog", linthresh=0.01)
     ax[1].set(
         yticks=y,
         yticklabels=[],
-        xlabel="drop error (%, symlog)",
-        title="(b) Distortion of the drop",
+        xlabel="step error (%, symlog)",
+        title="(b) Error of the drop",
     )
     ax[1].invert_yaxis()
     _boost_fonts(ax[0], ax[1], tick=10.5, label=12, title=13)
@@ -469,7 +679,10 @@ def fig_multiverse_full(mv=None):
     # the point -- the colourbar flags them) but would otherwise swamp the
     # signal and make the panel unreadable.
     ax[0].set_ylim((-0.8, 0.8))
-    n_off = int(np.sum(np.nanmax(np.abs(curves * PCT), axis=1) > 0.8))
+    has_output = np.any(np.isfinite(curves), axis=1)
+    n_off = int(np.sum(np.nanmax(np.abs(curves[has_output] * PCT), axis=1) > 0.8))
+    n_valid = mv.get("n_valid", int(has_output.sum()))
+    n_empty = mv.get("n_empty", int((~has_output).sum()))
     ax[0].set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
@@ -478,7 +691,8 @@ def fig_multiverse_full(mv=None):
     ax[0].text(
         0.02,
         0.97,
-        f"{n_off} of {mv['n_pipelines']} pipelines leave the axis range;\n"
+        f"{n_empty} of {mv['n_pipelines']} pipelines return no epoch; "
+        f"{n_off} of the {n_valid} others leave the axis range;\n"
         f"10–90% band across pipelines: {band_lo:+.1f} to {band_hi:+.1f}%",
         transform=ax[0].transAxes,
         fontsize=9,

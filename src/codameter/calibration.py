@@ -21,6 +21,16 @@ aggregate, three coverages that answer three different questions:
     because the manuscript used to quote it, but it mixes the ensemble mean
     with a single-measurement scale and over-covers by construction.
 
+``heldout_member_coverage68/95``
+    The same member coverage, but ``Cd`` is fitted on a random half of the
+    members (six of twelve, drawn per realisation) and scored on the other
+    half. The in-sample coverage above scores the members that ``s`` and the
+    excess spread were fitted on; this one does not.
+``rhat_tau2, rhat_s2, rhat_lambda``
+    Split R-hat (:func:`codameter.uq_bayes.split_rhat`) of the scale
+    hyper-parameters over two Gibbs chains started from different seeds on
+    the same ensemble, each split in halves.
+
 Also reported: interval width, bias, RMSE of ``mu`` and of the members, the
 shared bias ``mean(mu - truth)``, the prior shares, and failures. Aggregate
 values are means over realisations with standard errors across them
@@ -129,25 +139,69 @@ def run_realization(
     burn: int = 400,
     thin: int = 2,
 ) -> dict[str, Any]:
-    """One realisation end to end; never raises (failures are recorded)."""
-    from .uq_bayes import bayes_dvv_from_ccfs
+    """One realisation end to end; never raises (failures are recorded).
+
+    A realisation redraws the additive noise (and, for ``shared_source``, the
+    late-coda source term) on one fixed generating coda; the truth and the
+    ensemble configurations are the same in every realisation.
+    """
+    from .uq_bayes import default_prior, gibbs_dvv, run_processing_ensemble, split_rhat
 
     out: dict[str, Any] = {"seed": int(seed), "scenario": scenario, "ok": False}
     try:
         s, days, truth, ccfs = make_realization(seed, scenario, years=years, snr=snr)
-        res, run = bayes_dvv_from_ccfs(
-            ccfs,
-            s.t,
-            s.fs,
-            truth=truth,
-            days=days,
-            cadence=cadence,
+        run = run_processing_ensemble(
+            ccfs, s.t, s.fs, default_prior(), cadence=cadence, truth=truth, days=days
+        )
+        res = gibbs_dvv(
+            run.members,
+            run.within_sigma,
+            run.times_days,
+            seed=seed,
             n_iter=n_iter,
             burn=burn,
             thin=thin,
+        )
+        # Second chain from another seed on the same ensemble: split R-hat.
+        res2 = gibbs_dvv(
+            run.members,
+            run.within_sigma,
+            run.times_days,
+            seed=int(seed) + 1_000_003,
+            n_iter=n_iter,
+            burn=burn,
+            thin=thin,
+        )
+        rhat = {
+            key: split_rhat(
+                np.vstack([res.samples_hyper[key], res2.samples_hyper[key]])
+            )
+            for key in ("tau2", "s2", "lambda")
+        }
+        # Held-out check: fit Cd on a random half of the members, score the rest.
+        K = run.members.shape[0]
+        perm = np.random.default_rng(int(seed)).permutation(K)
+        fit_idx, score_idx = np.sort(perm[: K // 2]), np.sort(perm[K // 2 :])
+        res_half = gibbs_dvv(
+            run.members[fit_idx],
+            run.within_sigma[fit_idx],
+            run.times_days,
             seed=seed,
+            n_iter=n_iter,
+            burn=burn,
+            thin=thin,
         )
         tr = np.asarray(run.truth, float)
+        sd_half = np.sqrt(np.diag(res_half.Cd))
+        held_err = run.members[score_idx] - tr[None, :]
+        held_obs = (
+            np.isfinite(held_err)
+            & np.isfinite(run.within_sigma[score_idx])
+            & (run.within_sigma[score_idx] > 0)
+            & np.isfinite(sd_half[None, :])
+        )
+        held_abs = np.abs(held_err[held_obs])
+        held_sd = np.broadcast_to(sd_half, held_err.shape)[held_obs]
         err = res.mu_mean - tr
         sd = np.sqrt(np.diag(res.Cd))
         member_err = run.members - tr[None, :]
@@ -187,6 +241,17 @@ def run_realization(
             prior_weight_tau2=float((res.prior_weight or {}).get("tau2", np.nan)),
             prior_weight_s2=float((res.prior_weight or {}).get("s2", np.nan)),
             prior_weight_lambda=float((res.prior_weight or {}).get("lambda", np.nan)),
+            heldout_member_coverage68=(
+                float(np.mean(held_abs <= Z68 * held_sd)) if held_obs.any() else np.nan
+            ),
+            heldout_member_coverage95=(
+                float(np.mean(held_abs <= Z95 * held_sd)) if held_obs.any() else np.nan
+            ),
+            heldout_s=float(res_half.s),
+            heldout_fit_members=[int(i) for i in fit_idx],
+            rhat_tau2=float(rhat["tau2"]),
+            rhat_s2=float(rhat["s2"]),
+            rhat_lambda=float(rhat["lambda"]),
         )
     except Exception as exc:  # a failed realisation is a result, not a crash
         out.update(error=f"{type(exc).__name__}: {exc}")
@@ -244,6 +309,12 @@ def summarize(results, *, margin: float = COVERAGE_MARGIN) -> dict[str, Any]:
         "prior_weight_tau2",
         "prior_weight_s2",
         "prior_weight_lambda",
+        "heldout_member_coverage68",
+        "heldout_member_coverage95",
+        "heldout_s",
+        "rhat_tau2",
+        "rhat_s2",
+        "rhat_lambda",
     ):
         summary[key] = (
             _mean_se([r.get(key, np.nan) for r in ok]) if ok else _mean_se([])
@@ -255,6 +326,16 @@ def summarize(results, *, margin: float = COVERAGE_MARGIN) -> dict[str, Any]:
     )
     summary["member_coverage68_within_margin"] = (
         bool(abs(c68 - 0.68) <= margin) if c68 is not None else None
+    )
+    h95 = summary["heldout_member_coverage95"]["mean"]
+    summary["heldout_member_coverage95_within_margin"] = (
+        bool(abs(h95 - 0.95) <= margin) if h95 is not None else None
+    )
+    rh = [summary[f"rhat_{k}"]["mean"] for k in ("tau2", "s2", "lambda")]
+    summary["rhat_max"] = (
+        float(max(x for x in rh if x is not None))
+        if any(x is not None for x in rh)
+        else None
     )
     return summary
 
@@ -350,8 +431,13 @@ def main(argv: list[str] | None = None) -> int:
         "n_eff",
         "prior_weight_tau2",
         "prior_weight_lambda",
+        "heldout_member_coverage95",
+        "heldout_s",
+        "rhat_tau2",
+        "rhat_s2",
+        "rhat_lambda",
     ):
-        print(f"  {key:<22} {fmt(key)}")
+        print(f"  {key:<26} {fmt(key)}")
     print(
         f"  member 95% within +-{summary['margin']:.0%}: "
         f"{summary['member_coverage95_within_margin']}"
