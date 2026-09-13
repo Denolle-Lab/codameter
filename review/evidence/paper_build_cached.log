@@ -1,0 +1,103 @@
+pandoc
+  to: latex
+  output-file: manuscript_marine.tex
+  standalone: true
+  pdf-engine: lualatex
+  variables:
+    graphics: true
+    tables: true
+  default-image-extension: pdf
+  number-sections: true
+  cite-method: natbib
+
+metadata
+  block-headings: true
+  engines:
+    - path: /Applications/quarto/share/extension-subtrees/julia-engine/_extensions/julia-engine/julia-engine.js
+  title: The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring
+  author:
+    - name: M. A. Denolle
+      email: mdenolle@uw.edu
+      affiliations:
+        - name: Department of Earth and Space Sciences, University of Washington, Seattle, WA, USA
+  date: today
+  abstract: |
+    Relative seismic velocity changes (\dvv) from repeated coda waves are becoming
+     a standard observable for volcanoes, faults, landslides, aquifers and the
+    cryosphere and are increasingly regarded as new measurements of strain changes.
+    Yet turning cross-correlation functions into a \dvv\ time series
+    involves a long sequence of choices --- the estimator, the frequency band, the
+    coda window, the reference, the stacking, and how cross-components and station
+    pairs are aggregated and weighted --- made *ad hoc*, their impact on the measurement
+    uncertainty unclear. These hidden choices clearly limit reproducibility of the
+    research and importantly the inter-study comparison.
+
+    We demonstrate here how to turn repeated wavefield measurement into agent-ready,
+    scalable-ready, uncertainty-aware measurement of changes in seismic properties.
+    We quantify the individual and combined effects of these choices
+     using a controlled synthetic in which the ground-truth \dvv\ is known exactly.
+    We show that at large \dvv\ methods split by family with distinct failure modes; that the same station
+    pair yields different \dvv\ depending only on whether one averages the
+    per-component \dvv\ or the correlation-coefficient images; and, most
+    consequentially, that the reported $1\sigma$ on a network-averaged \dvv\ varies by
+    $\sim\!\sqrt{N}$
+    from the standard-error-versus-standard-deviation and weighting conventions ---
+    so a change that is "$3\sigma$ significant" in one study is "not significant" in
+    another, from identical data.
+
+    Running the full breadth of parameter choices, we estimate
+    each by the bias and error-bar change it induces. We propose a Bayesian
+    measurement model that marginalises the ensemble into a single time-dependent
+     data covariance $C_d$ and illustrate its use by propagating errors in a
+     depth-inversion of shear wave perturbation. We provide a real data examples from a California data set and reproduce
+    previous results that were generated with a different computing language
+    and processing pipeline, demonstrating at the same time the integration
+    of codameter with noisepy and its portability and scalability from laptop
+    to cloud systems. We also generate a codameter agent advisor that can guide researchers or agents
+    in their parameter choices, accompanied with a robust evaluation of the agent against
+    a golden data set. Our method and associated software package, ``codameter`` turns
+    repeated coda waves into time series of \dvv\ and its covariance
+    making it coda-wave interferometry uncertainty-aware and reproducible.
+  bibliography:
+    - references.bib
+    - survey.bib
+  biblio-style: gji
+  documentclass: gji
+  classoption:
+    - referee
+  colorlinks: true
+  latex-auto-install: false
+
+
+Rendering PDF
+running lualatex - 1
+  This is LuaTeX, Version 1.07.0 (TeX Live 2018)
+   restricted system commands enabled.
+
+  luaotfload | main : initialization completed in 0.113 seconds
+  luaotfload | db : Font names database not found, generating new one.
+  luaotfload | db : This can take several minutes; please be patient.
+generating bibliography
+  This is BibTeX, Version 0.99d (TeX Live 2018)
+  The top-level auxiliary file: manuscript_marine.aux
+  The style file: gji.bst
+  Database file #1: references.bib
+  Database file #2: survey.bib
+
+running lualatex - 2
+  This is LuaTeX, Version 1.07.0 (TeX Live 2018)
+   restricted system commands enabled.
+
+  luaotfload | main : initialization completed in 0.106 seconds
+running lualatex - 3
+  This is LuaTeX, Version 1.07.0 (TeX Live 2018)
+   restricted system commands enabled.
+
+  luaotfload | main : initialization completed in 0.108 seconds
+running lualatex - 4
+  This is LuaTeX, Version 1.07.0 (TeX Live 2018)
+   restricted system commands enabled.
+
+  luaotfload | main : initialization completed in 0.090 seconds
+
+Output created: manuscript_marine.pdf

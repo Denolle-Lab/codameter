@@ -1,0 +1,135 @@
+{
+ "rules": {
+  "band_hz": "2.0-4.0",
+  "burn_in_days": 150,
+  "trailing_days": 90,
+  "trailing_min_finite": 45,
+  "centered_days": 45,
+  "centered_min_finite": 23,
+  "join": "inner join on calendar date; published product restricted to 2018-2019",
+  "r": "Pearson, on the overlap, after removing each series' overlap mean",
+  "slope": "OLS slope of the published product on the codameter series"
+ },
+ "stations": [
+  {
+   "station": "CI.LJR",
+   "daily_rows": 681,
+   "daily_first": "2018-01-01",
+   "daily_last": "2019-12-30",
+   "legacy_rows_2018_2019": 729,
+   "burn_in_until": "2018-05-31",
+   "matched": {
+    "n": 579,
+    "first": "2018-05-31",
+    "last": "2019-12-30",
+    "r": 0.9850624256185397,
+    "rms_diff": 0.04616500786170553,
+    "slope": 1.0691502357580198
+   },
+   "matched_no_burn_in": {
+    "n": 639,
+    "first": "2018-04-01",
+    "last": "2019-12-30",
+    "r": 0.9842861169792171,
+    "rms_diff": 0.04475023506362687,
+    "slope": 1.06604616277162
+   },
+   "centered": {
+    "n": 682,
+    "first": "2018-02-16",
+    "last": "2019-12-30",
+    "r": 0.8653456948495024,
+    "rms_diff": 0.11961154037286262,
+    "slope": 0.8767149750561822
+   },
+   "raw": {
+    "n": 681,
+    "first": "2018-02-15",
+    "last": "2019-12-30",
+    "r": 0.8482459139276761,
+    "rms_diff": 0.12926786732877105,
+    "slope": 0.8270457775608157
+   }
+  },
+  {
+   "station": "CI.ARV",
+   "daily_rows": 394,
+   "daily_first": "2018-01-01",
+   "daily_last": "2019-12-30",
+   "legacy_rows_2018_2019": 729,
+   "burn_in_until": "2018-05-31",
+   "matched": {
+    "n": 357,
+    "first": "2018-05-31",
+    "last": "2019-08-17",
+    "r": 0.9045574746252278,
+    "rms_diff": 0.1499582242219106,
+    "slope": 2.1497390972385637
+   },
+   "matched_no_burn_in": {
+    "n": 390,
+    "first": "2018-04-28",
+    "last": "2019-08-17",
+    "r": 0.8991749046935936,
+    "rms_diff": 0.14417421369707928,
+    "slope": 2.01388560869008
+   },
+   "centered": {
+    "n": 424,
+    "first": "2018-03-20",
+    "last": "2019-10-31",
+    "r": 0.36862022477672945,
+    "rms_diff": 0.21417922543897486,
+    "slope": 0.7964142472626492
+   },
+   "raw": {
+    "n": 394,
+    "first": "2018-02-15",
+    "last": "2019-12-14",
+    "r": 0.3050023982841881,
+    "rms_diff": 0.23344247992602937,
+    "slope": 0.48000644317005864
+   }
+  },
+  {
+   "station": "CI.RXH",
+   "daily_rows": 563,
+   "daily_first": "2018-01-01",
+   "daily_last": "2019-12-30",
+   "legacy_rows_2018_2019": 640,
+   "burn_in_until": "2018-05-31",
+   "matched": {
+    "n": 446,
+    "first": "2018-05-31",
+    "last": "2019-12-30",
+    "r": 0.8288596923048149,
+    "rms_diff": 0.020031985799333026,
+    "slope": 0.8061950785354097
+   },
+   "matched_no_burn_in": {
+    "n": 507,
+    "first": "2018-03-31",
+    "last": "2019-12-30",
+    "r": 0.7639616357430739,
+    "rms_diff": 0.024834967608089075,
+    "slope": 0.6416129386867837
+   },
+   "centered": {
+    "n": 554,
+    "first": "2018-02-15",
+    "last": "2019-11-28",
+    "r": 0.620432199974238,
+    "rms_diff": 0.03468605759921402,
+    "slope": 0.5227569651774386
+   },
+   "raw": {
+    "n": 560,
+    "first": "2018-02-15",
+    "last": "2019-12-30",
+    "r": 0.4911444632042665,
+    "rms_diff": 0.045858139775157306,
+    "slope": 0.35447454696414116
+   }
+  }
+ ]
+}

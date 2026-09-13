@@ -1,0 +1,61 @@
+{
+  "date": "2026-09-10",
+  "starting_head": "62b63b5",
+  "test_command": "MPLCONFIGDIR=/tmp/codameter-review-mpl OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 .pixi/envs/test/bin/python -m pytest -q -p no:cacheprovider --junitxml=review/evidence/revision2/pytest.xml",
+  "tests": {
+    "tests": 343,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "passed": 342,
+    "seconds": 754.425
+  },
+  "python": "3.12.13",
+  "numpy": "2.4.3",
+  "scipy": "1.17.1",
+  "algorithm_changes_after_full_test_start": false,
+  "note": "Final documentation, formatting and PDF-layout edits followed the test start; no measurement/scoring algorithm changed during the full run.",
+  "hooks": "all configured hooks passed",
+  "build_command": "MPLCONFIGDIR=/tmp/codameter-review-mpl TEXMFVAR=/tmp/codameter-tex-var TEXMFCACHE=/tmp/codameter-tex-cache quarto render manuscript_marine.qmd --to pdf -M latex-auto-install:false (cwd paper)",
+  "pdf_pages": 82,
+  "pdf_sha256": "be5fc63ab9f4b8308956846c41c9dddbcd575b7d278b7b3289081d303eb8ebfc",
+  "unresolved_reference_markers": 0,
+  "visually_checked_pages": [
+    1,
+    2,
+    33,
+    37,
+    62
+  ],
+  "build_limits": [
+    "Existing figure assets reused",
+    "External field figures not regenerated",
+    "Author end-matter placeholders remain"
+  ],
+  "source_sha256": {
+    ".claude/skills/codameter-advisor/SKILL.md": "9cb9fd15e5762edc0ccb3610af5b9b2844c9c9dfa10b867a1f6fcb4bedb5612e",
+    ".claude/skills/codameter-advisor/references/golden_datasets.md": "050bb5f8aeeed1241d1e92f77e22a139b33bbd084b2ed3e93e35c0806fc1b5b3",
+    ".claude/skills/codameter-advisor/references/report_format.md": "4480d804a03feb6bd27afa0f3351f90c42e2c41f95b8948d3925f473cdb8e39b",
+    ".claude/skills/codameter-advisor/references/validation_loop.md": "441b9d61f171143f17aeca46e8223067aaf00caa40082bdc8a909e0c8c454c5c",
+    "CHANGELOG.md": "f67504f4ecbebd31d872b9d93902481be49d3f6c86baff886aa8ebfea9214f73",
+    "paper/_preamble.tex": "bd7e3ddec2f0a6e0686140080f7cfb696875768241c6a6e65b4be47c81737740",
+    "paper/build_calibration_table.py": "db98416c104e8c390836cd7c6918ba7451084a0ee8ce417996c20c3becade989",
+    "paper/calibration_table.tex": "157f5fb588a288767d42e5faf798383fd5cec2832b653d22e20590b1d1618d92",
+    "paper/manuscript_marine.qmd": "6b4b9eb91fb2c0701d0f3cca9e8279ae8bcc1a29795de3b5d563556a86059ae4",
+    "paper/manuscript_marine.tex": "c8b2ee0fae6b00a1d25c73a380ee585e4a7dd2ab220198ad852421f38ba45aca",
+    "review/EXECUTION_PLAN.md": "ce1f709d29ed7407d053e7c554f397850a920442fe7a3863fae0d904cf034efb",
+    "review/README.md": "6a1fe8b43c5a70b72527d0e4b137cbbca3cb590150ea27a15bacf0f3c207dd27",
+    "review/REVISION_PLAN.md": "f3678c9ba277a923f6efbb0806d86ce12fb77b11fc9e0f9b6536c8a91b46c2ab",
+    "src/codameter/calibration.py": "224ef90577d82edc05202cd00afef3557e749f2a25351144e9138c528a948c65",
+    "src/codameter/golden.py": "aee53dd5a17be57de31238d9ba71fa25f5e3af71fd21ef981a8491881cee5b2a",
+    "src/codameter/uq_bayes.py": "42c601714e9746af3833b5c73db0a0c15c6f6288fdcf1e1b11cc21f057bc6595",
+    "tests/test_advisor_validation.py": "0de5956bdcec6198d5c927f05cc6fd01e895c6387cc14c3117c8c9ba4492dc36",
+    "tests/test_audit_small_fixes.py": "4ad808a52cbb71a97c1bb17fff4da64ee6998a6a8414753fb706c960ab4c87ea",
+    "tests/test_calibration.py": "386ae94c055a887163632f50f3167961552b7e994cbc75d20fb4bceb373f6fa2",
+    "tests/test_uq_bayes.py": "18a6dcdd54fa4bd74837f5d9ee9381e50aba410777ab528d1245f681acacd2b9"
+  },
+  "test_warnings": {
+    "count": 2,
+    "note": "CLI missing-error-column tests warn that the loader defaults to dvv_err=0.001; no new runtime warning came from the revised paths."
+  }
+}

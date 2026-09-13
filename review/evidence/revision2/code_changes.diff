@@ -1,0 +1,332 @@
+diff --git a/src/codameter/calibration.py b/src/codameter/calibration.py
+index 5504625..ff63097 100644
+--- a/src/codameter/calibration.py
++++ b/src/codameter/calibration.py
+@@ -153,0 +154,12 @@ def run_realization(
++        observed = (
++            np.isfinite(member_err)
++            & np.isfinite(run.within_sigma)
++            & (run.within_sigma > 0)
++            & np.isfinite(sd[None, :])
++        )
++        if not observed.any():
++            raise ValueError("no observed member epochs for coverage calibration")
++        # Comparing NaN with a width returns False, not NaN. Mask before the
++        # comparison so warm-up / gated cells are not counted as misses.
++        member_abs_error = np.abs(member_err[observed])
++        member_sd = np.broadcast_to(sd, member_err.shape)[observed]
+@@ -157,7 +169,4 @@ def run_realization(
+-            member_coverage68=float(
+-                np.nanmean(np.abs(member_err) <= Z68 * sd[None, :])
+-            ),
+-            member_coverage95=float(
+-                np.nanmean(np.abs(member_err) <= Z95 * sd[None, :])
+-            ),
+-            member_rmse=float(np.sqrt(np.nanmean(member_err**2))),
++            n_member_epochs=int(observed.sum()),
++            member_coverage68=float(np.mean(member_abs_error <= Z68 * member_sd)),
++            member_coverage95=float(np.mean(member_abs_error <= Z95 * member_sd)),
++            member_rmse=float(np.sqrt(np.mean(member_abs_error**2))),
+@@ -177 +186 @@ def run_realization(
+-            missing_fraction=float(np.mean(~np.isfinite(run.members))),
++            missing_fraction=float(np.mean(~observed)),
+diff --git a/src/codameter/golden.py b/src/codameter/golden.py
+index 1d98d9c..0662d0b 100644
+--- a/src/codameter/golden.py
++++ b/src/codameter/golden.py
+@@ -506,0 +507,22 @@ def recover(d: dict, cfg: dict, eps_max: float):
++def advisory_case(use_case: str, *, years: float = 3.0, seed: int | None = None):
++    """Build a public seasonal development example for any supported application.
++
++    This route is independent of the installed evaluation corpus. It never
++    opens private recipes or substitutes a depth-targeted case for the generic
++    application. The returned ``recipe`` records the settings for replay.
++    Synthetic recovery is conditional evidence, not field validation.
++    """
++    app = uc.resolve(use_case)
++    if not np.isfinite(years) or years <= 0:
++        raise ValueError("years must be finite and positive")
++    recipe = next(
++        dict(c) for c in _build_cases() if c["use_case"] == app and c["grade"] == "easy"
++    )
++    recipe["years"] = float(years)
++    if seed is not None:
++        recipe["seed"] = int(seed)
++    data = _build(recipe)
++    data["recipe"] = recipe
++    return data
++
++
+@@ -520 +542 @@ def _generator_hash() -> str:
+-    this module and :mod:`codameter.synthetic_demo`. Part of the cache key, so
++    this module, :mod:`codameter.synthetic_demo` and :mod:`codameter.use_cases`. Part of the cache key, so
+@@ -528 +550 @@ def _generator_hash() -> str:
+-    for src in (__file__, synthetic_demo.__file__):
++    for src in (__file__, synthetic_demo.__file__, uc.__file__):
+@@ -659,3 +681,3 @@ def rms_on_support(dvv, truth, support, baseline) -> tuple[float, float]:
+-    prediction**, i.e. zero change from the baseline, so abstaining on an
+-    epoch can never improve the score and omitting every epoch scores like a
+-    series of zeros. The prediction's own baseline mean is taken over its
++    prediction**, i.e. zero change from the baseline, so missing epochs do not disappear from the error denominator. Replacing
++    a poor prediction by null can still improve the score; availability must
++    be reported separately. The prediction's own baseline mean is taken over its
+diff --git a/src/codameter/uq_bayes.py b/src/codameter/uq_bayes.py
+index b648704..663a677 100644
+--- a/src/codameter/uq_bayes.py
++++ b/src/codameter/uq_bayes.py
+@@ -1 +1 @@
+-r"""A Bayesian measurement model for :math:`\delta v/v` — the *new* best practice.
++r"""A working Bayesian model for an ensemble of dv/v processing outputs.
+@@ -3,6 +3,5 @@ r"""A Bayesian measurement model for :math:`\delta v/v` — the *new* best pract
+-The deviation/multiverse experiments (:mod:`codameter.deviations`) show that the
+-processing choice, not the data, often controls a :math:`\delta v/v` estimate.
+-The honest response is not to crown one pipeline but to treat the choice as a
+-**nuisance parameter** with a prior, run an ensemble of defensible pipelines, and
+-*marginalise* the choice out. This module does exactly that, as a Bayesian
+-hierarchical inversion.
++The likelihood is ``m_k(t) = mu(t) + beta_k + epsilon_k(t)``, with normal
++configuration offsets of variance ``tau**2`` and conditionally independent
++residuals of variance ``s**2 * sigma_k(t)**2``. ``sigma_k`` is the Weaver
++floor. A second-difference prior on the physical time grid smooths ``mu``;
++missing observations carry zero precision.
+@@ -10,7 +9,3 @@ hierarchical inversion.
+-Model
+------
+-For configuration :math:`k` (an estimator/band/window/stack/reference choice
+-drawn from a prior over defensible pipelines) we obtain a measured series
+-:math:`m_k(t)` with a coherence-limited within-method standard error
+-:math:`\sigma_k(t)` (Weaver/Clarke; :func:`codameter.uq_measurement.weaver_stretching_error`).
+-We posit
++All configurations reuse the same waveform data. Conditional independence is
++therefore a working assumption, not an established property. Jointly fitting
++these outputs is not discrete mixture marginalization over pipelines.
+@@ -18,6 +13,5 @@ We posit
+-.. math::
+-    m_k(t) = \mu(t) + \beta_k + \varepsilon_k(t),
+-    \qquad
+-    \beta_k \sim \mathcal N(0,\tau^2),
+-    \quad
+-    \varepsilon_k(t) \sim \mathcal N\!\big(0,\, s^2\,\sigma_k(t)^2\big),
++``mu_cov`` and the credible band describe the combined estimate under that
++likelihood. ``Cd`` is constructed separately from the fitted floor, excess
++configuration spread, a fitted exponential temporal correlation, and a rank-one
++term using ``tau``. It targets a randomly selected member's error, not the
++combined estimate. Between-configuration offsets cannot identify common bias.
+@@ -25,24 +19,5 @@ We posit
+-with a smoothness (2nd-difference random-walk) prior of precision :math:`\lambda`
+-on the latent true series :math:`\mu(t)`, built on the physical time grid so
+-gaps are gaps. Missing members (warm-up, gated epochs) carry no information. Here :math:`\beta_k` is the
+-configuration's **methodological bias** (e.g. the systematic MWCS-vs-stretching
+-offset), :math:`\tau^2` its variance across the ensemble, and :math:`s^2`
+-rescales the Weaver floor so the data tell us whether it is calibrated.
+-
+-The posterior is sampled by a conjugate **Gibbs sampler** (pure NumPy, no
+-external sampler). Its two deliverables are
+-
+-1. the marginal posterior :math:`p(\mu(t)\mid\{m_k\})` — a single
+-   :math:`\delta v/v` series with an uncertainty that *includes* the
+-   processing-choice spread; and
+-2. a **measurement covariance** :math:`C_d`, *constructed* (not sampled) from
+-   the posterior-calibrated within-method floor, the between-configuration
+-   spread, an exponential temporal correlation fitted to the ensemble residuals
+-   and the common-mode scale :math:`\tau` (see :class:`BayesResult`). It is the
+-   object a downstream depth/stress inversion (:mod:`codameter.inverse`) should
+-   consume instead of a diagonal ``dvv_err``. It is **not**
+-   :math:`\operatorname{Cov}(\mu\mid\text{data})`: that is ``mu_cov``, the
+-   precision of the combined estimate, which shrinks with ensemble size. Its
+-   time dependence is real: it is wider where the ensemble disagrees (sharp
+-   transients, low coherence) and its off-diagonals carry the temporal
+-   correlation the stacking and the shared methodological bias induce.
++Repeated waveform realizations give near-nominal 95 percent pointwise member
++coverage, but 68 percent intervals overcover and the combined estimate's
++credible band undercovers. These checks do not validate temporal covariance,
++cross-band covariance, or downstream inversion intervals. See
++:mod:`codameter.calibration` and the manuscript's calibration table.
+@@ -142 +117,2 @@ def run_processing_ensemble(
+-    per-epoch coherence and is rejected.
++    per-epoch coherence and is rejected. Input CCF rows must form a complete
++    daily grid; irregular already-measured series can be passed to ``gibbs_dvv``.
+@@ -150,0 +127,9 @@ def run_processing_ensemble(
++    if not np.isfinite(days_arr).all() or not np.allclose(
++        np.diff(days_arr), 1.0, rtol=0.0, atol=1e-8
++    ):
++        raise ValueError(
++            "CCFs must be on a complete daily grid for day-based stacking; "
++            "gibbs_dvv accepts irregular times for already measured series"
++        )
++    if not isinstance(cadence, int | np.integer) or cadence < 1:
++        raise ValueError("cadence must be a positive integer")
+@@ -175,2 +160,5 @@ def run_processing_ensemble(
+-            if cfg["gate"]:
+-                valid = valid & valid_ts  # gate every estimator on the same coherence
++        if cfg["gate"]:
++            # The legacy pipeline gates fixed-reference stretching only.
++            # Apply the same observed-coherence threshold to every ensemble
++            # estimator and reference, including moving-reference estimates.
++            valid = valid & valid_ts & np.isfinite(cc) & (cc > 0.6)
+@@ -213,2 +201,3 @@ class BayesResult:
+-        uncertainty of the *combined* estimate. It shrinks with ensemble size and
+-        is **not** the object to propagate downstream.
++        model-conditional uncertainty of the *combined* estimate. It shrinks
++        with ensemble size under the working likelihood, but does not include
++        shared model error. Its downstream use requires separate calibration.
+@@ -216,2 +205 @@ class BayesResult:
+-        The **constructed measurement covariance** to hand a downstream
+-        depth/stress inversion: :math:`C_d = D R D + \tau^2 \mathbf{1}\mathbf{1}^T`
++        A **constructed single-member error covariance**: :math:`C_d = D R D + \tau^2 \mathbf{1}\mathbf{1}^T`
+@@ -226 +214 @@ class BayesResult:
+-        Posterior-mean scale of the per-configuration offsets :math:`\beta_k`
++        Square root of posterior-mean variance of the per-configuration offsets :math:`\beta_k`
+@@ -247,2 +235,2 @@ class BayesResult:
+-        Share of each scale posterior that comes from its hyper-prior rather
+-        than the data, evaluated at the posterior means:
++        Prior scale contribution to each conditional posterior rate, evaluated
++        at the posterior means. This is not the total influence of the prior:
+@@ -252,3 +240,3 @@ class BayesResult:
+-        mean data-dominated; a value near one means the prior scale is setting
+-        the answer, which happens for tau^2 with few configurations and tiny
+-        offsets.
++        mean the prior rate term is small. The shape parameters and
++        smoothness assumptions can still matter; this is not a convergence
++        diagnostic or a substitute for prior sensitivity checks.
+diff --git a/tests/test_advisor_validation.py b/tests/test_advisor_validation.py
+new file mode 100644
+index 0000000..ea68f79
+--- /dev/null
++++ b/tests/test_advisor_validation.py
+@@ -0,0 +1,34 @@
++"""Executable coverage for the advisor's public development route (AG-01)."""
++
++import numpy as np
++import pytest
++from codameter import golden
++from codameter import use_cases as uc
++
++
++@pytest.mark.parametrize("app", list(uc.USE_CASES))
++def test_advisory_case_recovers_every_application(app, monkeypatch):
++    # The advisor must work without a matching public or private gold record.
++    monkeypatch.setattr(golden, "CASES_BY_ID", {})
++    data = golden.advisory_case(app, years=0.3, seed=41)
++    assert data["use_case"] == app
++    assert data["recipe"]["grade"] == "easy"
++    assert data["recipe"]["seed"] == 41
++    assert "truth_other" not in data
++    cfg = uc.recommend(app)
++    dvv, valid = golden.recover(data, cfg, uc.eps_max(app))
++    assert valid.sum() >= 10
++    assert np.isfinite(dvv[valid]).all()
++    support = golden.scoring_support(data, cfg, uc.eps_max(app))
++    rms, availability = golden.rms_on_support(
++        np.where(valid, dvv, np.nan), data["truth"], **support
++    )
++    assert np.isfinite(rms) and availability == 1.0
++
++
++def test_advisory_case_alias_and_replay():
++    a = golden.advisory_case("glacier", years=0.1, seed=19)
++    b = golden.advisory_case("cryosphere", years=0.1, seed=19)
++    np.testing.assert_array_equal(a["ccfs"], b["ccfs"])
++    with pytest.raises(ValueError, match="years"):
++        golden.advisory_case("volcano", years=np.nan)
+diff --git a/tests/test_audit_small_fixes.py b/tests/test_audit_small_fixes.py
+index 952ca03..ed5f01c 100644
+--- a/tests/test_audit_small_fixes.py
++++ b/tests/test_audit_small_fixes.py
+@@ -68,0 +69,9 @@ def test_golden_cache_is_exact_and_versioned(tmp_path, monkeypatch):
++
++
++def test_golden_cache_identity_includes_application_geometry(tmp_path, monkeypatch):
++    source = tmp_path / "use_cases.py"
++    source.write_text("geometry = 1\n")
++    monkeypatch.setattr(golden.uc, "__file__", str(source))
++    before = golden._generator_hash()
++    source.write_text("geometry = 2\n")
++    assert golden._generator_hash() != before
+diff --git a/tests/test_calibration.py b/tests/test_calibration.py
+index ee99d9a..3aec5ae 100644
+--- a/tests/test_calibration.py
++++ b/tests/test_calibration.py
+@@ -5,0 +6 @@ import json
++from types import SimpleNamespace
+@@ -9,0 +11 @@ from codameter import calibration as C
++from codameter import uq_bayes
+@@ -32,0 +35,39 @@ _BASE = {
++def test_missing_members_do_not_count_as_coverage_misses(monkeypatch):
++    # Two of six cells are observed. One covers truth, one misses. A finite
++    # member without a usable coherence floor is also unobserved by the fit.
++    members = np.array([[0.0, np.nan, 0.0], [3.0, np.nan, np.nan]])
++    sigmas = np.ones_like(members)
++    sigmas[0, 2] = np.nan
++    run = SimpleNamespace(truth=np.zeros(3), members=members, within_sigma=sigmas)
++    result = SimpleNamespace(
++        mu_mean=np.zeros(3),
++        Cd=np.eye(3),
++        mu_lo=-np.ones(3),
++        mu_hi=np.ones(3),
++        tau=0.0,
++        s=1.0,
++        corr_length_days=1.0,
++        n_eff=3,
++        prior_weight={},
++    )
++    monkeypatch.setattr(
++        C,
++        "make_realization",
++        lambda *a, **kw: (
++            SimpleNamespace(t=np.arange(5), fs=1),
++            np.arange(3),
++            np.zeros(3),
++            np.zeros((3, 5)),
++        ),
++    )
++    monkeypatch.setattr(uq_bayes, "bayes_dvv_from_ccfs", lambda *a, **kw: (result, run))
++    row = C.run_realization(1)
++    assert row["ok"]
++    assert row["n_member_epochs"] == 2
++    assert row["member_coverage68"] == row["member_coverage95"] == 0.5
++    assert row["missing_fraction"] == pytest.approx(2 / 3)
++    assert row["member_rmse"] == pytest.approx(np.sqrt(4.5))
++    members[:] = np.nan
++    assert not C.run_realization(1)["ok"]
++
++
+diff --git a/tests/test_uq_bayes.py b/tests/test_uq_bayes.py
+index 4930215..0e281c0 100644
+--- a/tests/test_uq_bayes.py
++++ b/tests/test_uq_bayes.py
+@@ -145,0 +146,34 @@ def test_stack_is_in_days_and_output_is_decimated_after(small_ccfs):
++@pytest.mark.parametrize("days", [[0, 1, 3], [0, 2, 4], [2, 1, 0], [0, 1, np.nan]])
++def test_ensemble_rejects_non_daily_ccfs(days):
++    with pytest.raises(ValueError, match="complete daily grid"):
++        B.run_processing_ensemble(np.zeros((3, 5)), np.arange(5), 1.0, [], days=days)
++
++
++@pytest.mark.parametrize("estimator", ["stretching (TS)", "MWCS"])
++def test_moving_reference_gate_masks_low_coherence(estimator, monkeypatch):
++    from codameter import deviations
++
++    def measured(*args, return_cc=False, **kwargs):
++        values, valid = np.ones(3), np.ones(3, dtype=bool)
++        return (
++            (values, valid, np.array([0.55, 0.65, 0.8]))
++            if return_cc
++            else (values, valid)
++        )
++
++    monkeypatch.setattr(deviations, "run_pipeline", measured)
++    config = dict(
++        estimator=estimator,
++        band=(0.4, 1),
++        window=(8, 28),
++        stack=5,
++        reference="moving",
++        gate=True,
++    )
++    result = B.run_processing_ensemble(
++        np.zeros((3, 5)), np.arange(5), 1.0, [config], cadence=1
++    )
++    assert np.isnan(result.members[0, 0])
++    assert np.isfinite(result.members[0, 1:]).all()
++
++

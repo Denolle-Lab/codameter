@@ -1,0 +1,104 @@
+{
+  "source_version": "0.4.0",
+  "installed_metadata_version": "0.2.1",
+  "figures_not_regenerated_by_build_figures": [
+    "demo_10_deviations.png",
+    "demo_11_multiverse.png",
+    "demo_12_bayes.png",
+    "realdata_1_validation.png",
+    "realdata_2_interferograms.png",
+    "realdata_3_warmup.png"
+  ],
+  "realdata": {
+    "LJR": {
+      "rows": 727,
+      "date_min": "2018-01-01 00:00:00",
+      "date_max": "2019-12-30 00:00:00",
+      "unique_dates": 727,
+      "duplicates": 0,
+      "rows_after_150_calendar_days": 578,
+      "columns": [
+        "date",
+        "dvv",
+        "dvv_err",
+        "dvv_err_within",
+        "dvv_err_method",
+        "cc",
+        "n_members",
+        "network",
+        "station",
+        "band",
+        "config_hash"
+      ],
+      "legacy_rows": 6596,
+      "legacy_columns": [
+        "DATE",
+        "DVV",
+        "CC"
+      ],
+      "parquet_sha256": "288412098cc8174dc1dd4ec9c725b9648e18478bd6acc9590e0339e38ddf72b9"
+    },
+    "ARV": {
+      "rows": 727,
+      "date_min": "2018-01-01 00:00:00",
+      "date_max": "2019-12-30 00:00:00",
+      "unique_dates": 727,
+      "duplicates": 0,
+      "rows_after_150_calendar_days": 578,
+      "columns": [
+        "date",
+        "dvv",
+        "dvv_err",
+        "dvv_err_within",
+        "dvv_err_method",
+        "cc",
+        "n_members",
+        "network",
+        "station",
+        "band",
+        "config_hash"
+      ],
+      "legacy_rows": 5979,
+      "legacy_columns": [
+        "DATE",
+        "DVV",
+        "CC"
+      ],
+      "parquet_sha256": "d31df2f2b2adde81acaeab25008d68ceac992c5618e9454c133972a22c2ea7b3"
+    },
+    "RXH": {
+      "rows": 639,
+      "date_min": "2018-01-01 00:00:00",
+      "date_max": "2019-12-30 00:00:00",
+      "unique_dates": 639,
+      "duplicates": 0,
+      "rows_after_150_calendar_days": 489,
+      "columns": [
+        "date",
+        "dvv",
+        "dvv_err",
+        "dvv_err_within",
+        "dvv_err_method",
+        "cc",
+        "n_members",
+        "network",
+        "station",
+        "band",
+        "config_hash"
+      ],
+      "legacy_rows": 5954,
+      "legacy_columns": [
+        "DATE",
+        "DVV",
+        "CC"
+      ],
+      "parquet_sha256": "36360595c608585637068890c8818269bbd58249ff88020b1d4b6f4fc916612b"
+    }
+  },
+  "aggregate_incomplete_duplicate_probe": {
+    "declared_shards": 2,
+    "present_shards": 1,
+    "duplicate_rows": 2,
+    "exit_code": 0
+  }
+}

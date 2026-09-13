@@ -1,0 +1,201 @@
+{
+ "figure": "demo_10_deviations",
+ "generator": "codameter.deviations.oat_effects + fig_deviation_ranking",
+ "codameter_version": "0.4.0",
+ "git_commit": "d3a5c18b08d95872cfa54fa796f080daec94d20a",
+ "generated_utc": "2026-09-13T13:48:43+00:00",
+ "python": "3.12.13",
+ "numpy": "2.4.3",
+ "matplotlib": "3.10.9",
+ "axes": [
+  {
+   "axes": "ax0",
+   "title": "(a) RMS error of each deviation",
+   "xlabel": "RMS error vs truth (dv/v, %, log)",
+   "ylabel": "",
+   "lines": [
+    "best practice (0.032%)"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 12
+  },
+  {
+   "axes": "ax1",
+   "title": "(b) Distortion of the drop",
+   "xlabel": "drop error (%, symlog)",
+   "ylabel": "",
+   "lines": [
+    "_child12"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 12
+  }
+ ],
+ "arrays": [
+  "ax0/line0/x",
+  "ax0/line0/y",
+  "ax0/patch0/xywh",
+  "ax0/patch1/xywh",
+  "ax0/patch10/xywh",
+  "ax0/patch11/xywh",
+  "ax0/patch2/xywh",
+  "ax0/patch3/xywh",
+  "ax0/patch4/xywh",
+  "ax0/patch5/xywh",
+  "ax0/patch6/xywh",
+  "ax0/patch7/xywh",
+  "ax0/patch8/xywh",
+  "ax0/patch9/xywh",
+  "ax1/line0/x",
+  "ax1/line0/y",
+  "ax1/patch0/xywh",
+  "ax1/patch1/xywh",
+  "ax1/patch10/xywh",
+  "ax1/patch11/xywh",
+  "ax1/patch2/xywh",
+  "ax1/patch3/xywh",
+  "ax1/patch4/xywh",
+  "ax1/patch5/xywh",
+  "ax1/patch6/xywh",
+  "ax1/patch7/xywh",
+  "ax1/patch8/xywh",
+  "ax1/patch9/xywh"
+ ],
+ "oat_rows": [
+  {
+   "axis": "baseline",
+   "option": "best practice",
+   "is_best": true,
+   "rms": 0.0003168436926370666,
+   "drop_err": 0.00017951251247123878
+  },
+  {
+   "axis": "Estimator",
+   "option": "stretching (TS)",
+   "is_best": true,
+   "rms": 0.0003168436926370666,
+   "drop_err": 0.00017951251247123878
+  },
+  {
+   "axis": "Estimator",
+   "option": "MWCS",
+   "is_best": false,
+   "rms": 0.0038544999247035884,
+   "drop_err": -0.0031678133738542264
+  },
+  {
+   "axis": "Estimator",
+   "option": "WCS",
+   "is_best": false,
+   "rms": 0.015437845575104556,
+   "drop_err": -0.015622735939078099
+  },
+  {
+   "axis": "Estimator",
+   "option": "DTW",
+   "is_best": false,
+   "rms": 0.0019010637080520015,
+   "drop_err": -0.0020390256143288923
+  },
+  {
+   "axis": "Frequency band",
+   "option": "0.4\u20131",
+   "is_best": true,
+   "rms": 0.0003168436926370666,
+   "drop_err": 0.00017951251247123878
+  },
+  {
+   "axis": "Frequency band",
+   "option": "0.8\u20132",
+   "is_best": false,
+   "rms": 0.00022192379795304393,
+   "drop_err": 0.00011883437646301436
+  },
+  {
+   "axis": "Frequency band",
+   "option": "0.2\u20130.5",
+   "is_best": false,
+   "rms": 0.0005723467342313203,
+   "drop_err": -0.00026992542065171904
+  },
+  {
+   "axis": "Coda window",
+   "option": "10\u201330",
+   "is_best": true,
+   "rms": 0.0003168436926370666,
+   "drop_err": 0.00017951251247123878
+  },
+  {
+   "axis": "Coda window",
+   "option": "4\u201314",
+   "is_best": false,
+   "rms": 0.0002673549431669386,
+   "drop_err": 0.0004439333638909552
+  },
+  {
+   "axis": "Coda window",
+   "option": "25\u201345",
+   "is_best": false,
+   "rms": 0.0006250252824107874,
+   "drop_err": -0.00047533302360930514
+  },
+  {
+   "axis": "Stack length",
+   "option": "10",
+   "is_best": true,
+   "rms": 0.0003168436926370666,
+   "drop_err": 0.00017951251247123878
+  },
+  {
+   "axis": "Stack length",
+   "option": "1",
+   "is_best": false,
+   "rms": 0.0007901562880647926,
+   "drop_err": -0.00154359683642415
+  },
+  {
+   "axis": "Stack length",
+   "option": "45",
+   "is_best": false,
+   "rms": 0.0005136764602364905,
+   "drop_err": 0.0006787803991007047
+  },
+  {
+   "axis": "Reference scheme",
+   "option": "fixed",
+   "is_best": true,
+   "rms": 0.0003168436926370666,
+   "drop_err": 0.00017951251247123878
+  },
+  {
+   "axis": "Reference scheme",
+   "option": "moving",
+   "is_best": false,
+   "rms": 0.0016412776082229397,
+   "drop_err": 0.0011609599559004881
+  },
+  {
+   "axis": "Reference scheme",
+   "option": "inversion",
+   "is_best": true,
+   "rms": 0.0006509366074710296,
+   "drop_err": 0.0007229148088323343
+  },
+  {
+   "axis": "CC gating",
+   "option": "True",
+   "is_best": true,
+   "rms": 0.0003168436926370666,
+   "drop_err": 0.00017951251247123878
+  },
+  {
+   "axis": "CC gating",
+   "option": "False",
+   "is_best": false,
+   "rms": 0.0003168436926370666,
+   "drop_err": 0.00017951251247123878
+  }
+ ]
+}

@@ -28,6 +28,7 @@ skill (live validation), and the FrugalMind ``codameter`` suites
 (:mod:`codameter.frugalmind`). All score through :func:`recover`, so a single
 code path handles both single- and multi-channel cases.
 """
+
 from __future__ import annotations
 
 import json
@@ -38,8 +39,9 @@ from pathlib import Path
 import numpy as np
 
 from . import use_cases as uc
+from ._version import __version__
 from .deviations import run_pipeline
-from .synthetic_demo import YEAR_D, _days, _seasonal, daily_ccfs, make_coda
+from .synthetic_demo import _days, _seasonal, daily_ccfs, make_coda
 
 
 def _default_data_dir() -> Path:
@@ -71,7 +73,12 @@ def _default_data_dir() -> Path:
 DATA_DIR = _default_data_dir()
 MANIFEST = DATA_DIR / "manifest.json"
 CACHE_DIR = DATA_DIR / "cache"
-MANIFEST_VERSION = 2
+# Bumped whenever a change to the estimator/generator numerics can move the
+# frozen "expected" metrics (e.g. the current-vs-reference interpolation
+# fix below) -- forces per-user caches to regenerate rather than silently
+# comparing against stale expectations. Not bumped for the v0.4.0 sign-flip
+# itself; see CHANGELOG.md.
+MANIFEST_VERSION = 3
 
 # Whether DATA_DIR is the regenerable per-user cache (pip-installed, no source
 # tree, no explicit override) as opposed to an authoritative committed source or
@@ -88,12 +95,48 @@ _DATA_DIR_IS_CACHE = (
 # the physical scale of each motif; they stay within the application's eps_max.
 # ---------------------------------------------------------------------------
 AMP = {
-    "volcano":          {"seasonal": 0.0010, "drop": -0.0040, "trend": -0.0015, "tau": 90.0,  "phase": 60.0},
-    "earthquake_fault": {"seasonal": 0.0006, "drop": -0.0025, "trend": -0.0010, "tau": 160.0, "phase": 30.0},
-    "landslide":        {"seasonal": 0.0100, "drop": -0.0300, "trend": -0.0050, "tau": 60.0,  "phase": 120.0},
-    "groundwater":      {"seasonal": 0.0015, "drop": -0.0020, "trend": -0.0012, "tau": 120.0, "phase": 250.0},
-    "cryosphere":       {"seasonal": 0.0300, "drop": -0.0150, "trend": -0.0040, "tau": 45.0,  "phase": 200.0},
-    "geothermal":       {"seasonal": 0.0005, "drop": -0.0060, "trend": -0.0100, "tau": 120.0, "phase": 30.0},
+    "volcano": {
+        "seasonal": 0.0010,
+        "drop": -0.0040,
+        "trend": -0.0015,
+        "tau": 90.0,
+        "phase": 60.0,
+    },
+    "earthquake_fault": {
+        "seasonal": 0.0006,
+        "drop": -0.0025,
+        "trend": -0.0010,
+        "tau": 160.0,
+        "phase": 30.0,
+    },
+    "landslide": {
+        "seasonal": 0.0100,
+        "drop": -0.0300,
+        "trend": -0.0050,
+        "tau": 60.0,
+        "phase": 120.0,
+    },
+    "groundwater": {
+        "seasonal": 0.0015,
+        "drop": -0.0020,
+        "trend": -0.0012,
+        "tau": 120.0,
+        "phase": 250.0,
+    },
+    "cryosphere": {
+        "seasonal": 0.0300,
+        "drop": -0.0150,
+        "trend": -0.0040,
+        "tau": 45.0,
+        "phase": 200.0,
+    },
+    "geothermal": {
+        "seasonal": 0.0005,
+        "drop": -0.0060,
+        "trend": -0.0100,
+        "tau": 120.0,
+        "phase": 30.0,
+    },
 }
 
 
@@ -110,7 +153,9 @@ def amp_for(case: dict) -> dict:
     return {**AMP[case["use_case"]], **case.get("amp", {})}
 
 
-def _step_heal(days: np.ndarray, amp: dict, onset_frac: float | None = None) -> np.ndarray:
+def _step_heal(
+    days: np.ndarray, amp: dict, onset_frac: float | None = None
+) -> np.ndarray:
     """A sharp drop at ~``onset_frac`` of the record with logarithmic partial heal."""
     onset_frac = amp.get("onset_frac", 0.5) if onset_frac is None else onset_frac
     onset = onset_frac * float(days[-1])
@@ -136,8 +181,11 @@ def _motif_composite(days: np.ndarray, amp: dict) -> np.ndarray:
     return _step_heal(days, amp) + _motif_seasonal(days, amp) + trend
 
 
-MOTIF = {"seasonal": _motif_seasonal, "transient": _motif_transient,
-         "composite": _motif_composite}
+MOTIF = {
+    "seasonal": _motif_seasonal,
+    "transient": _motif_transient,
+    "composite": _motif_composite,
+}
 
 
 # ---------------------------------------------------------------------------
@@ -172,18 +220,48 @@ def _depth_bands(app: str) -> tuple[tuple[float, float], tuple[float, float]]:
 # spans volcano / fault / aquifer / glacier / reservoir at that difficulty.
 # ---------------------------------------------------------------------------
 GRADES = {
-    "easy":   {"motif": "seasonal",  "snr": (8.0, 12.0), "channels": 1, "decorr": 0.00,
-               "years": 3.0, "split": "validation", "rms_rel_tol": 0.35},
-    "medium": {"motif": "transient", "snr": (3.0, 5.0),  "channels": 1, "decorr": 0.05,
-               "years": 3.0, "split": "validation", "rms_rel_tol": 0.45},
-    "hard":   {"motif": "depth", "snr": (2.0, 4.0),  "channels": 4, "decorr": 0.20,
-               "years": 2.5, "split": "test", "rms_rel_tol": 0.60},
+    "easy": {
+        "motif": "seasonal",
+        "snr": (8.0, 12.0),
+        "channels": 1,
+        "decorr": 0.00,
+        "years": 3.0,
+        "split": "validation",
+        "rms_rel_tol": 0.35,
+    },
+    "medium": {
+        "motif": "transient",
+        "snr": (3.0, 5.0),
+        "channels": 1,
+        "decorr": 0.05,
+        "years": 3.0,
+        "split": "validation",
+        "rms_rel_tol": 0.45,
+    },
+    "hard": {
+        "motif": "depth",
+        "snr": (2.0, 4.0),
+        "channels": 4,
+        "decorr": 0.20,
+        "years": 2.5,
+        "split": "test",
+        "rms_rel_tol": 0.60,
+    },
 }
 
 # 10 application slots per grade (the 6 applications, some repeated).
-APP_CYCLE = ["volcano", "earthquake_fault", "landslide", "groundwater",
-             "cryosphere", "geothermal", "volcano", "groundwater",
-             "landslide", "earthquake_fault"]
+APP_CYCLE = [
+    "volcano",
+    "earthquake_fault",
+    "landslide",
+    "groundwater",
+    "cryosphere",
+    "geothermal",
+    "volcano",
+    "groundwater",
+    "landslide",
+    "earthquake_fault",
+]
 
 _SEED_BASE = {"easy": 100, "medium": 200, "hard": 300}
 
@@ -193,13 +271,20 @@ def _build_cases() -> list[dict]:
     for grade, spec in GRADES.items():
         snr_lo, snr_hi = spec["snr"]
         for i, app in enumerate(APP_CYCLE):
-            snr = round(float(np.interp(i, [0, len(APP_CYCLE) - 1], [snr_hi, snr_lo])), 2)
+            snr = round(
+                float(np.interp(i, [0, len(APP_CYCLE) - 1], [snr_hi, snr_lo])), 2
+            )
             case = {
                 "id": f"{grade}-{app}-{i + 1:02d}",
-                "grade": grade, "use_case": app, "motif": spec["motif"],
-                "snr": snr, "seed": _SEED_BASE[grade] + i,
-                "channels": spec["channels"], "decorr": spec["decorr"],
-                "years": spec["years"], "split": spec["split"],
+                "grade": grade,
+                "use_case": app,
+                "motif": spec["motif"],
+                "snr": snr,
+                "seed": _SEED_BASE[grade] + i,
+                "channels": spec["channels"],
+                "decorr": spec["decorr"],
+                "years": spec["years"],
+                "split": spec["split"],
                 "rms_rel_tol": spec["rms_rel_tol"],
             }
             if grade == "hard":
@@ -209,14 +294,18 @@ def _build_cases() -> list[dict]:
                 target = "shallow" if i % 2 == 0 else "deep"
                 case["two_layer"] = True
                 case["target"] = target
-                case["config"] = {"band": shallow_band if target == "shallow" else deep_band}
+                case["config"] = {
+                    "band": shallow_band if target == "shallow" else deep_band
+                }
                 case["note"] = (
                     "The medium is depth-dependent: a shallow near-surface layer "
                     "(coseismic drop + hydrological seasonal) sits above a deep layer "
                     "(long-term trend). "
-                    + ("You must resolve the SHALLOW near-surface response."
-                       if target == "shallow" else
-                       "You must resolve the DEEP long-term trend.")
+                    + (
+                        "You must resolve the SHALLOW near-surface response."
+                        if target == "shallow"
+                        else "You must resolve the DEEP long-term trend."
+                    )
                     + " The band selects the depth."
                 )
             cases.append(case)
@@ -227,8 +316,11 @@ def _build_cases() -> list[dict]:
 # tests, tutorials and the paper figures. The full evaluation corpus is *hidden*
 # (see load_cases): its recipes carry secret `amp` truth parameters, so it cannot
 # be reconstructed from this source.
-PUBLIC_SAMPLE_IDS = ("easy-volcano-01", "medium-earthquake_fault-02",
-                     "hard-groundwater-04")
+PUBLIC_SAMPLE_IDS = (
+    "easy-volcano-01",
+    "medium-earthquake_fault-02",
+    "hard-groundwater-04",
+)
 
 CASES_FILE = "cases.json"
 
@@ -264,7 +356,7 @@ def representative_case(use_case: str, grade: str = "easy") -> str:
     for c in CASES:
         if c["use_case"] == key and c["grade"] == grade:
             return c["id"]
-    for c in CASES:                       # fall back to any grade
+    for c in CASES:  # fall back to any grade
         if c["use_case"] == key:
             return c["id"]
     raise KeyError(f"no golden case for use case {use_case!r}")
@@ -297,12 +389,18 @@ def _build(recipe: dict) -> dict:
     seed, snr = recipe["seed"], recipe["snr"]
     decorr = recipe.get("decorr", 0.0)
     nchan = int(recipe.get("channels", 1))
-    amp = amp_for(recipe)          # public table, or the case's secret override
+    amp = amp_for(recipe)  # public table, or the case's secret override
 
-    t, coda0 = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=gen,
-                         t_coda_s=sp["t_coda_s"], seed=0)
-    out: dict = {"fs": fs, "days": days, "use_case": app, "grade": recipe["grade"],
-                 "t": t}
+    t, coda0 = make_coda(
+        maxlag_s=sp["maxlag_s"], fs=fs, band=gen, t_coda_s=sp["t_coda_s"], seed=0
+    )
+    out: dict = {
+        "fs": fs,
+        "days": days,
+        "use_case": app,
+        "grade": recipe["grade"],
+        "t": t,
+    }
 
     if recipe.get("two_layer"):
         # Depth-dependent medium: shallow (high-freq) and deep (low-freq) layers,
@@ -314,17 +412,38 @@ def _build(recipe: dict) -> dict:
         truth_deep = _truth_deep(days, amp)
         chans = []
         for c in range(nchan):
-            _, cod_s = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=shallow_band,
-                                 t_coda_s=sp["t_coda_s"], seed=2 * c)
-            _, cod_d = make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=deep_band,
-                                 t_coda_s=sp["t_coda_s"], seed=2 * c + 1)
-            chans.append(daily_ccfs(t, [cod_s, cod_d], [truth_shallow, truth_deep],
-                                    fs=fs, snr=snr, decorr=decorr, gen_band=gen,
-                                    seed=seed + 7 * c))
+            _, cod_s = make_coda(
+                maxlag_s=sp["maxlag_s"],
+                fs=fs,
+                band=shallow_band,
+                t_coda_s=sp["t_coda_s"],
+                seed=2 * c,
+            )
+            _, cod_d = make_coda(
+                maxlag_s=sp["maxlag_s"],
+                fs=fs,
+                band=deep_band,
+                t_coda_s=sp["t_coda_s"],
+                seed=2 * c + 1,
+            )
+            chans.append(
+                daily_ccfs(
+                    t,
+                    [cod_s, cod_d],
+                    [truth_shallow, truth_deep],
+                    fs=fs,
+                    snr=snr,
+                    decorr=decorr,
+                    gen_band=gen,
+                    seed=seed + 7 * c,
+                )
+            )
         out["channels"] = np.stack(chans)
         out["ccfs"] = out["channels"].mean(axis=0)
         out["truth"] = truth_shallow if recipe["target"] == "shallow" else truth_deep
-        out["truth_other"] = truth_deep if recipe["target"] == "shallow" else truth_shallow
+        out["truth_other"] = (
+            truth_deep if recipe["target"] == "shallow" else truth_shallow
+        )
         return out
 
     truth = MOTIF[recipe["motif"]](days, amp)
@@ -332,17 +451,35 @@ def _build(recipe: dict) -> dict:
     if nchan > 1:
         # Independent cross-component channels: distinct coda + distinct noise,
         # sharing the medium's truth. Measured per channel, aggregated later.
-        codas = [coda0] + [make_coda(maxlag_s=sp["maxlag_s"], fs=fs, band=gen,
-                                     t_coda_s=sp["t_coda_s"], seed=c)[1]
-                           for c in range(1, nchan)]
-        chans = [daily_ccfs(t, [cod], [truth], fs=fs, snr=snr, decorr=decorr,
-                            gen_band=gen, seed=seed + 7 * c)
-                 for c, cod in enumerate(codas)]
+        codas = [coda0] + [
+            make_coda(
+                maxlag_s=sp["maxlag_s"],
+                fs=fs,
+                band=gen,
+                t_coda_s=sp["t_coda_s"],
+                seed=c,
+            )[1]
+            for c in range(1, nchan)
+        ]
+        chans = [
+            daily_ccfs(
+                t,
+                [cod],
+                [truth],
+                fs=fs,
+                snr=snr,
+                decorr=decorr,
+                gen_band=gen,
+                seed=seed + 7 * c,
+            )
+            for c, cod in enumerate(codas)
+        ]
         out["channels"] = np.stack(chans)
         out["ccfs"] = out["channels"].mean(axis=0)  # a 2D view for plotting
     else:
-        out["ccfs"] = daily_ccfs(t, [coda0], [truth], fs=fs, snr=snr,
-                                 decorr=decorr, gen_band=gen, seed=seed)
+        out["ccfs"] = daily_ccfs(
+            t, [coda0], [truth], fs=fs, snr=snr, decorr=decorr, gen_band=gen, seed=seed
+        )
     return out
 
 
@@ -356,14 +493,37 @@ def recover(d: dict, cfg: dict, eps_max: float):
     if "channels" in d and np.ndim(d["channels"]) == 3:
         per = []
         for c in range(d["channels"].shape[0]):
-            dvv_c, val_c = run_pipeline(d["channels"][c], d["t"], d["fs"], cfg,
-                                        eps_max=eps_max)
+            dvv_c, val_c = run_pipeline(
+                d["channels"][c], d["t"], d["fs"], cfg, eps_max=eps_max
+            )
             per.append(np.where(val_c, dvv_c, np.nan))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN columns
             dvv = np.nanmean(np.vstack(per), axis=0)
         return dvv, np.isfinite(dvv)
     return run_pipeline(d["ccfs"], d["t"], d["fs"], cfg, eps_max=eps_max)
+
+
+def advisory_case(use_case: str, *, years: float = 3.0, seed: int | None = None):
+    """Build a public seasonal development example for any supported application.
+
+    This route is independent of the installed evaluation corpus. It never
+    opens private recipes or substitutes a depth-targeted case for the generic
+    application. The returned ``recipe`` records the settings for replay.
+    Synthetic recovery is conditional evidence, not field validation.
+    """
+    app = uc.resolve(use_case)
+    if not np.isfinite(years) or years <= 0:
+        raise ValueError("years must be finite and positive")
+    recipe = next(
+        dict(c) for c in _build_cases() if c["use_case"] == app and c["grade"] == "easy"
+    )
+    recipe["years"] = float(years)
+    if seed is not None:
+        recipe["seed"] = int(seed)
+    data = _build(recipe)
+    data["recipe"] = recipe
+    return data
 
 
 # ---------------------------------------------------------------------------
@@ -377,39 +537,71 @@ def _recipe_hash(recipe: dict) -> str:
     return hashlib.sha1(blob.encode()).hexdigest()[:8]
 
 
-def generate(case_id: str, *, cache: bool = True) -> dict:
-    """Return the arrays for a case: ``{ccfs, t, days, truth, fs, use_case, grade}``
-    plus ``channels`` (3D) for multi-channel cases.
+def _generator_hash() -> str:
+    """Short digest of the synthesis code: package version plus the source of
+    this module, :mod:`codameter.synthetic_demo` and :mod:`codameter.use_cases`. Part of the cache key, so
+    a generator edit can never serve arrays built by older code (audit DET-02).
+    """
+    import hashlib
 
-    Deterministic in the seed. Cached to ``cache/<id>-<recipe_hash>.npz`` (the hash
-    busts the cache when a recipe changes). ``regenerate_manifest`` uses
-    ``cache=False`` so a synthesis-*code* change (not captured by the hash) never
-    scores against stale arrays.
+    from . import synthetic_demo
+
+    h = hashlib.sha1(__version__.encode())
+    for src in (__file__, synthetic_demo.__file__, uc.__file__):
+        h.update(Path(src).read_bytes())
+    return h.hexdigest()[:8]
+
+
+def generate(case_id: str, *, cache: bool = True) -> dict:
+    """Return the arrays for a case: ``{ccfs, t, days, truth, fs, use_case, grade,
+    recipe_hash, generator_hash}`` plus ``channels`` (3D) for multi-channel cases.
+
+    Deterministic in the seed. Cached to
+    ``cache/<id>-<recipe_hash>-<generator_hash>.npz``: the recipe hash busts the
+    cache when a recipe changes, the generator hash when the synthesis code or
+    the package version changes. Arrays are stored at full precision and the
+    file is written atomically, so the cold, warm and ``cache=False`` routes
+    return identical arrays. Stale cache files for the same case are removed.
     """
     recipe = CASES_BY_ID[case_id]
-    cache_file = CACHE_DIR / f"{case_id}-{_recipe_hash(recipe)}.npz"
+    rhash, ghash = _recipe_hash(recipe), _generator_hash()
+    cache_file = CACHE_DIR / f"{case_id}-{rhash}-{ghash}.npz"
     if cache and cache_file.exists():
         z = np.load(cache_file, allow_pickle=False)
         d = {k: z[k] for k in z.files}
         d["fs"] = float(d["fs"])
-        d["use_case"] = str(d["use_case"])
-        d["grade"] = str(d["grade"])
+        for key in ("use_case", "grade", "recipe_hash", "generator_hash"):
+            d[key] = str(d[key])
         return d
     d = _build(recipe)
+    d["recipe_hash"], d["generator_hash"] = rhash, ghash
     if cache:
+        import os
+        import tempfile
+
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        # Downcast the large CCF arrays to float32 to keep the cache small; the
-        # lapse/day/truth axes stay float64.
-        payload = {"t": d["t"], "days": d["days"], "truth": d["truth"],
-                   "ccfs": np.asarray(d["ccfs"], np.float32),
-                   "fs": np.asarray(d["fs"]),
-                   "use_case": np.asarray(d["use_case"]),
-                   "grade": np.asarray(d["grade"])}
+        payload = {
+            "t": d["t"],
+            "days": d["days"],
+            "truth": d["truth"],
+            "ccfs": np.asarray(d["ccfs"], np.float64),
+            "fs": np.asarray(d["fs"]),
+            "use_case": np.asarray(d["use_case"]),
+            "grade": np.asarray(d["grade"]),
+            "recipe_hash": np.asarray(rhash),
+            "generator_hash": np.asarray(ghash),
+        }
         if "channels" in d:
-            payload["channels"] = np.asarray(d["channels"], np.float32)
+            payload["channels"] = np.asarray(d["channels"], np.float64)
         if "truth_other" in d:
             payload["truth_other"] = d["truth_other"]
-        np.savez_compressed(cache_file, **payload)
+        fd, tmp = tempfile.mkstemp(dir=CACHE_DIR, suffix=".npz.tmp")
+        with os.fdopen(fd, "wb") as fh:
+            np.savez_compressed(fh, **payload)
+        os.replace(tmp, cache_file)
+        for stale in CACHE_DIR.glob(f"{case_id}-*.npz"):
+            if stale != cache_file:
+                stale.unlink(missing_ok=True)
     return d
 
 
@@ -427,8 +619,9 @@ def observed(case_id: str, *, cache: bool = True) -> dict:
     ``generate()`` can simply return ``d["truth"]`` and score a perfect 1.0.
     Anything the agent touches should go through this function.
     """
-    return {k: v for k, v in generate(case_id, cache=cache).items()
-            if k not in TRUTH_KEYS}
+    return {
+        k: v for k, v in generate(case_id, cache=cache).items() if k not in TRUTH_KEYS
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -455,6 +648,59 @@ def _rms(dvv, truth, days, valid, baseline_frac: float = 0.2) -> float:
     return float(np.sqrt(np.mean((d0 - tr0) ** 2)))
 
 
+def scoring_support(
+    d: dict, cfg: dict, eps_max: float, baseline_frac: float = 0.2
+) -> dict:
+    """Fixed evaluation support for a case, defined by its reference pipeline.
+
+    ``support`` is the sorted list of epoch indices where ``cfg`` (the case's
+    reference configuration) returns a valid estimate; ``baseline`` is the
+    earliest ``baseline_frac`` of those epochs, the datum over which truth and
+    prediction are demeaned in :func:`rms_on_support`. Both are properties of
+    the case, never of a submission, so a submission cannot choose where it is
+    evaluated or where its zero point is taken (audit finding EV-01).
+    """
+    _, valid = recover(d, cfg, eps_max)
+    idx = np.flatnonzero(np.asarray(valid, bool))
+    if idx.size < 10:
+        raise ValueError("reference pipeline valid on fewer than 10 epochs")
+    dd = np.asarray(d["days"], float)[idx]
+    cut = np.quantile(dd, baseline_frac)
+    base = idx[dd <= cut]
+    if base.size < 2:
+        base = idx
+    return {"support": idx.tolist(), "baseline": base.tolist()}
+
+
+def rms_on_support(dvv, truth, support, baseline) -> tuple[float, float]:
+    """Baseline-aligned RMS of ``dvv`` against ``truth`` on a fixed support.
+
+    Truth and prediction are demeaned over the fixed ``baseline`` epochs (the
+    DC offset of a reference-relative dv/v is unobservable). A missing
+    (non-finite) prediction inside the support is scored as the **null
+    prediction**, i.e. zero change from the baseline, so missing epochs do not disappear from the error denominator. Replacing
+    a poor prediction by null can still improve the score; availability must
+    be reported separately. The prediction's own baseline mean is taken over its
+    finite baseline epochs; fewer than two of those means no datum and an
+    RMS of ``nan``.
+
+    Returns ``(rms, availability)`` with ``availability`` the finite fraction
+    of the support.
+    """
+    sup = np.asarray(support, int)
+    base = np.asarray(baseline, int)
+    dv = np.asarray(dvv, float)[sup]
+    tr = np.asarray(truth, float)[sup]
+    finite = np.isfinite(dv)
+    availability = float(finite.mean()) if sup.size else 0.0
+    in_base = np.isin(sup, base)
+    if (finite & in_base).sum() < 2:
+        return float("nan"), availability
+    d0 = np.where(finite, dv - dv[finite & in_base].mean(), 0.0)
+    tr0 = tr - tr[in_base].mean()
+    return float(np.sqrt(np.mean((d0 - tr0) ** 2))), availability
+
+
 def _jsonable(cfg: dict) -> dict:
     """Tuples (band, window) -> lists so the config round-trips through JSON."""
     return {k: (list(v) if isinstance(v, tuple) else v) for k, v in cfg.items()}
@@ -468,8 +714,11 @@ def compute_metrics(case_id: str, data: dict | None = None) -> dict:
     cfg = uc.recommend(app, **recipe.get("config", {}))
     eps = uc.eps_max(app)
     dvv, valid = recover(d, cfg, eps)
-    res = {"config": _jsonable(cfg), "eps_max": eps,
-           "rms": _rms(dvv, d["truth"], d["days"], valid)}
+    res = {
+        "config": _jsonable(cfg),
+        "eps_max": eps,
+        "rms": _rms(dvv, d["truth"], d["days"], valid),
+    }
     if "truth_other" in d:
         # The error a config would incur by recovering the WRONG depth layer:
         # the "clearly wrong" anchor for scoring depth-band selection.
@@ -485,24 +734,32 @@ def regenerate_manifest() -> dict:
     """Recompute every case's expected metrics and rewrite ``manifest.json``."""
     cases = []
     for c in CASES:
-        d = generate(c["id"], cache=False)          # always from current code
+        d = generate(c["id"], cache=False)  # always from current code
         m = compute_metrics(c["id"], d)
         entry = {
-            "id": c["id"], "grade": c["grade"], "use_case": c["use_case"],
-            "motif": c["motif"], "split": case_split(c),
-            "visibility": case_visibility(c), "years": c["years"], "snr": c["snr"],
-            "seed": c["seed"], "channels": c["channels"], "decorr": c["decorr"],
-            "rms_rel_tol": c["rms_rel_tol"], "n_days": int(len(d["days"])),
+            "id": c["id"],
+            "grade": c["grade"],
+            "use_case": c["use_case"],
+            "motif": c["motif"],
+            "split": case_split(c),
+            "visibility": case_visibility(c),
+            "years": c["years"],
+            "snr": c["snr"],
+            "seed": c["seed"],
+            "channels": c["channels"],
+            "decorr": c["decorr"],
+            "rms_rel_tol": c["rms_rel_tol"],
+            "n_days": int(len(d["days"])),
             "expected": m,
         }
         if c.get("two_layer"):
             entry["two_layer"] = True
             entry["target"] = c["target"]
         cases.append(entry)
-        print(f"  {c['id']:<26} ch={c['channels']} snr={c['snr']:<4} "
-              f"rms={m['rms']:.5f}")
-    manifest = {"version": MANIFEST_VERSION, "grades": list(GRADES),
-                "cases": cases}
+        print(
+            f"  {c['id']:<26} ch={c['channels']} snr={c['snr']:<4} rms={m['rms']:.5f}"
+        )
+    manifest = {"version": MANIFEST_VERSION, "grades": list(GRADES), "cases": cases}
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
     return manifest
@@ -510,10 +767,9 @@ def regenerate_manifest() -> dict:
 
 def _manifest_is_current(manifest: dict) -> bool:
     """True if an on-disk manifest matches the current code (version + case ids)."""
-    return (
-        manifest.get("version") == MANIFEST_VERSION
-        and [c["id"] for c in manifest.get("cases", [])] == [c["id"] for c in CASES]
-    )
+    return manifest.get("version") == MANIFEST_VERSION and [
+        c["id"] for c in manifest.get("cases", [])
+    ] == [c["id"] for c in CASES]
 
 
 def load_manifest() -> dict:
@@ -559,8 +815,10 @@ def expected_metrics(case_id: str) -> dict:
 
 
 def main() -> int:
-    print(f"Regenerating golden manifest ({len(CASES)} cases, "
-          f"{len(GRADES)} grades) -> {MANIFEST}")
+    print(
+        f"Regenerating golden manifest ({len(CASES)} cases, "
+        f"{len(GRADES)} grades) -> {MANIFEST}"
+    )
     regenerate_manifest()
     print("done.")
     return 0

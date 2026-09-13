@@ -63,11 +63,15 @@ practice** and the **undocumented choices** that break intercomparability:
 | `demo_11_multiverse.png` | Full factorial (108 pipelines) | Spread + first-order variance attribution: which choice controls dv/v |
 | `demo_12_bayes.png` | Bayesian processing-ensemble inversion | Posterior dv/v + time-dependent data covariance C_d (`codameter.uq_bayes`) |
 
-Figures `demo_1`–`demo_9` come from `synthetic_dvv_demo.py`; `demo_10`–`demo_11`
-from `python -m codameter.deviations` (the deviation ranking + ultimate
-multiverse); `demo_12` from `python -m codameter.uq_bayes` (the Bayesian
-measurement model — the *new* best practice that marginalises the processing
-choice into a single time-dependent covariance for downstream inversion).
+All generated figures come from one driver, `python -m codameter.figures --out
+literature/figs`, which also writes a `.npz` (every plotted array) and a `.json`
+(generator, version, git commit, inventory) next to each PNG; see
+`figs/SOURCES.md`. The builders themselves live in `codameter.synthetic_demo`
+(`demo_1`-`demo_9`, `demo_13`-`demo_18`), `codameter.deviations` (`demo_10`,
+`demo_11`) and `codameter.uq_bayes` (`demo_12`, the Bayesian measurement model
+that marginalises the processing choice into a single time-dependent covariance).
+`synthetic_dvv_demo.py` still renders the `synthetic_demo` subset without
+sidecars. The three `realdata_*` figures are produced outside this repository.
 
 ## How to extend it
 

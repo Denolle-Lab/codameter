@@ -5,9 +5,7 @@ from __future__ import annotations
 import json
 
 import numpy as np
-
-from codameter import bench
-from codameter import golden
+from codameter import bench, golden
 
 EASY = "easy-volcano-01"
 HARD = next(c["id"] for c in golden.CASES if c["grade"] == "hard")
@@ -16,7 +14,9 @@ HARD = next(c["id"] for c in golden.CASES if c["grade"] == "hard")
 def test_build_grid_shapes_and_counts():
     case = golden.CASES_BY_ID[EASY]
     cfgs = bench.build_grid(case, "compact")
-    assert len(cfgs) == 4  # 2 estimators x 2 references; rec band/window/stack, gate=[True]
+    assert (
+        len(cfgs) == 4
+    )  # 2 estimators x 2 references; rec band/window/stack, gate=[True]
     for c in cfgs:
         assert set(c) == {"estimator", "band", "window", "stack", "reference", "gate"}
         assert isinstance(c["band"], tuple) and isinstance(c["window"], tuple)
@@ -88,7 +88,7 @@ def test_score_cell_aggregates_multichannel_and_grades_depth():
     miss = bench.score_cell(HARD, 1, uc.recommend(app, band=wrong))
     assert hit["ok"] and miss["ok"]
     assert hit["target"] in ("shallow", "deep")
-    assert hit["rms"] < miss["rms"]      # picking the right depth wins
+    assert hit["rms"] < miss["rms"]  # picking the right depth wins
 
 
 def test_run_sweep_and_roundtrip(tmp_path):
@@ -97,8 +97,9 @@ def test_run_sweep_and_roundtrip(tmp_path):
     assert all(r["case_id"] == EASY for r in rows)
     dest = bench._write_jsonl(rows, str(tmp_path), "shard-00000-of-00001.jsonl")
     assert dest.endswith(".jsonl")
-    back = list(bench._read_jsonl_dir(str(tmp_path)))
+    back = [r for _, r in bench._read_jsonl_dir(str(tmp_path))]
     assert len(back) == 4
+    assert all(r["codameter_version"] for r in back)
     json.dumps(back)  # serializable
 
 

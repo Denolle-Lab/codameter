@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/Users/marinedenolle/GitHub/codameter/.pixi/envs/test/bin/python",
+    "paper/build.py",
+    "--no-survey"
+  ],
+  "cwd": "/Users/marinedenolle/GitHub/codameter/review/evidence/reproduction_workspace",
+  "scope": "Current manuscript render; preserves checked-in survey and figure artifacts. Does not regenerate results.",
+  "returncode": 1,
+  "status": "completed",
+  "elapsed_seconds": 13.896
+}

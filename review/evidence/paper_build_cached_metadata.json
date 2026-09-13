@@ -1,0 +1,16 @@
+{
+  "command": [
+    "quarto",
+    "render",
+    "manuscript_marine.qmd",
+    "--to",
+    "pdf",
+    "-M",
+    "latex-auto-install:false"
+  ],
+  "cwd": "/Users/marinedenolle/GitHub/codameter/review/evidence/reproduction_workspace/paper",
+  "tex_cache": "/Users/marinedenolle/GitHub/codameter/review/evidence/tex_cache",
+  "returncode": 0,
+  "status": "completed",
+  "elapsed_seconds": 60.975
+}

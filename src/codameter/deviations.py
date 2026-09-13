@@ -23,6 +23,7 @@ Both reuse the real estimators and truth generators in
 departure is an artefact of a choice, not of nature. The baseline and the
 deviation menus are taken from ``literature/best_practices.md``.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -35,6 +36,7 @@ from .synthetic_demo import (
     YEAR_D,
     C,
     Synth,
+    _boost_fonts,
     _days,
     _trailing_stack,
     daily_ccfs,
@@ -134,10 +136,11 @@ def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False, prefiltered
 
     **Sign convention (v0.4.0, physical dv/v)**: a velocity *increase* is
     positive. All estimators return ``dv/v = -eps / (1 + eps)`` where
-    ``eps`` is the stretch factor that maps the reference onto the current
-    waveform (a coda that must be dilated to match means the medium slowed
-    down). Before v0.4.0 this function returned ``eps`` itself, labeled
-    dv/v — anticorrelated with the physical convention.
+    ``eps`` is the stretch factor that resamples the *current* waveform to
+    match the fixed reference (a current trace that must be dilated to
+    match means the medium slowed down). Before v0.4.0 this function
+    returned ``eps`` itself, labeled dv/v — anticorrelated with the
+    physical convention.
 
     Returns ``(dvv, valid)``: the per-day series and a boolean mask of epochs the
     pipeline actually produced (moving/inversion references have a warm-up gap;
@@ -390,10 +393,12 @@ def fig_deviation_ranking(rows=None):
         r for r in rows if r.axis == "Reference scheme" and r.option == "inversion"
     ]
     items.sort(key=lambda r: -(r.rms if np.isfinite(r.rms) else 0))
-    labels = [f"{r.axis}: {r.option}" for r in items]
+    # display names: "moving" is the uncumulated trailing reference of the text
+    shown = {"moving": "uncumulated trailing", "False": "off"}
+    labels = [f"{r.axis}: {shown.get(r.option, r.option)}" for r in items]
     rms = [r.rms * PCT for r in items]
     fig, ax = plt.subplots(
-        1, 2, figsize=(6.9, 4.6), gridspec_kw={"width_ratios": [1.35, 1]}
+        1, 2, figsize=(7.9, 4.6), gridspec_kw={"width_ratios": [1.35, 1]}
     )
     y = np.arange(len(items))
     cols = [C["volcano"] if r.rms > 3 * base.rms else C["bad"] for r in items]
@@ -403,16 +408,16 @@ def fig_deviation_ranking(rows=None):
         color=C["truth"],
         ls="--",
         lw=1.2,
-        label=f"best practice ({base.rms*PCT:.3f}%)",
+        label=f"best practice ({base.rms * PCT:.3f}%)",
     )
     ax[0].set(
         yticks=y,
         xlabel="RMS error vs truth (dv/v, %, log)",
-        title="(a) Bias injected by each deviation",
+        title="(a) RMS error of each deviation",
     )
-    ax[0].set_yticklabels(labels, fontsize=8.5)
+    ax[0].set_yticklabels(labels, fontsize=10.5)
     ax[0].invert_yaxis()
-    ax[0].legend(fontsize=8.5, frameon=False, loc="lower right")
+    ax[0].legend(fontsize=10.5, frameon=False, loc="lower right")
     drop = [r.drop_err * PCT for r in items]
     ax[1].barh(y, drop, color=cols)
     ax[1].axvline(0, color=C["truth"], lw=1)
@@ -424,6 +429,7 @@ def fig_deviation_ranking(rows=None):
         title="(b) Distortion of the drop",
     )
     ax[1].invert_yaxis()
+    _boost_fonts(ax[0], ax[1], tick=10.5, label=12, title=13)
     fig.tight_layout()
     return fig
 
@@ -431,6 +437,7 @@ def fig_deviation_ranking(rows=None):
 def fig_multiverse_full(mv=None):
     """The ultimate multiverse: every pipeline + the variance attribution."""
     import matplotlib.pyplot as plt
+    from matplotlib.colors import Normalize
 
     if mv is None:
         mv = multiverse()
@@ -444,47 +451,55 @@ def fig_multiverse_full(mv=None):
     # (a) fan of pipelines, coloured by RMS error with a colourblind-safe,
     # perceptually uniform sequential map (dark = accurate, bright = biased).
     order = np.argsort(-np.nan_to_num(rms))
-    norm = plt.Normalize(np.nanpercentile(rms, 5), np.nanpercentile(rms, 95))
+    norm = Normalize(np.nanpercentile(rms, 5), np.nanpercentile(rms, 95))
     cmap = plt.cm.viridis_r
     for i in order:
         ax[0].plot(yrs, curves[i] * PCT, color=cmap(norm(rms[i])), lw=0.3, alpha=0.16)
+    # The 10-90% band across pipelines leaves the fixed axis range wherever
+    # the cycle-skipping pipelines dominate, so it is reported as a range in
+    # the annotation rather than drawn.
     lo, hi = np.nanpercentile(curves, [10, 90], axis=0)
-    ax[0].fill_between(
-        yrs,
-        lo * PCT,
-        hi * PCT,
-        color="0.5",
-        alpha=0.22,
-        lw=0,
-        label="10–90% across pipelines",
-    )
+    band_lo, band_hi = float(np.nanmin(lo) * PCT), float(np.nanmax(hi) * PCT)
     ax[0].plot(
         yrs, np.nanmedian(curves, 0) * PCT, color=C["alt"], lw=2.0, label="median"
     )
     ax[0].plot(yrs, truth * PCT, color=C["truth"], lw=2.6, label="ground truth")
     ax[0].axvline(2.0, color="0.6", ls="--", lw=1)
-    # Clip tightly to the truth scale; the cycle-skipping pipelines run off-axis
-    # (that is the point — the colourbar flags them) but would otherwise swamp the
+    # Fixed, symmetric range: the cycle-skipping pipelines run off-axis (that is
+    # the point -- the colourbar flags them) but would otherwise swamp the
     # signal and make the panel unreadable.
-    span = (np.nanmax(truth) - np.nanmin(truth)) * PCT
-    ax[0].set_ylim(
-        (np.nanmin(truth) * PCT - 0.35 * span, np.nanmax(truth) * PCT + 0.35 * span)
-    )
+    ax[0].set_ylim((-0.8, 0.8))
+    n_off = int(np.sum(np.nanmax(np.abs(curves * PCT), axis=1) > 0.8))
     ax[0].set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
         title=f"(a) {mv['n_pipelines']} pipelines (colour = RMS error)",
     )
-    leg = ax[0].legend(fontsize=8.5, loc="lower left", frameon=True)
-    leg.get_frame().set_facecolor("white")
-    leg.get_frame().set_alpha(0.9)
-    leg.get_frame().set_edgecolor("0.7")
-    fig.colorbar(
+    ax[0].text(
+        0.02,
+        0.97,
+        f"{n_off} of {mv['n_pipelines']} pipelines leave the axis range;\n"
+        f"10–90% band across pipelines: {band_lo:+.1f} to {band_hi:+.1f}%",
+        transform=ax[0].transAxes,
+        fontsize=9,
+        va="top",
+        color="0.25",
+    )
+    ax[0].legend(
+        fontsize=10,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.18),
+        ncol=2,
+        frameon=False,
+    )
+    cbar = fig.colorbar(
         plt.cm.ScalarMappable(norm=norm, cmap=cmap),
         ax=ax[0],
         fraction=0.046,
-        label="RMS vs truth",
+        label="RMS vs truth (dv/v, fraction)",
     )
+    cbar.set_label("RMS vs truth (dv/v, fraction)", fontsize=12)
+    cbar.ax.tick_params(labelsize=10.5)
 
     # (b) first-order variance attribution.
     axes = mv["axes"]
@@ -498,8 +513,10 @@ def fig_multiverse_full(mv=None):
         ylabel="first-order variance fraction",
         title="(b) Which choice controls the answer",
     )
-    ax[1].set_xticklabels(axes, rotation=30, ha="right", fontsize=8.5)
-    ax[1].legend(fontsize=8.5, frameon=False)
+    ax[1].set_xticklabels(axes, rotation=30, ha="right", fontsize=10.5)
+    ax[1].set_ylim(0, 1.45 * max(max(sr), max(sd)))  # headroom for the legend
+    ax[1].legend(fontsize=10.5, frameon=False, loc="upper right")
+    _boost_fonts(ax[0], ax[1], tick=10.5, label=12, title=13)
     fig.tight_layout()
     return fig
 
@@ -518,13 +535,13 @@ def build_figs(outdir):
     fig_deviation_ranking(rows).savefig(
         outdir / "demo_10_deviations.png", bbox_inches="tight"
     )
-    print(f"wrote {outdir/'demo_10_deviations.png'}")
+    print(f"wrote {outdir / 'demo_10_deviations.png'}")
     print("running the full factorial multiverse (this takes a few minutes) ...")
     mv = multiverse()
     fig_multiverse_full(mv).savefig(
         outdir / "demo_11_multiverse.png", bbox_inches="tight"
     )
-    print(f"wrote {outdir/'demo_11_multiverse.png'}")
+    print(f"wrote {outdir / 'demo_11_multiverse.png'}")
     import matplotlib.pyplot as plt
 
     plt.close("all")

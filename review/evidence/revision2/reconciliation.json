@@ -1,0 +1,195 @@
+{
+  "date": "2026-09-10",
+  "mode": "bounded evidence reconciliation, not formal reviewer iteration 2",
+  "reviewed_baseline": "b6dbbd03ad3a9e7b8daac3847a470b93b6918cc8",
+  "revision_head_before_this_pass": "62b63b5f8a455bf9c7c3c9a5414ca444acd48734",
+  "source_manifest": "review/codameter-gji.review.json",
+  "source_manifest_sha256": "1167b56f31450fb79ac2042f7c5814872d658608e073a85a336755835a593be0",
+  "findings": [
+    {
+      "id": "UQ-01",
+      "assessment": "Verified formula repair",
+      "evidence_and_limit": "`uq_measurement.py`; Eq. 21, unit-rescaling and bandwidth tests. Gaussian bandwidth convention remains an assumption."
+    },
+    {
+      "id": "UQ-02",
+      "assessment": "Verified variance repair",
+      "evidence_and_limit": "`uq_processing.py`; zero-mean mixture test; bias, SD and RMSE separated."
+    },
+    {
+      "id": "UQ-03",
+      "assessment": "Partial",
+      "evidence_and_limit": "Independence and joint-fit versus mixture distinction now explicit in manuscript and module. A dependence-aware likelihood is not implemented."
+    },
+    {
+      "id": "UQ-04",
+      "assessment": "Partial",
+      "evidence_and_limit": "Excess-spread subtraction and shared-artifact test exist. Temporal covariance and common-error scale remain unvalidated; 95% coverage alone is not closure."
+    },
+    {
+      "id": "UQ-05",
+      "assessment": "Verified for supported inputs",
+      "evidence_and_limit": "Daily-grid rejection, output-only decimation, moving-reference gate and missing-member tests. Inversion references explicitly rejected by the ensemble."
+    },
+    {
+      "id": "DET-01",
+      "assessment": "Partial",
+      "evidence_and_limit": "Estimand table names raw RMS and support. Canonical inversion still ignores requested estimator/stack; gates and valid supports vary across deterministic comparisons."
+    },
+    {
+      "id": "DET-02",
+      "assessment": "Verified cache repair",
+      "evidence_and_limit": "Exact cold/warm arrays and generator identity tests, now including use-case geometry."
+    },
+    {
+      "id": "INV-01",
+      "assessment": "Narrowed",
+      "evidence_and_limit": "Depth remains a framework. Manuscript distinguishes temporal from cross-band covariance and the member from combined-estimate target. GLS propagation remains unimplemented."
+    },
+    {
+      "id": "INV-02",
+      "assessment": "Verified defect repair",
+      "evidence_and_limit": "Nonzero local covariance and active-bound flags; disconnected epochs flagged. Local Gaussian curvature at a bound is not a bounded posterior interval."
+    },
+    {
+      "id": "SCALE-01",
+      "assessment": "Partial",
+      "evidence_and_limit": "Banded sampler update agrees with dense reference. Stored posterior and output covariance remain dense; no cloud-scaling study is claimed."
+    },
+    {
+      "id": "SCALE-02",
+      "assessment": "Verified shard checks",
+      "evidence_and_limit": "Missing/duplicate shard rejection and explicit partial manifest tests. No large deployment was executed here."
+    },
+    {
+      "id": "AG-01",
+      "assessment": "Verified advisor route repair",
+      "evidence_and_limit": "All six public development scenarios execute through `recover`; no dependence on missing mappings or hard groundwater fallback."
+    },
+    {
+      "id": "AG-02",
+      "assessment": "Narrowed",
+      "evidence_and_limit": "Six executable axes distinguished from contextual site metadata; single-seed equivalence rule removed. No site-conditioned agent evaluation supplied."
+    },
+    {
+      "id": "AG-03",
+      "assessment": "Narrowed",
+      "evidence_and_limit": "Synthetic support described as conditional; separated bands do not validate physical depth resolution."
+    },
+    {
+      "id": "EV-01",
+      "assessment": "Verified original exploit repair",
+      "evidence_and_limit": "Fixed support and baseline; ten-zero-plus-null regression. Null replacement can still improve a poor prediction; availability must accompany scores."
+    },
+    {
+      "id": "EV-02",
+      "assessment": "Deferred, explicit",
+      "evidence_and_limit": "Truth-key removal is not isolation. Private files, generator access and scorer metadata still require an isolated evaluation harness."
+    },
+    {
+      "id": "EV-03",
+      "assessment": "Deferred, explicit",
+      "evidence_and_limit": "Three public cases versus 30 templates documented; shared families and regression-derived thresholds remain."
+    },
+    {
+      "id": "EV-04",
+      "assessment": "Narrowed",
+      "evidence_and_limit": "Completed agent evaluation no longer claimed. No model transcripts or performance estimates added."
+    },
+    {
+      "id": "SCI-01",
+      "assessment": "Improved text",
+      "evidence_and_limit": "Estimand table separates pair spread, finite-network mean precision and posterior uncertainty. No new network covariance calibration."
+    },
+    {
+      "id": "SCI-02",
+      "assessment": "Narrowed",
+      "evidence_and_limit": "Scenario-conditional sensitivity and surrogate depth interpretation stated. Broad observational dominance remains unsupported."
+    },
+    {
+      "id": "SCI-03",
+      "assessment": "Narrowed",
+      "evidence_and_limit": "Raw trailing references described as an ablation. They still do not represent accumulated changes on a common datum."
+    },
+    {
+      "id": "SCI-04",
+      "assessment": "Partial",
+      "evidence_and_limit": "Estimator prescriptions qualified in prior revision. This pass does not repeat the independent literature assessment."
+    },
+    {
+      "id": "SCI-05",
+      "assessment": "Partial",
+      "evidence_and_limit": "600 locked realizations, width/bias/failures and coverage records; missing-data metric repaired. Multi-chain diagnostics and broader calibration remain."
+    },
+    {
+      "id": "SCI-06",
+      "assessment": "Narrowed",
+      "evidence_and_limit": "Depth evaluation, agent performance and generalized cloud scalability withdrawn from demonstrated results."
+    },
+    {
+      "id": "SCI-07",
+      "assessment": "Partial",
+      "evidence_and_limit": "In-repo product comparison and explicit masks replace inconsistent counts. Original run provenance and raw-waveform replay still missing."
+    },
+    {
+      "id": "SCI-08",
+      "assessment": "Partial",
+      "evidence_and_limit": "Abstract-only nonreporting caveat corrected. Study-key deduplication and survey denominators still need reconciliation."
+    },
+    {
+      "id": "SCI-09",
+      "assessment": "Improved text",
+      "evidence_and_limit": "Branch rule predefined; same-data coherence-selection bias acknowledged. No new independent selection experiment."
+    },
+    {
+      "id": "SCI-10",
+      "assessment": "Verified text repair",
+      "evidence_and_limit": "Appendix WCC delay sign corrected against the defined dilation convention."
+    },
+    {
+      "id": "SCI-11",
+      "assessment": "Verified text repair",
+      "evidence_and_limit": "Signed, scenario-dependent stacking recovery replaces universal underestimation."
+    },
+    {
+      "id": "FIG-01",
+      "assessment": "Verified caption repair",
+      "evidence_and_limit": "WCS failure acknowledged against saved traces in the methods figure."
+    },
+    {
+      "id": "FIG-02",
+      "assessment": "Partial",
+      "evidence_and_limit": "Field masks and labels reconciled in captions/table. External figures retain historical annotations and uncorrected error bars, explicitly disclosed."
+    },
+    {
+      "id": "FIG-03",
+      "assessment": "Partial",
+      "evidence_and_limit": "Units, legend placement and sidecars improved. External field bars require regeneration; not all figure pages re-reviewed in this pass."
+    },
+    {
+      "id": "FMT-01",
+      "assessment": "Partial",
+      "evidence_and_limit": "Single-paragraph abstract and estimand table added. Author placeholders and full presentation review remain."
+    },
+    {
+      "id": "REP-01",
+      "assessment": "Partial",
+      "evidence_and_limit": "All synthetic generators registered with numerical sidecars. Three external field figures remain outside the executable build."
+    },
+    {
+      "id": "REP-02",
+      "assessment": "Partial, author input",
+      "evidence_and_limit": "Comparison code and correction log exist. Exact originating run, redistribution rights and archived field inputs remain missing."
+    },
+    {
+      "id": "REP-03",
+      "assessment": "Partial",
+      "evidence_and_limit": "Figure sidecars and locked settings improve replay. Release metadata, dirty-source/input hashes and a complete reconstruction manifest remain incomplete."
+    },
+    {
+      "id": "COMP-01",
+      "assessment": "Partial, author input",
+      "evidence_and_limit": "Availability and AI disclosure now describe actual state. Funding, contributions, archive details and final adjudication remain to be supplied."
+    }
+  ]
+}

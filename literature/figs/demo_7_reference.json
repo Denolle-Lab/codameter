@@ -1,0 +1,40 @@
+{
+ "figure": "demo_7_reference",
+ "generator": "codameter.synthetic_demo.fig_reference",
+ "codameter_version": "0.4.0",
+ "git_commit": "d3a5c18b08d95872cfa54fa796f080daec94d20a",
+ "generated_utc": "2026-09-13T13:26:35+00:00",
+ "python": "3.12.13",
+ "numpy": "2.4.3",
+ "matplotlib": "3.10.9",
+ "axes": [
+  {
+   "axes": "ax0",
+   "title": "(c) Uncumulated moving reference\nremoves the trend",
+   "xlabel": "time (years)",
+   "ylabel": "dv/v (%)",
+   "lines": [
+    "ground truth",
+    "fixed reference",
+    "60-day moving ref.",
+    "joint inversion",
+    "_child4"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 0
+  }
+ ],
+ "arrays": [
+  "ax0/line0/x",
+  "ax0/line0/y",
+  "ax0/line1/x",
+  "ax0/line1/y",
+  "ax0/line2/x",
+  "ax0/line2/y",
+  "ax0/line3/x",
+  "ax0/line3/y",
+  "ax0/line4/x",
+  "ax0/line4/y"
+ ]
+}
