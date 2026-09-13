@@ -157,9 +157,14 @@ def run_pipeline(ccfs, t, fs, cfg, *, eps_max=0.05, return_cc=False, prefiltered
     ``cc`` is NaN wherever the configuration does not produce one (non-stretching
     estimators, the inversion reference, and warm-up epochs).
 
-    CC-gating (``cfg["gate"]``) applies to the fixed reference only, as it
-    always has; the moving-reference CC is returned for error modelling but
-    does not change ``valid``.
+    CC-gating (``cfg["gate"]``) applies to the fixed and the moving reference
+    and to every estimator: an epoch is kept only where the peak stretching
+    coherence at the same band, window, stack and reference exceeds
+    :data:`GATE_CC` (for a non-stretching estimator that coherence comes from
+    a stretching probe run on the same data). The joint-inversion reference
+    has no per-epoch coherence, so the gate leaves its ``valid`` unchanged.
+    (Before the 2026-09 revision the gate applied to the fixed reference
+    with the stretching estimator only.)
 
     With ``prefiltered=True``, ``ccfs`` is taken as already band-passed at
     ``cfg["band"]`` and the estimator skips its internal band-pass. Callers
