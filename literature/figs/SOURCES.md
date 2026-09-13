@@ -18,14 +18,24 @@ prints the registry. `paper/build.py --figures` runs the driver.
 | `demo_11_multiverse` | `codameter.deviations.multiverse` + `fig_multiverse_full` (slow) |
 | `demo_12_bayes` | `codameter.uq_bayes._build_bayes` + `_fig_bayes` (slow) |
 
+| `realdata_1_validation` | `codameter.gate1.fig_gate1_comparison`: needs the untracked daily products under `paper/data/gate1/dvv2y/` (skipped with a message where they are absent); every plotted array is in the sidecar |
+
+Every `.json` sidecar records `git_commit`, `git_dirty` (true when tracked
+files under `src/` differed from that commit when the figure was made) and
+`generator_digest` (a digest of the package version and the figure-generating
+modules, so two sidecars with the same digest came from the same figure code).
+`python -m codameter.figures --check [--skip-slow]` regenerates the figures in
+memory and reports any array that differs from the committed sidecar; the
+`paper` workflow runs it on every pull request to the manuscript branch.
+
 ## Produced outside this repository
 
-`realdata_1_validation.png`, `realdata_2_interferograms.png` and
-`realdata_3_warmup.png` come from the noisepy-dvv-cloud Gate 1 run
-(CI.LJR / CI.RXH / CI.ARV, 2018-2019; see `paper/data/gate1/README.md`).
-Their inputs are the daily ensemble products under `paper/data/gate1/dvv2y/`
-(not tracked by git) and the published Clements and Denolle (2022) product
-under `paper/data/gate1/legacy_cd2022/`. The comparison script
-(`scripts/compare_cd2022.py`) and the figure scripts live in that repository;
-the commit they were run at is to be pinned here (audit finding REP-02).
+`realdata_2_interferograms.png` and `realdata_3_warmup.png` come from the
+noisepy-dvv-cloud Gate 1 run (CI.LJR / CI.RXH / CI.ARV, 2018-2019; see
+`paper/data/gate1/README.md`). Their inputs are the daily correlations of that
+run, which are not archived here, so they are committed as produced. The
+comparison figure (`realdata_1_validation`) used to be produced there as well;
+it is now generated in this repository from the archived daily products and
+`paper/data/gate1/comparison.json`. The Gate 1 run commit and `--use-case`
+are to be pinned in `paper/data/gate1/README.md` (issue #46).
 Until then these three figures cannot be regenerated from this checkout.

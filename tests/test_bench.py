@@ -109,3 +109,34 @@ def test_best_config_is_the_recommended_one():
     best = min(ok, key=lambda r: r["rms"])
     assert best["estimator"] == "stretching (TS)"
     assert best["reference"] == "fixed"
+
+
+def test_score_cell_rows_carry_generator_digest_and_commit():
+    from codameter import golden
+    from codameter import use_cases as uc
+
+    row = bench.score_cell(EASY, 0, uc.recommend("volcano"))
+    assert row["generator_hash"] == golden._generator_hash()
+    assert "git_commit" in row
+
+
+def test_check_shards_refuses_rows_from_different_generators():
+    base = {
+        "case_id": "c",
+        "codameter_version": "1",
+        "generator_hash": "aaaa",
+        "git_commit": "x",
+    }
+    pairs = [
+        ("shard-00000-of-00002.jsonl", dict(base, config_index=0)),
+        ("shard-00001-of-00002.jsonl", dict(base, config_index=1)),
+    ]
+    assert bench.check_shards(pairs)["complete"]
+    pairs[1] = (pairs[1][0], dict(pairs[1][1], generator_hash="bbbb"))
+    inv = bench.check_shards(pairs)
+    assert not inv["complete"]
+    assert any("generator digest" in p for p in inv["problems"])
+    # A different commit alone is listed, not refused.
+    pairs[1] = (pairs[1][0], dict(pairs[1][1], generator_hash="aaaa", git_commit="y"))
+    inv = bench.check_shards(pairs)
+    assert inv["complete"] and inv["git_commits"] == ["x", "y"]
