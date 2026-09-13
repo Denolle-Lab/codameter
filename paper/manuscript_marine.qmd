@@ -160,7 +160,7 @@ without full reporting of parameter choices we cannot interpret a reported
 \dvv\ as a robust value. Here we make the problem concrete for \dvv\ monitoring.
 We use purely synthetic correlation
 time series to test the methods (estimators) and parameter choices that the community
-makes to estimate \dvv$\,$which we report over 103 studies in Appendix\ \ref{app:survey}.
+makes to estimate \dvv$\,$which we report over 103 publications in Appendix\ \ref{app:survey}.
 We do not aim to report the "best" pipeline, which is most often the one reported in
 scientific papers, but instead document the parameter impacts (Section\ \ref{sec:results}).
 We then propose a new measurement error that incorporates these effects into a data
@@ -690,7 +690,7 @@ continuum, from one global reference, through segment references joined
 pairwise, to the fully coupled inversion, than as a menu of unrelated choices.
 
 Against that, the uncumulated day-by-day trailing reference swept above is a
-limit case rather than a practice: we found no surveyed study that re-baselines
+limit case rather than a practice: we found no surveyed publication that re-baselines
 continuously and reports the increments without summing them. It is retained
 here because it isolates what re-baselining costs when the trend is not
 reconstructed, which is the failure mode the two families above exist to avoid.
@@ -791,8 +791,9 @@ RMS an order of magnitude worse even after clearing it.
 The accepted range for each of these parameters across the published literature
 is catalogued directly, study by study, in the survey of
 Appendix\ \ref{app:survey} (Table\ \ref{tab:survey}): the frequency band, coda
-window, estimator, and uncertainty treatment actually reported by 103 ambient-noise
-\dvv\ studies.
+window, estimator, and uncertainty treatment actually reported by the 96
+publications of the survey that measure \dvv\ (of 103 catalogued; 81 from
+ambient noise alone, 11 from earthquake coda alone, 11 from both).
 
 ## Coda window  {#sec:param_window}
 
@@ -808,7 +809,7 @@ $\sim\!3.9\,\%$ (the noise floor, not the signal), while a window hand-adapted
 to the band (3--12$\,$s) recovers the truth at $\sim\!0.01\,\%$ --- nearly a
 400$\times$ difference from this one choice alone. This is itself an instance
 of a literature-documented tension: band-matched windowing is recommended, but
-Table\ \ref{tab:survey} shows many surveyed studies instead reuse one fixed
+Table\ \ref{tab:survey} shows many surveyed publications instead reuse one fixed
 window across bands.
 
 Hand-adapting the window per band, as above, requires knowing the band in
@@ -1725,27 +1726,55 @@ mean $\bar x$ but obey $\sigma_{\mathrm{SD}}/\sigma_{\mathrm{SE}}=\sqrt{N}$.
 
 # Survey of processing choices across the literature {#app:survey}
 
-Table\ \ref{tab:survey} catalogues the processing choices of the ambient-noise
-\dvv\ monitoring studies we surveyed: 103 rows for 103 publications, one
-per publication (the full machine-readable version and provenance are
-distributed with the codameter package). It is the empirical basis
-for the paper's claim that no convention is shared: the estimator, the frequency
-band, the coda window, the reference scheme and --- most unevenly of all --- the
-uncertainty treatment vary study to study, and the last is frequently
-unreported. Every study is cited here.
+Table\ \ref{tab:survey} catalogues the processing choices of the
+coda-wave \dvv\ monitoring publications we surveyed: 103 rows for 103
+publications, one per publication and one DOI each (the machine-readable
+table and its provenance are distributed with the codameter package). It is
+the empirical basis for the paper's claim that no convention is shared: the
+estimator, the frequency band, the coda window, the reference scheme and
+--- most unevenly of all --- the uncertainty treatment vary from
+publication to publication, and the last is frequently unreported. Every
+publication is cited here.
+
+The survey was assembled in June 2026 by six literature scans of the
+published journal literature, one per application group (volcano,
+earthquake and fault, landslide, groundwater, cryosphere, geothermal and
+reservoir, methodology), each recording a DOI per publication; the scans
+returned 117 rows, which were deduplicated by DOI, checked against the
+Crossref record of each DOI (four wrong DOIs corrected, one unverifiable
+row dropped) and reduced to the 103 publications listed
+(\texttt{literature/README.md} records the corrections). The table keeps a
+publication when it measures a temporal relative velocity change from the
+coda of ambient-noise correlations or of repeating earthquakes, or when it
+defines a method or a sensitivity kernel that the measuring publications
+rely on. Seven of the 103 do not themselves measure \dvv\ (theory,
+depth kernels, deconvolution interferometry, spectral methods) and are marked
+``n/a'' in the estimator column; the counts below exclude them. Of the 96
+that measure \dvv, 81 use ambient noise alone, 9 use earthquake coda alone
+and the rest both (the machine-readable table records this per row);
+the coda-only rows are kept because their processing choices are the same
+choices, made on a different wavefield.
 
 The four measurement fields (frequency band, coda window, estimator and
-uncertainty treatment) were re-checked against the \emph{full text} for the 82
-studies we could read (open access plus institutional access); for those rows a
-blank or ``n/r'' means the
-value is genuinely not stated in the paper. The remaining rows were populated
-from abstracts and search metadata, where ``n/r'' means only that the value was
-not found in the abstract, not that the study failed to report it; those cells
-are flagged in the machine-readable table (\texttt{measurement\_source}) and
-remain to be filled from the paywalled full texts. Because a cell populated from
-an abstract can only move from ``n/r'' to reported once the full text is read,
-the apparent under-reporting in the table is an upper bound on the true
-under-reporting; the verified rate is the one among the 82 full-text rows.
+uncertainty treatment) were re-checked against the \emph{full text} for the
+82 publications we could read (open access plus institutional access); for
+those rows a blank or ``n/r'' means the value is genuinely not stated in
+the paper. The remaining 21 rows were populated from abstracts and search
+metadata, where ``n/r'' means only that the value was not found in the
+abstract, not that the publication failed to report it; those cells are
+flagged in the machine-readable table (\texttt{measurement\_source}),
+remain to be filled from the paywalled full texts, and are excluded from
+the rates below. Among the 75 full-text publications that measure \dvv,
+68 report the frequency band, 59 the coda window and 74 the estimator. For
+the uncertainty column we distinguish a stated error on \dvv\ (a formula,
+a standard deviation or error, a confidence interval, a regression or
+bootstrap error, a stated noise or significance level) from a
+quality-control rule alone (a coherence or correlation threshold, a
+weighting, a rejection criterion, with no error magnitude) and from
+nothing: 57 of the 75 state an error, 11 state a quality rule only, and 7
+state neither. The rule, the keyword coding and the eight cells coded by
+hand are in \texttt{paper/survey\_rates.py}, which writes these counts to
+\texttt{paper/data/survey\_rates.json}.
 
 \input{appendix_table.tex}
 

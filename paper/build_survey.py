@@ -42,13 +42,35 @@ def doi_of(url: str) -> str | None:
 # Combining diacritics -> LaTeX accent command (so bibtex, which is byte-based,
 # can abbreviate accented given names without splitting a multibyte character).
 _COMBINING = {
-    "́": "'", "̀": "`", "̈": '"', "̂": "^", "̃": "~",
-    "̄": "=", "̆": "u", "̇": ".", "̊": "r", "̋": "H",
-    "̌": "v", "̧": "c", "̨": "k", "̣": "d",
+    "́": "'",
+    "̀": "`",
+    "̈": '"',
+    "̂": "^",
+    "̃": "~",
+    "̄": "=",
+    "̆": "u",
+    "̇": ".",
+    "̊": "r",
+    "̋": "H",
+    "̌": "v",
+    "̧": "c",
+    "̨": "k",
+    "̣": "d",
 }
-_SPECIAL = {"ø": r"{\o}", "Ø": r"{\O}", "ß": r"{\ss}", "æ": r"{\ae}",
-            "Æ": r"{\AE}", "œ": r"{\oe}", "Œ": r"{\OE}", "ł": r"{\l}",
-            "Ł": r"{\L}", "đ": r"{\dj}", "ð": r"{\dh}", "þ": r"{\th}"}
+_SPECIAL = {
+    "ø": r"{\o}",
+    "Ø": r"{\O}",
+    "ß": r"{\ss}",
+    "æ": r"{\ae}",
+    "Æ": r"{\AE}",
+    "œ": r"{\oe}",
+    "Œ": r"{\OE}",
+    "ł": r"{\l}",
+    "Ł": r"{\L}",
+    "đ": r"{\dj}",
+    "ð": r"{\dh}",
+    "þ": r"{\th}",
+}
 
 
 def latexify(text: str) -> str:
@@ -69,7 +91,9 @@ def latexify(text: str) -> str:
                 base = f"{{\\{acc}{base}}}"
             out.append(base)
         else:  # unmapped: fall back to ASCII transliteration
-            out.append(unicodedata.normalize("NFKD", ch).encode("ascii", "ignore").decode())
+            out.append(
+                unicodedata.normalize("NFKD", ch).encode("ascii", "ignore").decode()
+            )
     return "".join(out)
 
 
@@ -94,20 +118,35 @@ def clean_html(text: str) -> str:
     Crossref returns magnitude notation as ``<i>M</i><sub>w</sub>``; render the
     sub/superscripts properly and drop italic/bold tags.
     """
-    text = re.sub(r"<sub>(.*?)</sub>",
-                  lambda m: r"\textsubscript{" + re.sub(r"<[^>]+>", "", m.group(1)) + "}",
-                  text, flags=re.I | re.S)
-    text = re.sub(r"<sup>(.*?)</sup>",
-                  lambda m: r"\textsuperscript{" + re.sub(r"<[^>]+>", "", m.group(1)) + "}",
-                  text, flags=re.I | re.S)
+    text = re.sub(
+        r"<sub>(.*?)</sub>",
+        lambda m: r"\textsubscript{" + re.sub(r"<[^>]+>", "", m.group(1)) + "}",
+        text,
+        flags=re.I | re.S,
+    )
+    text = re.sub(
+        r"<sup>(.*?)</sup>",
+        lambda m: r"\textsuperscript{" + re.sub(r"<[^>]+>", "", m.group(1)) + "}",
+        text,
+        flags=re.I | re.S,
+    )
     return re.sub(r"<[^>]+>", "", text)
 
 
 def tex_escape(s: str) -> str:
     s = str(s or "")
-    for a, b in [("\\", r"\textbackslash{}"), ("&", r"\&"), ("%", r"\%"),
-                 ("$", r"\$"), ("#", r"\#"), ("_", r"\_"), ("{", r"\{"),
-                 ("}", r"\}"), ("~", r"\textasciitilde{}"), ("^", r"\textasciicircum{}")]:
+    for a, b in [
+        ("\\", r"\textbackslash{}"),
+        ("&", r"\&"),
+        ("%", r"\%"),
+        ("$", r"\$"),
+        ("#", r"\#"),
+        ("_", r"\_"),
+        ("{", r"\{"),
+        ("}", r"\}"),
+        ("~", r"\textasciitilde{}"),
+        ("^", r"\textasciicircum{}"),
+    ]:
         s = s.replace(a, b)
     return s
 
@@ -142,13 +181,63 @@ def existing_keys() -> set[str]:
     return set(re.findall(r"@\w+\{([^,]+),", REFS.read_text()))
 
 
+def existing_dois(text: str | None = None) -> dict[str, str | None]:
+    """``key -> doi`` for every entry of references.bib (``None`` without a doi)."""
+    if text is None:
+        if not REFS.exists():
+            return {}
+        text = REFS.read_text()
+    out: dict[str, str | None] = {}
+    for m in re.finditer(r"@\w+\{([^,]+),(.*?)(?=\n@|\Z)", text, flags=re.S):
+        key, body = m.group(1).strip(), m.group(2)
+        d = re.search(r"doi\s*=\s*[{\"]\s*([^}\"]+?)\s*[}\"]", body, flags=re.I)
+        out[key] = doi_of(d.group(1)) if d else None
+    return out
+
+
+def assign_keys(
+    rows: list[dict], reuse: dict[str, str | None]
+) -> list[tuple[str, dict, bool]]:
+    """Give every survey row a citation key; returns ``(key, row, reused)`` in order.
+
+    A row reuses a ``references.bib`` key only when the surname and year match
+    *and* the DOIs agree (or the bib entry carries no DOI). Two different
+    papers with the same surname and year get ``Key2013`` and ``Key2013b``
+    (then ``c`` and so on), whichever of them the narrative already cites.
+    Before the 2026-09 revision a key that existed in references.bib was
+    reused without the DOI check, so the volcano study of Obermann et al.
+    (2013, JGR) was cited as the depth-sensitivity paper (GJI) that shares
+    its key (review finding S-CD.1).
+    """
+    used: dict[str, str] = {}  # key -> doi assigned in this run
+    out: list[tuple[str, dict, bool]] = []
+
+    def _taken(k: str, doi: str) -> bool:
+        if k in used:
+            return used[k] != doi
+        if k in reuse:
+            bib_doi = reuse[k]
+            return bib_doi is not None and bib_doi != doi
+        return False
+
+    for row in rows:
+        doi = doi_of(row["doi_url"]) or row["doi_url"]
+        key = make_key(row["authors_year"], row.get("year", ""))
+        while _taken(key, doi):
+            key += "b" if key[-1].isdigit() else chr(ord(key[-1]) + 1)
+        used[key] = doi
+        out.append((key, row, key in reuse))
+    return out
+
+
 def bib_entry(key: str, row: dict, rec: dict | None) -> str:
     """One BibTeX entry. Falls back to @misc when Crossref metadata is absent."""
     doi = doi_of(row["doi_url"]) or ""
     year = row.get("year", "")
     if rec and rec.get("title"):
         fields = {
-            "author": bib_authors(rec) and latexify(bib_authors(rec))
+            "author": bib_authors(rec)
+            and latexify(bib_authors(rec))
             or authors_from_label(row["authors_year"]),
             "title": latexify(clean_html(rec["title"].rstrip(". "))),
             "journal": latexify(clean_html(rec.get("container", ""))),
@@ -187,29 +276,49 @@ COLS = [
 
 def appendix_table(entries: list[tuple[str, dict]]) -> str:
     """A longtable cataloguing every study's processing choices (all \\citet)."""
-    colspec = "@{}p{2.1cm} " + " ".join(
-        f">{{\\raggedright\\arraybackslash}}p{{{w}}}" for *_, w in COLS) + "@{}"
-    head = "\\textbf{Study} & " + " & ".join(
-        f"\\textbf{{{h}}}" for _, h, _ in COLS) + r" \\"
+    colspec = (
+        "@{}p{2.1cm} "
+        + " ".join(f">{{\\raggedright\\arraybackslash}}p{{{w}}}" for *_, w in COLS)
+        + "@{}"
+    )
+    head = (
+        "\\textbf{Study} & "
+        + " & ".join(f"\\textbf{{{h}}}" for _, h, _ in COLS)
+        + r" \\"
+    )
     out = [
         r"% Auto-generated by paper/build_survey.py -- do not edit by hand.",
         r"{\footnotesize",
         r"\setlength{\tabcolsep}{3pt}",
         r"\renewcommand{\arraystretch}{1.15}",
         f"\\begin{{longtable}}{{{colspec}}}",
-        r"\caption{Processing choices of the " + str(len(entries)) +
-        r" surveyed \dvv\ studies (the literature survey underpinning this paper). "
-        r"Every study is cited; \texttt{n/r} = not reported in the source. "
+        r"\caption{Processing choices of the "
+        + str(len(entries))
+        + r" surveyed publications, one row each (the literature survey "
+        r"underpinning this paper). Every publication is cited; \texttt{n/r} = "
+        r"not reported in the source; \texttt{n/a} in the estimator column marks "
+        r"a publication that does not itself measure \dvv\ (theory, kernels, a "
+        r"companion method) and is kept for the choices it documents. "
         r"Frequency band, coda window, estimator, reference/stack scheme and "
         r"uncertainty treatment are the choices Section~\ref{sec:results} shows "
         r"to control the result.}\label{tab:survey}\\",
-        r"\toprule", head, r"\midrule", r"\endfirsthead",
-        r"\multicolumn{" + str(len(COLS) + 1) +
-        r"}{@{}l}{\footnotesize\itshape Table~\ref{tab:survey} continued}\\",
-        r"\toprule", head, r"\midrule", r"\endhead",
-        r"\midrule\multicolumn{" + str(len(COLS) + 1) +
-        r"}{r@{}}{\footnotesize\itshape continued on next page}\\", r"\endfoot",
-        r"\bottomrule", r"\endlastfoot",
+        r"\toprule",
+        head,
+        r"\midrule",
+        r"\endfirsthead",
+        r"\multicolumn{"
+        + str(len(COLS) + 1)
+        + r"}{@{}l}{\footnotesize\itshape Table~\ref{tab:survey} continued}\\",
+        r"\toprule",
+        head,
+        r"\midrule",
+        r"\endhead",
+        r"\midrule\multicolumn{"
+        + str(len(COLS) + 1)
+        + r"}{r@{}}{\footnotesize\itshape continued on next page}\\",
+        r"\endfoot",
+        r"\bottomrule",
+        r"\endlastfoot",
     ]
     for key, row in entries:
         cells = [f"\\citet{{{key}}}"]
@@ -226,21 +335,14 @@ def appendix_table(entries: list[tuple[str, dict]]) -> str:
 def main() -> None:
     rows = list(csv.DictReader(CSV.open()))
     cache = json.loads(CACHE.read_text()) if CACHE.exists() else {}
-    reuse = existing_keys()
+    reuse = existing_dois()
 
-    entries: list[tuple[str, dict]] = []   # (key, row) in CSV order, for the table
-    new_bib: list[str] = []                # entries to write to survey.bib
-    used: dict[str, str] = {}              # key -> doi (disambiguation)
+    entries: list[tuple[str, dict]] = []  # (key, row) in CSV order, for the table
+    new_bib: list[str] = []  # entries to write to survey.bib
 
-    for row in rows:
-        doi = doi_of(row["doi_url"]) or row["doi_url"]
-        key = make_key(row["authors_year"], row.get("year", ""))
-        # Disambiguate identical surname+year that are different papers.
-        while key in used and used[key] != doi and key not in reuse:
-            key += "b" if key[-1].isdigit() else chr(ord(key[-1]) + 1)
-        used[key] = doi
+    for key, row, reused in assign_keys(rows, reuse):
         entries.append((key, row))
-        if key not in reuse:               # reuse references.bib entry if present
+        if not reused:  # reuse references.bib entry if present
             rec = cache.get(doi_of(row["doi_url"]) or "")
             new_bib.append(bib_entry(key, row, rec))
 
@@ -248,10 +350,13 @@ def main() -> None:
         "% Auto-generated by paper/build_survey.py from the literature survey.\n"
         "% Keys that also appear in references.bib are intentionally omitted here\n"
         "% (the narrative entry is reused) so each paper is listed once.\n\n"
-        + "\n".join(new_bib))
+        + "\n".join(new_bib)
+    )
     APPENDIX.write_text(appendix_table(entries))
-    reused = len(entries) - len(new_bib)
-    print(f"wrote {SURVEY_BIB.name}  ({len(new_bib)} new entries, {reused} reuse references.bib)")
+    n_reused = len(entries) - len(new_bib)
+    print(
+        f"wrote {SURVEY_BIB.name}  ({len(new_bib)} new entries, {n_reused} reuse references.bib)"
+    )
     print(f"wrote {APPENDIX.name}    ({len(entries)} studies catalogued + cited)")
 
 
