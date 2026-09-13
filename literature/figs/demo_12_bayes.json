@@ -2,8 +2,8 @@
  "figure": "demo_12_bayes",
  "generator": "codameter.uq_bayes._build_bayes + _fig_bayes",
  "codameter_version": "0.4.0",
- "git_commit": "7bfdcef47453919afb5ee5e32a0d7979330402e0",
- "generated_utc": "2026-09-10T19:18:25+00:00",
+ "git_commit": "d3a5c18b08d95872cfa54fa796f080daec94d20a",
+ "generated_utc": "2026-09-13T13:41:32+00:00",
  "python": "3.12.13",
  "numpy": "2.4.3",
  "matplotlib": "3.10.9",
@@ -14,7 +14,7 @@
    "xlabel": "time (years)",
    "ylabel": "dv/v (%)",
    "lines": [
-    "_child0",
+    "ensemble members",
     "_child1",
     "_child2",
     "_child3",
@@ -31,8 +31,8 @@
    ],
    "images": 0,
    "collections": [
-    "$\\pm2\\sigma$ of $C_d$ (single-measurement error)",
-    "95% credible (estimator)"
+    "$\\pm1.96\\,\\sigma$ of $C_d$ (single-member error)",
+    "95% credible band on the mean"
    ],
    "patches": 0
   },

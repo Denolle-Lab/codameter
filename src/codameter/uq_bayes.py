@@ -578,17 +578,24 @@ def _fig_bayes(res, run):
     # (a) ensemble + posterior + the two bands.
     ax0 = fig.add_subplot(gs[0, 0])
     for k in range(run.members.shape[0]):
-        ax0.plot(yrs, run.members[k] * 100, lw=0.5, color="0.7", alpha=0.6)
+        ax0.plot(
+            yrs,
+            run.members[k] * 100,
+            lw=0.5,
+            color="0.7",
+            alpha=0.6,
+            label="ensemble members" if k == 0 else None,
+        )
     if truth is not None:
         ax0.plot(yrs, truth * 100, color=C["truth"], lw=2.0, label="truth", zorder=6)
     ax0.fill_between(
         yrs,
-        (res.mu_mean - 2 * sd_cd) * 100,
-        (res.mu_mean + 2 * sd_cd) * 100,
+        (res.mu_mean - 1.96 * sd_cd) * 100,
+        (res.mu_mean + 1.96 * sd_cd) * 100,
         color=C["volcano"],
         alpha=0.18,
         lw=0,
-        label=r"$\pm2\sigma$ of $C_d$ (single-measurement error)",
+        label=r"$\pm1.96\,\sigma$ of $C_d$ (single-member error)",
     )
     ax0.fill_between(
         yrs,
@@ -597,18 +604,14 @@ def _fig_bayes(res, run):
         color=C["alt"],
         alpha=0.35,
         lw=0,
-        label="95% credible (estimator)",
+        label="95% credible band on the mean",
     )
     ax0.plot(yrs, res.mu_mean * 100, color=C["alt"], lw=1.5, label="posterior mean")
     ax0.set(xlabel="time (years)", ylabel="dv/v (%)", title="(a) Ensemble to posterior")
-    ax0.legend(
-        fontsize=9,
-        loc="upper right",
-        frameon=True,
-        facecolor="white",
-        framealpha=0.85,
-        edgecolor="0.7",
-    )
+    # headroom above the data for the legend, so it covers no member or band
+    y_lo, y_hi = ax0.get_ylim()
+    ax0.set_ylim(y_lo, y_hi + 1.1 * (y_hi - y_lo))
+    ax0.legend(fontsize=8, loc="upper left", ncol=1, frameon=False)
 
     # (b) the data covariance matrix.
     ax1 = fig.add_subplot(gs[0, 1])

@@ -1472,7 +1472,7 @@ def fig_methods(seed: int = 11):
     axC.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        title="(c) large dv/v — MWCS cycle-skips",
+        title="(c) large, noisy dv/v — both phase methods fail",
     )
     # One shared legend for all three panels (they plot the same 9 series) —
     # per-panel legends at a legible size would cover the data in a figure
@@ -1810,7 +1810,7 @@ def fig_window_band(seed: int = 66):
     norm = env_lo.max()
     floor = env_lo[(np.abs(tf) > 45)].mean() / norm  # late-lapse noise proxy
 
-    fig, ax = plt.subplots(figsize=(4.2, 3.1))
+    fig, ax = plt.subplots(figsize=(5.2, 3.9), layout="constrained")
     m = tf >= 0
     ax.semilogy(tf[m], env_lo[m] / norm, color=C["alt"], lw=1.5, label="low band")
     ax.semilogy(
@@ -1823,18 +1823,17 @@ def fig_window_band(seed: int = 66):
         xlabel="lapse time (s)",
         ylabel="coda envelope (norm.)",
         ylim=(1e-3, 2),
-        title="High-frequency coda\ndecays first",
+        title="(b) High-frequency coda\ndecays first",
     )
     ax.legend(
         fontsize=12,
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.16),
+        bbox_to_anchor=(0.5, -0.2),
         ncol=3,
         frameon=False,
     )
     ax.text(28, 1.4e-3, "fixed 20–40 s\n= noise here", color=C["bad"], fontsize=11)
     _boost_fonts(ax, tick=12, label=13.5, title=14)
-    fig.tight_layout()
     return fig
 
 
@@ -1931,29 +1930,32 @@ def fig_stacking(seed: int = 22):
     truth = earthquake_truth(days)
     ccfs = daily_ccfs(s.t, [s.ref], [truth], fs=s.fs, snr=4.0, seed=seed)
     band, window = (0.5, 2.0), (8.0, 40.0)
-    fig, ax = plt.subplots(figsize=(4.0, 3.0))
+    fig, ax = plt.subplots(figsize=(5.2, 3.9), layout="constrained")
     ax.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="ground truth")
-    for k, col in [(1, C["bad"]), (10, C["earthquake"]), (45, C["alt"])]:
+    for k, col, lw in [
+        (1, C["bad"], 1.0),
+        (10, C["earthquake"], 1.4),
+        (45, C["landslide"], 2.0),
+    ]:
         rec, _ = measure_stretching(
             _trailing_stack(ccfs, k), s.ref, s.t, band=band, fs=s.fs, window=window
         )
         lab = "1-day (noisy)" if k == 1 else f"{k}-day stack"
-        ax.plot(_yrs(days), rec * PCT, color=col, lw=1.4, alpha=0.9, label=lab)
+        ax.plot(_yrs(days), rec * PCT, color=col, lw=lw, alpha=0.9, label=lab)
     ax.axvline(1.5, color="0.6", ls="--", lw=1)
     ax.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        title="Stack length trades noise vs coseismic-step sharpness",
+        title="(d) Stack length trades noise\nagainst coseismic-step sharpness",
     )
     ax.legend(
         fontsize=12,
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.16),
-        ncol=4,
+        bbox_to_anchor=(0.5, -0.2),
+        ncol=2,
         frameon=False,
     )
-    _boost_fonts(ax, tick=12, label=14, title=14.5)
-    fig.tight_layout()
+    _boost_fonts(ax, tick=12, label=14, title=13.5)
     return fig
 
 
@@ -1976,7 +1978,7 @@ def fig_reference(seed: int = 33):
     rec_inv = measure_inversion(
         ccfs, s.t, band=band, fs=s.fs, window=window, block_days=10
     )
-    fig, ax = plt.subplots(figsize=(4.0, 3.0))
+    fig, ax = plt.subplots(figsize=(5.2, 3.9), layout="constrained")
     ax.plot(_yrs(days), truth * PCT, color=C["truth"], lw=2.4, label="ground truth")
     ax.plot(
         _yrs(days),
@@ -2004,17 +2006,16 @@ def fig_reference(seed: int = 33):
     ax.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        title="Uncumulated moving reference removes the trend",
+        title="(c) Uncumulated moving reference\nremoves the trend",
     )
     ax.legend(
         fontsize=12,
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.16),
-        ncol=4,
+        bbox_to_anchor=(0.5, -0.2),
+        ncol=2,
         frameon=False,
     )
     _boost_fonts(ax, tick=12, label=14, title=13.5)
-    fig.tight_layout()
     return fig
 
 
@@ -2114,7 +2115,7 @@ def fig_frequency_depth(seed: int = 44):
     rec_lo, _ = measure_stretching(
         ccfs, ref_lo + ref_hi, s.t, band=(0.2, 0.8), fs=s.fs, window=(12.0, 45.0)
     )
-    fig, ax = plt.subplots(figsize=(4.6, 3.4))
+    fig, ax = plt.subplots(figsize=(5.2, 3.9), layout="constrained")
     ax.plot(
         _yrs(days),
         shallow * PCT,
@@ -2149,17 +2150,16 @@ def fig_frequency_depth(seed: int = 44):
     ax.set(
         xlabel="time (years)",
         ylabel="dv/v (%)",
-        title="Frequency band selects depth,\nand a different signal",
+        title="(a) Frequency band selects depth,\nand a different signal",
     )
     ax.legend(
         fontsize=11,
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.16),
+        bbox_to_anchor=(0.5, -0.2),
         ncol=2,
         frameon=False,
     )
     _boost_fonts(ax, tick=12, label=14, title=13.5)
-    fig.tight_layout()
     return fig
 
 
@@ -2531,7 +2531,7 @@ def fig_branch_asymmetry(seed: int = 131):
     bias_great = np.array(great_list) * PCT
     bias_mean = np.array(mean_list) * PCT
 
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(6.9, 3.6))
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(7.4, 4.0), layout="constrained")
     yr = _yrs(days)
     axA.plot(
         yr,
@@ -2563,7 +2563,7 @@ def fig_branch_asymmetry(seed: int = 131):
     axA.legend(
         fontsize=10.5,
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.16),
+        bbox_to_anchor=(0.5, -0.2),
         ncol=2,
         frameon=False,
     )
@@ -2591,9 +2591,14 @@ def fig_branch_asymmetry(seed: int = 131):
     )
     axB.set_xticks(snrs)
     axB.set_xticklabels([f"{v:g}" for v in snrs])
-    axB.legend(loc="lower right", fontsize=10.5)
+    axB.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.2),
+        ncol=1,
+        fontsize=10.5,
+        frameon=False,
+    )
     _boost_fonts(axA, axB, tick=10.5, label=12, title=13)
-    fig.tight_layout()
     return fig
 
 

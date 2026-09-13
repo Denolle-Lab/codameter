@@ -2,8 +2,8 @@
  "figure": "demo_1_methods",
  "generator": "codameter.synthetic_demo.fig_methods",
  "codameter_version": "0.4.0",
- "git_commit": "1374e81e863346a84aeb8ce28a0f58d876454009",
- "generated_utc": "2026-09-10T18:21:42+00:00",
+ "git_commit": "d3a5c18b08d95872cfa54fa796f080daec94d20a",
+ "generated_utc": "2026-09-13T13:30:45+00:00",
  "python": "3.12.13",
  "numpy": "2.4.3",
  "matplotlib": "3.10.9",
@@ -48,7 +48,7 @@
   },
   {
    "axes": "ax2",
-   "title": "(c) large dv/v \u2014 MWCS cycle-skips",
+   "title": "(c) large, noisy dv/v \u2014 both phase methods fail",
    "xlabel": "time (years)",
    "ylabel": "dv/v (%)",
    "lines": [

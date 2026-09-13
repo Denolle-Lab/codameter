@@ -53,6 +53,7 @@ def main() -> int:
         (r"Median $\sigma_{C_d}$ (\%)", "median_sd", 100, 3),
         ("Bias (\\%)", "shared_bias", 100, 3),
         (r"RMSE($\mu$) (\%)", "rmse", 100, 3),
+        (r"Rescale $s$", "s", 1, 2),
         (r"Prior scale share $\tau^2$", "prior_weight_tau2", 1, 2),
     ]
     rows = []
@@ -67,16 +68,17 @@ def main() -> int:
         "independent synthetic realisations of the volcano scenario (2.5 years, "
         "SNR 7, 4-day cadence, 12-member ensemble). Member coverage: fraction of "
         "member epochs with $|m_k(t)-\\mathrm{truth}(t)|\\le z\\,\\sigma_{C_d}(t)$, the "
-        "target of the proposed single-member error scale. These pointwise tests "
-        "do not validate the temporal covariance. Nominal 68\\% intervals overcover. "
+        "target of the proposed single-member error scale; $z=1$ for the 68\\% "
+        "level and $z=1.96$ for the 95\\% level. "
         "Posterior: fraction of epochs whose 95\\% credible band on $\\mu$ contains "
-        "the truth. "
+        "the truth. Rescale $s$: the fitted factor on the within-method floor of "
+        "eq.~\\ref{eq:weaver}. "
         "Means with standard errors across realisations; no realisation failed; "
         "$\\sigma_{C_d}$, bias and RMSE in percent; prior $\\tau^2$ is the fraction of "
         "conditional posterior rate supplied by the prior scale term (the $\\lambda$ ratio is "
         "below 0.01 throughout). "
-        "Clock drift: $4\\times10^{-5}$\\,s/day from 40\\% of the record; the "
-        "two-branch measurement cancels it. Shared source: a seasonal source "
+        "Clock drift: $4\\times10^{-5}$\\,s/day from 40\\% of the record. "
+        "Shared source: a seasonal source "
         "effect warping the coda beyond 6\\,s lapse with a spurious 0.2\\% "
         "seasonal \\dvv, seen by every configuration. Generated from "
         "\\texttt{paper/data/calibration/} by \\texttt{paper/build\\_calibration\\_table.py}.}\n"
