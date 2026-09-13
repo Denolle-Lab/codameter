@@ -1,0 +1,46 @@
+{
+ "script": "scripts/check_ensemble_duplication.py",
+ "generator": "codameter.uq_bayes._build_bayes (seed 55, cadence 4); gibbs seed 0",
+ "codameter_version": "0.4.0",
+ "git_commit": "c0f91f1f5d72ab3d7b4ed4be9294e7b023a372aa",
+ "generated_utc": "2026-09-13T18:58:17+00:00",
+ "independent_data_expectation": "half-width scales as 1/sqrt(multiplicity)",
+ "rows": [
+  {
+   "multiplicity": 1,
+   "n_members": 12,
+   "median_halfwidth95_pct": 0.06251369482525337,
+   "median_sigma_cd_pct": 0.23755447948266895,
+   "s": 12.098861625892763,
+   "tau": 0.0003612992348785833,
+   "corr_length_days": 5.702100823925634,
+   "n_eff": 28.950925940431706,
+   "prior_precision_share": 0.7999045705950358,
+   "mu_mean_max_abs_change_pct": 0.0
+  },
+  {
+   "multiplicity": 2,
+   "n_members": 24,
+   "median_halfwidth95_pct": 0.05210912104304287,
+   "median_sigma_cd_pct": 0.23238751439063607,
+   "s": 11.807507293383788,
+   "tau": 0.0003863481244818083,
+   "corr_length_days": 5.179057960014449,
+   "n_eff": 26.313545207912476,
+   "prior_precision_share": 0.48961323405350315,
+   "mu_mean_max_abs_change_pct": 0.048943782029892566
+  },
+  {
+   "multiplicity": 4,
+   "n_members": 48,
+   "median_halfwidth95_pct": 0.039821612435499684,
+   "median_sigma_cd_pct": 0.2298511903925661,
+   "s": 11.670097966056039,
+   "tau": 0.00039183490050232606,
+   "corr_length_days": 4.9184731488293805,
+   "n_eff": 25.691616949519986,
+   "prior_precision_share": 0.2563514708073079,
+   "mu_mean_max_abs_change_pct": 0.07290830579498478
+  }
+ ]
+}

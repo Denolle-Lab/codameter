@@ -2,8 +2,8 @@
  "figure": "demo_11_multiverse",
  "generator": "codameter.deviations.multiverse + fig_multiverse_full",
  "codameter_version": "0.4.0",
- "git_commit": "d3a5c18b08d95872cfa54fa796f080daec94d20a",
- "generated_utc": "2026-09-13T13:47:02+00:00",
+ "git_commit": "c0f91f1f5d72ab3d7b4ed4be9294e7b023a372aa",
+ "generated_utc": "2026-09-13T16:44:57+00:00",
  "python": "3.12.13",
  "numpy": "2.4.3",
  "matplotlib": "3.10.9",
@@ -1011,20 +1011,145 @@
    -0.0015953601640949972
   ],
   "sobol_rms": {
-   "estimator": 0.19172730464675428,
-   "band": 0.020594323416902805,
-   "window": 0.27548277786930814,
-   "stack": 0.1720939509947523,
-   "reference": 0.0002193875128073912
+   "estimator": 0.18463613802418932,
+   "band": 0.023801370403100576,
+   "window": 0.2695482936114043,
+   "stack": 0.16715781784273717,
+   "reference": 0.0013864692528178886
   },
   "sobol_drop": {
-   "estimator": 0.18311655669696053,
-   "band": 0.049651795492108027,
-   "window": 0.19170881230491268,
-   "stack": 0.2062488515155831,
-   "reference": 0.001916032998687386
+   "estimator": 0.04639592618719789,
+   "band": 0.013682449092973822,
+   "window": 0.031026294737738755,
+   "stack": 0.0002851416949275402,
+   "reference": 0.08234497912707103
   },
   "n_pipelines": 108,
+  "n_valid": 96,
+  "n_empty": 12,
+  "empty": [
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.4\u20131",
+     "window": "4\u201314",
+     "stack": "1",
+     "reference": "fixed"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.4\u20131",
+     "window": "4\u201314",
+     "stack": "1",
+     "reference": "moving"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.4\u20131",
+     "window": "4\u201314",
+     "stack": "10",
+     "reference": "fixed"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.4\u20131",
+     "window": "4\u201314",
+     "stack": "10",
+     "reference": "moving"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.4\u20131",
+     "window": "4\u201314",
+     "stack": "45",
+     "reference": "fixed"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.4\u20131",
+     "window": "4\u201314",
+     "stack": "45",
+     "reference": "moving"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.8\u20132",
+     "window": "4\u201314",
+     "stack": "1",
+     "reference": "fixed"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.8\u20132",
+     "window": "4\u201314",
+     "stack": "1",
+     "reference": "moving"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.8\u20132",
+     "window": "4\u201314",
+     "stack": "10",
+     "reference": "fixed"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.8\u20132",
+     "window": "4\u201314",
+     "stack": "10",
+     "reference": "moving"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.8\u20132",
+     "window": "4\u201314",
+     "stack": "45",
+     "reference": "fixed"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   },
+   {
+    "config": {
+     "estimator": "MWCS",
+     "band": "0.8\u20132",
+     "window": "4\u201314",
+     "stack": "45",
+     "reference": "moving"
+    },
+    "reason": "MWCS needs at least three sub-windows for the delay-versus-lapse fit; the 4-14 s window holds 2 at 6 s length and 3 s step"
+   }
+  ],
+  "cadence": 3,
   "axes": [
    "estimator",
    "band",

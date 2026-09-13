@@ -2,8 +2,8 @@
  "figure": "demo_18_stack_coherence",
  "generator": "codameter.synthetic_demo.fig_stack_coherence",
  "codameter_version": "0.4.0",
- "git_commit": "141e7bc25bb439420c5ee73223bf78eb4ca7a839",
- "generated_utc": "2026-09-10T18:41:24+00:00",
+ "git_commit": "c0f91f1f5d72ab3d7b4ed4be9294e7b023a372aa",
+ "generated_utc": "2026-09-13T16:54:15+00:00",
  "python": "3.12.13",
  "numpy": "2.4.3",
  "matplotlib": "3.10.9",
@@ -52,6 +52,14 @@
   "ax1/line2/x",
   "ax1/line2/y",
   "ax1/line3/x",
-  "ax1/line3/y"
- ]
+  "ax1/line3/y",
+  "data/snr0.5/median_cc",
+  "data/snr0.5/rms_pct",
+  "data/snr0.5/signed_step_error_pct",
+  "data/snr4/median_cc",
+  "data/snr4/rms_pct",
+  "data/snr4/signed_step_error_pct",
+  "data/stack_days"
+ ],
+ "step_error": "recovered minus true step amplitude, each the median of the 120 days after the event minus the median of the 120 days before (synthetic_demo.step_amplitude); negative = recovered drop deeper than the truth"
 }
