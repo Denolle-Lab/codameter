@@ -10,11 +10,11 @@ abstract: |
   Relative seismic velocity changes (\dvv) from repeated coda waves are a
   standard observable for volcanoes, faults, landslides, aquifers and the
   cryosphere. Turning cross-correlation functions into a \dvv\ time series
-  involves a long sequence of choices, the estimator, the frequency band, the
+  involves a long sequence of choices (the estimator, the frequency band, the
   coda window, the reference, the stacking, and how cross-components and
-  station pairs are aggregated and weighted, made ad hoc and reported
-  incompletely, so the same data can support different values and different
-  error bars. We quantify the individual and combined effects of these choices
+  station pairs are aggregated and weighted). These choices are made ad hoc
+  and reported incompletely, so the same data can support different values
+  and different error bars. We quantify the individual and combined effects of these choices
   on synthetic correlation functions in which the ground-truth \dvv\ is known
   exactly. On these synthetics, at large \dvv\ the estimators split by family
   with distinct failure modes; the same station pair yields different \dvv\ depending only on whether one averages per-component \dvv\ or the
@@ -23,7 +23,8 @@ abstract: |
   the standard error of the network mean and the between-pair standard
   deviation, two different quantities that studies rarely distinguish. A
   one-at-a-time sweep and a 108-pipeline factorial on one scenario rank the
-  choices by the error they induce. We then propose a hierarchical Bayesian
+  choices by the error they induce; across the factorial the RMS error spans
+  more than two orders of magnitude. We then propose a hierarchical Bayesian
   measurement model that runs an ensemble of defensible pipelines on the same
   correlations and combines their estimates into a single \dvv\ series. A separate construction proposes a time-dependent single-member error covariance $C_d$.
   On 200 independent synthetic realisations of a volcano scenario, $C_d$ covers
@@ -34,18 +35,19 @@ abstract: |
   the error of the ensemble mean while leaving member coverage near 95%.
   The nominal 68% member intervals cover 81% in the clean case;
   these pointwise checks do not validate the full covariance. Shared errors
-  require diagnostics beyond agreement among processing choices. We set out how $C_d$ enters a depth inversion of
-  shear-velocity change; that stage is described, not evaluated, here. On three
-  California stations the same measurement code, run on NoisePy correlations in
-  a cloud batch pipeline, reproduces a published \dvv\ product (correlation
-  0.83--0.99 on 360--580 matched days, with a reproducible comparison script),
-  a comparison that also exposed and corrected a sign-convention error. The
-  framework, estimators, figures with their numerical sidecars, and the
-  calibration experiments are released in the open Python package
-  ``codameter``, together with a processing-choice advisor and a seeded
-  golden dataset with fixed scoring support and a null-change penalty for
-  missing predictions; an
-  evaluation of agents against that dataset is left to future work.
+  require diagnostics beyond agreement among processing choices. We set out
+  how a per-band covariance of the same construction enters a depth inversion
+  of shear-velocity change; that stage is described, not evaluated, here. On
+  three California stations the same measurement code, run on NoisePy
+  correlations in a cloud batch pipeline, matches the shape of a published
+  \dvv\ product after matched 90-day smoothing ($r=0.83$--$0.99$ on 357--579
+  days, with a checked-in comparison script), with amplitudes that differ by
+  up to a factor of two at one station; the comparison also exposed and
+  corrected a sign-convention error. The framework, estimators, figures with
+  their numerical sidecars, and the calibration experiments are released in
+  the open Python package ``codameter``, together with a processing-choice
+  advisor and a seeded golden dataset with a fixed scorer; an evaluation of
+  agents against that dataset is left to future work.
 
 
 
@@ -175,14 +177,18 @@ signal-processing parameters, since the physics of phase lags in scattered
 waves is well established [@Obermann2013].
 
 We then compare single-station \dvv\ from the same measurement code, run on
-NoisePy correlations for three California stations, with a published product
-(Section\ \ref{sec:deployment}). We package the methodology in a Python
-software, ``codameter``, which also ships an advisor skill: an AI agent can be
-asked to recommend a processing configuration or recover a \dvv(t) series,
-and its answer can be scored against seeded synthetic golden cases with known
-ground truth, including a hidden-truth variant that withholds the answer from
-the public package. The scorer and dataset are part of the release; an
-evaluation of agents against them is not part of this paper.
+NoisePy correlations [@Jiang2020] for three California stations, with a
+published product (Section\ \ref{sec:deployment}). We package the
+methodology in a Python software, ``codameter``, which also ships a
+processing-choice advisor: an agent skill that elicits the use case,
+recommends a configuration from per-application defaults, and tests the
+recommendation on the synthetic engine. An AI agent can likewise be asked to
+recover a \dvv(t) series, and its answer can be scored against seeded
+synthetic golden cases with known ground truth, including a hidden-truth
+variant that withholds the answer from the public package; the scorer
+compares predictions with the truth on a fixed set of epochs and counts a
+missing prediction as a null change. The scorer and dataset are part of the
+release; an evaluation of agents against them is not part of this paper.
 
 # Synthetic framework {#sec:methods}
 
@@ -324,12 +330,13 @@ Network SE, $\sigma_{\mathrm{SE}}$, $\sigma_{\mathrm{SE},w}$ & Precision of the
 network mean under independent pairs; shared stations or noise make it
 optimistic & Same epochs; the target is the finite-network mean \\ \hline
 Posterior credible band on $\mu(t)$ & Precision of the ensemble-combined
-estimate under the model of Section~\ref{sec:bayes} & Decimated epochs; under-covers
-when configurations share a bias \\ \hline
+estimate under the model of Section~\ref{sec:bayes} & Decimated epochs; its
+coverage of the truth is tested by repeated realisations in
+Section~\ref{sec:bayes} \\ \hline
 $C_d$ & Proposed error covariance of one ensemble member: fitted
 floor, excess spread, temporal correlation, offset scale $\tau$ & Same
-epochs; 95\% pointwise member coverage supported, 68\% overcoverage;
-temporal covariance unvalidated (Table~\ref{tab:calibration}) \\ \hline
+epochs; its pointwise coverage of member errors is tested in
+Section~\ref{sec:bayes}; its temporal part is not tested \\ \hline
 Field comparison $r$, slope & Agreement with a published product after matched
 smoothing & Calendar-day join, 150-day burn-in, trailing 90-day mean
 (Section~\ref{sec:deployment}) \\
@@ -378,7 +385,7 @@ its own dedicated synthetic scenario (see the cross-referenced subsection).}
 \toprule
 \textbf{Axis} & \textbf{Best-case RMS} & \textbf{Worst-case RMS} & \textbf{Section} \\
 \midrule
-Estimator (family split) & $<\!0.01\,\%$ (TS, up to 5\,\% true \dvv) &
+Estimator (family split) & $<\!0.01\,\%$ (TS, up to $5\,\%$ true \dvv) &
 cycle-skip $>\!0.5\,\%$ past $\sim\!1.5\,\%$ true \dvv\ (MWCS) &
 Section~\ref{sec:methods-fig} \\ \hline
 Cross-component aggregation & $\sim\!0.03\,\%$ (Approach B, averaged images) &
@@ -411,19 +418,19 @@ imposed \dvv\ recovers as positive. A dedicated regression test holds every
 estimator to this convention in both signs, end to end through the full
 measurement pipeline, so the convention cannot silently drift back.
 
-On small, clean \dvv$\,$all seven estimators agree to within 0.04\,\% RMS
+On small, clean \dvv$\,$all seven estimators agree to within $0.04\,\%$ RMS
 (Fig.\ \ref{fig:methods}a). Sweeping the same clean recovery out to
 $\pm 5\,\%$ (Fig.\ \ref{fig:methods}b) shows exactly where and how each family
 first departs from the 1:1 line, and the estimator choice becomes consequential
 at large, noisy \dvv\ (Fig.\ \ref{fig:methods}c), where the effect of the methods
 is split according to their phase measurement approaches. The stretching family
-(TS, WTS) and WCC match the whole dilated coda and stay within 0.05\,\% RMS of
-the truth on the noisy landslide signal (0.005, 0.010 and 0.046\,\%); the
+(TS, WTS) and WCC match the whole dilated coda and stay within $0.05\,\%$ RMS of
+the truth on the noisy landslide signal (0.005, 0.010 and $0.046\,\%$); the
 warping methods (DTW, WTDTW) track but under-shoot the largest strains (0.16 and
-0.08\,\% RMS); both phase methods fail on this noisy, large-strain signal,
-MWCS by cycle-skipping (2.9\,\% RMS) and WCS, whose 2-D unwrapping recovers
+$0.08\,\%$ RMS); both phase methods fail on this noisy, large-strain signal,
+MWCS by cycle-skipping ($2.9\,\%$ RMS) and WCS, whose 2-D unwrapping recovers
 the clean sweep of panel (b), by losing the phase track once noise is added
-(3.8\,\% RMS; the numbers are computed from the figure's numerical sidecar).
+($3.8\,\%$ RMS; the numbers are computed from the figure's numerical sidecar).
 No estimator is simply "right"; the choice of estimator materially changes the
 \dvv\ measurement at larger strain.
 
@@ -517,7 +524,7 @@ and the between-pair standard deviation (e.g., @Clements2018). These are
 estimates of different quantities (Table\ \ref{tab:estimands}): the standard
 error is the precision of the network mean under independent pairs, the
 standard deviation is the dispersion of the pairs, which on this synthetic
-mixes the 15\,\% pair-to-pair amplitude heterogeneity we impose with the pair
+mixes the $15\,\%$ pair-to-pair amplitude heterogeneity we impose with the pair
 noise, and the two are related by $\sqrt{N}$ by construction. On the same
 synthetic network the recovered means nearly coincide, but the number reported
 as $1\sigma$ spans a factor of $\sim\!\sqrt{N}$ (Fig.\ \ref{fig:uncertainty}).
@@ -741,7 +748,7 @@ $\sim\!0.038\,\%$ by 60 days as the stack smears the step
 (Fig.\ \ref{fig:stack-coherence}b) --- the classic noise-versus-smearing
 tradeoff, and the reason "longer is always better" is wrong even once the
 coherence gate is satisfied. For the poor deployment, RMS is still falling at
-60 days ($\sim\!0.067\,\%$, down from $\sim\!0.71\,\%$ at 1 day): the noise
+60 days ($\sim\!0.067\,\%$, down from $\sim\!0.74\,\%$ at 1 day): the noise
 floor dominates over the whole tested range, and the smearing penalty never
 gets the chance to show up. The signed error in the recovered step amplitude
 is negative (an under-estimate) at every stack length for the poor deployment,
@@ -837,7 +844,7 @@ measuring.
   envelope-detected window --- shrinking automatically at higher frequency.
   (b) RMS error against the known truth for a single universal fixed window
   versus each band's own envelope-derived window: comparable at low
-  frequency, $\sim\!93\times$ better at high frequency.}
+  frequency, $\sim\!104\times$ better at high frequency.}
   \label{fig:window-envelope}
 \end{figure}
 
@@ -943,19 +950,24 @@ inflates the error by roughly an order of magnitude ($\sim\!12\times$), and DTW 
 $\sim\!6\times$; among the non-estimator choices the uncumulated trailing
 reference is worst ($\sim\!5\times$, and most distorts the recovered drop; it
 is an ablation of re-baselining without trend reconstruction, not a surveyed
-workflow, Section\ \ref{sec:param_ref}), while stack length, coda
-window, and frequency band deviations are each more modest
-($1.5$--$2.5\times$). The joint-inversion reference stays closest to the
-fixed-reference baseline among the reference-scheme deviations.
+workflow, Section\ \ref{sec:param_ref}), while stack length, coda window and
+frequency band deviations change the error by factors between $0.7$ and
+$2.5$. Two of them score below the baseline: the $0.8$--$2$ Hz band
+($0.022\,\%$) and the $4$--$14$ s window ($0.027\,\%$) against the
+baseline's $0.032\,\%$, so the best-practice baseline is not the optimum of
+this scenario. Turning the coherence gate off leaves the error unchanged
+here. The joint-inversion reference stays closest to the fixed-reference
+baseline among the reference-scheme deviations.
 
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_10_deviations.png}
   \caption{One-at-a-time deviations from a best-practice baseline, ranked by
   their RMS error against the truth (a, log scale; RMS mixes bias and
-  scatter) and by how they distort the recovered co-eruptive drop (b, symlog). Bars are coloured red when the error exceeds
-  three times the baseline. The estimator and reference choices dominate; the
-  band and gating are minor for this scenario.}
+  scatter) and by how they distort the recovered co-eruptive drop (b,
+  symlog). Bars are coloured red when the error exceeds three times the
+  baseline (dashed line). "Uncumulated trailing" is the moving reference
+  without trend reconstruction of Section\ \ref{sec:param_ref}.}
   \label{fig:deviations}
 \end{figure}
 
@@ -985,13 +997,12 @@ but a distribution of \dvv\ over the processing choices.
   \includegraphics[width=\textwidth]{demo_11_multiverse.png}
   \caption{The full multiverse. (a) 108 reasonable pipelines on one dataset,
   each coloured by its RMS error against the truth (a fraction of velocity) on
-  a colourblind-safe scale (bright accurate, dark biased); the axis is clipped
-  at $\pm0.8\,\%$ and the number of pipelines that leave it is printed on the
-  panel; the grey band is the 10--90\% inter-pipeline spread, widest at the
-  velocity drop. (b) First-order variance attribution: which
-  choice controls the RMS error and the recovered drop. Window, estimator, and
-  stack length dominate, in that order for RMS and reordered for the drop;
-  the sub-unity sum signals strong interactions.}
+  a colourblind-safe scale (bright accurate, dark biased), with the median
+  across pipelines (purple) and the truth (black); the axis is clipped at
+  $\pm0.8\,\%$, and the number of pipelines that leave it and the extent of
+  the 10--90\% inter-pipeline band, which exceeds the axis range, are printed
+  on the panel. (b) First-order variance attribution of the RMS error and of
+  the recovered drop to each processing axis.}
   \label{fig:multiverse}
 \end{figure}
 
@@ -1127,9 +1138,11 @@ The floor is a lower bound, and the rescale is what makes it usable. Second,
 once $s$ is fitted on those residuals, the calibrated floor absorbs nearly all
 of the between-configuration spread, and the excess term of eq.\ \ref{eq:cd} is
 non-zero only at the epochs where the configurations disagree more than they
-usually do (Fig.\ \ref{fig:bayes}c). The assumed temporal correlation ($L\approx 40$
-days at a 4-day cadence) and the common-mode term collapse the effective
-number of independent epochs from 229 to a few tens.
+usually do (Fig.\ \ref{fig:bayes}c). The assumed temporal correlation
+($L\approx 39$ days on the realisation shown, 30 days on average over the
+200 realisations of Table\ \ref{tab:calibration}, at a 4-day cadence) and
+the common-mode term collapse the effective number of independent epochs
+from 229 to a few tens.
 
 Whether these intervals mean what they say is a question one realisation
 cannot answer, so we repeat the whole measurement on independent
@@ -1137,10 +1150,10 @@ realisations of the same scenario (Table\ \ref{tab:calibration}; the driver
 is \texttt{codameter.calibration}). Three coverages answer three different
 questions. The fraction of member epochs whose error against the truth lies
 within $1.96\,\sigma_{C_d}$ is 0.956 on 200 realisations, within the margin of $\pm 0.03$ fixed
-before the run. This supports the 95\,\% pointwise interval on this
-scenario, not calibration of the entire covariance. At the 68\,\% level
+before the run. This supports the $95\,\%$ pointwise interval on this
+scenario, not calibration of the entire covariance. At the $68\,\%$ level
 it covers 0.81 and fails the same margin. One Gaussian scale therefore does
-not calibrate both interval levels. The 95\,\% credible band on
+not calibrate both interval levels. The $95\,\%$ credible band on
 $\mu$ contains the truth at only 0.59 of the epochs: the ensemble mean
 inherits the biases its members share (the stacking that rounds the drop, the
 estimator biases at low coherence), and no amount of averaging over
@@ -1148,17 +1161,22 @@ configurations removes them, which is what the posterior's precision cannot
 know. Comparing $\mu$ with $\pm 2\sigma_{C_d}$ mixes the ensemble mean with
 a single-member scale and yields nearly complete coverage here; it does
 not validate the uncertainty of the combined estimate. The other two scenarios of Table\ \ref{tab:calibration} inject artefacts that
-every configuration sees identically. A station clock drift leaves every
-statistic unchanged, because a lapse-independent shift appears with opposite
+every configuration sees identically. A station clock drift changes no
+coverage by more than 0.015 and adds no shared bias (Table\ \ref{tab:calibration}),
+because a lapse-independent shift appears with opposite
 signs on the causal and acausal branches (Section\ \ref{sec:artifacts}) and
 every configuration in this ensemble measures both branches together, so the
-drift cancels in the estimate; that is a property of the two-branch
+drift cancels in the estimate. What the drift does change is the
+coherence, which raises the within-method floor of eq.\ \ref{eq:weaver}: the
+fitted rescale falls from $s=11.7$ to $10.9$ while the median
+$\sigma_{C_d}$ is unchanged ($0.225$ against $0.222\,\%$). The cancellation
+is a property of the two-branch
 measurement, not evidence that the ensemble could have detected it.
 A seasonal source effect confined to the late coda, the waveform-level
 artefact of @Zhan2013 (Section\ \ref{sec:artifacts}), is the genuine shared
 error: it warps the coda every configuration measures, and on that scenario
 the credible band covers the truth at only 0.34 of the epochs and the RMSE of
-$\mu$ more than doubles, from 0.067 to 0.161\,\%, while the member-level coverage of
+$\mu$ more than doubles, from 0.067 to $0.161\,\%$, while the member-level coverage of
 $C_d$ stays at 0.95. That last number is right for a reason that gives no
 comfort: the artefact also inflates the scatter that $s$ absorbs, so $C_d$
 widens, but its coherent part biases every member and the ensemble mean
@@ -1174,18 +1192,17 @@ Section\ \ref{sec:artifacts}.
   \includegraphics[width=\textwidth]{demo_12_bayes.png}
   \caption{The Bayesian measurement model on one realisation of the volcano
   scenario (12 configurations: three estimators, two bands, two windows, 10-day
-  stacks, fixed reference, 4-day cadence). (a) The processing ensemble (grey)
-  is marginalised into a posterior mean (purple) with a narrow credible band
-  (the estimator precision) and a wider $\pm2\sigma$ band from $C_d$, the
-  single-measurement error, which encloses the individual members
-  (Table~\ref{tab:calibration} gives the coverages over repeated realisations).
+  stacks, fixed reference, 4-day cadence). (a) The twelve ensemble members
+  (grey) are combined into a posterior mean (purple) with its 95\% credible
+  band (purple, narrow) and the $\pm1.96\,\sigma$ band of $C_d$, the
+  single-member error (red), which encloses 95\% of member epochs over
+  repeated realisations (Table~\ref{tab:calibration}).
   (b) The time-dependent covariance $C_d$, in squared fractional \dvv.
-  (c) Its diagonal $\sigma_d(t)$, in percent, split into the calibrated
-  coherence floor ($s\,\overline{\sigma_k}$, which with $s\approx12$ carries
-  almost all of the spread) and the excess between-configuration spread, which
-  is non-zero only where the configurations disagree more than usual; the
-  posterior-of-the-mean (dotted) is far tighter, and $N_{\mathrm{eff}}$ is a
-  small fraction of the epoch count.}
+  (c) Its diagonal $\sigma_d(t)$, in percent, split into the rescaled
+  within-method floor ($s\,\overline{\sigma_k}$) and the excess
+  between-configuration spread, with the posterior standard deviation of the
+  mean (dotted); $N_{\mathrm{eff}}$ is the effective number of independent
+  epochs implied by $C_d$.}
   \label{fig:bayes}
 \end{figure}
 
@@ -1385,11 +1402,8 @@ sparse, consistent with its higher scatter and join-method sensitivity.
   \caption{Daily NZ (north-vertical) cross-component correlation functions,
   2--4$\,$Hz, $\pm 8\,$s lag, 2019, each day normalised to its maximum
   absolute amplitude (colour scale unlabelled on this externally produced
-  figure). CI.LJR's coda is stable and narrow. CI.RXH shows multipath (several
-  coherent bands across the full lag range) and a shift in that pattern in
-  April--May 2019. CI.ARV's coherent energy is compact and near zero lag but
-  comparatively sparse. These differences are consistent with, but do not by
-  themselves explain, the station-to-station agreement in
+  figure). The text describes the coda character of each station and its
+  relation to the station-to-station agreement of
   Fig.~\ref{fig:realdata-validation}.}
   \label{fig:realdata-interferograms}
 \end{figure}
@@ -1405,11 +1419,15 @@ correlation coefficient is reported alongside the recovered series.
   \includegraphics[width=\textwidth]{realdata_3_warmup.png}
   \caption{CI.LJR single-station \dvv, a separate 90-day smoke run (January--April
   2023), four frequency bands. The ensemble spread (shaded) and measurement
-  error bars are reported once at least one member is defined; the member
-  count annotated on each panel is the number of members defined on the last
-  day shown, which is below five where the moving-reference member's warm-up
-  had not yet elapsed. Bottom panel: per-band stretching correlation
-  coefficient. Produced by the cloud run, not regenerated here.}
+  error bars are reported once at least one member is defined. The
+  annotation on each panel gives the number of epochs, out of 89, with a
+  defined ensemble, followed by the set of distinct member counts, out of
+  five, that occur over those epochs; counts below five arise where a member
+  is undefined, for example before the moving-reference member's warm-up has
+  elapsed. The figure title, written by the cloud run, names the configured
+  member set; the annotations are the counts realised. Bottom panel:
+  per-band stretching correlation coefficient. Produced by the cloud run,
+  not regenerated here.}
   \label{fig:realdata-warmup}
 \end{figure}
 
@@ -1491,8 +1509,8 @@ configuration axis should be marginalised only over pipelines that target
 one estimand. And the coherence floor of @Weaver2011 is a lower bound: on our
 synthetic the residual scatter about the ensemble mean is an order of
 magnitude above it, which the fitted rescale $s$ reports rather than hides.
-The pointwise tests in Table\ \ref{tab:calibration} support the 95\,\%
-member intervals on the listed scenarios. They also expose 68\,\%
+The pointwise tests in Table\ \ref{tab:calibration} support the $95\,\%$
+member intervals on the listed scenarios. They also expose $68\,\%$
 overcoverage and poor coverage of the combined estimate. They do not establish
 temporal covariance calibration, convergence across independent chains, or
 valid downstream intervals.
@@ -1512,9 +1530,11 @@ a synthetic built under the same sign convention as the estimator reading it
 will always agree, whether the convention is physically correct or not.
 Testing codameter's estimators against a real cross-network deployment
 (Section\ \ref{sec:deployment}), recovered \dvv\ anticorrelated with the
-published @Clements2023 product and with seasonal hydrology at three
-stations ($r=-0.69,-0.45,-0.40$ under the rule used at the time, recorded in
-the codameter v0.4.0 release notes). Ground-truthing through the exact
+published @Clements2023 product and with seasonal hydrology at all three
+stations under the rule used at the time. The coefficients of that first
+run were not archived; the qualitative record is the codameter v0.4.0
+release note, and the corrected comparison is
+Table\ \ref{tab:gate1}. Ground-truthing through the exact
 call path made the cause obvious: imposing a $+0.5\,\%$ velocity change
 returned $-0.50\,\%$. The synthetic generator and all seven estimators had
 consistently used the stretch factor $\varepsilon$ (positive for a coda
@@ -1546,19 +1566,23 @@ continuation of this work.
 Ambient-noise \dvv\ monitoring rests on a chain of processing choices that are
 made ad hoc and reported incompletely. Using a truth-known synthetic and the full
 estimator suite of an open toolbox, we have shown that these choices change the
-recovered \dvv\ by up to two orders of magnitude in RMS across reasonable
-pipelines and, more consequentially, change the number reported as its
-uncertainty by a factor of $\sim\!\sqrt{N}$ depending on which of two
-different quantities a study calls $1\sigma$, all without touching the data.
-The remedy is not a single mandated pipeline but transparency: report every
-choice and name the quantity each error bar estimates, sample the choices the
-physics does not fix, carry the resulting measurement covariance into the
-inference after validating its target, and release the pipeline as executable
-code. Repeated synthetic realisations support the proposed 95\,\%
-pointwise member intervals, while the nominal 68\,\% intervals overcover
-and the combined estimate's credible band undercovers
-(Table\ \ref{tab:calibration}). Temporal and cross-band covariance and
-shared errors remain unvalidated. A depth inversion also needs kernel
+RMS error of the recovered \dvv\ by more than two orders of magnitude
+(0.02 to $2.8\,\%$) across 108 pipelines on one synthetic volcano scenario
+and, more consequentially, change the number reported as its uncertainty by
+a factor of $\sim\!\sqrt{N}$ depending on whether a study calls $1\sigma$
+the standard error of the network mean or the between-pair standard
+deviation, all without touching the data. The remedy is not a single
+mandated pipeline but transparency: report every choice and name the
+quantity each error bar estimates, sample the choices the physics does not
+fix, carry the resulting measurement covariance into the inference after
+validating what it is meant to cover, and release the pipeline as executable
+code. Repeated synthetic realisations support the proposed $95\,\%$
+pointwise intervals for the error of a single processing configuration,
+while the nominal $68\,\%$ intervals overcover and the credible band on the
+ensemble mean undercovers (Table\ \ref{tab:calibration}). The temporal
+correlation in $C_d$ is untested, a cross-band covariance is not
+constructed, and an error shared by every configuration is demonstrably
+invisible to the ensemble. A depth inversion also needs kernel
 uncertainty and the covariance of the actual observations it consumes.
 Converting a depth profile to stress or strain is a further step this paper
 does not attempt. We offer codameter as one such record; its depth stage is an
@@ -1571,9 +1595,12 @@ interface awaiting evaluation.
 Let $r(t)$ and $c(t)$ be the reference and current cross-correlations,
 band-passed to $[f_1,f_2]$ (central frequency $f_c$, bandwidth $B$) and read over
 the coda window $W=[t_1,t_2]$ on one or both branches. Each method below
-estimates a trial stretch factor $\varepsilon$, the fractional dilation of
-the current coda relative to the reference; physical \dvv\ follows via the
-convention boxed in Section\ \ref{sec:intro}, $\dvv=-\varepsilon/(1+\varepsilon)$.
+estimates either the stretch factor $\varepsilon$, the fractional dilation of
+the current coda relative to the reference, which is then mapped to physical
+\dvv\ through the convention boxed in Section\ \ref{sec:intro},
+$\dvv=-\varepsilon/(1+\varepsilon)$, or a slope of delay against lapse that
+is reported as \dvv\ directly; the convention paragraph before the
+delay-based methods says which route each estimator takes.
 
 **Trace stretching (TS).** For each trial stretch factor $\varepsilon$, the current correlation is interpolated as $c_\varepsilon(t)=\mathcal{I}[c]\big((1+\varepsilon)t\big)$ (interpolation on current only) while the reference $r(t)$ remains fixed. The windowed correlation coefficient is
 \begin{equation}
@@ -1607,40 +1634,65 @@ corrected.)
 Throughout this appendix a delay $\delta t$ is the lag of the current trace
 relative to the reference, positive when the current arrival is later, so for
 the pure dilation $c(t)=r(t/(1+\varepsilon))$ a phase at reference lapse
-$t_i$ appears at $(1+\varepsilon)t_i$ and $\delta t_i=+\varepsilon\,t_i$; with
-that sign every estimator below returns the dilation $\varepsilon$ of the
-Introduction, and a regression test in codameter holds each of them to it in
-both signs.
+$t_i$ appears at $(1+\varepsilon)t_i$ and $\delta t_i=+\varepsilon\,t_i$. The
+implementation uses the Fourier convention
+$\hat c(f)=\int c(t)\,e^{-2\pi\mathrm{i} f t}\,\mathrm{d}t$, under which a
+delay by $\delta t$ multiplies $\hat c$ by $e^{-2\pi\mathrm{i} f\,\delta t}$.
+The estimators reach \dvv\ by two routes. TS, WCC and WTS fit the dilation
+$\varepsilon$ and apply the exact map $\dvv=-\varepsilon/(1+\varepsilon)$.
+MWCS, WCS, DTW and WTDTW fit a slope of delay or lag against lapse and report
+that slope as \dvv\ without a further map: for the two phase methods the
+fitted slope is $-\varepsilon$, which equals \dvv\ to first order in
+$\varepsilon$; for the two warping methods the lag path runs from the current
+to the reference sample, so the slope of the ideal path is
+$1/(1+\varepsilon)-1=-\varepsilon/(1+\varepsilon)$, which is \dvv\ exactly.
+A regression test in codameter imposes $\dvv=+0.3\,\%$ and $-0.4\,\%$ on a
+noise-free coda and holds every estimator to the imposed value within
+$10^{-3}$; at these amplitudes the first-order slope and the exact map differ
+by $\varepsilon^2/(1+\varepsilon)\approx10^{-5}$, so the test fixes the sign
+but does not separate the two routes.
 
-**Windowed cross-correlation (WCC).** In sub-windows centred at lapse $t_i$ the
+**Windowed cross-correlation (WCC).** In sub-windows (6 s long, 3 s step) centred at lapse $t_i$ the
 delay is $\delta t_i=\arg\max_{\tau}\int c(t)\,r(t-\tau)\,\mathrm{d}t$; a
 least-squares fit of $\delta t_i=\varepsilon\,t_i$ gives $\varepsilon$.
 
-**Moving-window cross-spectrum (MWCS).** In each sub-window the cross-spectrum is
-$X(f)=\hat c(f)\,\hat r^{*}(f)$ with phase $\varphi(f)=\arg X(f)\approx 2\pi
-f\,\delta t_i$; a coherence-weighted linear fit of $\varphi(f)$ over $[f_1,f_2]$
-yields $\delta t_i$, and $\varepsilon$ is the slope of $\delta t_i$ versus
-$t_i$ [@Clarke2011]. Because $\varphi$ is defined modulo $2\pi$, the estimate
-cycle-skips once $|\delta t_i|>1/(2f)$.
+**Moving-window cross-spectrum (MWCS).** In each sub-window (6 s long, 3 s
+step) the cross-spectrum is $X(f)=\hat c(f)\,\hat r^{*}(f)$ with phase
+$\varphi(f)=\arg X(f)=-2\pi f\,\delta t_i$ under the stated convention.
+@Clarke2011 fit $\varphi(f)$ linearly over $[f_1,f_2]$ with coherence
+weights; the implementation used here reads one phase from the band-summed
+cross-spectrum at the power-weighted centre frequency $f_c$ of the
+sub-window, $\varphi/(2\pi f_c)=-\delta t_i$, and the slope of that quantity
+against $t_i$, which is $-\varepsilon$, is reported as \dvv. Because
+$\varphi$ is defined modulo $2\pi$, the estimate cycle-skips once
+$|\delta t_i|>1/(2f_c)$.
 
 **Dynamic time warping (DTW).** A lag path $l(i)$ minimises
 \begin{equation}
 \sum_i \big(c_i - r_{i+l(i)}\big)^2 \;+\; \gamma\sum_i \big(l(i{+}1)-l(i)\big)^2,
 \end{equation}
-where $\gamma$ penalises strain (limits the lag's rate of change); $\varepsilon$
-is the slope of the lag $l(i)/f_s$ (current relative to reference) versus lapse.
+where $\gamma=0.3$ penalises strain (limits the lag's rate of change) and the
+lag is bounded by $0.8$ s. The path maps current sample $i$ to reference
+sample $i+l(i)$, so for a pure dilation $l(i)/f_s=t_i\,[1/(1+\varepsilon)-1]$
+and the slope of $l(i)/f_s$ against lapse is $-\varepsilon/(1+\varepsilon)$,
+reported directly as \dvv.
 
 **Wavelet cross-spectrum (WCS).** With continuous wavelet transforms $W_c,W_r$,
-the cross-wavelet spectrum is $W_{xy}(f,\tau)=W_c\,W_r^{*}$ and the delay $\delta
-t(f,\tau)=\varphi(f,\tau)/(2\pi f)$. Unwrapping $\varphi$ in two dimensions ---
-along lapse (anchored at $\tau\!\to\!0$, where $\delta t\!\to\!0$) then along
-frequency --- removes the cycle-skip; $\varepsilon$ follows from the
-$|W_{xy}|$-weighted regression $\delta t=\varepsilon\,\tau$ over the
-time--frequency window [@Mao2020].
+the cross-wavelet spectrum is $W_{xy}(f,\tau)=W_c\,W_r^{*}$ with phase
+$\varphi(f,\tau)=-2\pi f\,\delta t(f,\tau)$ under the stated convention.
+Unwrapping $\varphi$ in two dimensions, along lapse (anchored at
+$\tau\!\to\!0$, where $\delta t\!\to\!0$) then along frequency, removes the
+cycle-skip; the $|W_{xy}|$-weighted regression of $\varphi/(2\pi f)$ on
+$\tau$ over the time--frequency window gives the slope $-\varepsilon$, which
+is reported as \dvv\ [@Mao2020].
 
-**Wavelet stretching / warping (WTS, WTDTW).** TS (respectively DTW) is applied
-per wavelet scale (respectively to the wavelet-reconstructed band) and the
-per-scale estimates are pooled with cross-wavelet-power weights.
+**Wavelet stretching / warping (WTS, WTDTW).** WTS applies the stretch search
+of TS to the real part of each wavelet-scale row of the current transform
+against the fixed reference row, pools the per-scale $\varepsilon$ with
+weights equal to the norm of the current row in the window, and applies the
+exact map to the pooled $\varepsilon$. WTDTW sums the real part of the
+transform over the band into one wavelet-filtered trace and applies the DTW
+of the previous paragraph to it, reporting the lag slope as \dvv.
 
 # Aggregation and uncertainty conventions {#app:aggregation}
 
@@ -1674,9 +1726,8 @@ mean $\bar x$ but obey $\sigma_{\mathrm{SD}}/\sigma_{\mathrm{SE}}=\sqrt{N}$.
 # Survey of processing choices across the literature {#app:survey}
 
 Table\ \ref{tab:survey} catalogues the processing choices of the ambient-noise
-\dvv\ monitoring studies we surveyed: 103 rows for 102 publications, one
-publication [@Obermann2013] contributing two rows for two distinct
-measurement set-ups (the full machine-readable version and provenance are
+\dvv\ monitoring studies we surveyed: 103 rows for 103 publications, one
+per publication (the full machine-readable version and provenance are
 distributed with the codameter package). It is the empirical basis
 for the paper's claim that no convention is shared: the estimator, the frequency
 band, the coda window, the reference scheme and --- most unevenly of all --- the

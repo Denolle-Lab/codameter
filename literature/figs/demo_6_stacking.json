@@ -2,15 +2,15 @@
  "figure": "demo_6_stacking",
  "generator": "codameter.synthetic_demo.fig_stacking",
  "codameter_version": "0.4.0",
- "git_commit": "7bfdcef47453919afb5ee5e32a0d7979330402e0",
- "generated_utc": "2026-09-10T19:02:22+00:00",
+ "git_commit": "d3a5c18b08d95872cfa54fa796f080daec94d20a",
+ "generated_utc": "2026-09-13T13:27:18+00:00",
  "python": "3.12.13",
  "numpy": "2.4.3",
  "matplotlib": "3.10.9",
  "axes": [
   {
    "axes": "ax0",
-   "title": "Stack length trades noise vs coseismic-step sharpness",
+   "title": "(d) Stack length trades noise\nagainst coseismic-step sharpness",
    "xlabel": "time (years)",
    "ylabel": "dv/v (%)",
    "lines": [

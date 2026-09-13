@@ -393,10 +393,12 @@ def fig_deviation_ranking(rows=None):
         r for r in rows if r.axis == "Reference scheme" and r.option == "inversion"
     ]
     items.sort(key=lambda r: -(r.rms if np.isfinite(r.rms) else 0))
-    labels = [f"{r.axis}: {r.option}" for r in items]
+    # display names: "moving" is the uncumulated trailing reference of the text
+    shown = {"moving": "uncumulated trailing", "False": "off"}
+    labels = [f"{r.axis}: {shown.get(r.option, r.option)}" for r in items]
     rms = [r.rms * PCT for r in items]
     fig, ax = plt.subplots(
-        1, 2, figsize=(6.9, 4.6), gridspec_kw={"width_ratios": [1.35, 1]}
+        1, 2, figsize=(7.9, 4.6), gridspec_kw={"width_ratios": [1.35, 1]}
     )
     y = np.arange(len(items))
     cols = [C["volcano"] if r.rms > 3 * base.rms else C["bad"] for r in items]
@@ -453,16 +455,11 @@ def fig_multiverse_full(mv=None):
     cmap = plt.cm.viridis_r
     for i in order:
         ax[0].plot(yrs, curves[i] * PCT, color=cmap(norm(rms[i])), lw=0.3, alpha=0.16)
+    # The 10-90% band across pipelines leaves the fixed axis range wherever
+    # the cycle-skipping pipelines dominate, so it is reported as a range in
+    # the annotation rather than drawn.
     lo, hi = np.nanpercentile(curves, [10, 90], axis=0)
-    ax[0].fill_between(
-        yrs,
-        lo * PCT,
-        hi * PCT,
-        color="0.5",
-        alpha=0.22,
-        lw=0,
-        label="10–90% across pipelines",
-    )
+    band_lo, band_hi = float(np.nanmin(lo) * PCT), float(np.nanmax(hi) * PCT)
     ax[0].plot(
         yrs, np.nanmedian(curves, 0) * PCT, color=C["alt"], lw=2.0, label="median"
     )
@@ -481,9 +478,10 @@ def fig_multiverse_full(mv=None):
     ax[0].text(
         0.02,
         0.97,
-        f"{n_off} of {mv['n_pipelines']} pipelines leave the axis range",
+        f"{n_off} of {mv['n_pipelines']} pipelines leave the axis range;\n"
+        f"10–90% band across pipelines: {band_lo:+.1f} to {band_hi:+.1f}%",
         transform=ax[0].transAxes,
-        fontsize=9.5,
+        fontsize=9,
         va="top",
         color="0.25",
     )
@@ -491,7 +489,7 @@ def fig_multiverse_full(mv=None):
         fontsize=10,
         loc="upper center",
         bbox_to_anchor=(0.5, -0.18),
-        ncol=3,
+        ncol=2,
         frameon=False,
     )
     cbar = fig.colorbar(
@@ -516,7 +514,8 @@ def fig_multiverse_full(mv=None):
         title="(b) Which choice controls the answer",
     )
     ax[1].set_xticklabels(axes, rotation=30, ha="right", fontsize=10.5)
-    ax[1].legend(fontsize=10.5, frameon=False)
+    ax[1].set_ylim(0, 1.45 * max(max(sr), max(sd)))  # headroom for the legend
+    ax[1].legend(fontsize=10.5, frameon=False, loc="upper right")
     _boost_fonts(ax[0], ax[1], tick=10.5, label=12, title=13)
     fig.tight_layout()
     return fig
