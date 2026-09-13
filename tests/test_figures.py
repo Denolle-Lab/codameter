@@ -115,6 +115,21 @@ def test_compare_sidecar_reports_differences(tmp_path):
     assert F.compare_sidecar(shifted, tmp_path / "t.npz") == []
     moved = dict(tiny, **{"ax0/line0/y": np.array([1e-18, 0.5001])})
     assert F.compare_sidecar(moved, tmp_path / "t.npz") != []
+    # the scale comes from either array: a stored zero against a large value differs
+    zeros = {"ax0/line0/y": np.zeros(2), "data/big": big}
+    np.savez_compressed(tmp_path / "z.npz", **zeros)
+    assert (
+        F.compare_sidecar(
+            dict(zeros, **{"ax0/line0/y": np.array([0.0, 0.5])}), tmp_path / "z.npz"
+        )
+        != []
+    )
+    assert (
+        F.compare_sidecar(
+            dict(zeros, **{"ax0/line0/y": np.array([0.0, 1e-18])}), tmp_path / "z.npz"
+        )
+        != []
+    )
     diffs = F.compare_sidecar(
         {"ax0/line0/y": np.array([1.0, 2.5, np.nan]), "data/other": big},
         tmp_path / "s.npz",

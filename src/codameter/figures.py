@@ -391,7 +391,7 @@ def compare_sidecar(arrays: dict[str, Any], npz_path: Path, *, rtol: float = 1e-
 
     Returns a list of human-readable differences (empty when they agree).
     Floating arrays agree when every entry is within ``rtol`` of the stored
-    value or within ``rtol`` times the array's largest magnitude (so the
+    value or within ``rtol`` times the largest magnitude in either array (so the
     rounding noise of an entry that is zero up to platform arithmetic, such
     as the zero-change point of a sweep, does not count as a difference).
     Large float64 arrays are compared at float32 precision, the precision the
@@ -416,8 +416,10 @@ def compare_sidecar(arrays: dict[str, Any], npz_path: Path, *, rtol: float = 1e-
             continue
         if a.dtype.kind in "fc" and b.dtype.kind in "fc":
             tol = max(rtol, 1e-6 if a.dtype == np.float32 else rtol)
-            finite = np.isfinite(a)
-            scale = float(np.max(np.abs(a[finite]))) if finite.any() else 0.0
+            both = np.concatenate(
+                [a[np.isfinite(a)].ravel(), b[np.isfinite(b)].ravel()]
+            )
+            scale = float(np.max(np.abs(both))) if both.size else 0.0
             if not np.allclose(a, b, rtol=tol, atol=tol * scale, equal_nan=True):
                 with np.errstate(invalid="ignore", divide="ignore"):
                     rel = np.nanmax(np.abs(a - b) / np.maximum(np.abs(a), tol * scale))
