@@ -792,8 +792,8 @@ The accepted range for each of these parameters across the published literature
 is catalogued directly, study by study, in the survey of
 Appendix\ \ref{app:survey} (Table\ \ref{tab:survey}): the frequency band, coda
 window, estimator, and uncertainty treatment actually reported by the 96
-publications of the survey that measure \dvv\ (of 103 catalogued; 81 from
-ambient noise alone, 11 from earthquake coda alone, 11 from both).
+publications of the survey that measure \dvv\ (of 103 catalogued; 77 from
+ambient noise alone, 9 from earthquake coda alone, 10 from both).
 
 ## Coda window  {#sec:param_window}
 
@@ -1728,8 +1728,10 @@ mean $\bar x$ but obey $\sigma_{\mathrm{SD}}/\sigma_{\mathrm{SE}}=\sqrt{N}$.
 
 Table\ \ref{tab:survey} catalogues the processing choices of the
 coda-wave \dvv\ monitoring publications we surveyed: 103 rows for 103
-publications, one per publication and one DOI each (the machine-readable
-table and its provenance are distributed with the codameter package). It is
+publications, one per publication, each identified by its DOI (by its ADS
+record for the one conference abstract, @Kristjansdottir2019; the
+machine-readable table and its provenance are distributed with the
+codameter package). It is
 the empirical basis for the paper's claim that no convention is shared: the
 estimator, the frequency band, the coda window, the reference scheme and
 --- most unevenly of all --- the uncertainty treatment vary from
@@ -1749,18 +1751,18 @@ coda of ambient-noise correlations or of repeating earthquakes, or when it
 defines a method or a sensitivity kernel that the measuring publications
 rely on. Seven of the 103 do not themselves measure \dvv\ (theory,
 depth kernels, deconvolution interferometry, spectral methods) and are marked
-``n/a'' in the estimator column; the counts below exclude them. Of the 96
-that measure \dvv, 81 use ambient noise alone, 9 use earthquake coda alone
-and the rest both (the machine-readable table records this per row);
+\texttt{n/a} in the estimator column; the counts below exclude them. Of the
+96 that measure \dvv, 77 use ambient noise alone, 9 use earthquake coda
+alone and 10 both (the machine-readable table records this per row);
 the coda-only rows are kept because their processing choices are the same
 choices, made on a different wavefield.
 
 The four measurement fields (frequency band, coda window, estimator and
 uncertainty treatment) were re-checked against the \emph{full text} for the
 82 publications we could read (open access plus institutional access); for
-those rows a blank or ``n/r'' means the value is genuinely not stated in
-the paper. The remaining 21 rows were populated from abstracts and search
-metadata, where ``n/r'' means only that the value was not found in the
+those rows a blank or \texttt{n/r} means the value is genuinely not stated
+in the paper. The remaining 21 rows were populated from abstracts and search
+metadata, where \texttt{n/r} means only that the value was not found in the
 abstract, not that the publication failed to report it; those cells are
 flagged in the machine-readable table (\texttt{measurement\_source}),
 remain to be filled from the paywalled full texts, and are excluded from

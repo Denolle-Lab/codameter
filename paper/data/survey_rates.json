@@ -20,6 +20,14 @@
   "Earthquake coda": 11,
   "Both": 11
  },
+ "signal_source_measuring_dvv": {
+  "Ambient noise": 77,
+  "Earthquake coda": 9,
+  "Both": 10
+ },
+ "rows_without_doi": [
+  "Kristjánsdóttir et al., 2019"
+ ],
  "earthquake_coda_only_measuring": 9,
  "reported_among_full_text_measuring": {
   "frequency band": {

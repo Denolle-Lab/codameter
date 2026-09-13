@@ -125,6 +125,10 @@ def main() -> int:
         "rows_abstract_only": len(rows) - len(full),
         "rows_full_text_measuring_dvv": len(meas_full),
         "signal_source": dict(Counter(r["signal_source"] for r in rows)),
+        "signal_source_measuring_dvv": dict(Counter(r["signal_source"] for r in meas)),
+        "rows_without_doi": [
+            r["authors_year"] for r in rows if "10." not in r["doi_url"]
+        ],
         "earthquake_coda_only_measuring": sum(
             r["signal_source"] == "Earthquake coda" and measures_dvv(r) for r in rows
         ),
