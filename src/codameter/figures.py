@@ -390,6 +390,10 @@ def compare_sidecar(arrays: dict[str, Any], npz_path: Path, *, rtol: float = 1e-
     """Compare freshly generated arrays with a committed ``.npz`` sidecar.
 
     Returns a list of human-readable differences (empty when they agree).
+    Floating arrays agree when every entry is within ``rtol`` of the stored
+    value or within ``rtol`` times the array's largest magnitude (so the
+    rounding noise of an entry that is zero up to platform arithmetic, such
+    as the zero-change point of a sweep, does not count as a difference).
     Large float64 arrays are compared at float32 precision, the precision the
     sidecar stores them at (:data:`LARGE_ARRAY`); NaNs must match in position.
     """
@@ -412,9 +416,11 @@ def compare_sidecar(arrays: dict[str, Any], npz_path: Path, *, rtol: float = 1e-
             continue
         if a.dtype.kind in "fc" and b.dtype.kind in "fc":
             tol = max(rtol, 1e-6 if a.dtype == np.float32 else rtol)
-            if not np.allclose(a, b, rtol=tol, atol=0.0, equal_nan=True):
+            finite = np.isfinite(a)
+            scale = float(np.max(np.abs(a[finite]))) if finite.any() else 0.0
+            if not np.allclose(a, b, rtol=tol, atol=tol * scale, equal_nan=True):
                 with np.errstate(invalid="ignore", divide="ignore"):
-                    rel = np.nanmax(np.abs(a - b) / np.maximum(np.abs(a), 1e-300))
+                    rel = np.nanmax(np.abs(a - b) / np.maximum(np.abs(a), tol * scale))
                 diffs.append(f"{k}: values differ (max relative difference {rel:.3g})")
         elif not np.array_equal(a, b):
             diffs.append(f"{k}: values differ")

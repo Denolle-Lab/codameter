@@ -108,6 +108,13 @@ def test_compare_sidecar_reports_differences(tmp_path):
         )
         == []
     )
+    # rounding noise on an entry that is zero up to arithmetic is not a difference
+    tiny = {"ax0/line0/y": np.array([1e-18, 0.5]), "data/big": big}
+    np.savez_compressed(tmp_path / "t.npz", **tiny)
+    shifted = dict(tiny, **{"ax0/line0/y": np.array([-3e-18, 0.5])})
+    assert F.compare_sidecar(shifted, tmp_path / "t.npz") == []
+    moved = dict(tiny, **{"ax0/line0/y": np.array([1e-18, 0.5001])})
+    assert F.compare_sidecar(moved, tmp_path / "t.npz") != []
     diffs = F.compare_sidecar(
         {"ax0/line0/y": np.array([1.0, 2.5, np.nan]), "data/other": big},
         tmp_path / "s.npz",
