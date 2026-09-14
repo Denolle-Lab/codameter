@@ -38,7 +38,12 @@ def test_missing_members_do_not_count_as_coverage_misses(monkeypatch):
     members = np.array([[0.0, np.nan, 0.0], [3.0, np.nan, np.nan]])
     sigmas = np.ones_like(members)
     sigmas[0, 2] = np.nan
-    run = SimpleNamespace(truth=np.zeros(3), members=members, within_sigma=sigmas)
+    run = SimpleNamespace(
+        truth=np.zeros(3),
+        members=members,
+        within_sigma=sigmas,
+        times_days=np.arange(3.0),
+    )
     result = SimpleNamespace(
         mu_mean=np.zeros(3),
         Cd=np.eye(3),
@@ -49,6 +54,7 @@ def test_missing_members_do_not_count_as_coverage_misses(monkeypatch):
         corr_length_days=1.0,
         n_eff=3,
         prior_weight={},
+        samples_hyper={k: np.ones(10) for k in ("tau2", "s2", "lambda")},
     )
     monkeypatch.setattr(
         C,
@@ -60,13 +66,17 @@ def test_missing_members_do_not_count_as_coverage_misses(monkeypatch):
             np.zeros((3, 5)),
         ),
     )
-    monkeypatch.setattr(uq_bayes, "bayes_dvv_from_ccfs", lambda *a, **kw: (result, run))
+    monkeypatch.setattr(uq_bayes, "run_processing_ensemble", lambda *a, **kw: run)
+    monkeypatch.setattr(uq_bayes, "gibbs_dvv", lambda *a, **kw: result)
     row = C.run_realization(1)
     assert row["ok"]
     assert row["n_member_epochs"] == 2
     assert row["member_coverage68"] == row["member_coverage95"] == 0.5
     assert row["missing_fraction"] == pytest.approx(2 / 3)
     assert row["member_rmse"] == pytest.approx(np.sqrt(4.5))
+    # Constant chains: split R-hat is undefined (zero within variance).
+    assert np.isnan(row["rhat_tau2"])
+    assert len(row["heldout_fit_members"]) == 1
     members[:] = np.nan
     assert not C.run_realization(1)["ok"]
 
@@ -107,6 +117,10 @@ def test_run_realization_smoke_and_failure_path():
         r["n_epochs"] > 10 and np.isfinite(r["rmse"]) and np.isfinite(r["member_rmse"])
     )
     assert 0.0 <= r["prior_weight_tau2"] <= 1.0
+    assert 0.0 <= r["heldout_member_coverage95"] <= 1.0
+    assert len(r["heldout_fit_members"]) == 6
+    for k in ("rhat_tau2", "rhat_s2", "rhat_lambda"):
+        assert np.isfinite(r[k]) and r[k] > 0.5
     bad = C.run_realization(
         1, "clean", years=0.01, cadence=6, n_iter=10, burn=2, thin=1
     )

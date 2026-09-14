@@ -251,7 +251,7 @@
 \title{The reproducibility cost of ad-hoc processing choices in
 ambient-noise seismic velocity-change monitoring}
 \author{M. A. Denolle}
-\date{2026-09-13}
+\date{2026-09-14}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -453,13 +453,14 @@ part of this paper.
 \section{Synthetic framework}\label{sec:methods}
 
 We build each synthetic reference coda wave as a band-limited
-random-phase wavefield modulated by a physically grounded coda envelope.
-We model the envelope from the exact single-scattering solution of the
+random-phase wavefield modulated by a coda envelope taken from radiative
+transfer. The envelope is the closed-form solution of the
 two-dimensional radiative transfer equation for isotropic scattering
-\citep{Sato1993, Paasschens1997}, which underlies coda-envelope
-modelling of scattering and intrinsic attenuation \citep{Margerin1998}.
-The energy density at source--receiver distance \(r\) and lapse time
-\(t\) is
+\citep{Sato1993, Paasschens1997}, which sums all scattering orders and
+underlies coda-envelope modelling of scattering and intrinsic
+attenuation \citep{Margerin1998}; the synthetic is not a wavefield
+simulation, only random phases under that envelope. The energy density
+at source--receiver distance \(r\) and lapse time \(t\) is
 
 \begin{linenomath*}
 \begin{equation}
@@ -498,8 +499,10 @@ a controlled signal-to-noise ratio. The concept has been demonstrated
 using full waveform modeling in several previous studies
 \citep{Obermann2013, Obermann2016, Yuan2021}, so we do not repeat that
 full-waveform modeling here. Because the imposed \(\dvv(t)\) is known,
-every departure of a recovered series from it is an artefact of the
-processing, not of the data.
+every departure of a recovered series from it is due to the processing
+or to the additive noise at the prescribed signal-to-noise ratio, never
+to an unknown Earth; the noise-limited part is what the coherence floor
+of Section~\ref{sec:bayes} describes, and the rest is the processing.
 
 We use seven \dvv~estimators that were implemented in \texttt{noisepy}
 \citep{Jiang2020}: trace stretching (TS, \citet{lobkis03}), windowed
@@ -582,10 +585,32 @@ All \dvv\ quantities are fractions of velocity; figures show percent.}
 \toprule
 \textbf{Quantity} & \textbf{Estimate of} & \textbf{Datum and support} \\
 \midrule
-Recovery RMS (Sections~\ref{sec:results}--\ref{sec:multiverse}) & Root mean
-square of (recovered $-$ imposed) \dvv\ for one configuration on one waveform
-realisation & Raw recovered series, no baseline alignment; epochs the pipeline
-produced; fixed reference from the first 60\% of the record \\ \hline
+Recovery RMS, per-choice experiments (Section~\ref{sec:results} except
+Section~\ref{sec:param_ref}) & Root mean square of (recovered $-$ imposed)
+\dvv\ for one configuration on one waveform realisation & Raw recovered
+series, no baseline alignment; epochs the pipeline produced; the reference
+is the noise-free generating coda, a best case no field pipeline can reach
+(Figs.~\ref{fig:methods}, \ref{fig:stack-coherence},
+\ref{fig:params}a, b, d, \ref{fig:branches}, \ref{fig:artifacts}), the
+noise-free stack of a 60-day zero-change record (Fig.~\ref{fig:window-envelope}),
+or, in Fig.~\ref{fig:params}c, the first 0.8 yr of the record \\ \hline
+Recovery RMS, reference schemes (Section~\ref{sec:param_ref}) & Same &
+The five named schemes of Fig.~\ref{fig:reference-schemes}: the earliest or
+latest 15\% before the eruption, the whole pre-eruption record, a 60-day
+trailing stack, and the joint inversion \\ \hline
+Recovery RMS, sweeps and ensemble (Sections~\ref{sec:multiverse} and
+\ref{sec:bayes}) & Same, on shared daily correlations & Fixed reference from
+the first 60\% of the record; the one-at-a-time sweep also reports the RMS
+on the epochs every configuration produced (common support) with the
+availability of each configuration, over three paired noise realisations
+\\ \hline
+Estimator defaults & The settings held fixed while a choice is varied & MWCS
+and WCC: 6-s sub-windows at 3-s step; DTW and WTDTW: strain penalty
+$\gamma=0.3$, maximum lag 0.8 s; stretching: trial stretch range
+$\pm6\,\%$ on a 161-point grid with parabolic peak refinement ($\pm5\,\%$
+in the one-at-a-time sweep; $\pm3\,\%$ on 81 points inside the joint
+inversion); WTS: $\pm6\,\%$ on 121 points; coherence gate 0.6 on the
+stretching coherence of the same band, window, stack and reference \\ \hline
 Within-measurement $\sigma_k(t)$ & Standard error of one dilation estimate from
 finite coda coherence, eq.~\ref{eq:weaver} & Per epoch and configuration;
 depends on coherence, band, window; a lower bound (Section~\ref{sec:bayes}) \\ \hline
@@ -662,7 +687,9 @@ Section~\ref{sec:params_freq} \\ \hline
 Coda window & $\sim\!0.01\,\%$ (adapted to band) &
 $\sim\!3.9\,\%$ (fixed, wrong band) & Section~\ref{sec:param_window} \\ \hline
 Reference scheme & $\sim\!0.03\,\%$ (whole record, earliest period, or joint
-inversion) & $\sim\!0.15$--$0.16\,\%$ (end-of-record fixed, or moving) &
+inversion) & $\sim\!0.15$--$0.16\,\%$ (end-of-record fixed, or an uncumulated
+trailing reference: an ablation of re-baselining without the trend
+reconstruction that published moving-reference workflows apply) &
 Section~\ref{sec:param_ref} \\ \hline
 Stack length & $\sim\!0.020\,\%$ (7--10-day, workable deployment) &
 $\sim\!0.044\,\%$ (1-day, same deployment) & Section~\ref{sec:param_substack} \\
@@ -1003,10 +1030,12 @@ selection.
 \end{figure}
 
 \textbf{Scale of effect:} which \emph{period} a fixed reference is drawn
-from can cost as much as switching to a moving reference altogether
+from can cost as much as an uncumulated trailing reference, the ablation
+of re-baselining without trend reconstruction
 (\(\sim\!0.15\)--\(0.16\,\%\) RMS either way); a reference from the
 quietest available period, of any length, recovers the trend to
-\(\sim\!0.03\,\%\).
+\(\sim\!0.03\,\%\). A published moving-reference workflow that cumulates
+or stitches its increments is not priced here.
 
 \subsection{Substacking}\label{sec:param_substack}
 
@@ -1050,13 +1079,20 @@ always better'' is wrong even once the coherence gate is satisfied. For
 the poor deployment, RMS is still falling at 60 days
 (\(\sim\!0.067\,\%\), down from \(\sim\!0.74\,\%\) at 1 day): the noise
 floor dominates over the whole tested range, and the smearing penalty
-never gets the chance to show up. The signed error in the recovered step
-amplitude is negative (an under-estimate) at every stack length for the
-poor deployment, and for the workable deployment up to about 45 days,
-past which it crosses zero and the step is over-estimated. A recovered
-step is therefore a lower bound on the true drop only in the
-noise-limited regime; the sign of the error depends on the deployment
-and the stack length, and both should be reported.
+never gets the chance to show up. We measure the recovered step as the
+median of the 120 days after the event minus the median of the 120 days
+before, computed the same way on the recovered series and on the truth
+(where it is \(-0.26\,\%\)); a minimum over the post-event window, the
+definition used in an earlier draft, picks the noisiest epoch and is
+biased towards a deeper drop as the series gets noisier. With the median
+definition the recovered step is shallower than the truth at every stack
+length and for both deployments, and the under-estimate grows with the
+stack length: for the workable deployment from \(0.002\,\%\) at 2 days
+to \(0.014\,\%\) at 60 days, for the poor deployment from \(0.005\) to
+\(0.066\,\%\), both small against the step itself. The smearing that a
+longer stack applies to a step is therefore visible in the step
+amplitude as well as in the RMS, and the direction of the error is
+towards under-estimating the drop.
 
 \begin{figure}
   \centering
@@ -1064,9 +1100,12 @@ and the stack length, and both should be reported.
   \caption{Substacking on the earthquake synthetic, at two deployment
   qualities. (a) Median stretching correlation coefficient versus stack
   length; the dashed line is codameter's own CC-gate threshold
-  (Section~\ref{sec:results}). (b) RMS error and the absolute bias in the
+  (Section~\ref{sec:results}). (b) RMS error and the absolute error of the
   recovered coseismic-step amplitude, both against the known truth, log
-  scale.}
+  scale; the step amplitude is the median of the 120 days after the event
+  minus the median of the 120 days before, on the recovered series and on
+  the truth alike, and the signed errors (all positive, a shallower step)
+  are in the figure's sidecar.}
   \label{fig:stack-coherence}
 \end{figure}
 
@@ -1174,22 +1213,27 @@ different \dvv~without either being wrong. Two regimes bound the choice
 (Fig.~\ref{fig:branches}). When a change is \emph{localized} to the
 volume one branch samples, symmetrizing or averaging the branches ---
 the common default --- dilutes it toward zero, while the branch that
-carries the change recovers it (Fig.~\ref{fig:branches}a); here
-preferring the branch of greatest change is a researcher's judgement.
-When instead both branches share the \emph{same} change, their
-difference is measurement noise, and selecting the branch of greatest
-change over-reports it --- a max-of-two-estimators selection bias that
-grows as SNR falls (Fig.~\ref{fig:branches}b). Choosing the branch of
-greatest change after seeing the data is therefore a selection rule that
+carries the change recovers it (Fig.~\ref{fig:branches}a). When instead
+both branches share the \emph{same} change, their difference is
+measurement noise, and selecting the branch of greatest change
+over-reports it --- a max-of-two-estimators selection bias that grows as
+SNR falls (Fig.~\ref{fig:branches}b). Choosing the branch of greatest
+change after seeing the data is therefore a selection rule that
 Fig.~\ref{fig:branches}b shows to be biased, and the coherence of each
 branch is estimated from the same observations, so selecting on
-coherence reduces but does not remove that bias. The rule we adopt is
-fixed before the data are seen: measure both branches and report both;
+coherence reduces but does not remove that bias. The rule we recommend
+is fixed before the data are seen: measure each branch, report both,
 combine them by their mean unless independent physical information
 (source-side illumination, a change known to be confined to one side)
-designates a branch beforehand; and carry the between-branch difference
-as an explicit term of the measurement covariance \(C_d\)
-(Section~\ref{sec:bayes}) rather than discarding it by averaging.
+designates a branch beforehand, and carry the between-branch difference
+as an explicit term of the measurement covariance rather than discarding
+it by averaging. The pipeline used in the rest of this paper does not
+yet implement that rule: its stretching estimator fits one stretch
+factor jointly over the two branches of the coda window, which is
+neither a per-branch measurement nor a selection, and the covariance
+\(C_d\) of Section~\ref{sec:bayes} carries no branch term.
+Fig.~\ref{fig:branches} is therefore an argument for the rule, not a
+demonstration of it, and the per-branch measurement is deferred.
 
 \begin{figure}
   \centering
@@ -1242,15 +1286,16 @@ shallow volcanic edifice, in the style of the permanent broadband
 deployments used at effusive/dome volcanoes such as Piton de la
 Fournaise \citep{Brenguier2008}: a coda band matched to shallow depths
 (0.4--1.0\(\,\)Hz), a coda window past the direct arrival
-(10--30\(\,\)s), and daily correlations sampled every 3 days over 2.5
-years at a per-day correlation-coefficient SNR of 7, typical of a
-continuously operating station. The synthetic ground truth combines an
-annual seasonal \dvv~cycle (as from near-surface
-thermoelastic/hydrologic effects), a slow pre-eruptive inflation ramp,
-and a sharp co-eruptive velocity drop with partial recovery. This
-single-pair scenario isolates the measurement-step choices from the
-network-aggregation choices already covered in
-Sections~\ref{sec:aggregation}--\ref{sec:uncertainty}.
+(10--30\(\,\)s), and daily correlations over 2.5 years at a per-day
+correlation-coefficient SNR of 7, typical of a continuously operating
+station; every pipeline stacks and references on the daily grid, and
+only every third day of its output is retained for the figures and the
+statistics. The synthetic ground truth combines an annual seasonal
+\dvv~cycle (as from near-surface thermoelastic/hydrologic effects), a
+slow pre-eruptive inflation ramp, and a sharp co-eruptive velocity drop
+with partial recovery. This single-pair scenario isolates the
+measurement-step choices from the network-aggregation choices already
+covered in Sections~\ref{sec:aggregation}--\ref{sec:uncertainty}.
 
 The previous sections only identified single choices, but the overall
 research workflow involves them all. We now estimate the combined
@@ -1262,71 +1307,90 @@ rules of \citeauthor{Brenguier2014}
 \citetext{\citeyear{Brenguier2014}; \citealp{Weaver2011}; \citealp{Clarke2011}}
 as distilled in our survey), we change one parameter at a time to a
 deviation from best practice documented in the literature and measure
-the resulting error against the known truth (Fig.~\ref{fig:deviations}).
-The ranking is unambiguous: relative to a best-practice RMS error of
-\(\sim\!0.03\,\%\), the two-dimensionally-unwrapped WCS estimator is
-catastrophic here (\(\sim\!50\times\) worse), a wrapped-phase MWCS
-inflates the error by roughly an order of magnitude
-(\(\sim\!12\times\)), and DTW by \(\sim\!6\times\); among the
-non-estimator choices the uncumulated trailing reference is worst
-(\(\sim\!5\times\), and most distorts the recovered drop; it is an
+the resulting error against the known truth on three paired noise
+realisations, on the epochs that every configuration produced
+(Fig.~\ref{fig:deviations}; Table~\ref{tab:estimands}). The ranking is
+unambiguous and stable across realisations: relative to a best-practice
+RMS error of \(0.033\,\%\) (\(0.031\) to \(0.035\) over the three
+realisations), the two-dimensionally-unwrapped WCS estimator is
+catastrophic here (\(46\times\) worse), a wrapped-phase MWCS inflates
+the error by an order of magnitude (\(12\times\)), and DTW by
+\(6\times\); among the non-estimator choices the uncumulated trailing
+reference is worst (\(5\times\), with the largest step error; it is an
 ablation of re-baselining without trend reconstruction, not a surveyed
-workflow, Section~\ref{sec:param_ref}), while stack length, coda window
-and frequency band deviations change the error by factors between
-\(0.7\) and \(2.5\). Two of them score below the baseline: the
-\(0.8\)--\(2\) Hz band (\(0.022\,\%\)) and the \(4\)--\(14\) s window
-(\(0.027\,\%\)) against the baseline's \(0.032\,\%\), so the
-best-practice baseline is not the optimum of this scenario. Turning the
-coherence gate off leaves the error unchanged here. The joint-inversion
-reference stays closest to the fixed-reference baseline among the
-reference-scheme deviations.
+workflow, Section~\ref{sec:param_ref}, and it produces \(96\,\%\) of the
+epochs, the rest being its warm-up), while stack length, coda window and
+frequency band deviations change the error by factors between \(0.7\)
+and \(2.3\). Two of them score below the baseline: the \(0.8\)--\(2\) Hz
+band (\(0.023\,\%\)) and the \(4\)--\(14\) s window (\(0.027\,\%\)), so
+the best-practice baseline is not the optimum of this scenario. Turning
+the coherence gate off leaves the error unchanged, because no epoch of
+this scenario falls below the gate. The joint-inversion reference, run
+with 10-day blocks to match the stack length, sits at \(1.7\times\) the
+baseline; it has no per-epoch coherence, so the gate does not apply to
+it, and the estimator axis does not combine with it because the
+inversion is itself a stretching measurement between block stacks.
 
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_10_deviations.png}
   \caption{One-at-a-time deviations from a best-practice baseline, ranked by
-  their RMS error against the truth (a, log scale; RMS mixes bias and
-  scatter) and by how they distort the recovered co-eruptive drop (b,
-  symlog). Bars are coloured red when the error exceeds three times the
-  baseline (dashed line). "Uncumulated trailing" is the moving reference
-  without trend reconstruction of Section\ \ref{sec:param_ref}.}
+  their RMS error against the truth on the epochs every configuration
+  produced (a, log scale; RMS mixes bias and scatter) and by the error of the
+  recovered co-eruptive step (b, symlog; post-event median minus pre-event
+  median, recovered minus true). Bars are means over three paired noise
+  realisations and whiskers span their range. Bars are coloured red when the
+  error exceeds three times the baseline (dashed line). "Uncumulated
+  trailing" is the moving reference without trend reconstruction of
+  Section\ \ref{sec:param_ref}; the percentage after it is the fraction of
+  epochs it produced.}
   \label{fig:deviations}
 \end{figure}
 
-We test the compounding effects of these choices through 108 reasonable
-workflows selecting three estimators, two frequency bands, three coda
-windows, three stacking lengths and two reference schemes on a synthetic
-``volcano'' dv/v time series that includes a seasonal oscillation, a
-slow pre-eruptive inflation ramp, and a sharp co-eruptive drop with
-partial exponential recovery (Fig.~\ref{fig:multiverse}a). The per-day
-standard deviation across the 108 pipelines varies by a factor of
-\(\sim\!4\)--5 over the time series (from \(\sim\!0.4\,\%\) to
-\(\sim\!1.7\,\%\)), and is widest exactly at the sharp co-eruptive drop;
-the RMS error against the known truth spans over two orders of magnitude
-across pipelines (\(\sim\!0.02\)--\(2.8\,\%\)).
+We test the compounding effects of these choices through the full
+factorial of three estimators, two frequency bands, three coda windows,
+three stacking lengths and two reference schemes, 108 workflows, on a
+synthetic ``volcano'' dv/v time series that includes a seasonal
+oscillation, a slow pre-eruptive inflation ramp, and a sharp co-eruptive
+drop with partial exponential recovery (Fig.~\ref{fig:multiverse}a).
+Twelve of the 108 return no epoch at all: MWCS with the 4--14 s coda
+window, at every stack length and reference, because that window holds
+two of the 6-s sub-windows and the delay-versus-lapse fit needs at least
+three. The statistics below are over the 96 pipelines that return a
+series. Their per-epoch standard deviation varies by a factor of
+\(\sim\!4\) over the time series (from \(0.39\) to \(1.72\,\%\)), and is
+widest exactly at the sharp co-eruptive drop; the RMS error against the
+known truth spans more than two orders of magnitude across pipelines
+(\(0.020\) to \(2.84\,\%\)).
 
 Attributing the variance of the outcome to each axis with a first-order
 (main-effect) sensitivity index (Fig.~\ref{fig:multiverse}b) shows that,
-for this dataset, the \textbf{coda window} controls the RMS error most,
-with the estimator second and the stack length third; for the recovered
-drop amplitude the order changes to \textbf{stack length} first, window
-second, and estimator third. The first-order indices sum to well under
-one in both cases (\(\sim\!0.66\) for RMS, \(\sim\!0.63\) for the drop),
-so a large part of the spread is \emph{interaction} between choices
-compounding. The appropriate object is therefore not a single curve but
-a distribution of \dvv~over the processing choices.
+for this dataset, the \textbf{coda window} controls the RMS error most
+(index \(0.27\)), with the estimator (\(0.19\)) and the stack length
+(\(0.17\)) next and the band and the reference scheme below \(0.03\).
+For the recovered step, the reference scheme leads (\(0.13\)) with the
+estimator (\(0.06\)) and the window (\(0.06\)) next; the stack length
+has no first-order effect on the step as measured by post- and pre-event
+medians, which the smearing of a stack shorter than the 120-day windows
+barely moves. The first-order indices sum to \(0.65\) for the RMS and to
+\(0.28\) for the step, so a large part of the spread, and most of it for
+the step, is \emph{interaction} between choices compounding. The
+appropriate object is therefore not a single curve but a distribution of
+\dvv~over the processing choices.
 
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{demo_11_multiverse.png}
-  \caption{The full multiverse. (a) 108 reasonable pipelines on one dataset,
-  each coloured by its RMS error against the truth (a fraction of velocity) on
-  a colourblind-safe scale (bright accurate, dark biased), with the median
-  across pipelines (purple) and the truth (black); the axis is clipped at
-  $\pm0.8\,\%$, and the number of pipelines that leave it and the extent of
-  the 10--90\% inter-pipeline band, which exceeds the axis range, are printed
-  on the panel. (b) First-order variance attribution of the RMS error and of
-  the recovered drop to each processing axis.}
+  \caption{The full multiverse. (a) The 96 of 108 pipelines that return a
+  series on one dataset, each coloured by its RMS error against the truth (a
+  fraction of velocity) on a colourblind-safe scale (bright accurate, dark
+  biased), with the median across pipelines (purple) and the truth (black);
+  the axis is clipped at $\pm0.8\,\%$, and the number of pipelines that
+  return no epoch, the number that leave the axis and the extent of the
+  10--90\% inter-pipeline band, which exceeds the axis range, are printed on
+  the panel. (b) First-order variance attribution of the RMS error and of
+  the recovered step (post- minus pre-event median) to each processing axis,
+  over the 96 pipelines.}
   \label{fig:multiverse}
 \end{figure}
 
@@ -1349,7 +1413,7 @@ follow the literature survey (Appendix~\ref{app:survey}).}
 \textbf{Choice} & \textbf{Best practice} & \textbf{Common deviation} &
 \textbf{Consequence} \\
 \midrule
-Estimator & Stretching family (TS/WTS/WCC), robust at low SNR and large \dvv\ \citep{Mikesell2015,Yuan2021} & Wrapped-phase MWCS \citep{Clarke2011} without 2-D
+Estimator & Stretching family (TS/WTS/WCC): accurate at large \dvv\ on our synthetics (Section~\ref{sec:methods-fig}); its noise robustness relative to the warping methods depends on the setting \citep{Mikesell2015,Yuan2021} & Wrapped-phase MWCS \citep{Clarke2011} without 2-D
 unwrapping \citep{Mao2020} & Cycle-skips at large \dvv; error inflated
 $\sim\!10\times$ or catastrophic \\ \hline
 Frequency band & Matched to the target depth: $\sim\!0.1$--2\,Hz (volcano, crust),
@@ -1410,28 +1474,46 @@ independent across configurations and epochs. Shared input waveforms do
 not ensure this assumption. Fitting all member outputs jointly is not
 the same operation as marginalising a discrete mixture of alternative
 pipelines. The posterior is therefore conditional on this working
-likelihood. We use a second-difference smoothness prior of precision
-\(\lambda\) on the latent true series \(\mu(t)\), built on the physical
-time grid so that a gap in the record is a gap in the prior. Here
-\(\beta_k\) is configuration \(k\)'s constant offset (the systematic
-offset between, say, MWCS and stretching), \(\tau\) its scale across the
-ensemble, and \(s\) rescales the coherence floor of eq.~\ref{eq:weaver}
-so that the data report whether that floor is calibrated. Every
-configuration is run through the same pipeline code as the rest of the
-paper, so the estimator, band, window, stack length in days, reference
-scheme and coherence gate all take effect; an epoch a configuration does
-not produce (reference warm-up, a gated coherence) is simply missing and
-carries no information. The hyper-priors on \(\tau^2\), \(s^2\) and
-\(\lambda\) are conjugate inverse-gamma and gamma distributions whose
-scales are small against the data terms. Codameter reports the prior
-scale term divided by the conditional posterior rate, evaluated at
-posterior means. The ratio is about 0.09 for \(\tau^2\) in the clean
-scenario and below 0.01 for \(s^2\) and \(\lambda\)
-(Table~\ref{tab:calibration}). This diagnostic does not measure the
-total influence of the prior or establish sampler convergence. A
-conjugate Gibbs sampler, implemented in codameter with no external
-sampler dependency and with a banded solve for the smoothness update,
-returns the joint posterior.
+likelihood. One consequence can be measured directly: duplicating every
+member of the ensemble, which the working likelihood counts as new data,
+shrinks the median half-width of the \(95\,\%\) credible band on \(\mu\)
+on the realisation of Fig.~\ref{fig:bayes} from \(0.063\) to
+\(0.052\,\%\) (a factor 0.83, where independent data would give 0.71),
+and quadrupling it to \(0.040\,\%\) (0.64 against 0.50), because the
+smoothness prior with its fitted \(\lambda\) supplies about \(80\,\%\)
+of the per-epoch precision of \(\mu\) at the posterior mean; the
+single-member scale \(\sigma_{C_d}\) moves by less than \(4\,\%\) under
+the same duplication. The credible band on \(\mu\) is thus set more by
+the assumed smoothness than by the members, which is one reason its
+coverage has to be tested rather than assumed. We use a
+second-difference smoothness prior of precision \(\lambda\) on the
+latent true series \(\mu(t)\), built on the physical time grid so that a
+gap in the record is a gap in the prior. Here \(\beta_k\) is
+configuration \(k\)'s constant offset (the systematic offset between,
+say, MWCS and stretching), \(\tau\) its scale across the ensemble, and
+\(s\) rescales the coherence floor of eq.~\ref{eq:weaver} so that the
+data report whether that floor is calibrated. Every configuration is run
+through the same pipeline code as the rest of the paper, so the
+estimator, band, window, stack length in days, reference scheme and
+coherence gate all take effect; an epoch a configuration does not
+produce (reference warm-up, a gated coherence) is simply missing and
+carries no information; so is an epoch whose peak stretching coherence
+falls below 0.5, where the floor of eq.~\ref{eq:weaver} is undefined.
+The hyper-priors are conjugate: \(\tau^2\) and \(s^2\) follow
+inverse-gamma distributions with shape 2 and scale \(10^{-8}\), and the
+smoothness precision \(\lambda\) a gamma distribution with shape 2 and
+rate \(10^{-10}\); the scales are small against the data terms, and
+codameter reports the prior scale term divided by the conditional
+posterior rate, evaluated at posterior means. The ratio is about 0.09
+for \(\tau^2\) in the clean scenario and below 0.01 for \(s^2\) and
+\(\lambda\) (Table~\ref{tab:calibration}). This diagnostic does not
+measure the total influence of the prior. A conjugate Gibbs sampler,
+implemented in codameter with no external sampler dependency and with a
+banded solve for the smoothness update, returns the joint posterior from
+one chain of 1200 sweeps, the first 400 discarded and every second
+retained thereafter; the sampler seed is the realisation seed, and the
+calibration runs below add a second chain from another seed to check
+convergence.
 
 The model yields two distinct objects, and conflating them is a common
 error (Fig.~\ref{fig:bayes}; Table~\ref{tab:estimands}). The posterior
@@ -1448,16 +1530,31 @@ C_d(t,t') = \underbrace{D R D}_{\text{calibrated floor}\,\oplus\,\text{excess sp
 \max\!\big[\operatorname{Var}_k(m_k(t)-\beta_k) - s^2\,\overline{\sigma_k^2(t)},\,0\big]\),
 the calibrated floor plus whatever spread across configurations exceeds
 it (so that the floor is not counted twice), and
-\(R_{ij}=e^{-|t_i-t_j|/L}\) for a correlation length \(L\) estimated
-from the ensemble residuals. \(C_d\) is constructed from the fitted
-model, not sampled. It targets the error of one measurement drawn from
-the ensemble, not of \(\mu\). The between-configuration offset scale
+\(R_{ij}=e^{-|t_i-t_j|/L}\) for a correlation length \(L\) fitted
+through the origin to the leading lags of the residual autocorrelation,
+those above 0.1. \(C_d\) is constructed from the fitted model, not
+sampled. It targets the error of one measurement drawn from the
+ensemble, not of \(\mu\). The between-configuration offset scale
 \(\tau\) does not identify an error shared by all configurations.
 Pointwise coverage tests only the diagonal scale; it does not validate
-\(R\) or the rank-one term. A downstream inversion needs the error
-covariance of its actual input estimate. Neither using this \(C_d\) for
-the ensemble mean nor interpreting its time axes as frequency-band axes
-is justified here.
+\(R\) or the rank-one term. What can be checked is what \(R\) leaves
+behind: whitening each member's residual about \(\mu\) by the Cholesky
+factor of \(C_d\) on its observed epochs should give white residuals of
+unit variance. On the realisation of Fig.~\ref{fig:bayes} the raw
+residuals are correlated at 0.57 over one epoch (4 days) and 0.21 over
+two, the signature of consecutive 10-day trailing stacks sharing their
+days; with \(L=5.7\) days the whitened residuals retain a lag-one
+correlation of 0.26 and have a variance of 0.62, so the single
+exponential captures most but not all of the stacking-induced
+correlation, and the residual scatter about \(\mu\) is below the
+single-member scale (which is what the \(68\,\%\) overcoverage below
+also says). An earlier fit of \(L\) over 40 lags with an intercept
+returned 39 days on this realisation, several times the short-lag decay,
+and its whitened residuals had a variance of 3 with negative correlation
+at two and three epochs; that fit is withdrawn. A downstream inversion
+needs the error covariance of its actual input estimate. Neither using
+this \(C_d\) for the ensemble mean nor interpreting its time axes as
+frequency-band axes is justified here.
 
 Two properties of the fit deserve to be stated plainly. First,
 \(s\approx 12\) on this synthetic: the residual scatter of the members
@@ -1468,31 +1565,42 @@ rescale is what makes it usable. Second, once \(s\) is fitted on those
 residuals, the calibrated floor absorbs nearly all of the
 between-configuration spread, and the excess term of eq.~\ref{eq:cd} is
 non-zero only at the epochs where the configurations disagree more than
-they usually do (Fig.~\ref{fig:bayes}c). The assumed temporal
-correlation (\(L\approx 39\) days on the realisation shown, 30 days on
-average over the 200 realisations of Table~\ref{tab:calibration}, at a
-4-day cadence) and the common-mode term collapse the effective number of
-independent epochs from 229 to a few tens.
+they usually do (Fig.~\ref{fig:bayes}c). The fitted temporal correlation
+(\(L=5.7\) days on the realisation shown, \(6.1\) days on average over
+the 200 realisations of Table~\ref{tab:calibration}, at a 4-day cadence)
+and, above all, the common-mode term \(\tau\) collapse the effective
+number of independent epochs from 229 to 29 on the realisation shown and
+45 on average.
 
 Whether these intervals mean what they say is a question one realisation
 cannot answer, so we repeat the whole measurement on independent
-realisations of the same scenario (Table~\ref{tab:calibration}; the
-driver is \texttt{codameter.calibration}). Three coverages answer three
-different questions. The fraction of member epochs whose error against
-the truth lies within \(1.96\,\sigma_{C_d}\) is 0.956 on 200
-realisations, within the margin of \(\pm 0.03\) fixed before the run.
-This supports the \(95\,\%\) pointwise interval on this scenario, not
-calibration of the entire covariance. At the \(68\,\%\) level it covers
-0.81 and fails the same margin. One Gaussian scale therefore does not
-calibrate both interval levels. The \(95\,\%\) credible band on \(\mu\)
-contains the truth at only 0.59 of the epochs: the ensemble mean
-inherits the biases its members share (the stacking that rounds the
-drop, the estimator biases at low coherence), and no amount of averaging
-over configurations removes them, which is what the posterior's
-precision cannot know. Comparing \(\mu\) with \(\pm 2\sigma_{C_d}\)
-mixes the ensemble mean with a single-member scale and yields nearly
-complete coverage here; it does not validate the uncertainty of the
-combined estimate. The other two scenarios of
+realisations of the same scenario (Table~\ref{tab:calibration}). Three
+coverages answer three different questions. The fraction of member
+epochs whose error against the truth lies within \(1.96\,\sigma_{C_d}\)
+is 0.956 on 200 realisations, within the margin of \(\pm 0.03\) fixed
+before the run. This supports the \(95\,\%\) pointwise interval on this
+scenario, not calibration of the entire covariance. At the \(68\,\%\)
+level it covers 0.81 and fails the same margin. One Gaussian scale
+therefore does not calibrate both interval levels. That coverage is also
+in-sample: \(s\) and the excess spread are fitted on the members they
+score. Fitting \(C_d\) on a random half of the twelve members and
+scoring the other half gives \(0.937\pm0.004\) at the \(95\,\%\) level,
+still within the margin, and \(0.79\) at \(68\,\%\). Two Gibbs chains
+from different seeds give split \(\hat R\) values of \(1.006\),
+\(1.002\) and \(1.022\) for \(\tau^2\), \(s^2\) and \(\lambda\) on
+average on the clean scenario; \(\lambda\) exceeds \(1.05\) in 22, 40
+and 27 of the 200 realisations of the clean, shared-source and
+clock-drift scenarios (largest \(1.19\), \(1.90\) and \(1.81\)), and
+excluding those realisations changes no coverage of
+Table~\ref{tab:calibration} by more than \(0.004\). The \(95\,\%\)
+credible band on \(\mu\) contains the truth at only 0.59 of the epochs:
+the ensemble mean inherits the biases its members share (the stacking
+that rounds the drop, the estimator biases at low coherence), and no
+amount of averaging over configurations removes them, which is what the
+posterior's precision cannot know. Comparing \(\mu\) with
+\(\pm 2\sigma_{C_d}\) mixes the ensemble mean with a single-member scale
+and yields nearly complete coverage here; it does not validate the
+uncertainty of the combined estimate. The other two scenarios of
 Table~\ref{tab:calibration} inject artefacts that every configuration
 sees identically. A station clock drift changes no coverage by more than
 0.015 and adds no shared bias (Table~\ref{tab:calibration}), because a
@@ -1548,8 +1656,9 @@ branch asymmetry of Section~\ref{sec:artifacts}.
 The remaining sections present a framework rather than new synthetics:
 they set out how the covariance of Section~\ref{sec:bayes} propagates
 down the inference chain, and ground each step in what the monitoring
-literature does and does not yet report. The executable stages are in
-development in the open codameter package
+literature does and does not yet report. The depth stage is implemented
+in the open codameter package as a linear inversion that consumes a
+per-band covariance; it is not evaluated in this paper
 (Section~\ref{sec:discussion}).
 
 The field has converged on one physical rule for depth --- \emph{depth
@@ -1581,12 +1690,15 @@ estimates actually supplied. The temporal \(C_d\) in
 Section~\ref{sec:bayes} does not supply its cross-band entries. Given
 such a covariance, the Bayesian solution under a smoothness prior
 returns a depth profile \(\delta V_S/V_S(z)\) together with its
-posterior covariance \(C_m(z)\), implemented in codameter. The bands
-must sit where the kernels resolve: too low and the kernel leaks into
-the half-space, too high and the coda is incoherent
-(Section~\ref{sec:params_freq}). The width of \(C_m(z)\) --- not the
-profile alone --- is the deliverable, and it inherits the temporal
-correlation and common-mode structure of \(C_d\).
+posterior covariance \(C_m(z)\); codameter implements this inversion,
+with a diagonal or a full band covariance as supplied, and we do not
+evaluate it here. The bands must sit where the kernels resolve: too low
+and the kernel leaks into the half-space, too high and the coda is
+incoherent (Section~\ref{sec:params_freq}). What the stage should report
+is the width of \(C_m(z)\) together with the profile, and that width
+inherits whatever correlation the supplied per-band covariance carries:
+a diagonal covariance gives a width that understates the effect of
+errors the bands share.
 
 One assumption is usually left implicit: that a \dvv~change is a
 shear-velocity change alone. In partially saturated ground it is not.
@@ -1603,10 +1715,10 @@ the cost of its own prior uncertainty on porosity, fluid modulus, and
 the saturation path. Hydrological and cryospheric targets, where
 saturation varies strongly \citep{Clements2018, James2019}, are
 precisely where neglecting the density term biases the inferred velocity
-change and, downstream, the stress. The framework carries
-\(\delta\rho/\rho\) as a second inverted field with its own kernel and
-reports how much of the surface \dvv~each explains; the executable
-version is a documented extension (Section~\ref{sec:discussion}).
+change and, downstream, the stress. Carrying \(\delta\rho/\rho\) as a
+second inverted field with its own kernel, so that the inversion reports
+how much of the surface \dvv~each field explains, is a natural extension
+of the linear stage; codameter does not implement it.
 
 \begin{table}
 \footnotesize
@@ -1665,26 +1777,25 @@ trailing 90-day mean to the daily series (at least 45 finite days in the
 window), compare demeaned --- the two products reference different
 epochs, and a constant offset is bookkeeping, not error --- and exclude
 the first 150 days of each station's series as reference burn-in. The
-comparison is computed by a script archived with the paper
-(\texttt{scripts/compare\_gate1.py}) from the daily products and the
-published series, with the join, smoothing and mask stated in its output
-(\texttt{paper/data/gate1/comparison.json}); Table~\ref{tab:gate1} lists
-the result. Under the matched rule CI.LJR reaches \(r=0.985\) on 579
-days with an amplitude slope of 1.07 (published on codameter); CI.ARV
-reaches \(r=0.905\) on 357 days, the 2018 data gaps reducing the
-overlap, but with a slope of 2.15, so the published product has twice
-the amplitude of ours there; CI.RXH reaches \(r=0.829\) on 446 days with
-a slope of 0.81 on a station whose recovered \dvv~is nearly flat.
-Correlation measures the shape of the annual cycle after smoothing; it
-does not validate the amplitude (the ARV slope) or the error bars, which
-the published product does not carry, and the earlier draft's quoted 681
+comparison is computed by a script archived with the paper from the
+daily products and the published series, with the join, smoothing and
+mask stated in its output; Table~\ref{tab:gate1} lists the result. Under
+the matched rule CI.LJR reaches \(r=0.985\) on 579 days with an
+amplitude slope of 1.07 (published on codameter); CI.ARV reaches
+\(r=0.905\) on 357 days, the 2018 data gaps reducing the overlap, but
+with a slope of 2.15, so the published product has twice the amplitude
+of ours there; CI.RXH reaches \(r=0.829\) on 446 days with a slope of
+0.81 on a station whose recovered \dvv~is nearly flat. Correlation
+measures the shape of the annual cycle after smoothing; it does not
+validate the amplitude (the ARV slope) or the error bars, which the
+published product does not carry, and the earlier draft's quoted 681
 days was the raw daily overlap, not the count under the stated mask.
 
 \begin{table}
 \footnotesize
 \caption{Comparison of codameter single-station \dvv\ (2--4\,Hz, 2018--2019)
-with the published \citet{Clements2023} product, from
-\texttt{scripts/compare\_gate1.py}. Matched: trailing 90-day mean, 150-day
+with the published \citet{Clements2023} product, under three stated
+rules. Matched: trailing 90-day mean, 150-day
 burn-in. Centred: centred 45-day mean, no burn-in (the rule behind the
 annotation on Fig.~\ref{fig:realdata-validation}). Slope is the OLS slope of
 the published product on codameter; RMS is the RMS difference after removing
@@ -1718,9 +1829,8 @@ CI.RXH & centred & 554 & 0.620 & 0.035 & 0.52 \\
   0.62 for LJR, ARV and RXH from the archived products), not to the matched
   rule quoted in the text. The error bars drawn here predate the Weaver-floor
   correction of the present revision and are too large by a factor of 3.1 at
-  2--4\,Hz (the archived columns have since been rescaled by
-  \texttt{scripts/correct\_gate1\_within\_error.py}; the externally produced
-  figure has not been regenerated).}
+  2--4\,Hz (the archived columns have since been rescaled; the externally
+  produced figure has not been regenerated).}
   \label{fig:realdata-validation}
 \end{figure}
 
@@ -1776,13 +1886,18 @@ recovered series.
 
 The experiments above share one finding: on these synthetics, with one
 waveform realisation held fixed, the processing choice moves both the
-recovered \dvv~and its stated uncertainty by more than the measurement
-noise does, by two orders of magnitude in RMS across the 108-pipeline
-multiverse and by a factor \(\sqrt{N}\) in the reported network error
-bar. Whether processing also dominates the variability between real
-deployments is a question these experiments cannot answer, because they
-hold the observed waveform fixed; the repeated-realisation calibration
-of Section~\ref{sec:bayes} is the first step toward it. The problem is
+recovered \dvv~and its stated uncertainty across a range far wider than
+the noise-limited error of the best configuration: the RMS error spans
+\(0.02\) to \(2.8\,\%\) over the 96 pipelines of the 108-pipeline
+factorial that return a series, against \(0.033\,\%\) for the
+best-practice baseline, and the reported network error bar changes by a
+factor \(\sqrt{N}\) with the quantity a study names. Whether processing
+also dominates the variability between real deployments is a question
+these experiments cannot answer, because they hold the observed waveform
+fixed; the repeated-realisation calibration of Section~\ref{sec:bayes}
+redraws only the additive noise on one fixed coda, so it varies the
+noise-limited part of the error and not the wavefield, and is a first
+step toward that question rather than an answer to it. The problem is
 consequential but tractable. We suggest the following responses.
 
 \textbf{Report the choices.} At minimum, a \dvv~study should state the
@@ -1846,14 +1961,16 @@ one branch) leaves no trace in their spread: on the shared-source
 scenario of Table~\ref{tab:calibration} the ensemble agrees with itself,
 the error of its mean doubles, and \(C_d\) cannot see it. Configurations
 in different bands sample different depths and may not estimate the same
-physical quantity, so the configuration axis should be marginalised only
-over pipelines that target one estimand. And the coherence floor of
-\citet{Weaver2011} is a lower bound: on our synthetic the residual
-scatter about the ensemble mean is an order of magnitude above it, which
-the fitted rescale \(s\) reports rather than hides. The pointwise tests
-in Table~\ref{tab:calibration} support the \(95\,\%\) member intervals
-on the listed scenarios. They also expose \(68\,\%\) overcoverage and
-poor coverage of the combined estimate. They do not establish temporal
+physical quantity in the field, so the configuration axis should be
+marginalised only over pipelines that target one estimand; the two bands
+of our ensemble see one imposed \dvv~on the synthetic, which is why they
+can be combined there. And the coherence floor of \citet{Weaver2011} is
+a lower bound: on our synthetic the residual scatter about the ensemble
+mean is an order of magnitude above it, which the fitted rescale \(s\)
+reports rather than hides. The pointwise tests in
+Table~\ref{tab:calibration} support the \(95\,\%\) member intervals on
+the listed scenarios. They also expose \(68\,\%\) overcoverage and poor
+coverage of the combined estimate. They do not establish temporal
 covariance calibration, convergence across independent chains, or valid
 downstream intervals.
 
@@ -1862,11 +1979,11 @@ figures in this paper are released in the open codameter package; one
 driver regenerates every generated figure together with a numerical
 sidecar holding every plotted array and the run's provenance, and the
 package is unit-tested. The three real-data figures were produced by the
-cloud run and are archived, not regenerated
-(Section~\ref{sec:deployment}). An executable record turns an
-undocumented choice into a versioned, inspectable one, and lets a reader
-re-run a study's pipeline on the truth-known synthetic to see its bias
-before trusting it on data.
+cloud run and are committed to the repository as produced, not
+regenerated (Section~\ref{sec:deployment}). An executable record turns
+an undocumented choice into a versioned, inspectable one, and lets a
+reader re-run a study's pipeline on the truth-known synthetic to see its
+bias before trusting it on data.
 
 \textbf{Validate against something you did not generate.} Every
 synthetic test in this paper passed before the discovery below, and that
@@ -1914,27 +2031,28 @@ Ambient-noise \dvv~monitoring rests on a chain of processing choices
 that are made ad hoc and reported incompletely. Using a truth-known
 synthetic and the full estimator suite of an open toolbox, we have shown
 that these choices change the RMS error of the recovered \dvv~by more
-than two orders of magnitude (0.02 to \(2.8\,\%\)) across 108 pipelines
-on one synthetic volcano scenario and, more consequentially, change the
-number reported as its uncertainty by a factor of \(\sim\!\sqrt{N}\)
-depending on whether a study calls \(1\sigma\) the standard error of the
-network mean or the between-pair standard deviation, all without
-touching the data. The remedy is not a single mandated pipeline but
-transparency: report every choice and name the quantity each error bar
-estimates, sample the choices the physics does not fix, carry the
-resulting measurement covariance into the inference after validating
-what it is meant to cover, and release the pipeline as executable code.
-Repeated synthetic realisations support the proposed \(95\,\%\)
-pointwise intervals for the error of a single processing configuration,
-while the nominal \(68\,\%\) intervals overcover and the credible band
-on the ensemble mean undercovers (Table~\ref{tab:calibration}). The
-temporal correlation in \(C_d\) is untested, a cross-band covariance is
-not constructed, and an error shared by every configuration is
-demonstrably invisible to the ensemble. A depth inversion also needs
-kernel uncertainty and the covariance of the actual observations it
-consumes. Converting a depth profile to stress or strain is a further
-step this paper does not attempt. We offer codameter as one such record;
-its depth stage is an interface awaiting evaluation.
+than two orders of magnitude (0.02 to \(2.8\,\%\)) across the 96
+pipelines of a 108-pipeline factorial that return a series, on one
+synthetic volcano scenario, and, more consequentially, change the number
+reported as its uncertainty by a factor of \(\sim\!\sqrt{N}\) depending
+on whether a study calls \(1\sigma\) the standard error of the network
+mean or the between-pair standard deviation, all without touching the
+data. The remedy is not a single mandated pipeline but transparency:
+report every choice and name the quantity each error bar estimates,
+sample the choices the physics does not fix, carry the resulting
+measurement covariance into the inference after validating what it is
+meant to cover, and release the pipeline as executable code. Repeated
+synthetic realisations support the proposed \(95\,\%\) pointwise
+intervals for the error of a single processing configuration, while the
+nominal \(68\,\%\) intervals overcover and the credible band on the
+ensemble mean undercovers (Table~\ref{tab:calibration}). The temporal
+correlation in \(C_d\) is untested, a cross-band covariance is not
+constructed, and an error shared by every configuration is demonstrably
+invisible to the ensemble. A depth inversion also needs kernel
+uncertainty and the covariance of the actual observations it consumes.
+Converting a depth profile to stress or strain is a further step this
+paper does not attempt. We offer codameter as one such record; its depth
+stage is an interface awaiting evaluation.
 
 \appendix
 
@@ -2139,24 +2257,21 @@ full-text rows.
 All synthetics, estimators, and generated figures in this paper are
 implemented in the open-source Python package codameter (MIT license),
 openly available at \url{https://github.com/Denolle-Lab/codameter}; each
-generated figure's sidecar records its generating commit and numerical
-arrays. The figures and manuscript can originate from different
-revisions. \texttt{python -m codameter.figures} regenerates every
-generated figure with a \texttt{.npz} sidecar of its plotted arrays and
-a \texttt{.json} sidecar of its provenance;
-\texttt{python -m codameter.calibration} reproduces
-Table~\ref{tab:calibration} (\texttt{paper/data/calibration/});
-\texttt{scripts/compare\_gate1.py} reproduces Table~\ref{tab:gate1} from
-the daily products under \texttt{paper/data/gate1/} and the published
-\citet{Clements2023} series archived there. The daily products and the
-three real-data figures were produced by the noisepy-dvv-cloud Gate 1
-run from public Southern California Earthquake Data Center waveforms;
-the products are available locally during this analysis but are not
-tracked in the repository. The exact Gate 1 run commit, run
-configuration and redistribution archive remain to be supplied; their
-current provenance limits are recorded in
-\texttt{paper/data/gate1/README.md}. A versioned archive is planned but
-has not yet been deposited.
+generated figure carries a numerical sidecar with its plotted arrays and
+its generating commit, so the figures and the manuscript can originate
+from different revisions and be told apart. The repository documents how
+one command regenerates every generated figure, how the
+repeated-realisation calibration of Table~\ref{tab:calibration} is rerun
+(its settings and seeds are stored with each archived run), and how
+Table~\ref{tab:gate1} is recomputed from the daily products and the
+published \citet{Clements2023} series archived with the paper. The daily
+products and the three real-data figures were produced by the
+noisepy-dvv-cloud Gate 1 run from public Southern California Earthquake
+Data Center waveforms; the products are available locally during this
+analysis but are not tracked in the repository. The exact Gate 1 run
+commit, run configuration and redistribution archive remain to be
+supplied; their current provenance limits are recorded with the archived
+products. A versioned archive is planned but has not yet been deposited.
 
 \section*{Acknowledgements}\label{acknowledgements}
 \addcontentsline{toc}{section}{Acknowledgements}

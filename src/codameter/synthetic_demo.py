@@ -1170,6 +1170,30 @@ def _days(years: float = 3.0) -> np.ndarray:
     return np.arange(0, int(years * YEAR_D))
 
 
+def step_amplitude(x, days, valid, eq_day, span: int = 120) -> float:
+    """Amplitude of a step at ``eq_day``: post-window median minus pre-window median.
+
+    Both windows are ``span`` days long and use only ``valid`` epochs. The
+    median is robust to the noise-driven extremes that a minimum over the
+    post-event window would pick (an extreme-value bias that grows as the
+    series gets noisier); applied identically to a recovered series and to
+    the truth, it gives a signed step error that is unbiased for noise alone.
+    A step followed by an exponential recovery, as in
+    :func:`earthquake_truth` and :func:`volcano_truth`, has a post-window
+    median above its minimum, so the amplitude is that of the smoothed step,
+    not of the instantaneous drop. NaN when either window has fewer than
+    three valid epochs.
+    """
+    days = np.asarray(days)
+    x = np.asarray(x, float)
+    valid = np.asarray(valid, bool) & np.isfinite(x)
+    pre = (days < eq_day) & (days >= eq_day - span) & valid
+    post = (days >= eq_day) & (days < eq_day + span) & valid
+    if pre.sum() < 3 or post.sum() < 3:
+        return float("nan")
+    return float(np.median(x[post]) - np.median(x[pre]))
+
+
 def _seasonal(days: np.ndarray, amp: float, phase_d: float = 0.0) -> np.ndarray:
     return amp * np.sin(2 * np.pi * (days - phase_d) / YEAR_D)
 
@@ -2341,17 +2365,19 @@ def fig_stack_coherence(seed: int = 143):
     cc_threshold = 0.6
 
     def _step_bias(dvv, valid):
-        pre = (days < eq) & (days > eq - 120) & valid
-        post = (days >= eq) & (days < eq + 120) & valid
-        if pre.sum() < 3 or post.sum() < 3:
-            return np.nan
-        rec_drop = np.nanmin(dvv[post]) - np.nanmedian(dvv[pre])
-        true_drop = np.nanmin(truth[post]) - np.nanmedian(truth[pre])
+        # Signed error of the recovered step: negative means the recovered
+        # drop is deeper than the true drop (over-estimated), positive means
+        # shallower (under-estimated). Both amplitudes use the same robust
+        # definition (:func:`step_amplitude`), so the comparison is unbiased
+        # by the noise-driven extreme values a minimum would pick.
+        rec_drop = step_amplitude(dvv, days, valid, eq)
+        true_drop = step_amplitude(truth, days, np.ones_like(days, bool), eq)
         return float(rec_drop - true_drop)
 
     import matplotlib.pyplot as plt
 
     fig, (axA, axB) = plt.subplots(1, 2, figsize=(11.0, 5.0))
+    extra: dict[str, np.ndarray] = {"stack_days": stack_days.astype(float)}
     for snr, col, lab in [
         (0.5, C["bad"], "SNR 0.5 (poor)"),
         (4.0, C["earthquake"], "SNR 4 (workable)"),
@@ -2371,6 +2397,10 @@ def fig_stack_coherence(seed: int = 143):
             med_cc.append(float(np.nanmedian(cc[v])))
             rms.append(float(np.sqrt(np.mean((rec[v] - truth[v]) ** 2))) * PCT)
             bias.append(_step_bias(rec, v) * PCT)
+        key = f"snr{snr:g}"
+        extra[f"{key}/median_cc"] = np.asarray(med_cc, float)
+        extra[f"{key}/rms_pct"] = np.asarray(rms, float)
+        extra[f"{key}/signed_step_error_pct"] = np.asarray(bias, float)
         axA.plot(stack_days, med_cc, "o-", color=col, lw=2.2, ms=6, label=lab)
         axB.plot(stack_days, rms, "o-", color=col, lw=2.2, ms=6, label=f"{lab}: RMS")
         axB.plot(
@@ -2401,6 +2431,13 @@ def fig_stack_coherence(seed: int = 143):
     leg.get_frame().set(facecolor="white", alpha=0.9, edgecolor="0.7")
     _boost_fonts(axA, axB, tick=16, label=18, title=20)
     fig.tight_layout()
+    fig.codameter_arrays = extra  # type: ignore[attr-defined]
+    fig.codameter_meta = {  # type: ignore[attr-defined]
+        "step_error": "recovered minus true step amplitude, each the median of "
+        "the 120 days after the event minus the median of the 120 days before "
+        "(synthetic_demo.step_amplitude); negative = recovered drop deeper "
+        "than the truth"
+    }
     return fig
 
 

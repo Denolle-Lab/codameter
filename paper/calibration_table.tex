@@ -1,6 +1,6 @@
 \begin{table}
 \footnotesize
-\caption{Coverage calibration of the Bayesian measurement model over independent synthetic realisations of the volcano scenario (2.5 years, SNR 7, 4-day cadence, 12-member ensemble). Member coverage: fraction of member epochs with $|m_k(t)-\mathrm{truth}(t)|\le z\,\sigma_{C_d}(t)$, the target of the proposed single-member error scale; $z=1$ for the 68\% level and $z=1.96$ for the 95\% level. Posterior: fraction of epochs whose 95\% credible band on $\mu$ contains the truth. Rescale $s$: the fitted factor on the within-method floor of eq.~\ref{eq:weaver}. Means with standard errors across realisations; no realisation failed; $\sigma_{C_d}$, bias and RMSE in percent; prior $\tau^2$ is the fraction of conditional posterior rate supplied by the prior scale term (the $\lambda$ ratio is below 0.01 throughout). Clock drift: $4\times10^{-5}$\,s/day from 40\% of the record. Shared source: a seasonal source effect warping the coda beyond 6\,s lapse with a spurious 0.2\% seasonal \dvv, seen by every configuration. Generated from \texttt{paper/data/calibration/} by \texttt{paper/build\_calibration\_table.py}.}
+\caption{Coverage calibration of the Bayesian measurement model over independent synthetic realisations of the volcano scenario (2.5 years, SNR 7, 4-day cadence, 12-member ensemble). Member coverage: fraction of member epochs with $|m_k(t)-\mathrm{truth}(t)|\le z\,\sigma_{C_d}(t)$, the target of the proposed single-member error scale; $z=1$ for the 68\% level and $z=1.96$ for the 95\% level. Posterior: fraction of epochs whose 95\% credible band on $\mu$ contains the truth. Held-out half: $C_d$ fitted on a random six of the twelve members and scored on the other six. Rescale $s$: the fitted factor on the within-method floor of eq.~\ref{eq:weaver}. $L$: fitted temporal correlation length of the residuals. Split $\hat R$: two Gibbs chains from different seeds, each split in halves, largest of the three scale hyper-parameters per realisation. A realisation redraws the additive noise on one fixed generating coda; the truth and the twelve configurations are the same in every realisation. Means with standard errors across realisations; no realisation failed; $\sigma_{C_d}$, bias and RMSE in percent; prior $\tau^2$ is the fraction of conditional posterior rate supplied by the prior scale term (the $\lambda$ ratio is below 0.01 throughout). Clock drift: $4\times10^{-5}$\,s/day from 40\% of the record. Shared source: a seasonal source effect warping the coda beyond 6\,s lapse with a spurious 0.2\% seasonal \dvv, seen by every configuration. Generated from the archived runs distributed with the paper.}
 \label{tab:calibration}
 \begin{tabularx}{\textwidth}{@{}Lrrr@{}}
 \toprule
@@ -8,11 +8,14 @@ Quantity & clean ($n=200$) & shared source ($n=200$) & clock drift ($n=200$) \\
 \midrule
 Member 68\% & 0.808 $\pm$ 0.001 & 0.795 $\pm$ 0.001 & 0.804 $\pm$ 0.001 \\
 Member 95\% & 0.9561 $\pm$ 0.0003 & 0.9496 $\pm$ 0.0004 & 0.9543 $\pm$ 0.0003 \\
+Member 95\%, held-out half & 0.937 $\pm$ 0.004 & 0.930 $\pm$ 0.004 & 0.936 $\pm$ 0.004 \\
 Posterior 95\% & 0.590 $\pm$ 0.004 & 0.340 $\pm$ 0.004 & 0.604 $\pm$ 0.004 \\
 Median $\sigma_{C_d}$ (\%) & 0.225 $\pm$ 0.001 & 0.330 $\pm$ 0.001 & 0.222 $\pm$ 0.001 \\
 Bias (\%) & -0.017 $\pm$ 0.001 & -0.045 $\pm$ 0.001 & -0.019 $\pm$ 0.001 \\
 RMSE($\mu$) (\%) & 0.0669 $\pm$ 0.0005 & 0.161 $\pm$ 0.001 & 0.0656 $\pm$ 0.0005 \\
 Rescale $s$ & 11.67 $\pm$ 0.03 & 12.70 $\pm$ 0.04 & 10.88 $\pm$ 0.03 \\
+Correlation length $L$ (d) & 6.11 $\pm$ 0.03 & 6.18 $\pm$ 0.04 & 6.16 $\pm$ 0.03 \\
+Split $\hat R$, largest of three & 1.024 $\pm$ 0.002 & 1.036 $\pm$ 0.005 & 1.030 $\pm$ 0.004 \\
 Prior scale share $\tau^2$ & 0.09 $\pm$ 0.01 & 0.025 $\pm$ 0.005 & 0.08 $\pm$ 0.01 \\
 \bottomrule
 \end{tabularx}
