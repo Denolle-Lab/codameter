@@ -79,7 +79,11 @@ def main() -> int:
     report = whitening_report(res, run)
     try:
         commit = subprocess.run(
-            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=Path(__file__).resolve().parent.parent,
         ).stdout.strip()
     except Exception:  # noqa: BLE001
         commit = None

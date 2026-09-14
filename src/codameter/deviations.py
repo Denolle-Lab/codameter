@@ -692,7 +692,7 @@ def fig_multiverse_full(mv=None):
     ax[0].set_ylim((-0.8, 0.8))
     has_output = np.any(np.isfinite(curves), axis=1)
     n_off = int(np.sum(np.nanmax(np.abs(curves[has_output] * PCT), axis=1) > 0.8))
-    n_valid = mv.get("n_valid", int(has_output.sum()))
+    n_with_output = int(has_output.sum())  # finite RMS or too few epochs for one
     n_empty = mv.get("n_empty", int((~has_output).sum()))
     ax[0].set(
         xlabel="time (years)",
@@ -703,7 +703,7 @@ def fig_multiverse_full(mv=None):
         0.02,
         0.97,
         f"{n_empty} of {mv['n_pipelines']} pipelines return no epoch\n"
-        f"{n_off} of the {n_valid} others leave the axis range\n"
+        f"{n_off} of the {n_with_output} others leave the axis range\n"
         f"10–90% band across pipelines: {band_lo:+.1f} to {band_hi:+.1f}%",
         transform=ax[0].transAxes,
         fontsize=8.5,
