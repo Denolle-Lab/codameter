@@ -300,7 +300,9 @@ def residual_autocorrelation(residuals: np.ndarray, maxlag: int = 40) -> np.ndar
 
     Each row is demeaned and normalised by its own variance; the lag products
     are averaged over the observed pairs of each row, then over rows. Entry
-    ``k`` is the autocorrelation at ``k`` epochs; entry 0 is 1.
+    ``k`` is the autocorrelation at ``k`` epochs; entry 0 is 1 when the
+    estimate is defined, and every entry is NaN when no row has a finite,
+    non-zero variance.
     """
     R = np.asarray(residuals, float)
     with warnings.catch_warnings():
