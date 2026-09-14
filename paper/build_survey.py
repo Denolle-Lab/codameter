@@ -240,10 +240,11 @@ def bib_entry(key: str, row: dict, rec: dict | None) -> str:
     doi = doi_of(row["doi_url"]) or ""
     year = row.get("year", "")
     if rec and rec.get("title"):
+        authors = bib_authors(rec)
         fields = {
-            "author": bib_authors(rec)
-            and latexify(bib_authors(rec))
-            or authors_from_label(row["authors_year"]),
+            "author": latexify(authors)
+            if authors
+            else authors_from_label(row["authors_year"]),
             "title": latexify(clean_html(rec["title"].rstrip(". "))),
             "journal": latexify(clean_html(rec.get("container", ""))),
             "year": rec.get("year") or year,
