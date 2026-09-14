@@ -167,3 +167,11 @@ def test_gate1_generator_is_registered_and_needs_data():
     assert "realdata_1_validation" in F.generators()
     assert "realdata_1_validation" not in F.EXTERNAL
     assert "realdata_1_validation" in F.NEEDS_DATA
+
+
+def test_gate1_generator_skips_when_inputs_are_absent(tmp_path):
+    from codameter.errors import MissingInputs
+    from codameter.gate1 import fig_gate1_comparison
+
+    with pytest.raises(MissingInputs):
+        fig_gate1_comparison(gate1=tmp_path)  # no comparison.json, no products

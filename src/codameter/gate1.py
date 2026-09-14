@@ -33,8 +33,14 @@ BAND = "2.0-4.0"
 Z95 = 1.959964
 
 
-def _rules() -> dict:
-    out: dict = json.loads((GATE1 / "comparison.json").read_text())
+def _rules(gate1: Path = GATE1) -> dict:
+    """The archived comparison statistics and rules (``comparison.json``)."""
+    from .errors import MissingInputs
+
+    path = gate1 / "comparison.json"
+    if not path.exists():
+        raise MissingInputs(f"{path} is not available (archived comparison statistics)")
+    out: dict = json.loads(path.read_text())
     return out
 
 
@@ -85,7 +91,7 @@ def fig_gate1_comparison(*, gate1: Path = GATE1):
 
     from .synthetic_demo import C
 
-    cmp = _rules()
+    cmp = _rules(gate1)
     rules = cmp["rules"]
     by_station = {s["station"]: s for s in cmp["stations"]}
     burn_days = int(rules["burn_in_days"])
