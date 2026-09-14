@@ -90,15 +90,17 @@ def _git_commit() -> str | None:
 def _git_dirty() -> bool | None:
     """True when tracked files under ``src/`` differ from HEAD (None outside git).
 
-    A sidecar whose ``git_commit`` names a commit but whose ``git_dirty`` is
-    true was produced by code that commit does not contain (audit S-RP.1).
+    The pathspec is the parent of the package directory, so every tracked
+    source under ``src/`` counts, not only ``src/codameter``. A sidecar whose
+    ``git_commit`` names a commit but whose ``git_dirty`` is true was produced
+    by code that commit does not contain (audit S-RP.1).
     """
     out = _git(
         "status",
         "--porcelain",
         "--untracked-files=no",
         "--",
-        str(Path(__file__).resolve().parent),
+        str(Path(__file__).resolve().parent.parent),
     )
     if out is None:
         return None
@@ -422,7 +424,8 @@ def compare_sidecar(arrays: dict[str, Any], npz_path: Path, *, rtol: float = 1e-
             scale = float(np.max(np.abs(both))) if both.size else 0.0
             if not np.allclose(a, b, rtol=tol, atol=tol * scale, equal_nan=True):
                 with np.errstate(invalid="ignore", divide="ignore"):
-                    rel = np.nanmax(np.abs(a - b) / np.maximum(np.abs(a), tol * scale))
+                    denom = np.maximum(np.maximum(np.abs(a), np.abs(b)), tol * scale)
+                    rel = np.nanmax(np.abs(a - b) / denom)
                 diffs.append(f"{k}: values differ (max relative difference {rel:.3g})")
         elif not np.array_equal(a, b):
             diffs.append(f"{k}: values differ")
