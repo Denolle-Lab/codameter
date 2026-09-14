@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import functools
 import json
 import platform
 import warnings
@@ -83,8 +84,10 @@ _DIGEST_MODULES = (
 )
 
 
+@functools.lru_cache(maxsize=1)
 def generator_digest() -> str:
     """Short digest of the package version and the figure-generating sources.
+    Computed once per process (the sources do not change during a build).
 
     Recorded in every sidecar so that a figure can be matched to the exact
     generator code, as :func:`codameter.golden._generator_hash` does for the

@@ -40,8 +40,12 @@ def git_commit() -> str | None:
     return sha or None
 
 
+@functools.lru_cache(maxsize=1)
 def git_dirty() -> bool | None:
     """True when tracked files under ``src/`` differ from HEAD (None outside git).
+
+    Cached for the life of the process, like :func:`git_commit`: a figure build
+    renders many figures from one tree state.
 
     The pathspec is the parent of the package directory, so every tracked
     source under ``src/`` counts, not only ``src/codameter``. A record whose
