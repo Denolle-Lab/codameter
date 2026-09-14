@@ -1590,44 +1590,47 @@ and the excess spread are fitted on the members they score. Fitting
 half gives \(0.937\pm0.004\) at the \(95\,\%\) level, still within the
 margin, and \(0.79\) at \(68\,\%\). Two Gibbs chains from different
 seeds give split \(\hat R\) values of \(1.006\), \(1.002\) and \(1.022\)
-for \(\tau^2\), \(s^2\) and \(\lambda\) on average; \(\lambda\) exceeds
-\(1.05\) in 22 of the 200 realisations (largest \(1.19\)), and excluding
-those realisations changes no coverage by more than \(0.002\). The
-\(95\,\%\) credible band on \(\mu\) contains the truth at only 0.59 of
-the epochs: the ensemble mean inherits the biases its members share (the
-stacking that rounds the drop, the estimator biases at low coherence),
-and no amount of averaging over configurations removes them, which is
-what the posterior's precision cannot know. Comparing \(\mu\) with
-\(\pm 2\sigma_{C_d}\) mixes the ensemble mean with a single-member scale
-and yields nearly complete coverage here; it does not validate the
-uncertainty of the combined estimate. The other two scenarios of
-Table~\ref{tab:calibration} inject artefacts that every configuration
-sees identically. A station clock drift changes no coverage by more than
-0.015 and adds no shared bias (Table~\ref{tab:calibration}), because a
-lapse-independent shift appears with opposite signs on the causal and
-acausal branches (Section~\ref{sec:artifacts}) and every configuration
-in this ensemble measures both branches together, so the drift cancels
-in the estimate. What the drift does change is the coherence, which
-raises the within-method floor of eq.~\ref{eq:weaver}: the fitted
-rescale falls from \(s=11.7\) to \(10.9\) while the median
-\(\sigma_{C_d}\) is unchanged (\(0.225\) against \(0.222\,\%\)). The
-cancellation is a property of the two-branch measurement, not evidence
-that the ensemble could have detected it. A seasonal source effect
-confined to the late coda, the waveform-level artefact of
-\citet{Zhan2013} (Section~\ref{sec:artifacts}), is the genuine shared
-error: it warps the coda every configuration measures, and on that
-scenario the credible band covers the truth at only 0.34 of the epochs
-and the RMSE of \(\mu\) more than doubles, from 0.067 to \(0.161\,\%\),
-while the member-level coverage of \(C_d\) stays at 0.95. That last
-number is right for a reason that gives no comfort: the artefact also
-inflates the scatter that \(s\) absorbs, so \(C_d\) widens, but its
-coherent part biases every member and the ensemble mean together and
-leaves no trace in their spread. That is the limit of the method, not a
-defect of the fit: an ensemble over processing choices can only reveal
-the errors on which its members disagree, and an error shared by every
-pipeline (a source change, a contaminated reference, a clock drift
-measured on one branch) needs an independent diagnostic, such as the
-branch asymmetry of Section~\ref{sec:artifacts}.
+for \(\tau^2\), \(s^2\) and \(\lambda\) on average on the clean
+scenario; \(\lambda\) exceeds \(1.05\) in 22, 40 and 27 of the 200
+realisations of the clean, shared-source and clock-drift scenarios
+(largest \(1.19\), \(1.90\) and \(1.81\)), and excluding those
+realisations changes no coverage of Table~\ref{tab:calibration} by more
+than \(0.004\). The \(95\,\%\) credible band on \(\mu\) contains the
+truth at only 0.59 of the epochs: the ensemble mean inherits the biases
+its members share (the stacking that rounds the drop, the estimator
+biases at low coherence), and no amount of averaging over configurations
+removes them, which is what the posterior's precision cannot know.
+Comparing \(\mu\) with \(\pm 2\sigma_{C_d}\) mixes the ensemble mean
+with a single-member scale and yields nearly complete coverage here; it
+does not validate the uncertainty of the combined estimate. The other
+two scenarios of Table~\ref{tab:calibration} inject artefacts that every
+configuration sees identically. A station clock drift changes no
+coverage by more than 0.015 and adds no shared bias
+(Table~\ref{tab:calibration}), because a lapse-independent shift appears
+with opposite signs on the causal and acausal branches
+(Section~\ref{sec:artifacts}) and every configuration in this ensemble
+measures both branches together, so the drift cancels in the estimate.
+What the drift does change is the coherence, which raises the
+within-method floor of eq.~\ref{eq:weaver}: the fitted rescale falls
+from \(s=11.7\) to \(10.9\) while the median \(\sigma_{C_d}\) is
+unchanged (\(0.225\) against \(0.222\,\%\)). The cancellation is a
+property of the two-branch measurement, not evidence that the ensemble
+could have detected it. A seasonal source effect confined to the late
+coda, the waveform-level artefact of \citet{Zhan2013}
+(Section~\ref{sec:artifacts}), is the genuine shared error: it warps the
+coda every configuration measures, and on that scenario the credible
+band covers the truth at only 0.34 of the epochs and the RMSE of \(\mu\)
+more than doubles, from 0.067 to \(0.161\,\%\), while the member-level
+coverage of \(C_d\) stays at 0.95. That last number is right for a
+reason that gives no comfort: the artefact also inflates the scatter
+that \(s\) absorbs, so \(C_d\) widens, but its coherent part biases
+every member and the ensemble mean together and leaves no trace in their
+spread. That is the limit of the method, not a defect of the fit: an
+ensemble over processing choices can only reveal the errors on which its
+members disagree, and an error shared by every pipeline (a source
+change, a contaminated reference, a clock drift measured on one branch)
+needs an independent diagnostic, such as the branch asymmetry of
+Section~\ref{sec:artifacts}.
 
 \begin{figure}
   \centering

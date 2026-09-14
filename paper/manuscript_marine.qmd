@@ -1265,9 +1265,11 @@ on a random half of the twelve members and scoring the other half gives
 $0.937\pm0.004$ at the $95\,\%$ level, still within the margin, and $0.79$
 at $68\,\%$. Two Gibbs chains from different seeds give split
 $\hat R$ values of $1.006$, $1.002$ and $1.022$ for $\tau^2$, $s^2$ and
-$\lambda$ on average; $\lambda$ exceeds $1.05$ in 22 of the 200
-realisations (largest $1.19$), and excluding those realisations changes no
-coverage by more than $0.002$. The $95\,\%$ credible band on
+$\lambda$ on average on the clean scenario; $\lambda$ exceeds $1.05$ in
+22, 40 and 27 of the 200 realisations of the clean, shared-source and
+clock-drift scenarios (largest $1.19$, $1.90$ and $1.81$), and excluding
+those realisations changes no coverage of Table\ \ref{tab:calibration} by
+more than $0.004$. The $95\,\%$ credible band on
 $\mu$ contains the truth at only 0.59 of the epochs: the ensemble mean
 inherits the biases its members share (the stacking that rounds the drop, the
 estimator biases at low coherence), and no amount of averaging over
