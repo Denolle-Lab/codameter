@@ -145,10 +145,15 @@ def run_realization(
     late-coda source term) on one fixed generating coda; the truth and the
     ensemble configurations are the same in every realisation.
     """
-    from .uq_bayes import default_prior, gibbs_dvv, run_processing_ensemble, split_rhat
-
     out: dict[str, Any] = {"seed": int(seed), "scenario": scenario, "ok": False}
     try:
+        from .uq_bayes import (
+            default_prior,
+            gibbs_dvv,
+            run_processing_ensemble,
+            split_rhat,
+        )
+
         s, days, truth, ccfs = make_realization(seed, scenario, years=years, snr=snr)
         run = run_processing_ensemble(
             ccfs, s.t, s.fs, default_prior(), cadence=cadence, truth=truth, days=days
