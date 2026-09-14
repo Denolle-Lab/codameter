@@ -57,13 +57,18 @@ def main() -> int:
         + f" ($n={r['summary']['n_realizations']}$)"
         for r in runs
     ]
-    for r in runs:  # per-realisation max of the three split R-hats, then mean, se
-        vals = [
-            max(x.get(k, float("nan")) for k in ("rhat_tau2", "rhat_s2", "rhat_lambda"))
-            for x in r["results"]
-            if x.get("ok")
-        ]
-        vals = [v for v in vals if v == v]
+    for r in runs:  # per-realisation max of the finite split R-hats, then mean, se
+        vals = []
+        for x in r["results"]:
+            if not x.get("ok"):
+                continue
+            finite = [
+                float(x[k])
+                for k in ("rhat_tau2", "rhat_s2", "rhat_lambda")
+                if isinstance(x.get(k), int | float) and x[k] == x[k]
+            ]
+            if finite:
+                vals.append(max(finite))
         r["summary"]["rhat_max_realisation"] = _mean_se(vals) if vals else None
     metrics = [
         ("Member 68\\%", "member_coverage68", 1, 3),

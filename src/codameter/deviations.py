@@ -473,7 +473,6 @@ def multiverse(*, years=2.5, cadence=3, snr=7.0, seed=55, axes=None):
     ccfs_full = daily_ccfs(s.t, [s.ref], [truth_full], fs=s.fs, snr=snr, seed=seed)
     idx = np.arange(0, len(days_full), cadence)
     days, truth = days_full[idx], truth_full[idx]
-    eq = np.argmin(np.abs(days - ERUPT_DAY))
 
     keys = list(axes)
     combos = list(product(*(axes[k] for k in keys)))
@@ -500,7 +499,10 @@ def multiverse(*, years=2.5, cadence=3, snr=7.0, seed=55, axes=None):
             if v.sum() > 10
             else np.nan
         )
-        drop.append(_drop_amplitude(dvv, days, valid, eq_day=days[eq]))
+        # The event day itself, not the nearest decimated epoch: with an
+        # output cadence that skips the event day the nearest epoch can fall
+        # before it and would count a pre-event epoch as post-event.
+        drop.append(_drop_amplitude(dvv, days, valid, eq_day=ERUPT_DAY))
         for k, lvl in zip(keys, combo, strict=True):
             per_axis_labels[k].append(_label(k, lvl))
 

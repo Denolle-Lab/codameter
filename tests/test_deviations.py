@@ -216,3 +216,27 @@ class TestFastPathRegressions:
         cfg = dict(D.BASELINE, estimator="WTS")
         with pytest.raises(ValueError, match="prefiltered"):
             D.run_pipeline(ccfs, s.t, s.fs, cfg, prefiltered=True)
+
+
+def test_multiverse_step_uses_the_event_day_not_the_nearest_epoch(monkeypatch):
+    """With cadence 3 the nearest decimated epoch to the event day (730) is
+    729, a pre-event day; the step must be measured about the event day."""
+    days = np.arange(0, int(2.5 * 365), 3, dtype=float)
+    assert days[np.argmin(np.abs(days - D.ERUPT_DAY))] == 729  # the trap
+    seen = []
+    real = D._drop_amplitude
+
+    def spy(dvv, days_, valid, eq_day=D.ERUPT_DAY, span=120):
+        seen.append(eq_day)
+        return real(dvv, days_, valid, eq_day=eq_day, span=span)
+
+    monkeypatch.setattr(D, "_drop_amplitude", spy)
+    one = {
+        "estimator": ["stretching (TS)"],
+        "band": [(0.4, 1.0)],
+        "window": [(10, 30)],
+        "stack": [10],
+        "reference": ["fixed"],
+    }
+    mv = D.multiverse(years=2.5, cadence=3, axes=one)
+    assert mv["n_pipelines"] == 1 and seen == [D.ERUPT_DAY]
