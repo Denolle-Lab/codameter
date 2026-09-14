@@ -251,7 +251,7 @@
 \title{The reproducibility cost of ad-hoc processing choices in
 ambient-noise seismic velocity-change monitoring}
 \author{M. A. Denolle}
-\date{2026-09-13}
+\date{2026-09-14}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -1229,12 +1229,11 @@ designates a branch beforehand, and carry the between-branch difference
 as an explicit term of the measurement covariance rather than discarding
 it by averaging. The pipeline used in the rest of this paper does not
 yet implement that rule: its stretching estimator fits one stretch
-factor jointly over the two branches of the coda window (the default
-\texttt{branch="both"} of the implementation), which is neither a
-per-branch measurement nor a selection, and the covariance \(C_d\) of
-Section~\ref{sec:bayes} carries no branch term. Fig.~\ref{fig:branches}
-is therefore an argument for the rule, not a demonstration of it, and
-the per-branch measurement is deferred.
+factor jointly over the two branches of the coda window, which is
+neither a per-branch measurement nor a selection, and the covariance
+\(C_d\) of Section~\ref{sec:bayes} carries no branch term.
+Fig.~\ref{fig:branches} is therefore an argument for the rule, not a
+demonstration of it, and the per-branch measurement is deferred.
 
 \begin{figure}
   \centering
@@ -1484,37 +1483,37 @@ and quadrupling it to \(0.040\,\%\) (0.64 against 0.50), because the
 smoothness prior with its fitted \(\lambda\) supplies about \(80\,\%\)
 of the per-epoch precision of \(\mu\) at the posterior mean; the
 single-member scale \(\sigma_{C_d}\) moves by less than \(4\,\%\) under
-the same duplication (\texttt{scripts/check\_ensemble\_duplication.py}).
-The credible band on \(\mu\) is thus set more by the assumed smoothness
-than by the members, which is one reason its coverage has to be tested
-rather than assumed. We use a second-difference smoothness prior of
-precision \(\lambda\) on the latent true series \(\mu(t)\), built on the
-physical time grid so that a gap in the record is a gap in the prior.
-Here \(\beta_k\) is configuration \(k\)'s constant offset (the
-systematic offset between, say, MWCS and stretching), \(\tau\) its scale
-across the ensemble, and \(s\) rescales the coherence floor of
-eq.~\ref{eq:weaver} so that the data report whether that floor is
-calibrated. Every configuration is run through the same pipeline code as
-the rest of the paper, so the estimator, band, window, stack length in
-days, reference scheme and coherence gate all take effect; an epoch a
-configuration does not produce (reference warm-up, a gated coherence) is
-simply missing and carries no information; so is an epoch whose peak
-stretching coherence falls below 0.5, where the floor of
-eq.~\ref{eq:weaver} is undefined. The hyper-priors are conjugate:
-\(\tau^2\) and \(s^2\) follow inverse-gamma distributions with shape 2
-and scale \(10^{-8}\), and the smoothness precision \(\lambda\) a gamma
-distribution with shape 2 and rate \(10^{-10}\); the scales are small
-against the data terms, and codameter reports the prior scale term
-divided by the conditional posterior rate, evaluated at posterior means.
-The ratio is about 0.09 for \(\tau^2\) in the clean scenario and below
-0.01 for \(s^2\) and \(\lambda\) (Table~\ref{tab:calibration}). This
-diagnostic does not measure the total influence of the prior. A
-conjugate Gibbs sampler, implemented in codameter with no external
-sampler dependency and with a banded solve for the smoothness update,
-returns the joint posterior from one chain of 1200 sweeps, the first 400
-discarded and every second retained thereafter; the sampler seed is the
-realisation seed, and the calibration runs below add a second chain from
-another seed to check convergence.
+the same duplication. The credible band on \(\mu\) is thus set more by
+the assumed smoothness than by the members, which is one reason its
+coverage has to be tested rather than assumed. We use a
+second-difference smoothness prior of precision \(\lambda\) on the
+latent true series \(\mu(t)\), built on the physical time grid so that a
+gap in the record is a gap in the prior. Here \(\beta_k\) is
+configuration \(k\)'s constant offset (the systematic offset between,
+say, MWCS and stretching), \(\tau\) its scale across the ensemble, and
+\(s\) rescales the coherence floor of eq.~\ref{eq:weaver} so that the
+data report whether that floor is calibrated. Every configuration is run
+through the same pipeline code as the rest of the paper, so the
+estimator, band, window, stack length in days, reference scheme and
+coherence gate all take effect; an epoch a configuration does not
+produce (reference warm-up, a gated coherence) is simply missing and
+carries no information; so is an epoch whose peak stretching coherence
+falls below 0.5, where the floor of eq.~\ref{eq:weaver} is undefined.
+The hyper-priors are conjugate: \(\tau^2\) and \(s^2\) follow
+inverse-gamma distributions with shape 2 and scale \(10^{-8}\), and the
+smoothness precision \(\lambda\) a gamma distribution with shape 2 and
+rate \(10^{-10}\); the scales are small against the data terms, and
+codameter reports the prior scale term divided by the conditional
+posterior rate, evaluated at posterior means. The ratio is about 0.09
+for \(\tau^2\) in the clean scenario and below 0.01 for \(s^2\) and
+\(\lambda\) (Table~\ref{tab:calibration}). This diagnostic does not
+measure the total influence of the prior. A conjugate Gibbs sampler,
+implemented in codameter with no external sampler dependency and with a
+banded solve for the smoothness update, returns the joint posterior from
+one chain of 1200 sweeps, the first 400 discarded and every second
+retained thereafter; the sampler seed is the realisation seed, and the
+calibration runs below add a second chain from another seed to check
+convergence.
 
 The model yields two distinct objects, and conflating them is a common
 error (Fig.~\ref{fig:bayes}; Table~\ref{tab:estimands}). The posterior
@@ -1540,9 +1539,8 @@ ensemble, not of \(\mu\). The between-configuration offset scale
 Pointwise coverage tests only the diagonal scale; it does not validate
 \(R\) or the rank-one term. What can be checked is what \(R\) leaves
 behind: whitening each member's residual about \(\mu\) by the Cholesky
-factor of \(C_d\) on its observed epochs
-(\texttt{scripts/check\_cd\_whitening.py}) should give white residuals
-of unit variance. On the realisation of Fig.~\ref{fig:bayes} the raw
+factor of \(C_d\) on its observed epochs should give white residuals of
+unit variance. On the realisation of Fig.~\ref{fig:bayes} the raw
 residuals are correlated at 0.57 over one epoch (4 days) and 0.21 over
 two, the signature of consecutive 10-day trailing stacks sharing their
 days; with \(L=5.7\) days the whitened residuals retain a lag-one
@@ -1576,61 +1574,60 @@ number of independent epochs from 229 to 29 on the realisation shown and
 
 Whether these intervals mean what they say is a question one realisation
 cannot answer, so we repeat the whole measurement on independent
-realisations of the same scenario (Table~\ref{tab:calibration}; the
-driver is \texttt{codameter.calibration}). Three coverages answer three
-different questions. The fraction of member epochs whose error against
-the truth lies within \(1.96\,\sigma_{C_d}\) is 0.956 on 200
-realisations, within the margin of \(\pm 0.03\) fixed before the run.
-This supports the \(95\,\%\) pointwise interval on this scenario, not
-calibration of the entire covariance. At the \(68\,\%\) level it covers
-0.81 and fails the same margin. One Gaussian scale therefore does not
-calibrate both interval levels. That coverage is also in-sample: \(s\)
-and the excess spread are fitted on the members they score. Fitting
-\(C_d\) on a random half of the twelve members and scoring the other
-half gives \(0.937\pm0.004\) at the \(95\,\%\) level, still within the
-margin, and \(0.79\) at \(68\,\%\). Two Gibbs chains from different
-seeds give split \(\hat R\) values of \(1.006\), \(1.002\) and \(1.022\)
-for \(\tau^2\), \(s^2\) and \(\lambda\) on average on the clean
-scenario; \(\lambda\) exceeds \(1.05\) in 22, 40 and 27 of the 200
-realisations of the clean, shared-source and clock-drift scenarios
-(largest \(1.19\), \(1.90\) and \(1.81\)), and excluding those
-realisations changes no coverage of Table~\ref{tab:calibration} by more
-than \(0.004\). The \(95\,\%\) credible band on \(\mu\) contains the
-truth at only 0.59 of the epochs: the ensemble mean inherits the biases
-its members share (the stacking that rounds the drop, the estimator
-biases at low coherence), and no amount of averaging over configurations
-removes them, which is what the posterior's precision cannot know.
-Comparing \(\mu\) with \(\pm 2\sigma_{C_d}\) mixes the ensemble mean
-with a single-member scale and yields nearly complete coverage here; it
-does not validate the uncertainty of the combined estimate. The other
-two scenarios of Table~\ref{tab:calibration} inject artefacts that every
-configuration sees identically. A station clock drift changes no
-coverage by more than 0.015 and adds no shared bias
-(Table~\ref{tab:calibration}), because a lapse-independent shift appears
-with opposite signs on the causal and acausal branches
-(Section~\ref{sec:artifacts}) and every configuration in this ensemble
-measures both branches together, so the drift cancels in the estimate.
-What the drift does change is the coherence, which raises the
-within-method floor of eq.~\ref{eq:weaver}: the fitted rescale falls
-from \(s=11.7\) to \(10.9\) while the median \(\sigma_{C_d}\) is
-unchanged (\(0.225\) against \(0.222\,\%\)). The cancellation is a
-property of the two-branch measurement, not evidence that the ensemble
-could have detected it. A seasonal source effect confined to the late
-coda, the waveform-level artefact of \citet{Zhan2013}
-(Section~\ref{sec:artifacts}), is the genuine shared error: it warps the
-coda every configuration measures, and on that scenario the credible
-band covers the truth at only 0.34 of the epochs and the RMSE of \(\mu\)
-more than doubles, from 0.067 to \(0.161\,\%\), while the member-level
-coverage of \(C_d\) stays at 0.95. That last number is right for a
-reason that gives no comfort: the artefact also inflates the scatter
-that \(s\) absorbs, so \(C_d\) widens, but its coherent part biases
-every member and the ensemble mean together and leaves no trace in their
-spread. That is the limit of the method, not a defect of the fit: an
-ensemble over processing choices can only reveal the errors on which its
-members disagree, and an error shared by every pipeline (a source
-change, a contaminated reference, a clock drift measured on one branch)
-needs an independent diagnostic, such as the branch asymmetry of
-Section~\ref{sec:artifacts}.
+realisations of the same scenario (Table~\ref{tab:calibration}). Three
+coverages answer three different questions. The fraction of member
+epochs whose error against the truth lies within \(1.96\,\sigma_{C_d}\)
+is 0.956 on 200 realisations, within the margin of \(\pm 0.03\) fixed
+before the run. This supports the \(95\,\%\) pointwise interval on this
+scenario, not calibration of the entire covariance. At the \(68\,\%\)
+level it covers 0.81 and fails the same margin. One Gaussian scale
+therefore does not calibrate both interval levels. That coverage is also
+in-sample: \(s\) and the excess spread are fitted on the members they
+score. Fitting \(C_d\) on a random half of the twelve members and
+scoring the other half gives \(0.937\pm0.004\) at the \(95\,\%\) level,
+still within the margin, and \(0.79\) at \(68\,\%\). Two Gibbs chains
+from different seeds give split \(\hat R\) values of \(1.006\),
+\(1.002\) and \(1.022\) for \(\tau^2\), \(s^2\) and \(\lambda\) on
+average on the clean scenario; \(\lambda\) exceeds \(1.05\) in 22, 40
+and 27 of the 200 realisations of the clean, shared-source and
+clock-drift scenarios (largest \(1.19\), \(1.90\) and \(1.81\)), and
+excluding those realisations changes no coverage of
+Table~\ref{tab:calibration} by more than \(0.004\). The \(95\,\%\)
+credible band on \(\mu\) contains the truth at only 0.59 of the epochs:
+the ensemble mean inherits the biases its members share (the stacking
+that rounds the drop, the estimator biases at low coherence), and no
+amount of averaging over configurations removes them, which is what the
+posterior's precision cannot know. Comparing \(\mu\) with
+\(\pm 2\sigma_{C_d}\) mixes the ensemble mean with a single-member scale
+and yields nearly complete coverage here; it does not validate the
+uncertainty of the combined estimate. The other two scenarios of
+Table~\ref{tab:calibration} inject artefacts that every configuration
+sees identically. A station clock drift changes no coverage by more than
+0.015 and adds no shared bias (Table~\ref{tab:calibration}), because a
+lapse-independent shift appears with opposite signs on the causal and
+acausal branches (Section~\ref{sec:artifacts}) and every configuration
+in this ensemble measures both branches together, so the drift cancels
+in the estimate. What the drift does change is the coherence, which
+raises the within-method floor of eq.~\ref{eq:weaver}: the fitted
+rescale falls from \(s=11.7\) to \(10.9\) while the median
+\(\sigma_{C_d}\) is unchanged (\(0.225\) against \(0.222\,\%\)). The
+cancellation is a property of the two-branch measurement, not evidence
+that the ensemble could have detected it. A seasonal source effect
+confined to the late coda, the waveform-level artefact of
+\citet{Zhan2013} (Section~\ref{sec:artifacts}), is the genuine shared
+error: it warps the coda every configuration measures, and on that
+scenario the credible band covers the truth at only 0.34 of the epochs
+and the RMSE of \(\mu\) more than doubles, from 0.067 to \(0.161\,\%\),
+while the member-level coverage of \(C_d\) stays at 0.95. That last
+number is right for a reason that gives no comfort: the artefact also
+inflates the scatter that \(s\) absorbs, so \(C_d\) widens, but its
+coherent part biases every member and the ensemble mean together and
+leaves no trace in their spread. That is the limit of the method, not a
+defect of the fit: an ensemble over processing choices can only reveal
+the errors on which its members disagree, and an error shared by every
+pipeline (a source change, a contaminated reference, a clock drift
+measured on one branch) needs an independent diagnostic, such as the
+branch asymmetry of Section~\ref{sec:artifacts}.
 
 \begin{figure}
   \centering
@@ -1780,26 +1777,25 @@ trailing 90-day mean to the daily series (at least 45 finite days in the
 window), compare demeaned --- the two products reference different
 epochs, and a constant offset is bookkeeping, not error --- and exclude
 the first 150 days of each station's series as reference burn-in. The
-comparison is computed by a script archived with the paper
-(\texttt{scripts/compare\_gate1.py}) from the daily products and the
-published series, with the join, smoothing and mask stated in its output
-(\texttt{paper/data/gate1/comparison.json}); Table~\ref{tab:gate1} lists
-the result. Under the matched rule CI.LJR reaches \(r=0.985\) on 579
-days with an amplitude slope of 1.07 (published on codameter); CI.ARV
-reaches \(r=0.905\) on 357 days, the 2018 data gaps reducing the
-overlap, but with a slope of 2.15, so the published product has twice
-the amplitude of ours there; CI.RXH reaches \(r=0.829\) on 446 days with
-a slope of 0.81 on a station whose recovered \dvv~is nearly flat.
-Correlation measures the shape of the annual cycle after smoothing; it
-does not validate the amplitude (the ARV slope) or the error bars, which
-the published product does not carry, and the earlier draft's quoted 681
+comparison is computed by a script archived with the paper from the
+daily products and the published series, with the join, smoothing and
+mask stated in its output; Table~\ref{tab:gate1} lists the result. Under
+the matched rule CI.LJR reaches \(r=0.985\) on 579 days with an
+amplitude slope of 1.07 (published on codameter); CI.ARV reaches
+\(r=0.905\) on 357 days, the 2018 data gaps reducing the overlap, but
+with a slope of 2.15, so the published product has twice the amplitude
+of ours there; CI.RXH reaches \(r=0.829\) on 446 days with a slope of
+0.81 on a station whose recovered \dvv~is nearly flat. Correlation
+measures the shape of the annual cycle after smoothing; it does not
+validate the amplitude (the ARV slope) or the error bars, which the
+published product does not carry, and the earlier draft's quoted 681
 days was the raw daily overlap, not the count under the stated mask.
 
 \begin{table}
 \footnotesize
 \caption{Comparison of codameter single-station \dvv\ (2--4\,Hz, 2018--2019)
-with the published \citet{Clements2023} product, from
-\texttt{scripts/compare\_gate1.py}. Matched: trailing 90-day mean, 150-day
+with the published \citet{Clements2023} product, under three stated
+rules. Matched: trailing 90-day mean, 150-day
 burn-in. Centred: centred 45-day mean, no burn-in (the rule behind the
 annotation on Fig.~\ref{fig:realdata-validation}). Slope is the OLS slope of
 the published product on codameter; RMS is the RMS difference after removing
@@ -1833,9 +1829,8 @@ CI.RXH & centred & 554 & 0.620 & 0.035 & 0.52 \\
   0.62 for LJR, ARV and RXH from the archived products), not to the matched
   rule quoted in the text. The error bars drawn here predate the Weaver-floor
   correction of the present revision and are too large by a factor of 3.1 at
-  2--4\,Hz (the archived columns have since been rescaled by
-  \texttt{scripts/correct\_gate1\_within\_error.py}; the externally produced
-  figure has not been regenerated).}
+  2--4\,Hz (the archived columns have since been rescaled; the externally
+  produced figure has not been regenerated).}
   \label{fig:realdata-validation}
 \end{figure}
 
@@ -2262,24 +2257,21 @@ full-text rows.
 All synthetics, estimators, and generated figures in this paper are
 implemented in the open-source Python package codameter (MIT license),
 openly available at \url{https://github.com/Denolle-Lab/codameter}; each
-generated figure's sidecar records its generating commit and numerical
-arrays. The figures and manuscript can originate from different
-revisions. \texttt{python -m codameter.figures} regenerates every
-generated figure with a \texttt{.npz} sidecar of its plotted arrays and
-a \texttt{.json} sidecar of its provenance;
-\texttt{python -m codameter.calibration} reproduces
-Table~\ref{tab:calibration} (\texttt{paper/data/calibration/});
-\texttt{scripts/compare\_gate1.py} reproduces Table~\ref{tab:gate1} from
-the daily products under \texttt{paper/data/gate1/} and the published
-\citet{Clements2023} series archived there. The daily products and the
-three real-data figures were produced by the noisepy-dvv-cloud Gate 1
-run from public Southern California Earthquake Data Center waveforms;
-the products are available locally during this analysis but are not
-tracked in the repository. The exact Gate 1 run commit, run
-configuration and redistribution archive remain to be supplied; their
-current provenance limits are recorded in
-\texttt{paper/data/gate1/README.md}. A versioned archive is planned but
-has not yet been deposited.
+generated figure carries a numerical sidecar with its plotted arrays and
+its generating commit, so the figures and the manuscript can originate
+from different revisions and be told apart. The repository documents how
+one command regenerates every generated figure, how the
+repeated-realisation calibration of Table~\ref{tab:calibration} is rerun
+(its settings and seeds are stored with each archived run), and how
+Table~\ref{tab:gate1} is recomputed from the daily products and the
+published \citet{Clements2023} series archived with the paper. The daily
+products and the three real-data figures were produced by the
+noisepy-dvv-cloud Gate 1 run from public Southern California Earthquake
+Data Center waveforms; the products are available locally during this
+analysis but are not tracked in the repository. The exact Gate 1 run
+commit, run configuration and redistribution archive remain to be
+supplied; their current provenance limits are recorded with the archived
+products. A versioned archive is planned but has not yet been deposited.
 
 \section*{Acknowledgements}\label{acknowledgements}
 \addcontentsline{toc}{section}{Acknowledgements}

@@ -108,8 +108,8 @@ def main() -> int:
         "Clock drift: $4\\times10^{-5}$\\,s/day from 40\\% of the record. "
         "Shared source: a seasonal source "
         "effect warping the coda beyond 6\\,s lapse with a spurious 0.2\\% "
-        "seasonal \\dvv, seen by every configuration. Generated from "
-        "\\texttt{paper/data/calibration/} by \\texttt{paper/build\\_calibration\\_table.py}.}\n"
+        "seasonal \\dvv, seen by every configuration. Generated from the archived "
+        "runs distributed with the paper.}\n"
         "\\label{tab:calibration}\n"
         "\\begin{tabularx}{\\textwidth}{@{}L"
         + "r" * len(runs)

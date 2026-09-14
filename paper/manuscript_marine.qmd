@@ -920,9 +920,8 @@ side) designates a branch beforehand, and carry the between-branch
 difference as an explicit term of the measurement covariance rather than
 discarding it by averaging. The pipeline used in the rest of this paper does
 not yet implement that rule: its stretching estimator fits one stretch
-factor jointly over the two branches of the coda window (the default
-\texttt{branch="both"} of the implementation), which is neither a per-branch
-measurement nor a selection, and the covariance $C_d$ of
+factor jointly over the two branches of the coda window, which is neither
+a per-branch measurement nor a selection, and the covariance $C_d$ of
 Section\ \ref{sec:bayes} carries no branch term. Fig.\ \ref{fig:branches}
 is therefore an argument for the rule, not a demonstration of it, and the
 per-branch measurement is deferred.
@@ -1165,8 +1164,7 @@ independent data would give 0.71), and quadrupling it to $0.040\,\%$ (0.64
 against 0.50), because the smoothness prior with its fitted $\lambda$
 supplies about $80\,\%$ of the per-epoch precision of $\mu$ at the
 posterior mean; the single-member scale $\sigma_{C_d}$ moves by less than
-$4\,\%$ under the same duplication
-(\texttt{scripts/check\_ensemble\_duplication.py}). The credible band on
+$4\,\%$ under the same duplication. The credible band on
 $\mu$ is thus set more by the assumed smoothness than by the members, which
 is one reason its coverage has to be tested rather than assumed. We use a
 second-difference smoothness prior of precision $\lambda$ on the latent
@@ -1218,9 +1216,8 @@ offset scale $\tau$ does not identify an error shared by all configurations.
 Pointwise coverage tests only the diagonal scale; it does not validate $R$
 or the rank-one term. What can be checked is what $R$ leaves behind:
 whitening each member's residual about $\mu$ by the Cholesky factor of
-$C_d$ on its observed epochs
-(\texttt{scripts/check\_cd\_whitening.py}) should give white residuals of
-unit variance. On the realisation of Fig.\ \ref{fig:bayes} the raw
+$C_d$ on its observed epochs should give white residuals of unit
+variance. On the realisation of Fig.\ \ref{fig:bayes} the raw
 residuals are correlated at 0.57 over one epoch (4 days) and 0.21 over
 two, the signature of consecutive 10-day trailing stacks sharing their
 days; with $L=5.7$ days the whitened residuals retain a lag-one correlation
@@ -1252,8 +1249,8 @@ average.
 
 Whether these intervals mean what they say is a question one realisation
 cannot answer, so we repeat the whole measurement on independent
-realisations of the same scenario (Table\ \ref{tab:calibration}; the driver
-is \texttt{codameter.calibration}). Three coverages answer three different
+realisations of the same scenario (Table\ \ref{tab:calibration}). Three
+coverages answer three different
 questions. The fraction of member epochs whose error against the truth lies
 within $1.96\,\sigma_{C_d}$ is 0.956 on 200 realisations, within the margin of $\pm 0.03$ fixed
 before the run. This supports the $95\,\%$ pointwise interval on this
@@ -1443,11 +1440,9 @@ trailing 90-day mean to the daily series (at least 45 finite days in the
 window), compare demeaned --- the two products reference different epochs,
 and a constant offset is bookkeeping, not error --- and exclude the first 150
 days of each station's series as reference burn-in. The comparison is
-computed by a script archived with the paper
-(\texttt{scripts/compare\_gate1.py}) from the daily products and the
-published series, with the join, smoothing and mask stated in its output
-(\texttt{paper/data/gate1/comparison.json}); Table\ \ref{tab:gate1} lists the
-result. Under the matched rule CI.LJR reaches $r=0.985$ on 579 days with an
+computed by a script archived with the paper from the daily products and
+the published series, with the join, smoothing and mask stated in its
+output; Table\ \ref{tab:gate1} lists the result. Under the matched rule CI.LJR reaches $r=0.985$ on 579 days with an
 amplitude slope of 1.07 (published on codameter); CI.ARV reaches $r=0.905$ on
 357 days, the 2018 data gaps reducing the overlap, but with a slope of 2.15,
 so the published product has twice the amplitude of ours there; CI.RXH
@@ -1462,8 +1457,8 @@ stated mask.
 \begin{table}
 \footnotesize
 \caption{Comparison of codameter single-station \dvv\ (2--4\,Hz, 2018--2019)
-with the published \citet{Clements2023} product, from
-\texttt{scripts/compare\_gate1.py}. Matched: trailing 90-day mean, 150-day
+with the published \citet{Clements2023} product, under three stated
+rules. Matched: trailing 90-day mean, 150-day
 burn-in. Centred: centred 45-day mean, no burn-in (the rule behind the
 annotation on Fig.~\ref{fig:realdata-validation}). Slope is the OLS slope of
 the published product on codameter; RMS is the RMS difference after removing
@@ -1498,9 +1493,8 @@ CI.RXH & centred & 554 & 0.620 & 0.035 & 0.52 \\
   0.62 for LJR, ARV and RXH from the archived products), not to the matched
   rule quoted in the text. The error bars drawn here predate the Weaver-floor
   correction of the present revision and are too large by a factor of 3.1 at
-  2--4\,Hz (the archived columns have since been rescaled by
-  \texttt{scripts/correct\_gate1\_within\_error.py}; the externally produced
-  figure has not been regenerated).}
+  2--4\,Hz (the archived columns have since been rescaled; the externally
+  produced figure has not been regenerated).}
   \label{fig:realdata-validation}
 \end{figure}
 
@@ -1881,23 +1875,22 @@ under-reporting; the verified rate is the one among the 82 full-text rows.
 
 All synthetics, estimators, and generated figures in this paper are implemented
 in the open-source Python package codameter (MIT license), openly available at
-<https://github.com/Denolle-Lab/codameter>; each generated figure's sidecar
-records its generating commit and numerical arrays. The figures and manuscript
-can originate from different revisions. \texttt{python -m codameter.figures}
-regenerates every generated figure with a \texttt{.npz} sidecar of its plotted
-arrays and a \texttt{.json} sidecar of its provenance;
-\texttt{python -m codameter.calibration} reproduces
-Table\ \ref{tab:calibration} (\texttt{paper/data/calibration/});
-\texttt{scripts/compare\_gate1.py} reproduces Table\ \ref{tab:gate1} from the
-daily products under \texttt{paper/data/gate1/} and the published
-\citet{Clements2023} series archived there. The daily products and the three
-real-data figures were produced by the noisepy-dvv-cloud Gate 1 run from
-public Southern California Earthquake Data Center waveforms; the products are
-available locally during this analysis but are not tracked in the repository.
-The exact Gate 1 run commit, run configuration and redistribution archive
-remain to be supplied; their current provenance limits are recorded in
-\texttt{paper/data/gate1/README.md}. A versioned archive is planned but
-has not yet been deposited.
+<https://github.com/Denolle-Lab/codameter>; each generated figure carries a
+numerical sidecar with its plotted arrays and its generating commit, so the
+figures and the manuscript can originate from different revisions and be
+told apart. The repository documents how one command regenerates every
+generated figure, how the repeated-realisation calibration of
+Table\ \ref{tab:calibration} is rerun (its settings and seeds are stored
+with each archived run), and how Table\ \ref{tab:gate1} is recomputed from
+the daily products and the published \citet{Clements2023} series archived
+with the paper. The daily products and the three real-data figures were
+produced by the noisepy-dvv-cloud Gate 1 run from public Southern
+California Earthquake Data Center waveforms; the products are available
+locally during this analysis but are not tracked in the repository. The
+exact Gate 1 run commit, run configuration and redistribution archive
+remain to be supplied; their current provenance limits are recorded with
+the archived products. A versioned archive is planned but has not yet been
+deposited.
 
 # Acknowledgements {.unnumbered}
 
