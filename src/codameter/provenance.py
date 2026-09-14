@@ -52,7 +52,8 @@ def git_dirty() -> bool | None:
     ``git_commit`` names a commit but whose ``git_dirty`` is true was produced
     by code that commit does not contain (audit S-RP.1).
     """
-    out = _git("status", "--porcelain", "--untracked-files=no", "--", str(_HERE.parent))
+    # Relative pathspec from the package directory (the subprocess cwd): src/.
+    out = _git("status", "--porcelain", "--untracked-files=no", "--", "..")
     if out is None:
         return None
     return bool(out.strip())
