@@ -224,7 +224,12 @@ def assign_keys(
         doi = doi_of(row["doi_url"]) or row["doi_url"]
         key = make_key(row["authors_year"], row.get("year", ""))
         while _taken(key, doi):
-            key += "b" if key[-1].isdigit() else chr(ord(key[-1]) + 1)
+            # Key2013 -> Key2013b -> Key2013c: replace a trailing suffix letter
+            # rather than appending to it.
+            if key[-1].isdigit():
+                key += "b"
+            else:
+                key = key[:-1] + chr(ord(key[-1]) + 1)
         used[key] = doi
         out.append((key, row, key in reuse))
     return out
@@ -282,7 +287,7 @@ def appendix_table(entries: list[tuple[str, dict]]) -> str:
         + "@{}"
     )
     head = (
-        "\\textbf{Study} & "
+        "\\textbf{Publication} & "
         + " & ".join(f"\\textbf{{{h}}}" for _, h, _ in COLS)
         + r" \\"
     )

@@ -13,8 +13,8 @@ SCRIPT = Path(__file__).resolve().parents[1] / "paper" / "build_survey.py"
 @pytest.fixture(scope="module")
 def bs():
     spec = importlib.util.spec_from_file_location("build_survey", SCRIPT)
+    assert spec is not None and spec.loader is not None, SCRIPT
     mod = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
     spec.loader.exec_module(mod)
     return mod
 
@@ -71,6 +71,7 @@ def test_two_new_papers_with_one_key_are_disambiguated(bs):
         _row("Wang et al., 2017", "2017", "10.1/a"),
         _row("Wang & Li 2017", "2017", "10.1/b"),
         _row("Wang et al., 2017", "2017", "10.1/a"),  # same paper twice
+        _row("Wang, Chen 2017", "2017", "10.1/c"),  # a third distinct paper
     ]
     out = bs.assign_keys(rows, {})
-    assert [k for k, _, _ in out] == ["Wang2017", "Wang2017b", "Wang2017"]
+    assert [k for k, _, _ in out] == ["Wang2017", "Wang2017b", "Wang2017", "Wang2017c"]
