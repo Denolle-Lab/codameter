@@ -27,6 +27,7 @@ import dataclasses
 import json
 import platform
 import subprocess
+import warnings
 from collections.abc import Callable, Iterable
 from datetime import datetime, timezone
 from pathlib import Path
@@ -388,6 +389,16 @@ def build_all_figures(
     return written
 
 
+def _max_abs(x: np.ndarray) -> float:
+    """Largest finite magnitude in ``x`` (0.0 when there is none), without copies."""
+    if x.size == 0:
+        return 0.0
+    with np.errstate(invalid="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN input
+        m = np.nanmax(np.where(np.isfinite(x), np.abs(x), np.nan))
+    return float(m) if np.isfinite(m) else 0.0
+
+
 def compare_sidecar(arrays: dict[str, Any], npz_path: Path, *, rtol: float = 1e-6):
     """Compare freshly generated arrays with a committed ``.npz`` sidecar.
 
@@ -418,10 +429,7 @@ def compare_sidecar(arrays: dict[str, Any], npz_path: Path, *, rtol: float = 1e-
             continue
         if a.dtype.kind in "fc" and b.dtype.kind in "fc":
             tol = max(rtol, 1e-6 if a.dtype == np.float32 else rtol)
-            both = np.concatenate(
-                [a[np.isfinite(a)].ravel(), b[np.isfinite(b)].ravel()]
-            )
-            scale = float(np.max(np.abs(both))) if both.size else 0.0
+            scale = max(_max_abs(a), _max_abs(b))
             if not np.allclose(a, b, rtol=tol, atol=tol * scale, equal_nan=True):
                 with np.errstate(invalid="ignore", divide="ignore"):
                     denom = np.maximum(np.maximum(np.abs(a), np.abs(b)), tol * scale)
