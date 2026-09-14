@@ -1,7 +1,8 @@
 {
  "source": "literature/dvv_processing_parameters.csv",
  "rows": 103,
- "distinct_dois": 103,
+ "distinct_identifiers": 103,
+ "distinct_dois": 102,
  "rows_measuring_dvv": 96,
  "rows_not_measuring_dvv": [
   "Köpfli et al., 2024",

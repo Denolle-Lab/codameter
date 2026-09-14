@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-r"""Generate the paper's 103-study survey bibliography and appendix longtable.
+r"""Generate the paper's 103-publication survey bibliography and appendix longtable.
 
 Reads the literature survey CSV (``literature/dvv_processing_parameters.csv``)
 and the cached Crossref metadata (``literature/.crossref_cache.json``) and writes:
 
-  - ``paper/survey.bib``          one BibTeX entry per surveyed study, with keys
+  - ``paper/survey.bib``          one BibTeX entry per surveyed publication, with keys
                                   that *reuse* the hand-curated ``references.bib``
-                                  keys when the study is already cited in the
+                                  keys when the publication is already cited in the
                                   narrative (so every paper appears exactly once
                                   in the reference list).
   - ``paper/appendix_table.tex``  a ``longtable`` cataloguing the processing
-                                  choices of every study, with a ``\citet`` to
-                                  each — so all 103 studies are *cited*, and the
+                                  choices of every publication, with a ``\citet`` to
+                                  each — so all 103 publications are *cited*, and the
                                   table breaks cleanly across pages (no float
                                   overlap with the bibliography).
 
@@ -275,7 +275,7 @@ COLS = [
 
 
 def appendix_table(entries: list[tuple[str, dict]]) -> str:
-    """A longtable cataloguing every study's processing choices (all \\citet)."""
+    """A longtable cataloguing every publication's processing choices (all \\citet)."""
     colspec = (
         "@{}p{2.1cm} "
         + " ".join(f">{{\\raggedright\\arraybackslash}}p{{{w}}}" for *_, w in COLS)
@@ -357,7 +357,7 @@ def main() -> None:
     print(
         f"wrote {SURVEY_BIB.name}  ({len(new_bib)} new entries, {n_reused} reuse references.bib)"
     )
-    print(f"wrote {APPENDIX.name}    ({len(entries)} studies catalogued + cited)")
+    print(f"wrote {APPENDIX.name}    ({len(entries)} publications catalogued + cited)")
 
 
 if __name__ == "__main__":

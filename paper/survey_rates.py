@@ -4,7 +4,8 @@
 Reads ``literature/dvv_processing_parameters.csv`` and writes
 ``paper/data/survey_rates.json`` with the counts the appendix quotes:
 
-- rows and distinct DOIs (one row per publication);
+- rows, distinct identifiers (one row per publication) and, among them, the
+  distinct DOIs (one row, a conference abstract, carries an ADS record);
 - rows that measure dv/v (``dvv_method`` not ``n/a``) and the rows that do not
   (theory, kernels, deconvolution interferometry, spectral methods);
 - rows populated from the full text versus from abstracts;
@@ -116,7 +117,8 @@ def main() -> int:
     payload = {
         "source": str(CSV.relative_to(HERE.parent)),
         "rows": len(rows),
-        "distinct_dois": len({r["doi_url"] for r in rows}),
+        "distinct_identifiers": len({r["doi_url"] for r in rows}),
+        "distinct_dois": len({r["doi_url"] for r in rows if "10." in r["doi_url"]}),
         "rows_measuring_dvv": len(meas),
         "rows_not_measuring_dvv": [
             r["authors_year"] for r in rows if not measures_dvv(r)
