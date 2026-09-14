@@ -96,7 +96,8 @@ def test_multiverse_sobol_sums_sensible():
     assert mv["curves"].shape[0] == mv["n_pipelines"] == 16
     # MWCS on the 4-14 s window holds two 6-s sub-windows, fewer than the
     # three its delay fit needs, so those four pipelines return no epoch.
-    assert mv["n_empty"] == 4 and mv["n_valid"] == 12
+    assert mv["n_empty"] == 4 and mv["n_valid"] == 12 and mv["n_sparse"] == 0
+    assert mv["n_valid"] + mv["n_sparse"] + mv["n_empty"] == mv["n_pipelines"]
     assert all(e["config"]["estimator"] == "MWCS" for e in mv["empty"])
     assert all("three sub-windows" in e["reason"] for e in mv["empty"])
     # Output is decimated after stacking on the daily grid.

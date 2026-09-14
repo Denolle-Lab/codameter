@@ -463,8 +463,11 @@ def multiverse(*, years=2.5, cadence=3, snr=7.0, seed=55, axes=None):
     reference by the cadence; audit UQ-05.) The RMS against the truth and the
     recovered drop are computed on the decimated epochs the pipeline produced.
     Pipelines that return no epoch at all are listed in ``empty`` with the
-    reason, counted in ``n_empty`` and excluded from the variance attribution,
-    which uses the ``n_valid`` remaining pipelines.
+    reason and counted in ``n_empty``; the variance attribution uses the
+    ``n_valid`` pipelines with a finite RMS (more than ten produced epochs).
+    A pipeline that produces between one and ten epochs is in neither group
+    and is counted in ``n_sparse``, so ``n_valid + n_sparse + n_empty`` is
+    ``n_pipelines``.
     """
     axes = axes or MULTIVERSE_AXES
     s = Synth()
@@ -518,6 +521,7 @@ def multiverse(*, years=2.5, cadence=3, snr=7.0, seed=55, axes=None):
         "n_pipelines": len(combos),
         "n_valid": int(np.isfinite(rms_arr).sum()),
         "n_empty": len(empty),
+        "n_sparse": int(len(combos) - np.isfinite(rms_arr).sum() - len(empty)),
         "empty": empty,
         "cadence": int(cadence),
         "axes": keys,
