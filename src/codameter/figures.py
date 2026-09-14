@@ -394,7 +394,11 @@ def build_all_figures(
 
 
 def _max_abs(x: np.ndarray) -> float:
-    """Largest finite magnitude in ``x`` (0.0 when there is none), without copies."""
+    """Largest finite magnitude in ``x`` (0.0 when there is none).
+
+    Allocates one temporary the size of ``x`` (the masked magnitudes), not a
+    concatenation of both arrays being compared.
+    """
     if x.size == 0:
         return 0.0
     with np.errstate(invalid="ignore"), warnings.catch_warnings():

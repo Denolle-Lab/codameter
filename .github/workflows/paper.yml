@@ -10,7 +10,7 @@ on:
   push:
     branches: [docs/sign-convention-manuscript]
   pull_request:
-    branches: [docs/sign-convention-manuscript, main]
+    branches: [docs/sign-convention-manuscript]
   workflow_dispatch:
 
 concurrency:
