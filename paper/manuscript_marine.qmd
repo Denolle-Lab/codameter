@@ -1744,8 +1744,8 @@ earthquake and fault, landslide, groundwater, cryosphere, geothermal and
 reservoir, methodology), each recording a DOI per publication; the scans
 returned 117 rows, which were deduplicated by DOI, checked against the
 Crossref record of each DOI (four wrong DOIs corrected, one unverifiable
-row dropped) and reduced to the 103 publications listed
-(\texttt{literature/README.md} records the corrections). The table keeps a
+row dropped) and reduced to the 103 publications listed (the corrections
+are recorded with the machine-readable table). The table keeps a
 publication when it measures a temporal relative velocity change from the
 coda of ambient-noise correlations or of repeating earthquakes, or when it
 defines a method or a sensitivity kernel that the measuring publications
@@ -1775,8 +1775,8 @@ quality-control rule alone (a coherence or correlation threshold, a
 weighting, a rejection criterion, with no error magnitude) and from
 nothing: 57 of the 75 state an error, 11 state a quality rule only, and 7
 state neither. The rule, the keyword coding and the eight cells coded by
-hand are in \texttt{paper/survey\_rates.py}, which writes these counts to
-\texttt{paper/data/survey\_rates.json}.
+hand are recorded with the machine-readable table, together with these
+counts.
 
 \input{appendix_table.tex}
 
