@@ -2,8 +2,8 @@
  "figure": "demo_11_multiverse",
  "generator": "codameter.deviations.multiverse + fig_multiverse_full",
  "codameter_version": "0.4.0",
- "git_commit": "c0f91f1f5d72ab3d7b4ed4be9294e7b023a372aa",
- "generated_utc": "2026-09-13T16:44:57+00:00",
+ "git_commit": "606f52826e348f55cf41c5c8cc97d83f7477e814",
+ "generated_utc": "2026-09-14T20:22:04+00:00",
  "python": "3.12.13",
  "numpy": "2.4.3",
  "matplotlib": "3.10.9",
@@ -1018,11 +1018,11 @@
    "reference": 0.0013864692528178886
   },
   "sobol_drop": {
-   "estimator": 0.04639592618719789,
-   "band": 0.013682449092973822,
-   "window": 0.031026294737738755,
-   "stack": 0.0002851416949275402,
-   "reference": 0.08234497912707103
+   "estimator": 0.06235364288721693,
+   "band": 0.02898266944784389,
+   "window": 0.055215473347404134,
+   "stack": 0.00045630955433450854,
+   "reference": 0.12776374206635088
   },
   "n_pipelines": 108,
   "n_valid": 96,
