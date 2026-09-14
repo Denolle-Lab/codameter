@@ -345,8 +345,12 @@ def generators() -> dict[str, tuple[str, Generator]]:
     return gens
 
 
-def _select(only: Iterable[str] | None, skip_slow: bool) -> list[str]:
-    gens = generators()
+def _select(
+    only: Iterable[str] | None,
+    skip_slow: bool,
+    gens: dict[str, tuple[str, Generator]] | None = None,
+) -> list[str]:
+    gens = generators() if gens is None else gens
     wanted = list(gens) if only is None else list(only)
     unknown = sorted(set(wanted) - set(gens))
     if unknown:
@@ -368,7 +372,7 @@ def build_all_figures(
     from .synthetic_demo import apply_style
 
     gens = generators()
-    wanted = _select(only, skip_slow)
+    wanted = _select(only, skip_slow, gens)
     apply_style()
     written = []
     for name in wanted:
@@ -457,7 +461,7 @@ def check_all_figures(
     outdir = Path(outdir)
     apply_style()
     report: dict[str, list[str]] = {}
-    for name in _select(only, skip_slow):
+    for name in _select(only, skip_slow, gens):
         desc, gen = gens[name]
         print(f"[{name}] {desc}", flush=True)
         try:

@@ -380,7 +380,12 @@ def check_shards(pairs: list[tuple[str, dict]]) -> dict:
     versions = sorted({str(r.get("codameter_version")) for _, r in pairs})
     if len(versions) > 1:
         problems.append(f"rows from different codameter versions: {versions}")
-    hashes = sorted({str(r.get("generator_hash")) for _, r in pairs})
+    n_no_hash = sum(1 for _, r in pairs if not r.get("generator_hash"))
+    if n_no_hash:
+        problems.append(f"{n_no_hash} row(s) carry no generator digest")
+    hashes = sorted(
+        {str(r["generator_hash"]) for _, r in pairs if r.get("generator_hash")}
+    )
     if len(hashes) > 1:
         problems.append(f"rows from different generator digests: {hashes}")
     commits = sorted({str(r.get("git_commit")) for _, r in pairs})
