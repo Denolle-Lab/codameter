@@ -383,7 +383,7 @@ def check_shards(pairs: list[tuple[str, dict]]) -> dict:
     )
     if len(hashes) > 1:
         problems.append(f"rows from different generator digests: {hashes}")
-    commits = sorted({str(r.get("git_commit")) for _, r in pairs})
+    commits = sorted({r["git_commit"] for _, r in pairs if r.get("git_commit")})
     return {
         "n_shards": n_shards,
         "shards_present": sorted(ks),

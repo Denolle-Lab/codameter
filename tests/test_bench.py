@@ -140,6 +140,9 @@ def test_check_shards_refuses_rows_from_different_generators():
     pairs[1] = (pairs[1][0], dict(pairs[1][1], generator_hash="aaaa", git_commit="y"))
     inv = bench.check_shards(pairs)
     assert inv["complete"] and inv["git_commits"] == ["x", "y"]
+    # a missing commit is omitted from the list, not stringified
+    row = dict(pairs[1][1], git_commit=None)
+    assert bench.check_shards([pairs[0], (pairs[1][0], row)])["git_commits"] == ["x"]
     # A row without a digest is refused, not treated as the digest "None".
     row = dict(pairs[1][1])
     del row["generator_hash"]

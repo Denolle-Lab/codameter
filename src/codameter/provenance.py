@@ -6,6 +6,7 @@ without importing matplotlib.
 
 from __future__ import annotations
 
+import functools
 import subprocess
 from pathlib import Path
 
@@ -27,8 +28,13 @@ def _git(*args: str) -> str | None:
     return out.stdout if out.returncode == 0 else None
 
 
+@functools.lru_cache(maxsize=1)
 def git_commit() -> str | None:
-    """Full SHA of HEAD in the repository this package is imported from (None outside git)."""
+    """Full SHA of HEAD in the repository this package is imported from (None outside git).
+
+    Cached for the life of the process: HEAD does not change during a run,
+    and a benchmark sweep calls this once per scored cell.
+    """
     out = _git("rev-parse", "HEAD")
     sha = (out or "").strip()
     return sha or None
