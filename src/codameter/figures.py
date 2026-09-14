@@ -26,7 +26,6 @@ import argparse
 import dataclasses
 import json
 import platform
-import subprocess
 import warnings
 from collections.abc import Callable, Iterable
 from datetime import datetime, timezone
@@ -38,6 +37,7 @@ import numpy as np
 
 from ._version import __version__
 from .errors import MissingInputs
+from .provenance import git_commit, git_dirty
 
 __all__ = [
     "EXTERNAL",
@@ -67,45 +67,8 @@ LARGE_ARRAY = 50_000
 Generator = Callable[[], tuple[Any, dict[str, Any], dict[str, Any]]]
 
 
-def _git(*args: str) -> str | None:
-    try:
-        out = subprocess.run(
-            ["git", *args],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).resolve().parent,
-            timeout=10,
-            check=False,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return out.stdout if out.returncode == 0 else None
-
-
-def _git_commit() -> str | None:
-    out = _git("rev-parse", "HEAD")
-    sha = (out or "").strip()
-    return sha or None
-
-
-def _git_dirty() -> bool | None:
-    """True when tracked files under ``src/`` differ from HEAD (None outside git).
-
-    The pathspec is the parent of the package directory, so every tracked
-    source under ``src/`` counts, not only ``src/codameter``. A sidecar whose
-    ``git_commit`` names a commit but whose ``git_dirty`` is true was produced
-    by code that commit does not contain (audit S-RP.1).
-    """
-    out = _git(
-        "status",
-        "--porcelain",
-        "--untracked-files=no",
-        "--",
-        str(Path(__file__).resolve().parent.parent),
-    )
-    if out is None:
-        return None
-    return bool(out.strip())
+_git_commit = git_commit  # kept for callers of the old private names
+_git_dirty = git_dirty
 
 
 #: Modules whose source enters the generator digest: every figure builder
@@ -439,10 +402,18 @@ def compare_sidecar(arrays: dict[str, Any], npz_path: Path, *, rtol: float = 1e-
             tol = max(rtol, 1e-6 if a.dtype == np.float32 else rtol)
             scale = max(_max_abs(a), _max_abs(b))
             if not np.allclose(a, b, rtol=tol, atol=tol * scale, equal_nan=True):
-                with np.errstate(invalid="ignore", divide="ignore"):
+                with np.errstate(
+                    invalid="ignore", divide="ignore"
+                ), warnings.catch_warnings():
+                    warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN ratio
                     denom = np.maximum(np.maximum(np.abs(a), np.abs(b)), tol * scale)
                     rel = np.nanmax(np.abs(a - b) / denom)
-                diffs.append(f"{k}: values differ (max relative difference {rel:.3g})")
+                if np.isfinite(rel):
+                    diffs.append(
+                        f"{k}: values differ (max relative difference {rel:.3g})"
+                    )
+                else:
+                    diffs.append(f"{k}: values differ only in NaN placement")
         elif not np.array_equal(a, b):
             diffs.append(f"{k}: values differ")
     return diffs

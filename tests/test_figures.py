@@ -130,6 +130,15 @@ def test_compare_sidecar_reports_differences(tmp_path):
         )
         != []
     )
+    # arrays differing only in NaN placement: one message, no warning
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        d = F.compare_sidecar(
+            dict(zeros, **{"ax0/line0/y": np.array([0.0, np.nan])}), tmp_path / "z.npz"
+        )
+    assert d == ["ax0/line0/y: values differ only in NaN placement"]
     diffs = F.compare_sidecar(
         {"ax0/line0/y": np.array([1.0, 2.5, np.nan]), "data/other": big},
         tmp_path / "s.npz",

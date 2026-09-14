@@ -43,6 +43,7 @@ from . import golden
 from . import use_cases as uc
 from ._version import __version__
 from .deviations import metrics
+from .provenance import git_commit
 
 # ---------------------------------------------------------------------------
 # Config grids, built relative to each case's recommended config.
@@ -195,12 +196,6 @@ def _case(case_id: str) -> dict:
     return golden.generate(case_id)
 
 
-def _git_commit() -> str | None:
-    from .figures import _git_commit as _fig_commit
-
-    return _fig_commit()
-
-
 def score_cell(case_id: str, config_index: int, cfg: dict) -> dict:
     """Score one ``(case, config)`` cell into a JSON-serializable row."""
     case = golden.CASES_BY_ID[case_id]
@@ -223,7 +218,7 @@ def score_cell(case_id: str, config_index: int, cfg: dict) -> dict:
         # arrays were built with (audit S-RP.4); check_shards refuses to merge
         # rows whose digests differ.
         "generator_hash": golden._generator_hash(),
-        "git_commit": _git_commit(),
+        "git_commit": git_commit(),
     }
     try:
         d = _case(case_id)
