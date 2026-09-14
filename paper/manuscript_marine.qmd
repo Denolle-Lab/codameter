@@ -1050,11 +1050,11 @@ Attributing the variance of the outcome to each axis with a first-order
 for this dataset, the **coda window** controls the RMS error most (index
 $0.27$), with the estimator ($0.19$) and the stack length ($0.17$) next and
 the band and the reference scheme below $0.03$. For the recovered step, the
-reference scheme leads ($0.08$) with the estimator ($0.05$) and the window
-($0.03$) next; the stack length has no first-order effect on the step as
+reference scheme leads ($0.13$) with the estimator ($0.06$) and the window
+($0.06$) next; the stack length has no first-order effect on the step as
 measured by post- and pre-event medians, which the smearing of a stack
 shorter than the 120-day windows barely moves. The first-order indices sum
-to $0.65$ for the RMS and to $0.17$ for the step, so a large part of the
+to $0.65$ for the RMS and to $0.28$ for the step, so a large part of the
 spread, and most of it for the step, is *interaction* between choices
 compounding. The appropriate object is therefore not a single curve but a
 distribution of \dvv\ over the processing choices.

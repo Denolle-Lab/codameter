@@ -698,13 +698,14 @@ def fig_multiverse_full(mv=None):
     ax[0].text(
         0.02,
         0.97,
-        f"{n_empty} of {mv['n_pipelines']} pipelines return no epoch; "
-        f"{n_off} of the {n_valid} others leave the axis range;\n"
+        f"{n_empty} of {mv['n_pipelines']} pipelines return no epoch\n"
+        f"{n_off} of the {n_valid} others leave the axis range\n"
         f"10–90% band across pipelines: {band_lo:+.1f} to {band_hi:+.1f}%",
         transform=ax[0].transAxes,
-        fontsize=9,
+        fontsize=8.5,
         va="top",
-        color="0.25",
+        color="0.2",
+        bbox=dict(boxstyle="round,pad=0.25", fc="white", ec="0.7", alpha=0.9),
     )
     ax[0].legend(
         fontsize=10,
