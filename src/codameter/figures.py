@@ -24,9 +24,10 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import functools
 import json
 import platform
-import subprocess
+import warnings
 from collections.abc import Callable, Iterable
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,6 +37,8 @@ import matplotlib
 import numpy as np
 
 from ._version import __version__
+from .errors import MissingInputs
+from .provenance import git_commit, git_dirty
 
 __all__ = [
     "EXTERNAL",
@@ -50,10 +53,12 @@ __all__ = [
 
 #: Figures the paper includes that are produced outside this repository.
 EXTERNAL = (
-    "realdata_1_validation",
     "realdata_2_interferograms",
     "realdata_3_warmup",
 )
+#: Generated figures whose inputs are not tracked by git (skipped with a
+#: message where the inputs are absent).
+NEEDS_DATA = {"realdata_1_validation"}
 #: Generators that take minutes rather than seconds.
 SLOW = {"demo_10_deviations", "demo_11_multiverse", "demo_12_bayes"}
 #: float64 arrays with more elements than this are stored as float32 in the
@@ -63,20 +68,39 @@ LARGE_ARRAY = 50_000
 Generator = Callable[[], tuple[Any, dict[str, Any], dict[str, Any]]]
 
 
-def _git_commit() -> str | None:
-    try:
-        out = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).resolve().parent,
-            timeout=10,
-            check=False,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    sha = out.stdout.strip()
-    return sha if out.returncode == 0 and sha else None
+_git_commit = git_commit  # kept for callers of the old private names
+_git_dirty = git_dirty
+
+
+#: Modules whose source enters the generator digest: every figure builder
+#: lives in one of them, so a change to any of them changes the digest.
+_DIGEST_MODULES = (
+    "figures",
+    "synthetic_demo",
+    "deviations",
+    "uq_bayes",
+    "uq_measurement",
+    "gate1",
+)
+
+
+@functools.lru_cache(maxsize=1)
+def generator_digest() -> str:
+    """Short digest of the package version and the figure-generating sources.
+    Computed once per process (the sources do not change during a build).
+
+    Recorded in every sidecar so that a figure can be matched to the exact
+    generator code, as :func:`codameter.golden._generator_hash` does for the
+    golden datasets; two sidecars with the same digest were produced by the
+    same figure code whatever the commit says.
+    """
+    import hashlib
+
+    h = hashlib.sha1(__version__.encode())
+    here = Path(__file__).resolve().parent
+    for mod in _DIGEST_MODULES:
+        h.update((here / f"{mod}.py").read_bytes())
+    return h.hexdigest()[:12]
 
 
 def _jsonable(obj: Any) -> Any:
@@ -182,6 +206,8 @@ def save_figure(
         "generator": generator,
         "codameter_version": __version__,
         "git_commit": _git_commit(),
+        "git_dirty": _git_dirty(),
+        "generator_digest": generator_digest(),
         "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "python": platform.python_version(),
         "numpy": np.__version__,
@@ -248,6 +274,13 @@ def _gen_demo_12():
     return fig, arrays, meta
 
 
+def _gen_realdata_1():
+    from .gate1 import fig_gate1_comparison
+
+    fig = fig_gate1_comparison()
+    return fig, dict(fig.codameter_arrays), dict(fig.codameter_meta)
+
+
 def generators() -> dict[str, tuple[str, Generator]]:
     """Every generated figure: ``name -> (generator description, callable)``."""
     from . import synthetic_demo as sd
@@ -271,7 +304,26 @@ def generators() -> dict[str, tuple[str, Generator]]:
         "codameter.uq_bayes._build_bayes + _fig_bayes",
         _gen_demo_12,
     )
+    gens["realdata_1_validation"] = (
+        "codameter.gate1.fig_gate1_comparison (needs paper/data/gate1/dvv2y)",
+        _gen_realdata_1,
+    )
     return gens
+
+
+def _select(
+    only: Iterable[str] | None,
+    skip_slow: bool,
+    gens: dict[str, tuple[str, Generator]] | None = None,
+) -> list[str]:
+    gens = generators() if gens is None else gens
+    wanted = list(gens) if only is None else list(only)
+    unknown = sorted(set(wanted) - set(gens))
+    if unknown:
+        raise KeyError(f"unknown figure(s): {unknown}; known: {sorted(gens)}")
+    if skip_slow:
+        wanted = [n for n in wanted if n not in SLOW]
+    return wanted
 
 
 def build_all_figures(
@@ -286,18 +338,17 @@ def build_all_figures(
     from .synthetic_demo import apply_style
 
     gens = generators()
-    wanted = list(gens) if only is None else list(only)
-    unknown = sorted(set(wanted) - set(gens))
-    if unknown:
-        raise KeyError(f"unknown figure(s): {unknown}; known: {sorted(gens)}")
-    if skip_slow:
-        wanted = [n for n in wanted if n not in SLOW]
+    wanted = _select(only, skip_slow, gens)
     apply_style()
     written = []
     for name in wanted:
         desc, gen = gens[name]
         print(f"[{name}] {desc}", flush=True)
-        fig, arrays, meta = gen()
+        try:
+            fig, arrays, meta = gen()
+        except MissingInputs as exc:
+            print(f"  skipped: {exc}", flush=True)
+            continue
         written.append(
             save_figure(
                 fig, outdir, name, generator=desc, extra_arrays=arrays, extra_meta=meta
@@ -308,12 +359,124 @@ def build_all_figures(
     return written
 
 
+def _max_abs(x: np.ndarray) -> float:
+    """Largest finite magnitude in ``x`` (0.0 when there is none).
+
+    Allocates one temporary the size of ``x`` (the masked magnitudes), not a
+    concatenation of both arrays being compared.
+    """
+    if x.size == 0:
+        return 0.0
+    with np.errstate(invalid="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN input
+        m = np.nanmax(np.where(np.isfinite(x), np.abs(x), np.nan))
+    return float(m) if np.isfinite(m) else 0.0
+
+
+def compare_sidecar(arrays: dict[str, Any], npz_path: Path, *, rtol: float = 1e-6):
+    """Compare freshly generated arrays with a committed ``.npz`` sidecar.
+
+    Returns a list of human-readable differences (empty when they agree).
+    Floating arrays agree when every entry is within ``rtol`` of the stored
+    value or within ``rtol`` times the largest magnitude in either array (so the
+    rounding noise of an entry that is zero up to platform arithmetic, such
+    as the zero-change point of a sweep, does not count as a difference).
+    Large float64 arrays are compared at float32 precision, the precision the
+    sidecar stores them at (:data:`LARGE_ARRAY`); NaNs must match in position.
+    """
+    diffs: list[str] = []
+    if not npz_path.exists():
+        return [f"no committed sidecar at {npz_path}"]
+    with np.load(npz_path, allow_pickle=False) as z:
+        stored = {k: z[k] for k in z.files}
+    fresh = {k: compact_array(np.asarray(v)) for k, v in arrays.items()}
+    for k in sorted(set(stored) | set(fresh)):
+        if k not in stored:
+            diffs.append(f"{k}: new array not in the sidecar")
+            continue
+        if k not in fresh:
+            diffs.append(f"{k}: in the sidecar but no longer generated")
+            continue
+        a, b = stored[k], fresh[k]
+        if a.shape != b.shape:
+            diffs.append(f"{k}: shape {a.shape} in sidecar, {b.shape} generated")
+            continue
+        if a.dtype.kind in "fc" and b.dtype.kind in "fc":
+            tol = max(rtol, 1e-6 if a.dtype == np.float32 else rtol)
+            scale = max(_max_abs(a), _max_abs(b))
+            if not np.allclose(a, b, rtol=tol, atol=tol * scale, equal_nan=True):
+                with np.errstate(
+                    invalid="ignore", divide="ignore"
+                ), warnings.catch_warnings():
+                    warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN ratio
+                    denom = np.maximum(np.maximum(np.abs(a), np.abs(b)), tol * scale)
+                    rel = np.nanmax(np.abs(a - b) / denom)
+                if np.isfinite(rel):
+                    diffs.append(
+                        f"{k}: values differ (max relative difference {rel:.3g})"
+                    )
+                else:
+                    diffs.append(f"{k}: values differ only in NaN placement")
+        elif not np.array_equal(a, b):
+            diffs.append(f"{k}: values differ")
+    return diffs
+
+
+def check_all_figures(
+    outdir: str | Path,
+    *,
+    only: Iterable[str] | None = None,
+    skip_slow: bool = False,
+    rtol: float = 1e-6,
+) -> dict[str, list[str]]:
+    """Regenerate the selected figures in memory and diff their arrays against
+    the committed sidecars in ``outdir``; returns ``{name: differences}``."""
+    import matplotlib.pyplot as plt
+
+    from .synthetic_demo import apply_style
+
+    gens = generators()
+    outdir = Path(outdir)
+    apply_style()
+    report: dict[str, list[str]] = {}
+    for name in _select(only, skip_slow, gens):
+        desc, gen = gens[name]
+        print(f"[{name}] {desc}", flush=True)
+        try:
+            fig, arrays, meta = gen()
+        except MissingInputs as exc:
+            print(f"  skipped: {exc}", flush=True)
+            continue
+        all_arrays: dict[str, Any] = dict(figure_arrays(fig))
+        for k, v in (arrays or {}).items():
+            all_arrays[f"data/{k}"] = np.asarray(v)
+        plt.close(fig)
+        report[name] = compare_sidecar(all_arrays, outdir / f"{name}.npz", rtol=rtol)
+        status = "ok" if not report[name] else f"{len(report[name])} difference(s)"
+        print(f"  {status}", flush=True)
+        for d in report[name]:
+            print(f"    {d}", flush=True)
+    return report
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--out", default="literature/figs", help="output directory")
     ap.add_argument("--only", default=None, help="comma-separated figure names")
     ap.add_argument("--skip-slow", action="store_true", help=f"skip {sorted(SLOW)}")
     ap.add_argument("--list", action="store_true", help="list figures and exit")
+    ap.add_argument(
+        "--check",
+        action="store_true",
+        help="regenerate in memory and diff against the committed sidecars; "
+        "exit 1 on any difference",
+    )
+    ap.add_argument(
+        "--rtol",
+        type=float,
+        default=1e-6,
+        help="relative tolerance for --check (float32-stored arrays use at least 1e-6)",
+    )
     args = ap.parse_args(argv)
     if args.list:
         for name, (desc, _) in generators().items():
@@ -322,6 +485,16 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{name:<28} external; see literature/figs/SOURCES.md")
         return 0
     only = [s.strip() for s in args.only.split(",")] if args.only else None
+    if args.check:
+        report = check_all_figures(
+            args.out, only=only, skip_slow=args.skip_slow, rtol=args.rtol
+        )
+        bad = {k: v for k, v in report.items() if v}
+        print(
+            f"checked {len(report)} figure(s): {len(report) - len(bad)} match, "
+            f"{len(bad)} differ"
+        )
+        return 1 if bad else 0
     build_all_figures(args.out, only=only, skip_slow=args.skip_slow)
     return 0
 
