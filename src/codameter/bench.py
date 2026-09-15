@@ -26,6 +26,7 @@ Run ``codameter-bench --help``.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import re
@@ -196,6 +197,12 @@ def _case(case_id: str) -> dict:
     return golden.generate(case_id)
 
 
+@functools.lru_cache(maxsize=1)
+def _generator_hash_cached() -> str:
+    """golden._generator_hash() once per process (it rereads source files)."""
+    return golden._generator_hash()
+
+
 def score_cell(case_id: str, config_index: int, cfg: dict) -> dict:
     """Score one ``(case, config)`` cell into a JSON-serializable row."""
     case = golden.CASES_BY_ID[case_id]
@@ -217,7 +224,7 @@ def score_cell(case_id: str, config_index: int, cfg: dict) -> dict:
         # The generator digest and commit pin the synthesis code the golden
         # arrays were built with (audit S-RP.4); check_shards refuses to merge
         # rows whose digests differ.
-        "generator_hash": golden._generator_hash(),
+        "generator_hash": _generator_hash_cached(),
         "git_commit": git_commit(),
     }
     try:

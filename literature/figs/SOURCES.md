@@ -41,4 +41,6 @@ comparison figure (`realdata_1_validation`) used to be produced there as well;
 it is now generated in this repository from the archived daily products and
 `paper/data/gate1/comparison.json`. The Gate 1 run commit and `--use-case`
 are to be pinned in `paper/data/gate1/README.md` (issue #46).
-Until then these three figures cannot be regenerated from this checkout.
+Until then the two interferogram-based figures cannot be regenerated from
+this checkout; the comparison figure can, wherever the daily products are
+present.
