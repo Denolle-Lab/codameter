@@ -44,18 +44,64 @@ def test_moving_reference_is_worse_than_fixed(small_dataset):
 
 
 def test_oat_returns_baseline_and_deviations():
-    rows, ctx = D.oat_effects(years=1.2, snr=8.0)
+    rows, ctx = D.oat_effects(years=1.2, snr=8.0, seeds=(55,))
     assert any(r.axis == "baseline" for r in rows)
     # Every deviation axis appears.
     axes = {r.axis for r in rows}
     assert "Reference scheme" in axes and "Estimator" in axes
     base = next(r for r in rows if r.axis == "baseline")
     assert np.isfinite(base.rms)
+    # Common-support RMS and availability are reported for every row.
+    assert all(np.isfinite(r.rms_common) for r in rows)
+    assert all(0.0 < r.availability <= 1.0 for r in rows)
+    moving = next(r for r in rows if r.option == "moving")
+    assert moving.availability < 1.0  # warm-up epochs are missing
+    assert ctx["common"].sum() < len(ctx["days"])
+
+
+def test_inversion_reference_rejects_other_estimators(small_dataset):
+    s, days, truth, ccfs = small_dataset
+    cfg = dict(D.BASELINE, reference="inversion", estimator="MWCS")
+    with pytest.raises(ValueError, match="stretching-based"):
+        D.run_pipeline(ccfs, s.t, s.fs, cfg)
+
+
+def test_gate_applies_to_every_estimator_and_reference(small_dataset):
+    """The gate reads the stretching coherence at the same band/window/stack/
+    reference, so a gated MWCS or moving-reference run drops exactly the
+    epochs the stretching probe drops."""
+    s, days, truth, ccfs = small_dataset
+    for ref in ("fixed", "moving"):
+        probe = dict(D.BASELINE, reference=ref, gate=False)
+        _, _, cc = D.run_pipeline(ccfs, s.t, s.fs, probe, return_cc=True)
+        keep = np.isfinite(cc) & (cc > D.GATE_CC)
+        cfg = dict(D.BASELINE, estimator="MWCS", reference=ref, gate=True)
+        dvv, valid = D.run_pipeline(ccfs, s.t, s.fs, cfg)
+        assert not valid[~keep].any()
+        ungated, valid0 = D.run_pipeline(ccfs, s.t, s.fs, dict(cfg, gate=False))
+        np.testing.assert_array_equal(valid, valid0 & keep)
+
+
+SMALL_AXES = {
+    "estimator": ["stretching (TS)", "MWCS"],
+    "window": [(10, 30), (4, 14)],
+    "stack": [1, 10],
+    "reference": ["fixed", "moving"],
+}
 
 
 def test_multiverse_sobol_sums_sensible():
-    mv = D.multiverse(years=1.2, cadence=6)
-    assert mv["curves"].shape[0] == mv["n_pipelines"]
+    # A reduced factorial: the full 108 on the daily grid takes minutes.
+    mv = D.multiverse(years=1.2, cadence=6, axes=SMALL_AXES)
+    assert mv["curves"].shape[0] == mv["n_pipelines"] == 16
+    # MWCS on the 4-14 s window holds two 6-s sub-windows, fewer than the
+    # three its delay fit needs, so those four pipelines return no epoch.
+    assert mv["n_empty"] == 4 and mv["n_valid"] == 12 and mv["n_sparse"] == 0
+    assert mv["n_valid"] + mv["n_sparse"] + mv["n_empty"] == mv["n_pipelines"]
+    assert all(e["config"]["estimator"] == "MWCS" for e in mv["empty"])
+    assert all("three sub-windows" in e["reason"] for e in mv["empty"])
+    # Output is decimated after stacking on the daily grid.
+    assert mv["days"][1] - mv["days"][0] == 6
     # First-order indices are fractions in [0, 1].
     for v in mv["sobol_rms"].values():
         assert -1e-9 <= v <= 1.0 + 1e-9
@@ -171,3 +217,27 @@ class TestFastPathRegressions:
         cfg = dict(D.BASELINE, estimator="WTS")
         with pytest.raises(ValueError, match="prefiltered"):
             D.run_pipeline(ccfs, s.t, s.fs, cfg, prefiltered=True)
+
+
+def test_multiverse_step_uses_the_event_day_not_the_nearest_epoch(monkeypatch):
+    """With cadence 3 the nearest decimated epoch to the event day (730) is
+    729, a pre-event day; the step must be measured about the event day."""
+    days = np.arange(0, int(2.5 * 365), 3, dtype=float)
+    assert days[np.argmin(np.abs(days - D.ERUPT_DAY))] == 729  # the trap
+    seen = []
+    real = D._drop_amplitude
+
+    def spy(dvv, days_, valid, eq_day=D.ERUPT_DAY, span=120):
+        seen.append(eq_day)
+        return real(dvv, days_, valid, eq_day=eq_day, span=span)
+
+    monkeypatch.setattr(D, "_drop_amplitude", spy)
+    one = {
+        "estimator": ["stretching (TS)"],
+        "band": [(0.4, 1.0)],
+        "window": [(10, 30)],
+        "stack": [10],
+        "reference": ["fixed"],
+    }
+    mv = D.multiverse(years=2.5, cadence=3, axes=one)
+    assert mv["n_pipelines"] == 1 and seen == [D.ERUPT_DAY]

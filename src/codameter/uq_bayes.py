@@ -44,6 +44,8 @@ __all__ = [
     "run_processing_ensemble",
     "BayesResult",
     "gibbs_dvv",
+    "split_rhat",
+    "residual_autocorrelation",
     "bayes_dvv_from_ccfs",
 ]
 
@@ -260,36 +262,105 @@ class BayesResult:
     beta_mean: np.ndarray | None = None
     n_obs: np.ndarray | None = None
     prior_weight: dict[str, float] | None = None
+    #: Retained post-burn-in draws of the scale hyper-parameters, in sweep
+    #: order (``tau2``, ``s2``, ``lambda``), for convergence diagnostics.
+    samples_hyper: dict[str, np.ndarray] | None = None
+
+
+def split_rhat(chains) -> float:
+    r"""Split :math:`\hat R` of Gelman et al. (2013, Sec. 11.4) for one scalar.
+
+    ``chains`` is ``(n_chains, n_draws)``; every chain is split into halves
+    and the potential scale reduction is computed over the ``2 n_chains``
+    half-chains: :math:`\hat R = \sqrt{(W (n-1)/n + B/n) / W}` with ``W`` the
+    mean within-half variance and ``B/n`` the variance of the half means. Values
+    near 1 mean the halves agree; the usual acceptance is below 1.01 to 1.05.
+    Returns NaN when fewer than four draws per half are available or the
+    within variance is zero.
+    """
+    X = np.atleast_2d(np.asarray(chains, float))
+    n = X.shape[1] // 2
+    if n < 4:
+        return float("nan")
+    halves = np.concatenate([X[:, :n], X[:, n : 2 * n]], axis=0)
+    W = float(np.mean(np.var(halves, axis=1, ddof=1)))
+    B_over_n = float(np.var(np.mean(halves, axis=1), ddof=1))
+    if not np.isfinite(W) or W <= 0:
+        return float("nan")
+    return float(np.sqrt((W * (n - 1) / n + B_over_n) / W))
+
+
+#: Autocorrelation below this is treated as the noise floor of the estimate
+#: and excluded from the correlation-length fit.
+CORR_FIT_FLOOR = 0.1
+
+
+def residual_autocorrelation(residuals: np.ndarray, maxlag: int = 40) -> np.ndarray:
+    """Mean lag-autocorrelation of the rows of ``residuals`` (NaN-aware).
+
+    Each row is demeaned and normalised by its own variance; the lag products
+    are averaged over the observed pairs of each row, then over rows. Entry
+    ``k`` is the autocorrelation at ``k`` epochs; entry 0 is 1 when the
+    estimate is defined, and every entry is NaN when no row has a finite,
+    non-zero variance.
+    """
+    R = np.asarray(residuals, float)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN rows/lags
+        scale = np.nanmean(R**2, axis=1, keepdims=True)  # before demeaning
+        R = R - np.nanmean(R, axis=1, keepdims=True)
+        T = R.shape[1]
+        var = np.nanmean(R**2, axis=1, keepdims=True)
+        # A row with zero or undefined variance (constant up to rounding, or
+        # too few valid epochs) has no autocorrelation: exclude it rather
+        # than count it as 0.
+        ok = np.isfinite(var) & (var > 0) & (var > 1e-12 * scale)
+        var = np.where(ok, var, np.nan)
+        maxlag = min(T - 1, maxlag)
+        rho = np.full(maxlag + 1, np.nan)
+        for lag in range(maxlag + 1):
+            prod = R[:, : T - lag] * R[:, lag:]
+            c = np.nanmean(prod, axis=1, keepdims=True) / var
+            rho[lag] = np.nanmean(c)
+    if np.isfinite(rho[0]):
+        rho[0] = 1.0
+    return rho
 
 
 def _estimate_corr_length(residuals: np.ndarray, times_days: np.ndarray) -> float:
     r"""Temporal correlation length from the mean residual autocorrelation.
 
-    Fit :math:`\rho(\Delta) \approx e^{-\Delta/L}` to the lag-autocorrelation of
-    the ensemble residuals (members minus the posterior mean), averaged over
-    configurations. Returns ``L`` in days.
+    Fit :math:`\rho(\Delta) = e^{-\Delta/L}` through the origin to the
+    lag-autocorrelation of the ensemble residuals (members minus offset and
+    posterior mean), averaged over configurations, using only the leading
+    lags whose autocorrelation exceeds :data:`CORR_FIT_FLOOR`, each weighted
+    by its autocorrelation. Returns ``L`` in days, at least the cadence.
+
+    Before the 2026-09 revision the fit included an intercept and every lag
+    up to 40, so the noise floor of the long-lag autocorrelation (of order
+    0.05 to 0.1 for a dozen members over a few hundred epochs) flattened the
+    slope and returned correlation lengths several times longer than the
+    short-lag decay supports; whitening the residuals with the resulting
+    covariance left a variance of 3 and negative autocorrelation at two and
+    three epochs (audit UQ-04, ``scripts/check_cd_whitening.py``).
     """
     R = np.asarray(residuals, float)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN rows/lags
-        R = R - np.nanmean(R, axis=1, keepdims=True)
-        K, T = R.shape
-        var = np.nanmean(R**2, axis=1, keepdims=True)
-        maxlag = min(T - 1, 40)
-        rho = np.zeros(maxlag + 1)
-        for lag in range(maxlag + 1):
-            prod = R[:, : T - lag] * R[:, lag:]
-            c = np.nanmean(prod, axis=1, keepdims=True) / (var + 1e-30)
-            rho[lag] = np.nanmean(c)
-    rho = np.clip(np.nan_to_num(rho, nan=1e-3), 1e-3, 1.0)
+    T = R.shape[1]
+    rho = residual_autocorrelation(R)
     dt = float(np.median(np.diff(times_days))) if T > 1 else 1.0
-    lags_days = np.arange(maxlag + 1) * dt
-    # Linear fit of log(rho) vs lag (weight early, well-determined lags).
-    w = rho.copy()
-    A = np.vstack([lags_days, np.ones_like(lags_days)]).T
-    slope = np.linalg.lstsq(A * w[:, None], np.log(rho) * w, rcond=None)[0][0]
-    L = -1.0 / slope if slope < 0 else dt * maxlag
-    return float(np.clip(L, dt, dt * maxlag))
+    lead = []
+    for lag in range(1, rho.size):
+        if not np.isfinite(rho[lag]) or rho[lag] <= CORR_FIT_FLOOR:
+            break
+        lead.append(lag)
+    if not lead:
+        return float(dt)
+    lags_days = np.array(lead, float) * dt
+    r = np.clip(rho[lead], 1e-6, 1.0)
+    w = r  # weight the well-determined, large autocorrelations
+    slope = float(np.sum(w * lags_days * np.log(r)) / np.sum(w * lags_days**2))
+    L = -1.0 / slope if slope < 0 else dt * (rho.size - 1)
+    return float(np.clip(L, dt, dt * (rho.size - 1)))
 
 
 def _second_difference(T: int) -> np.ndarray:
@@ -419,7 +490,7 @@ def gibbs_dvv(
     s2 = 1.0
     lam = 1.0 / (np.var(Dsp @ mu) + 1e-12)
 
-    keep_mu, keep_tau, keep_s, keep_beta = [], [], [], []
+    keep_mu, keep_tau, keep_s, keep_beta, keep_lam = [], [], [], [], []
     for it in range(n_iter):
         # 1. mu | rest : Gaussian with precision Q = diag(prec_t) + lam*DtD.
         w = 1.0 / (s2 * S2)  # zero where unobserved
@@ -463,6 +534,7 @@ def gibbs_dvv(
             keep_tau.append(tau2)
             keep_s.append(s2)
             keep_beta.append(beta.copy())
+            keep_lam.append(lam)
 
     samples = np.array(keep_mu)
     mu_mean = samples.mean(axis=0)
@@ -521,6 +593,11 @@ def gibbs_dvv(
         beta_mean=beta_mean,
         n_obs=n_obs_t,
         prior_weight=prior_weight,
+        samples_hyper={
+            "tau2": np.asarray(keep_tau, float),
+            "s2": np.asarray(keep_s, float),
+            "lambda": np.asarray(keep_lam, float),
+        },
     )
 
 

@@ -2,8 +2,8 @@
  "figure": "demo_12_bayes",
  "generator": "codameter.uq_bayes._build_bayes + _fig_bayes",
  "codameter_version": "0.4.0",
- "git_commit": "d3a5c18b08d95872cfa54fa796f080daec94d20a",
- "generated_utc": "2026-09-13T13:41:32+00:00",
+ "git_commit": "c0f91f1f5d72ab3d7b4ed4be9294e7b023a372aa",
+ "generated_utc": "2026-09-13T17:05:28+00:00",
  "python": "3.12.13",
  "numpy": "2.4.3",
  "matplotlib": "3.10.9",
@@ -61,7 +61,7 @@
   },
   {
    "axes": "ax3",
-   "title": "(c) time-dependent error;  $N_{eff}$=23/229",
+   "title": "(c) time-dependent error;  $N_{eff}$=29/229",
    "xlabel": "time (years)",
    "ylabel": "$\\sigma$ (dv/v, %)",
    "lines": [
@@ -143,8 +143,8 @@
  "bayes": {
   "tau": 0.0003612992348785833,
   "s": 12.098861625892763,
-  "corr_length_days": 39.20671143105746,
-  "n_eff": 22.760567115510465,
+  "corr_length_days": 5.702100823925634,
+  "n_eff": 28.950925940431706,
   "n_epochs": 229,
   "labels": [
    "stretching (TS) 0.4-1Hz 8-28s stack10d fixed",
