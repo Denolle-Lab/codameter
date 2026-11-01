@@ -92,11 +92,35 @@ def test_no_other_use_case_reproduces_it():
         assert _config_hash(recommend(case, band=band)) != stored, case
 
 
-def test_the_manifest_script_verifies_the_archive():
+def _manifest_script():
     spec = importlib.util.spec_from_file_location(
         "gate1_manifest", ROOT / "scripts" / "gate1_manifest.py"
     )
     assert spec is not None and spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    assert mod.main(["--check"]) == 0
+    return mod
+
+
+def test_the_manifest_script_verifies_the_archive():
+    assert _manifest_script().main(["--check"]) == 0
+
+
+def test_the_checker_reports_a_corrupt_product_rather_than_raising(
+    tmp_path, monkeypatch, capsys
+):
+    """--check must survive the condition it exists to catch: a file that is
+    no longer readable as data still has to come out as a mismatch."""
+    mod = _manifest_script()
+    target = "dvv2y/band=1.0-2.0/CI.ARV.parquet"
+    shadow = tmp_path / "gate1"
+    for entry in _manifest()["files"]:
+        dest = shadow / entry["path"]
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes((GATE1 / entry["path"]).read_bytes())
+    (shadow / "MANIFEST.json").write_bytes((GATE1 / "MANIFEST.json").read_bytes())
+    (shadow / target).write_bytes(b"not a parquet file")
+    monkeypatch.setattr(mod, "GATE1", shadow)
+    assert mod.main(["--check"]) == 1
+    out = capsys.readouterr().out
+    assert f"changed: {target}" in out

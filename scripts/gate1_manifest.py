@@ -86,6 +86,38 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--check", action="store_true", help="verify, do not write")
     args = ap.parse_args(argv)
 
+    if args.check:
+        # Digests only: a checker must not depend on the files it checks being
+        # readable as data. A truncated product has to come out as a mismatch,
+        # not as a traceback from the parquet reader.
+        committed = json.loads((GATE1 / "MANIFEST.json").read_text())["files"]
+        have: dict[str, str] = {}
+        unreadable: list[str] = []
+        for path in files():
+            rel = path.relative_to(GATE1).as_posix()
+            try:
+                have[rel] = sha256(path)
+            except OSError as exc:
+                unreadable.append(f"{rel} ({exc.strerror or exc})")
+        bad = [
+            c["path"]
+            for c in committed
+            if c["path"] in have and have[c["path"]] != c["sha256"]
+        ]
+        missing = [c["path"] for c in committed if c["path"] not in have]
+        extra = sorted(set(have) - {c["path"] for c in committed})
+        for label, names in (
+            ("changed", bad),
+            ("missing", missing),
+            ("unreadable", unreadable),
+            ("untracked", extra),
+        ):
+            for n in names:
+                print(f"{label}: {n}")
+        ok = len(committed) - len(bad) - len(missing)
+        print(f"checked {len(committed)} file(s): {ok} match")
+        return 1 if bad or missing or unreadable else 0
+
     entries = []
     for path in files():
         rel = path.relative_to(GATE1).as_posix()
@@ -97,24 +129,6 @@ def main(argv: list[str] | None = None) -> int:
                 **describe(path),
             }
         )
-
-    if args.check:
-        committed = json.loads((GATE1 / "MANIFEST.json").read_text())["files"]
-        have = {e["path"]: e["sha256"] for e in entries}
-        bad = [c["path"] for c in committed if have.get(c["path"]) != c["sha256"]]
-        missing = [c["path"] for c in committed if c["path"] not in have]
-        extra = sorted(set(have) - {c["path"] for c in committed})
-        for label, names in (
-            ("changed", bad),
-            ("missing", missing),
-            ("untracked", extra),
-        ):
-            for n in names:
-                print(f"{label}: {n}")
-        print(
-            f"checked {len(committed)} file(s): {len(committed) - len(bad) - len(missing)} match"
-        )
-        return 1 if bad or missing else 0
 
     (GATE1 / "MANIFEST.json").write_text(
         json.dumps({"provenance": PROVENANCE, "files": entries}, indent=1) + "\n"
