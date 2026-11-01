@@ -1,0 +1,25 @@
+{
+  "command": [
+    ".pixi/envs/test/bin/python",
+    "-m",
+    "pytest",
+    "-ra",
+    "-p",
+    "no:cacheprovider",
+    "--junitxml=review/evidence/pytest_targeted.xml",
+    "tests/test_uq_bayes.py",
+    "tests/test_uq_depth.py",
+    "tests/test_uq_measurement.py",
+    "tests/test_uq_processing.py",
+    "tests/test_sign_convention.py",
+    "tests/test_stretching_interpolation.py",
+    "tests/test_linear_inversion.py",
+    "tests/test_staged_workflow.py",
+    "tests/test_forcing_models.py",
+    "tests/test_forward_models.py"
+  ],
+  "thread_limits": 1,
+  "returncode": 0,
+  "status": "completed",
+  "elapsed_seconds": 41.449
+}

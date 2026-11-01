@@ -32,6 +32,7 @@ References
 - Aster, R. C., Borchers, B., & Thurber, C. H. (2018). *Parameter Estimation
   and Inverse Problems*. Elsevier, 3rd ed.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -41,6 +42,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import lsq_linear
 
+from ..forcing_models import canonical_model
 from ..forward.damage import snieder_healing
 from ..forward.loading import surface_load_dvv
 from ..forward.poroelastic import (
@@ -49,7 +51,6 @@ from ..forward.poroelastic import (
     talwani_precipitation_response,
 )
 from ..forward.thermoelastic import thermoelastic_dvv
-from ..forcing_models import canonical_model
 from .posterior import Posterior
 
 DEFAULT_TIME_SHIFT_GRID_DAYS = np.arange(0.0, 200.0 + 1.0, 1.0)
@@ -96,6 +97,7 @@ _HYDRO_MODELS = frozenset(
 )
 
 _LOADING_MODELS = frozenset({"instantaneous", "snowpack"})
+
 
 def build_predictor_matrix(
     times_s: np.ndarray,
@@ -361,7 +363,9 @@ def build_predictor_matrix(
             "time_shift_days": time_shift_days,
             "tau_min_s": tau_min_s,
             "tau_max_s": tau_max_s,
-            "earthquake_times_s": list(earthquake_times_s) if earthquake_times_s else [],
+            "earthquake_times_s": (
+                list(earthquake_times_s) if earthquake_times_s else []
+            ),
         },
     )
 
@@ -383,6 +387,10 @@ class LinearFitResult:
     n_obs: int
     n_par: int
     predictor_matrix: PredictorMatrix
+    #: Per-parameter flag: the bound-constrained solution sits on a bound. The
+    #: reported std for such a parameter is the unconstrained curvature at the
+    #: constrained solution, not a one-sided interval (see :func:`linear_fit`).
+    at_bound: np.ndarray | None = None
 
     @property
     def parameter_names(self) -> list[str]:
@@ -405,6 +413,9 @@ class LinearFitResult:
             "rank": int(self.rank),
             "n_obs": int(self.n_obs),
             "n_par": int(self.n_par),
+            "at_bound": (
+                [bool(b) for b in self.at_bound] if self.at_bound is not None else None
+            ),
             "metadata": self.predictor_matrix.metadata,
         }
 
@@ -420,8 +431,7 @@ class LinearFitResult:
                 "ci95_low": m - 1.96 * s,
                 "ci95_high": m + 1.96 * s,
                 "units": [
-                    self.predictor_matrix.units.get(n, "")
-                    for n in self.parameter_names
+                    self.predictor_matrix.units.get(n, "") for n in self.parameter_names
                 ],
             }
         )
@@ -512,6 +522,7 @@ def linear_fit(
                 lb[idx] = float(lo) if lo is not None else -np.inf
                 ub[idx] = float(hi) if hi is not None else +np.inf
     constrained = bool(np.isfinite(lb).any() or np.isfinite(ub).any())
+    active = np.zeros(p, dtype=bool)
 
     if constrained:
         sol = lsq_linear(Xw, dw, bounds=(lb, ub), method="bvls")
@@ -541,12 +552,11 @@ def linear_fit(
         # Unweighted: rescale cov by residual variance
         cov = cov * (float(np.sum(res**2)) / dof)
 
-    # When a bound is active, that parameter is no longer free: zero its
-    # row/column in the covariance so the reported std is 0 (clamped).
-    if constrained and active.any():
-        cov = cov.copy()
-        cov[active, :] = 0.0
-        cov[:, active] = 0.0
+    # A parameter on an active bound is not "known exactly": the data still
+    # constrain it with the same curvature, the bound only truncates the
+    # posterior on one side. Report that curvature and flag the parameter in
+    # ``at_bound`` rather than zeroing its row (which reported zero uncertainty;
+    # audit INV-02). A one-sided interval needs a truncated-normal treatment.
 
     posterior = Posterior(
         mean=p_hat,
@@ -562,6 +572,7 @@ def linear_fit(
         n_obs=int(n),
         n_par=int(p),
         predictor_matrix=predictor_matrix,
+        at_bound=active,
     )
 
 

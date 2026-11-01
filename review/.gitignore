@@ -1,0 +1,4 @@
+# Local compilation copies and generated font caches.
+/evidence/reproduction_workspace/
+/evidence/tex_cache/
+/evidence/probe_cache/

@@ -1,0 +1,106 @@
+pandoc
+  to: latex
+  output-file: manuscript_marine.tex
+  standalone: true
+  pdf-engine: lualatex
+  variables:
+    graphics: true
+    tables: true
+  default-image-extension: pdf
+  number-sections: true
+  cite-method: natbib
+
+metadata
+  block-headings: true
+  engines:
+    - path: /Applications/quarto/share/extension-subtrees/julia-engine/_extensions/julia-engine/julia-engine.js
+  title: The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring
+  author:
+    - name: M. A. Denolle
+      email: mdenolle@uw.edu
+      affiliations:
+        - name: Department of Earth and Space Sciences, University of Washington, Seattle, WA, USA
+  date: today
+  abstract: |
+    Relative seismic velocity changes (\dvv) from repeated coda waves are a
+    standard observable for volcanoes, faults, landslides, aquifers and the
+    cryosphere. Turning cross-correlation functions into a \dvv\ time series
+    involves a long sequence of choices, the estimator, the frequency band, the
+    coda window, the reference, the stacking, and how cross-components and
+    station pairs are aggregated and weighted, made ad hoc and reported
+    incompletely, so the same data can support different values and different
+    error bars. We quantify the individual and combined effects of these choices
+    on synthetic correlation functions in which the ground-truth \dvv\ is known
+    exactly. On these synthetics, at large \dvv\ the estimators split by family
+    with distinct failure modes; the same station pair yields different \dvv\ depending only on whether one averages per-component \dvv\ or the
+    correlation-coefficient images; and the number quoted as the $1\sigma$
+    uncertainty of a network-averaged \dvv\ differs by $\sim\!\sqrt{N}$ between
+    the standard error of the network mean and the between-pair standard
+    deviation, two different quantities that studies rarely distinguish. A
+    one-at-a-time sweep and a 108-pipeline factorial on one scenario rank the
+    choices by the error they induce. We then propose a hierarchical Bayesian
+    measurement model that runs an ensemble of defensible pipelines on the same
+    correlations and combines their estimates into a single \dvv\ series. A separate construction proposes a time-dependent single-member error covariance $C_d$.
+    On 200 independent synthetic realisations of a volcano scenario, $C_d$ covers
+    95.6% of individual member errors at the 95% level, whereas the
+    credible band on the ensemble mean covers the truth only 59% of the time
+    because the configurations share time-varying biases; a seasonal source
+    artefact seen by every configuration reduces that coverage to 34% and more than doubles
+    the error of the ensemble mean while leaving member coverage near 95%.
+    The nominal 68% member intervals cover 81% in the clean case;
+    these pointwise checks do not validate the full covariance. Shared errors
+    require diagnostics beyond agreement among processing choices. We set out how $C_d$ enters a depth inversion of
+    shear-velocity change; that stage is described, not evaluated, here. On three
+    California stations the same measurement code, run on NoisePy correlations in
+    a cloud batch pipeline, reproduces a published \dvv\ product (correlation
+    0.83--0.99 on 360--580 matched days, with a reproducible comparison script),
+    a comparison that also exposed and corrected a sign-convention error. The
+    framework, estimators, figures with their numerical sidecars, and the
+    calibration experiments are released in the open Python package
+    ``codameter``, together with a processing-choice advisor and a seeded
+    golden dataset with fixed scoring support and a null-change penalty for
+    missing predictions; an
+    evaluation of agents against that dataset is left to future work.
+  bibliography:
+    - references.bib
+    - survey.bib
+  biblio-style: gji
+  documentclass: gji
+  classoption:
+    - referee
+  colorlinks: true
+  latex-auto-install: false
+
+[33mWARNING (/Applications/quarto/share/filters/main.lua:18344) Raw LaTeX table found with non-tbl label: tab:gate1
+Won't be able to cross-reference this table using Quarto's native crossref system.
+[39m
+Rendering PDF
+running lualatex - 1
+  This is LuaTeX, Version 1.07.0 (TeX Live 2018)
+   restricted system commands enabled.
+
+  luaotfload | main : initialization completed in 0.116 seconds
+generating bibliography
+  This is BibTeX, Version 0.99d (TeX Live 2018)
+  The top-level auxiliary file: manuscript_marine.aux
+  The style file: gji.bst
+  Database file #1: references.bib
+  Database file #2: survey.bib
+
+running lualatex - 2
+  This is LuaTeX, Version 1.07.0 (TeX Live 2018)
+   restricted system commands enabled.
+
+  luaotfload | main : initialization completed in 0.096 seconds
+running lualatex - 3
+  This is LuaTeX, Version 1.07.0 (TeX Live 2018)
+   restricted system commands enabled.
+
+  luaotfload | main : initialization completed in 0.094 seconds
+running lualatex - 4
+  This is LuaTeX, Version 1.07.0 (TeX Live 2018)
+   restricted system commands enabled.
+
+  luaotfload | main : initialization completed in 0.091 seconds
+
+Output created: manuscript_marine.pdf

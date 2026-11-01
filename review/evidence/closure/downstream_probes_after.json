@@ -1,0 +1,25 @@
+{
+  "bounded_fit_mean": [
+    0.0
+  ],
+  "bounded_fit_covariance": [
+    [
+      0.05
+    ]
+  ],
+  "bounded_fit_at_bound": [
+    true
+  ],
+  "disconnected_reference_solution": [
+    0.004999999999999999,
+    -0.004999999999999999,
+    null
+  ],
+  "disconnected_reference_std": [
+    0.0004999999999999999,
+    0.0004999999999999999,
+    null
+  ],
+  "n_components": 2,
+  "warning": "pair graph has 2 connected components (1 isolated epoch(s)); offsets between components are unidentified and are set to a per-component datum"
+}

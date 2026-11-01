@@ -1,0 +1,3534 @@
+     submitted to Geophys. J. Int.
+
+
+
+
+1    The reproducibility cost of ad-hoc processing choices
+
+2    in ambient-noise seismic velocity-change monitoring
+
+
+
+3    M. A. Denolle
+
+
+
+4    2026-09-10
+
+
+
+5        SUMMARY
+
+6        Relative seismic velocity changes (𝛿𝑣/𝑣) from repeated coda waves are becoming a
+
+7        standard observable for volcanoes, faults, landslides, aquifers and the cryosphere and are
+
+8        increasingly regarded as new measurements of strain changes. Yet turning cross-correlation
+
+9        functions into a 𝛿𝑣/𝑣 time series involves a long sequence of choices — the estimator, the
+
+10       frequency band, the coda window, the reference, the stacking, and how cross-components
+
+11       and station pairs are aggregated and weighted — made ad hoc, their impact on the
+
+12       measurement uncertainty unclear. These hidden choices clearly limit reproducibility of
+
+13       the research and importantly the inter-study comparison.
+
+14       We demonstrate here how to turn repeated wavefield measurement into agent-ready,
+
+15       scalable-ready, uncertainty-aware measurement of changes in seismic properties. We
+
+16       quantify the individual and combined effects of these choices using a controlled synthetic
+
+17       in which the ground-truth 𝛿𝑣/𝑣 is known exactly. We show that at large 𝛿𝑣/𝑣 methods
+
+18       split by family with distinct failure modes; that the same station pair yields different
+
+19       𝛿𝑣/𝑣 depending only on whether one averages the per-component 𝛿𝑣/𝑣 or the correlation-
+
+20       coefficient images; and, most consequentially, that the reported 1𝜎 on a network-averaged
+     2    M. A. Denolle
+                         √
+21       𝛿𝑣/𝑣 varies by ∼ 𝑁 from the standard-error-versus-standard-deviation and weighting
+
+22       conventions — so a change that is “3𝜎 significant” in one study is “not significant” in
+
+23       another, from identical data.
+
+24       Running the full breadth of parameter choices, we estimate each by the bias and error-
+
+25       bar change it induces. We propose a Bayesian measurement model that marginalises
+
+26       the ensemble into a single time-dependent data covariance 𝐶𝑑 and illustrate its use by
+
+27       propagating errors in a depth-inversion of shear wave perturbation. We provide a real data
+
+28       examples from a California data set and reproduce previous results that were generated
+
+29       with a different computing language and processing pipeline, demonstrating at the same
+
+30       time the integration of codameter with noisepy and its portability and scalability from
+
+31       laptop to cloud systems. We also generate a codameter agent advisor that can guide
+
+32       researchers or agents in their parameter choices, accompanied with a robust evaluation
+
+33       of the agent against a golden data set. Our method and associated software package,
+
+34       codameter turns repeated coda waves into time series of 𝛿𝑣/𝑣 and its covariance making
+
+35       it coda-wave interferometry uncertainty-aware and reproducible.
+
+
+36       Key words: Coda-wave Interferometry; Seismic noise; Coda waves; Inverse theory;
+
+37       Statistical methods.
+
+
+
+
+38   1   INTRODUCTION
+
+
+39   Changes in subsurface properties occur due to geodynamics, which drive earthquake damage
+
+40   and volcanic eruption, and hydrodynamics, which controls fluid exchange between the
+
+41   atmosphere and the solid Earth. These processes influence the mechanical properties of Earth
+
+42   materials, which directly affect the speed at which seismic waves propagate. Changes in
+
+43   seismic velocity, often measured and referred to as 𝛿𝑣/𝑣, can be tracked by measuring changes
+     The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   3
+44   in arrival times of seismic waves, especially scattered waves such as coda waves, provided
+
+45   that the source and receivers are at the same location.
+
+
+46   Due to the sensitivity of coda waves to small perturbations in the material properties,
+
+47   𝛿𝑣/𝑣 was discovered as an effective method to monitor changes during volcanic unrest since
+
+48   its discovery at Piton de la Fournaise (Brenguier et al., 2008b) and is now calculated in
+
+49   continuous along side of more conventional seismic monitoring methods in the same volcano
+
+50   observatory (Duputel et al., 2009) and was a determining early warning parameter: the
+
+51   Icelandic Meteorological Office used 𝛿𝑣/𝑣 in its response to the 2020 Reykjanes unrest
+
+52   (Cubuk-Sabuncu et al., 2021). The Institute of Mine Seismology also uses 𝛿𝑣/𝑣 to monitor
+
+53   the internal state of tens of tailings dams and mines to flag instability before failure (Olivier
+
+54   et al., 2017; Ouellet et al., 2022). A broader set of operations is emerging around the same
+
+55   signal: groundwater storage for water management (Clements & Denolle, 2018; Mao et al.,
+
+56   2022), landslide early warning (Le Breton et al., 2021), levee and embankment integrity
+
+57   (Planès et al., 2016), and geothermal and CO2 reservoir surveillance (Tsuji et al., 2021). Each
+
+58   of these deployments rests on the same fragile assumption: that the 𝛿𝑣/𝑣 curve an operator
+
+59   acts on is a property of the subsurface, not of the analyst’s processing choices.
+
+
+60   𝛿𝑣/𝑣 is the fractional seismic velocity change, positive for a velocity increase. The stretching
+
+61   family of estimators measures the stretch factor 𝜀 that maps the current coda onto the
+
+62   reference coda. Throughout this work, the reference correlation is held fixed and trial dilations
+
+63   are applied to the current correlation,
+
+
+                                           𝑐𝜖 (𝑡) = 𝑐[(1 + 𝜖)𝑡],
+
+
+64   where interpolation is performed only on (c). Thus (𝜖 = 𝑡𝑐𝑢𝑟 /𝑡𝑟𝑒𝑓 − 1) is a fractional travel-
+
+65   time dilation: 𝜖 > 0 denotes a delayed phase in the current coda (slower) and 𝜖 < 0 denotes
+     4   M. A. Denolle
+66   an earlier arrival time (faster). For unchanged propagation geometry,
+
+                                                𝑡𝑐𝑢𝑟   𝑣𝑟𝑒𝑓
+                                        1+𝜖=         =      ,
+                                                𝑡𝑟𝑒𝑓   𝑣𝑐𝑢𝑟
+
+67   and therefore the physical fractional velocity change reported throughout this work is
+
+                                    𝛿𝑣   𝑣𝑐𝑢𝑟 − 𝑣𝑟𝑒𝑓     𝜖
+                                       ≡             =−     .
+                                    𝑣       𝑣𝑟𝑒𝑓        1+𝜖
+
+68   The commonly used relation (𝛿𝑣/𝑣 ≃ −𝜖 ≃ −𝛿𝑡/𝑡) is its first-order approximation and
+
+69   used in the majority of published work. We retain the exact finite-change transformation
+
+70   because its computational cost is negligible and because the distinction becomes measurable
+
+71   for velocity perturbations of several percent measured in large strain phenomena such as
+
+72   landslides. The current coda is stretched rather than the reference correlation so that the
+
+73   high-SNR reference stack remains unchanged throughout the search. While the reciprocal
+
+74   formulations are mathematically equivalent; in sampled, finite-window data they can differ
+
+75   because interpolation and boundary truncation break that symmetry.
+
+
+76   The elevated sensitivity comes at the price of a long series of processing choices, and
+
+77   at almost every step the analyst makes a choice. Among these are choices of estimators
+
+78   between windowed phase measurements or stretching (Mikesell et al., 2015, Mao et al. (2020),
+
+79   Yuan et al. (2021)), frequency band and coda window (which together set the sampled
+
+80   depth; Obermann et al. (2013; Obermann et al., 2016)), reference window (Brenguier et al.,
+
+81   2014, Ermert et al. (2023), Okubo et al. (2024)), increasing the temporal resolution of the
+
+82   measurement through substacking-filtering-denoising (Hadziioannou et al., 2011, Moreau
+
+83   et al. (2017),Mao et al. (2019),Viens & Van Houtte (2020)), and how to aggregate and weight
+
+84   the many cross-component and station-pair measurements that make up a single reported
+
+85   𝛿𝑣/𝑣 time series (e.g., Hobiger et al. (2012)). These choices are made by habit, justified
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   5
+86    briefly if at all, and rarely reported in enough detail to reproduce. The community has long
+
+87    flagged individual pitfalls (spurious changes from non-stationary noise, Zhan et al. (2013);
+
+88    measurement-error formulae, Clarke et al. (2011; Weaver et al., 2011)), but the cumulative
+
+89    effect of the full choice set on both the value and its stated uncertainty has not been quantified
+
+90    in the literature. A striking example of such their cumulative effects can be seen in Figure x of
+
+91    (Denolle et al., 2025) who demonstrated that most studies found a direct correlation between
+
+92    𝛿𝑣/𝑣 and groundwater level change, but the scatter around the mean was easily explained by
+
+93    frequency choices, single-vs-inter station correlations, and likely the other signal-processing
+
+94    parameters chosen by the authors, which speak of the robust correlation but not rigorously
+
+95    established enough to be useful in downstream hydrological research.
+
+
+96    This is a reproducibility problem of exactly the “garden of forking paths” type identified
+
+97    in the statistical sciences (Gelman & Loken, 2013; Steegen et al., 2016): many individually
+
+98    reasonable analyses of the same data give different answers, and without full reporting of
+
+99    parameter choices we cannot interpret a reported 𝛿𝑣/𝑣 as a robust value. Here we make the
+
+100   problem concrete for 𝛿𝑣/𝑣 monitoring. We use purely synthetic correlation time series to
+
+101   test the methods (estimators) and parameter choices that the community makes to estimate
+
+102   𝛿𝑣/𝑣 which we report over 103 studies in Appendix~C. We do not aim to report the “best”
+
+103   pipeline, which is most often the one reported in scientific papers, but instead document the
+
+104   parameter impacts (Section~3). We then propose a new measurement error that incorporates
+
+105   these effects into a data covariance matrix 𝐶𝑑 (Section~5). Throughout this paper, key
+
+106   notation includes: 𝜎 (measurement uncertainty of a recovered 𝛿𝑣/𝑣 estimate), 𝐵 (frequency
+
+107   bandwidth), and 𝑊 = [𝑡1 , 𝑡2 ] (coda window); subscripts distinguish specific contexts (e.g.,
+
+108   𝜎𝑘 for per-component uncertainty), each defined where first introduced.
+
+
+109   One example of propagating such error into downstream science is the migration of the surface
+      6   M. A. Denolle
+110   𝛿𝑣/𝑣 measurement to depth profiles of perturbations in shear wave velocity Δ𝑉𝑆 (𝑧)/𝑉𝑆 (𝑧),
+
+111   which often depends on the wavefield constituting the coda waves, such as surface waves
+
+112   or body waves, and that depend on the source-receiver pair geometry. We illustrate the
+
+113   propagation of errors to a depth profile (Section~6). We use synthetic examples for ground
+
+114   truthing on the signal processing parameters, since the concepts behind the observations of
+
+115   phase lags in scattered waves is well established (Obermann et al., 2013).
+
+
+116   We further validate using real obervations that the estimates of 𝛿𝑣/𝑣 and their uncertainty
+
+117   reproduces well those of observed time series by reproducing previous studies. We package
+
+118   this new methodology in a Python software, codameter, which we also recast as an agentic
+
+119   skill: an AI agent can be asked to recommend a processing configuration or recover a 𝛿𝑣/𝑣(t)
+
+120   series, and its answer is scored against seeded synthetic golden cases with known ground
+
+121   truth, including a hidden-truth variant that withholds the answer from the public package
+
+122   so it cannot be reconstructed rather than measured.
+
+
+
+
+123   2   SYNTHETIC FRAMEWORK
+
+
+124   We build each synthetic reference coda wave as a band-limited random-phase wavefield
+
+125   modulated by a physically grounded coda envelope. We model the envelope from the exact
+
+126   single-scattering solution of the two-dimensional radiative transfer equation for isotropic
+
+127   scattering (Sato, 1993; Paasschens, 1997), which underlies coda-envelope modelling of scatter-
+
+128   ing and intrinsic attenuation (Margerin et al., 1998). The energy density at source–receiver
+
+129   distance 𝑟 and lapse time 𝑡 is
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   7
+
+
+                                                     1
+                                                         √
+                                                             2 2   2
+                                 𝑒−𝑐𝑡/ℓ      𝑟    𝑒 ℓ ( 𝑐 𝑡 −𝑟 −𝑐𝑡)      𝑟
+130                  𝐸(𝑟, 𝑡) = [        𝛿(𝑡 − ) +      √            𝐻(𝑡 − )] 𝑒−𝑏𝑡 ,              (1)
+                                 2𝜋𝑐𝑟        𝑐    2𝜋ℓ 𝑐2 𝑡2 − 𝑟2         𝑐
+
+
+131   where 𝑐 is the (Rayleigh-wave) velocity, ℓ the scattering mean free path, 𝑏 the intrinsic
+
+132   absorption rate, and 𝛿 and 𝐻 the Dirac and Heaviside functions. The first term is the
+
+133   coherent ballistic arrival at 𝑡 = 𝑟/𝑐; the second is the multiply-scattered diffuse coda,
+
+134   which switches on at that arrival, builds up under scattering, and decays under intrinsic
+
+135   absorption. We fill random phases under the amplitude envelope √𝐸(𝑟, 𝑡), band-limit, and
+
+136   symmetrize the causal and acausal branches as for an evenly illuminated noise correlation.
+
+137   The modeled synthetic coda depends only on three time constants: the ballistic onset 𝑟/𝑐,
+
+138   the scattering mean free time ℓ/𝑐, and the absorption time 1/𝑏. The late-coda amplitude
+
+139   decays as 𝑒−𝑏𝑡/2 , recovering an apparent coda 𝑄𝑐 while the envelope shape is determined
+
+140   by scattering physics. A frequency-dependent absorption 𝑏(𝑓) = 2𝜋𝑓/𝑄𝑐 , which can still be
+
+141   modeled as an frequency-independent attenuation factor 𝑄𝑐 , reproduces the observation that
+
+142   high frequencies are retained only at short lag times, so a fixed late window samples different
+
+143   depths at different bands.
+
+
+144   A homogeneous velocity change is imposed exactly by stretching the lapse-time axis, 𝑢𝑐𝑢𝑟 (𝑡) =
+
+145   𝑢𝑟𝑒𝑓 (𝑡 (1 + 𝛿𝑣/𝑣)), and a repeated time series is produced by generating this stretched coda
+
+146   with a prescribed ground-truth 𝛿𝑣/𝑣(𝑡) and additive band-limited noise at a controlled
+
+147   signal-to-noise ratio. The concept has been demonstrated using full waveform modeling in
+
+148   several previous studies (Obermann et al., 2013, 2016; Yuan et al., 2021), so we do not repeat
+
+149   that full-waveform modeling here. Because the imposed 𝛿𝑣/𝑣(𝑡) is known, every departure of
+
+150   a recovered series from it is an artefact of the processing, not of the data.
+
+
+151   We use seven 𝛿𝑣/𝑣 estimators that were implemented in noisepy (Jiang & Denolle, 2020):
+      8   M. A. Denolle
+152   trace stretching (TS, Lobkis & Weaver (2003)), windowed cross-correlation (WCC, Poupinet
+
+153   et al. (1984)), dynamic time warping (DTW, Mikesell et al. (2015)), the moving-window
+
+154   cross-spectrum (MWCS; Clarke et al. (2011)), and three wavelet-domain methods, the wavelet
+
+155   cross-spectrum (WCS, Mao et al. (2020)) and the two wavelet stretching (WTS) and wavelet
+
+156   DTW (WTDTW) introduced and benchmarked numerically by Yuan et al. (2021). The
+
+157   framework, the figures below, and an implementation are released in the open codameter
+
+158   package (Section~8). Formal definitions of all seven methods, of the two aggregation pathways,
+
+159   and of the uncertainty conventions are described in Appendices~A and~B.
+
+
+160   Each of these methods require specific parameter choices, which we categorize and reference
+
+161   in Table~1. The work presented below measure the impacts of each of these parameter choices
+
+162   on the resulting 𝛿𝑣/𝑣.
+
+
+
+
+163   3   PARAMETER-DEPENDENT 𝛿𝑣/𝑣 AND ITS ERRORS
+
+
+164   The literature agrees on the components of a well-posed 𝛿𝑣/𝑣 measurement: a stretching-
+
+165   family estimator for robustness at low SNR and large change (Mikesell et al., 2015; Yuan et al.,
+
+166   2021), a coherence-based error model (Clarke et al., 2011; Weaver et al., 2011), a long stable
+
+167   reference (Wang et al., 2017), and cross-validation against a second estimator (Obermann &
+
+168   Hillers, 2019). Yet studies do not always report the same set, and the uncertainty convention
+
+169   is rarely, if ever, quantified (Appendix~C). The sections below address each component in
+
+170   turn and quantify, against a known truth, how far a parameter choice impacts the recovered
+
+171   𝛿𝑣/𝑣 and its error.
+
+
+172   Table~2 previews the RMS error against the known synthetic ground truth for the best- and
+
+173   worst-case option on each axis covered in this section, each derived in its own dedicated
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring                    9
+
+      Table 1. Processing choices (“hyper-parameters”) and their effect on the recovered value and
+      the reported uncertainty. Key notation: 𝐵 (frequency bandwidth), 𝑊 = [𝑡1 , 𝑡2 ] (coda window), 𝑁
+      (measurement count), 𝑁eff (weighted effective count), 𝜎 (measurement uncertainty).
+
+      Choice             Options / typical range            Effect on the value                Effect on the uncertainty
+
+      Estimator          TS, WCC, DTW, MWCS, WCS,           Agree at small 𝛿𝑣/𝑣; at large      Each has its own error model;
+                         WTS, WTDTW                         𝛿𝑣/𝑣 phase methods cycle-skip,     inter-method spread is an
+                                                            warps under-shoot (Fig. 1)         uncertainty
+      Phase unwrapping   on / off (phase methods)           Decides whether MWCS/WCS           Sets the usable 𝛿𝑣/𝑣 range
+                                                            cycle-skip (Fig. 1b)
+      𝐵                  0.1–2 Hz (volcano), 2–4 Hz         Selects the sampled depth, hence   𝜎 decreases with increasing 𝐵
+                         (aquifer), 4–12 Hz (landslide)     which signal (Fig. 8a)
+      𝑊                  a few to tens of mean free times   Later lapse → deeper, larger       𝜎 ∝ (𝑡3     3 −1/2 (duration
+                                                                                                      2 − 𝑡1 )
+                                                            sensitivity                        effect), but late coda is low-SNR
+      𝑊-𝐵 coupling       fixed vs scaled with 𝑓             A fixed late window at high 𝑓      inceases 𝜎 due to decorrelation
+                                                            measures noise (Fig. 8b)           at high 𝑓
+      Reference          total stack / trailing / joint     Trailing reference gives           Reference noise propagates;
+                         inversion                          increments: the trend is absent    inversion lowers it
+                                                            unless they are cumulated, which
+                                                            then drifts; joint inversion
+                                                            preserves it directly (Fig. 8c)
+      Stacking /         1–30+ days                         Smears and delays transients       𝜎 and resolution decreases with
+      substack                                              (Fig. 8d)                          stacking length
+      Component          A (average 𝛿𝑣/𝑣) vs B (average     Different time series (Fig. 2)     Different uncertainty object
+      aggregation        CC images); weighted vs not                                           (ensemble spread vs CC-peak
+                                                                                               width)
+      Pair / network     coherence-weighted vs              Small change in value              Changes 𝑁eff
+      weighting          unweighted
+                                                                                                        √
+      Uncertainty        within-measurement (Weaver) /      —                                  Factor    𝑁 or more (Fig. 3)
+      definition         SE / SD
+      Quality control    min CC, min SNR, max 𝛿𝑡 error      Rejects or keeps measurements      Sets the effective 𝑁 and any
+                                                                                               selection bias
+      Pre-processing     one-bit / running-mean;            Bias if the noise field is         Spurious 𝛿𝑣/𝑣 when the noise
+                         whitening band                     non-stationary                     spectrum drifts (Zhan et al.,
+                                                                                               2013)
+      Clock / timing     causal vs acausal branch           A clock error fabricates 𝛿𝑣/𝑣      Branch asymmetry diagnoses it
+                         handling                           (Fig. 11a)
+
+
+174   synthetic exercise (detailed in the corresponding subsection below); it is a synthesis of this
+
+175   section’s per-choice numbers, distinct from Table~3’s one-at-a-time sweep on a single shared
+
+176   scenario in Section~4.
+
+
+
+177   3.1      Estimator family
+
+
+178   We implement all methods as in previous work (Jiang & Denolle, 2020).
+
+
+179   As of codameter v0.4.0, all seven estimators return physical 𝛿𝑣/𝑣 under the sign convention
+
+180   above rather than the raw stretch factor 𝜀; the synthetic generator imposes changes in the
+      10      M. A. Denolle
+
+      Table 2. Synthesis of Section 3: RMS error against the known synthetic truth for the best- and worst-
+      case option on each axis, each from its own dedicated synthetic scenario (see the cross-referenced
+      subsection).
+
+      Axis                       Best-case RMS                   Worst-case RMS                 Section
+
+      Estimator (family split)   < 0.01 % (TS, up to 5 % true    cycle-skip > 0.5 % past        Section 3.1
+                                 𝛿𝑣/𝑣)                           ∼ 1.5 % true 𝛿𝑣/𝑣 (MWCS)
+      Cross-component            ∼ 0.03 % (Approach B,           ∼ 0.31 % (Approach A,          Section 3.2
+      aggregation                averaged images)                unweighted)
+      Network aggregation        ∼ 0.005 % (network SE)          ∼ 0.05 % (individual-pair      Section 3.3
+      (per-pair spread)                                          range)
+      Frequency band             ∼ 0.028–0.031 % (within         ∼ 0.10 % (center off by        Section 3.4
+                                 ±0.3 Hz of the true band)       > 0.5 Hz)
+      Coda window                ∼ 0.01 % (adapted to band)      ∼ 3.9 % (fixed, wrong band)    Section 3.7
+      Reference scheme           ∼ 0.03 % (whole record,         ∼ 0.15–0.16 % (end-of-record   Section 3.5
+                                 earliest period, or joint       fixed, or moving)
+                                 inversion)
+      Stack length               ∼ 0.020 % (7–10-day, workable   ∼ 0.044 % (1-day, same         Section 3.6
+                                 deployment)                     deployment)
+
+
+181   same convention, so a positive imposed 𝛿𝑣/𝑣 recovers as positive. A dedicated regression
+
+182   test holds every estimator to this convention in both signs, end to end through the full
+
+183   measurement pipeline, so the convention cannot silently drift back.
+
+
+184   On small, clean 𝛿𝑣/𝑣 all seven estimators agree (Fig.~1a). Sweeping the same clean recovery
+
+185   out to ±5 % (Fig.~1b) shows exactly where and how each family first departs from the 1:1
+
+186   line, and the estimator choice becomes consequential at large, noisy 𝛿𝑣/𝑣 (Fig.~1c), where the
+
+187   effect of the methods is split according to their phase measurement approaches. The stretching
+
+188   family (TS, WTS) and WCC match the whole dilated coda and remain accurate for high
+
+189   SNR coda waves; the phase methods (MWCS) read a wrapped phase and may cycle-skips,
+
+190   while the same cross-wavelet phase (WCS), once unwrapped in 2-D, recovers the change. The
+
+191   warping methods (DTW, WTDTW) track but under-shoot the largest strains. No estimator
+
+192   is simply “right”; the choice of estimator materially changes the 𝛿𝑣/𝑣 measurement at larger
+
+193   strain.
+
+
+194   On a clean, noiseless sweep of true 𝛿𝑣/𝑣 from −5 to 5 % (Fig.~1b), the phase-wrapped MWCS
+
+195   estimator is the first to break on either branch: its error stays below 0.1 % out to ∼ 1.3 %
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   1
+
+
+
+
+      Figure 1. Estimator choice across the seven NoisePy methods. (a) Clean, small 𝛿𝑣/𝑣: all agree.
+      (b) The same clean recovery swept over ±5 % true 𝛿𝑣/𝑣: MWCS cycle-skips past ∼ 1.5 % on either
+      branch; TS and WTS track the 1:1 line throughout; WCC tracks just as tightly on the negative
+      branch but breaks sharply near the positive edge; DTW and WTDTW break asymmetrically,
+      WTDTW near +1 % but only near −3 % on the other branch; WCS degrades smoothly, crossing
+      1 % error beyond ±4 %. (c) Large, noisy 𝛿𝑣/𝑣 (a pre-failure landslide signal): MWCS cycle-skips,
+      2-D-unwrapped WCS and the stretching family track, the warping methods under-shoot.
+
+196   true 𝛿𝑣/𝑣, then exceeds 1 % error by ∼ 1.5 % — the cycle-skip, essentially symmetric in
+
+197   sign. The stretching family (TS, WTS) stays below 0.1 % error out to the full 5 % tested,
+
+198   on both branches. WCC is just as accurate on the negative branch (error stays below 0.1 %
+
+199   throughout) but breaks sharply on the positive branch, crossing both 0.1 % and 1 % error
+
+200   abruptly at the edge of the tested range (∼ 4.75 %) — a sign asymmetry from the physical
+
+201   convention itself (Section~1), not a processing artefact. The warping methods develop large
+
+202   (> 1 %) errors asymmetrically as the warp path becomes ill-conditioned: WTDTW crosses
+
+203   1 % error already at ∼ 1 % true 𝛿𝑣/𝑣 on the positive branch but only at ∼ 3 % on the negative
+
+204   branch, and DTW crosses at ∼ 2.5 % versus ∼ 3 %. WCS degrades smoothly rather than
+
+205   catastrophically, crossing 1 % error beyond ±4 % true 𝛿𝑣/𝑣 on either branch.
+      12    M. A. Denolle
+206   3.2   Aggregating cross-component results
+
+
+207   Each three-component seismic station (e.g., Z, N, E) carries 6 cross-component correlations
+
+208   (ZZ, NN, EE, ZE, ZN, NE), whether they are calculated at a single station or an inter-station
+
+209   pair. Each carries a signature of the changes in velocity; components may be dominated by
+
+210   Love or Rayleigh waves (Lin et al., 2008; Stehly et al., 2006), but scattering and non-straight
+
+211   ray paths induce cross-component leakage between modes (Hennino et al., 2001; Margerin
+
+212   et al., 2019), and thus it is often assumed in practice that coda waves of cross-components with
+
+213   multi-scattering characteristics (e.g., no clearly separated phases) are composed of “surface
+
+214   waves” with strong S-wave sensitivity. Combining them together requires parameter choices,
+
+215   such as averaging them directly (Liu et al., 2014), or weighted (e.g., using coherence-based
+
+216   weighting Hobiger et al. (2012), De Plaen et al. (2016)).
+
+
+217   Combining is another workflow choice that can change both the value and the uncertainty
+
+218   (Fig.~2). One may peak-pick each component’s correlation-coefficient curve CC(𝜀, 𝑡) and then
+
+219   average the per-component 𝛿𝑣/𝑣 (Approach A) — unweighted, a few poor components bias
+
+220   the mean; coherence-weighted, they are suppressed — or one may average the CC(𝜀, 𝑡) images
+
+221   across components first and peak-pick once (Approach B). All three conventions appear in
+
+222   the literature; on the same pair they give visibly different time series, and they propagate
+
+223   uncertainty along incompatible pathways (the ensemble spread of the per-component picks for
+
+224   A, the width of the averaged correlation peak for B). On our six-component synthetic (three
+
+225   good, three poor SNR), the RMS error against the known truth is ∼ 0.31 % for unweighted
+
+226   Approach A, ∼ 0.08 % for coherence-weighted Approach A (the poor components suppressed,
+
+227   ∼ 4× better), and ∼ 0.03 % for Approach B (averaging the images before peak-picking, ∼ 11×
+
+228   better than the unweighted mean and ∼ 3× better than the weighted one).
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   1
+
+
+
+
+      Figure 2. Cross-component aggregation for one station pair, both panels on the same 𝛿𝑣/𝑣 axis.
+      (a) Unweighted 𝛿𝑣/𝑣-averaging (Approach A) is biased by the poor components (grey), while
+      coherence-weighting and image-averaging (Approach B) track the truth; the shaded band is B’s
+      local peak-width uncertainty. (b) The averaged CC(𝛿𝑣/𝑣, 𝑡) image of Approach B (dark = high
+      coherence) with its peak ridge (white) tracking the truth (black, dashed).
+
+229   3.3   Aggregating across station pairs
+
+
+230   Adding the next layer up — combining many station pairs into a unified network series
+
+231   — exposes the most consequential and least-reported choice of all: how to summarize the
+
+232   uncertainty. Three conventions are common: a coherence-weighted standard error (e.g., Clarke
+                                                             √
+233   et al. (2011)), an unweighted standard error (𝜎 = std/ 𝑁; e.g., Brenguier et al. (2008b)),
+
+234   and the between-pair standard deviation (e.g., Clements & Denolle (2018)). On the same
+
+235   synthetic network the recovered means nearly coincide, but the reported 1𝜎 spans a factor
+          √
+236   of ∼ 𝑁 (Fig.~3). A velocity change that is “3𝜎 significant” under the tightest convention
+
+237   is “1𝜎, not significant” under the most conservative one — from identical data. Error bars
+
+238   on published 𝛿𝑣/𝑣 are therefore not comparable across studies unless the aggregation, the
+
+239   weighting, and the standard-error-versus-standard-deviation convention are all stated.
+
+
+240   Figure~3 plots only the network-aggregate series, which hides how much the individual
+      14    M. A. Denolle
+
+
+
+
+      Figure 3. Station-pair aggregation and uncertainty for a nine-pair network. (a) The recovered
+                                                                                              √     𝛿𝑣/𝑣
+      agrees across conventions; the shaded 1𝜎 bands do not. (b) The reported 1𝜎 differs by ∼ 𝑁 purely
+      from the weighting and SE-versus-SD choices.
+
+241   pairs actually disagree. Fig.~4 plots the same nine-pair network’s individual 𝛿𝑣/𝑣(t) curves,
+
+242   styled after a basin-scale, urban ambient-noise deployment such as the San Gabriel Valley
+
+243   groundwater network (Clements & Denolle, 2018) — an illustrative geometry rather than
+
+244   a literal reproduction of that network’s exact station spacing. The individual pairs range
+
+245   in quality from a coherence-weighted SNR of ∼ 2.5 to ∼ 11, and their spread at any given
+
+246   day (median range ∼ 0.053 %) is nearly 10× wider than the coherence-weighted network
+
+247   standard error (median ∼ 0.005 %) and more than 3× wider than the more conservative
+
+248   between-pair standard deviation (median ∼ 0.017 %). A network-level error bar, however
+
+249   it is computed, describes the precision of the mean, not the dispersion of what individual
+
+250   pairs actually report — the two are routinely conflated when a single station-pair result is
+
+251   compared against a published network value.
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   1
+
+
+
+
+      Figure 4. Individual station-pair 𝛿𝑣/𝑣(t) for the same nine-pair network as Fig. 3, coloured by
+      pair SNR. The pair-to-pair spread (grey band) is far wider than any of the three network-level 1𝜎
+      conventions in Fig. 3b.
+
+252   3.4   Frequency band
+
+
+253   The remaining choices are no less consequential. The frequency band sets the sampled
+
+254   depth: in a two-layer medium, high frequencies recover shallow, often seasonal signals and
+
+255   low frequencies recover a deeper, maybe more tectonic, signal (Fig.~8a). In practice a band
+
+256   often gets reused from a neighboring deployment or an earlier study at the same site without
+
+257   re-checking that it still matches the target depth — exactly the error this section quantifies.
+
+
+258   On our synthetic two-layer groundwater scenario, holding the recovery band’s width fixed
+
+259   (0.6 Hz) and sweeping its center away from the deep layer’s true 0.2–0.8 Hz band shows the
+
+260   cost is not gradual: RMS error against the known truth stays flat, ∼ 0.028–0.031 %, for a
+
+261   center offset within ∼ 0.3 Hz of the true center, then rises by a factor of ∼ 3–4 once the offset
+
+262   passes ∼ 0.5 Hz — the point at which the assumed band starts sampling the shallow layer’s
+
+263   signal instead of the deep one — and plateaus near ∼ 0.10 % beyond that (Fig.~5). The band
+      16    M. A. Denolle
+264   choice is forgiving up to the edge of the layer it targets, and expensive immediately past it,
+
+265   not gradually worse the further off it drifts.
+
+
+
+
+      Figure 5. Frequency-band sensitivity: RMS error against the known groundwater deep-layer truth
+      as the recovery band’s center is swept away from the true 0.2–0.8 Hz band, holding its 0.6 Hz width
+      fixed. Error is flat within ∼ ±0.3 Hz of the true center, then rises sharply once the assumed band
+      drifts into the shallow layer’s territory.
+
+
+
+266   Scale of effect: a band-center error under ∼ 0.3 Hz costs essentially nothing here; past
+
+267   ∼ 0.5 Hz it costs a factor of ∼ 3–4 in RMS, from ∼ 0.03 % to ∼ 0.10 %.
+
+
+
+268   3.5   Reference
+
+
+269   The reference defines what survives: a moving reference re-baselines continuously and erases
+
+270   slow trends that a fixed reference or a joint inversion (Brenguier et al., 2014) preserve
+
+271   (Fig.~8c). In practice the choice is rarely just fixed-versus-moving: an analyst also decides
+
+272   which period of the record a fixed reference is built from, and that choice alone can dominate
+
+273   the error — for instance when a deployment barely predates the process of interest, or when
+
+274   the only quiet-looking period available sits close in time to the process itself.
+
+
+275   We compare five named schemes on the volcano synthetic: a reference built from the begin-
+
+276   ning of the pre-eruptive record (its earliest 15%), from the end of that record (its latest 15%,
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   1
+277   immediately before the eruption), from the whole pre-eruptive record, a 60-day moving
+
+278   (trailing) reference, and no single reference at all — the Brenguier et al. (2014)-style joint
+
+279   inversion, which measures relative dv/v between many short stacks instead of referencing
+
+280   every day to one (Fig.~6a). The whole-record, beginning, and inversion schemes all recover
+
+281   the truth to RMS ∼ 0.03 %. The end-of-record reference does far worse, RMS ∼ 0.15 % —
+
+282   not because it tracks the dynamics any less faithfully (its residual scatter around the truth,
+
+283   ∼ 0.029 %, matches every other fixed scheme) but because the reference epoch itself already
+
+284   sits ∼ 0.15 % into the developing pre-eruptive ramp, and every dv/v value is reported relative
+
+285   to whatever the reference was doing. Reference choice sets the zero point, not just the noise
+
+286   floor: comparing dv/v across studies, or across deployments that started at different times,
+
+287   requires knowing what the reference period itself was doing, not just how well each pipeline
+
+288   scores against a single truth.
+
+
+289   The 60-day moving reference gives RMS ∼ 0.16 % — comparable to the worst fixed case, but
+
+290   for the opposite reason: it re-baselines away the trend continuously rather than sitting at one
+
+291   biased epoch. Lengthening the trailing window helps only slowly and never converges to the
+
+292   fixed-reference baseline: RMS falls from ∼ 0.168 % at a 10-day trailing window to ∼ 0.151 %
+
+293   at 240 days, still ∼ 4–5× the whole-record RMS (Fig.~6b) — the erasure is structural, not a
+
+294   noise effect that more averaging fixes.
+
+
+295   Read carefully, though, that erasure is a property of the uncumulated increment, not of a
+
+296   non-fixed reference as such — and the published alternatives to a fixed reference do not take
+
+297   the form the sweep assumes. They fall into two families, neither of which re-baselines every
+
+298   epoch and reports the raw increment.
+
+
+299   The first cumulates. James et al. (2017) re-baseline each day against the immediately
+      18    M. A. Denolle
+300   preceding day-stack and sum the daily 𝛿𝑡/𝑡 from a fixed start date, recovering a seasonal
+
+301   freeze–thaw trend in Alaskan permafrost that a stationary reference could not detect at
+
+302   all: the frozen-to-thawed velocity contrast made the stationary comparison cycle-skip, while
+
+303   adjacent days stayed coherent. Rivet et al. (2011) likewise reference each epoch to the previous
+
+304   one. The cost is that summation integrates the measurement error — James et al. (2017)
+
+305   report a positive drift in the cumulated series that their quadrature error budget could not
+
+306   account for, and correct it linearly against a stationary-reference anchor. The same rolling
+
+307   construction appears in laboratory coda monitoring of rock deforming to failure, where the
+
+308   scattering properties change too much for a fixed reference to stay valid (Zotz-Wilson et al.,
+
+309   2019).
+
+
+310   The second holds the reference fixed within a segment and stitches the segments together.
+
+311   Rivet et al. (2014) define a separate reference stack for each of three multi-year periods at
+
+312   Piton de la Fournaise, then merge the three series by measuring the relative velocity change
+
+313   between the adjacent segment references, using station pairs that occupied the same sites
+
+314   across the network change. Sens-Schönfelder et al. (2014) develop the multiple-reference form
+
+315   of the same idea at the same volcano, and Ermert et al. (2023) adopt a multiple-reference
+
+316   approach for urban single-station autocorrelations in Mexico City, where long-term waveform
+
+317   coherence is simply unavailable, stabilising the stacks by clustering correlation windows with
+
+318   a Gaussian mixture model so that day-time and night-time noise regimes stack separately.
+
+
+319   That second family is worth naming precisely, because it is not a separate method from the
+
+320   joint inversion — it is a restriction of it. Stitching two segments by measuring the relative
+
+321   dv/v between their references is exactly the adjacent-pair case of the over-determined system
+
+322   the inversion solves over all pairs of block stacks. The reference axis is therefore better read
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   1
+323   as a single continuum, from one global reference, through segment references joined pairwise,
+
+324   to the fully coupled inversion, than as a menu of unrelated choices.
+
+
+325   Against that, the uncumulated day-by-day trailing reference swept above is a limit case rather
+
+326   than a practice: we found no surveyed study that re-baselines continuously and reports the
+
+327   increments without summing them. It is retained here because it isolates what re-baselining
+
+328   costs when the trend is not reconstructed, which is the failure mode the two families above
+
+329   exist to avoid. codameter implements the joint inversion but neither the cumulated trailing
+
+330   reference nor cluster-based reference selection.
+
+
+
+
+      Figure 6. Reference construction on the volcano synthetic. (a) Five named schemes, each scored
+      by RMS against the known truth over the whole record and over the pre-eruptive ramp alone. (b)
+      RMS for the moving reference as a function of its trailing length; the dashed line is the whole-record
+      fixed reference’s RMS, which the moving reference never reaches.
+
+
+
+331   Scale of effect: which period a fixed reference is drawn from can cost as much as switching
+
+332   to a moving reference altogether (∼ 0.15–0.16 % RMS either way); a reference from the
+
+333   quietest available period, of any length, recovers the trend to ∼ 0.03 %.
+      20    M. A. Denolle
+334   3.6   Substacking
+
+
+335   The stacking length trades noise against temporal resolution, rounding off and delaying a
+
+336   coseismic step (Fig.~8d). In practice the decision is rarely “how many days” in the abstract;
+
+337   it is “how long until the coda is coherent enough to trust” — stacking only as long as needed
+
+338   to clear a working correlation-coefficient (CC) threshold, then stopping. codameter’s own
+
+339   quality-control gate uses CC~> 0.6 (Section~3), and how quickly a station clears that bar
+
+340   depends entirely on its data quality.
+
+
+341   Substack duration therefore defines a fundamental precision–temporal-resolution tradeoff.
+
+342   Longer stacks suppress incoherent noise fluctuations and accelerate the convergence of
+
+343   noise correlation functions, whereas shorter substacks preserve transient changes that would
+
+344   otherwise be averaged within the stacking window. The reduced signal-to-noise ratio of
+
+345   shorter correlations can be partially compensated through adaptive filtering, SVD-based or
+
+346   learned denoising, or through redundancy across dense seismic arrays, enabling 𝛿𝑣/𝑣
+
+347   measurements at daily, hourly, and even sub-hourly resolution (Hadziioannou et al., 2011,
+
+348   Moreau et al. (2017),Mao et al. (2019),Viens & Van Houtte (2020)).
+
+
+349   In this paper, the choice of substack length is guided by data-dependent quality gates (the
+
+350   CC threshold above) rather than a fixed duration, which allows stations with high coherence
+
+351   to preserve shorter temporal windows and thereby track rapid changes, while stations with
+
+352   lower SNR substack as needed to achieve stable estimates.
+
+
+353   On the earthquake synthetic, a workable deployment (SNR 4, the same setting used through-
+
+354   out this section) clears CC~> 0.6 already at a 1-day stack (median CC 0.86); a poor,
+
+355   coherence-limited deployment (SNR 0.5) needs 14 days of substacking to clear the same
+
+356   bar (Fig.~7a). The two regimes behave differently past that point, too. For the workable
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   2
+357   deployment, RMS is U-shaped: it falls from ∼ 0.044 % at 1 day to a minimum ∼ 0.020 %
+
+358   around 7–10 days, then rises again to ∼ 0.038 % by 60 days as the stack smears the step
+
+359   (Fig.~7b) — the classic noise-versus-smearing tradeoff, and the reason “longer is always
+
+360   better” is wrong even once the coherence gate is satisfied. For the poor deployment, RMS is
+
+361   still falling at 60 days (∼ 0.067 %, down from ∼ 0.71 % at 1 day): the noise floor dominates
+
+362   over the whole tested range, and the smearing penalty never gets the chance to show up.
+
+363   Both regimes underestimate the coseismic step’s amplitude at every stack length tested here
+
+364   (the bias stays negative throughout for the poor deployment, and only crosses zero past 45
+
+365   days for the workable one), so a recovered step should be read as a lower bound on the true
+
+366   drop, more so the longer the stack.
+
+
+
+
+      Figure 7. Substacking on the earthquake synthetic, at two deployment qualities. (a) Median
+      stretching correlation coefficient versus stack length; the dashed line is codameter’s own CC-gate
+      threshold (Section 3). (b) RMS error and the absolute bias in the recovered coseismic-step amplitude,
+      both against the known truth, log scale.
+
+
+
+367   Scale of effect: for a workable deployment, the noise/smearing tradeoff bottoms out around
+
+368   7–10 days at RMS ∼ 0.02 %; for a poor deployment, substack at least ∼ 2 weeks just to clear
+
+369   the coherence gate, and expect RMS an order of magnitude worse even after clearing it.
+
+
+370   The accepted range for each of these parameters across the published literature is catalogued
+      22    M. A. Denolle
+
+
+
+
+      Figure 8. Parameter choices. (a) Frequency band selects depth and signal. (b) A coda window
+      does not transfer across bands. (c) Reference strategy: a moving reference differences the trend
+      away unless its increments are cumulated; a fixed reference and the joint inversion retain it. (d)
+      Stacking length smears the coseismic step.
+
+371   directly, study by study, in the survey of Appendix~C (Table~A1): the frequency band,
+
+372   coda window, estimator, and uncertainty treatment actually reported by 103 ambient-noise
+
+373   𝛿𝑣/𝑣 studies.
+
+
+
+374   3.7   Coda window
+
+
+375   The coda window is not independent of the frequency band — it deserves its own treatment
+
+376   because the two covary strongly, and getting this wrong is one of the larger, more avoidable
+
+377   sources of error in §3. Because intrinsic and scattering attenuation both grow with frequency,
+
+378   high-frequency coda energy falls into the noise floor much sooner than low-frequency coda:
+
+379   a coda window that is well past the direct arrival for a ∼ 0.3–0.8 Hz band is, at ∼ 3–6 Hz,
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   2
+380   sampling almost pure noise (Fig.~8b). On our synthetic, a fixed 20–40 s window at the high
+
+381   band gives RMS error ∼ 3.9 % (the noise floor, not the signal), while a window hand-adapted
+
+382   to the band (3–12 s) recovers the truth at ∼ 0.01 % — nearly a 400× difference from this
+
+383   one choice alone. This is itself an instance of a literature-documented tension: band-matched
+
+384   windowing is recommended, but Table~A1 shows many surveyed studies instead reuse one
+
+385   fixed window across bands.
+
+
+386   Hand-adapting the window per band, as above, requires knowing the band in advance and
+
+387   re-tuning per deployment. A more principled alternative — used in our group — is to track
+
+388   the coda envelope directly and stop the window where it flattens onto the noise floor, rather
+
+389   than pre-specifying a window from a rule of thumb. We implement this by band-passing a
+
+390   long-term reference stack, smoothing its envelope, estimating the noise floor from a common
+
+391   late-lapse window, and taking the window end as the first lapse time past a short onset where
+
+392   the envelope stays within a factor of that floor for a sustained interval (not a single noisy
+
+393   dip). Applied blind (without being told which band it is) to three bands spanning low, mid,
+
+394   and high frequency (Fig.~9a), the detector recovers windows of ∼ (3, 29) s, ∼ (3, 37) s, and
+
+395   ∼ (3, 14) s respectively — correctly shrinking at the high band, though the low-versus-mid
+
+396   ordering is not perfectly monotonic on this synthetic (an artifact of how the fixed additive
+
+397   noise floor interacts with each band’s filter, not a claim that the detector is exact). Recovering
+
+398   𝛿𝑣/𝑣 with each band’s own detected window instead of one universal fixed (10–30 s) window
+
+399   (Fig.~9b) gives RMS ∼ 0.030 % vs. ∼ 0.036 % at the low band (a modest, ∼ 1.2× gain),
+
+400   ∼ 0.017 % vs. ∼ 0.035 % at the mid band (∼ 2×), and ∼ 0.020 % vs. ∼ 2.0 % at the high
+
+401   band (∼ 100×) — the fixed window is adequate at low frequency and catastrophic at high
+
+402   frequency, while the envelope-derived window is close to the best achievable at every band
+
+403   without ever being told what band it is measuring.
+      24    M. A. Denolle
+
+
+
+
+      Figure 9. Coda window / frequency-band covariation. (a) Smoothed coda envelopes at three bands
+      (log scale), shaded by each band’s envelope-detected window — shrinking automatically at higher
+      frequency. (b) RMS error against the known truth for a single universal fixed window versus each
+      band’s own envelope-derived window: comparable at low frequency, ∼ 93× better at high frequency.
+
+404   3.8   Causal and acausal branches
+
+
+405   In a symmetric cross-correlation, both sides of the coda (positive or negative lags) should
+
+406   exhibit the same 𝛿𝑣/𝑣. Due to the directionality of the wavefield recorded at the two stations,
+
+407   the correlated wavefield in the coda may differ (Stehly et al., 2006). While the interpretation
+
+408   of such coda in terms of Earth’s structure effect is difficult (Snieder et al., 2002), the stability
+
+409   of the wavefield excited in the coda is the main requirement for stable 𝛿𝑣/𝑣 measurements
+
+410   (Hadziioannou et al., 2009). Given the challenge in interpreting both sides independently,
+
+411   researchers typically measure 𝛿𝑣/𝑣 on each lag and then report its average (Kidiwela et al.,
+
+412   2026). The causal (positive-lag) and acausal (negative-lag) branches sample opposite-direction
+
+413   paths with different source-side illumination, and in a 3D medium their sensitivity kernels
+
+414   sample partly different volumes, so the two can report genuinely different 𝛿𝑣/𝑣 without either
+
+415   being wrong. Two regimes bound the choice (Fig.~10). When a change is localized to the
+
+416   volume one branch samples, symmetrizing or averaging the branches — the common default
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   2
+417   — dilutes it toward zero, while the branch that carries the change recovers it (Fig.~10a); here
+
+418   preferring the branch of greatest change is a researcher’s judgement. When instead both
+
+419   branches share the same change, their difference is measurement noise, and selecting the
+
+420   branch of greatest change over-reports it — a max-of-two-estimators selection bias that grows
+
+421   as SNR falls (Fig.~10b). When both sides exhibit the same change (sign, coherence) but with
+
+422   different magnitude, it is reasonable to use the 𝛿𝑣/𝑣 of greatest change given the already low
+
+423   sensitivity in coda waves (Obermann et al., 2013). An acceptable workflow is to measure
+
+424   both branches, evaluate on that consistency, select by the coherence of the change rather
+
+425   than its amplitude (a criterion independent of the answer, so it carries no selection bias),
+
+426   and carry the between-branch difference as an explicit term of the measurement covariance
+
+427   𝐶𝑑 (Section~5) rather than discarding it by averaging.
+
+
+
+
+      Figure 10. Combining the causal and acausal branches. (a) A change localized to the volume the
+      causal branch samples: averaging the branches dilutes it to about half, while the branch carrying
+      it recovers the truth. (b) The same change on both branches: selecting the branch of greatest
+      change over-reports the drop, worsening as SNR falls (a selection bias), while the branch mean
+      stays unbiased.
+      26    M. A. Denolle
+428   3.9   Choices that create spurious 𝛿𝑣/𝑣
+
+
+429   Some choices may create spurious signal. A station clock error delays the whole correlation
+
+430   by a lapse-independent shift, producing an apparent 𝛿𝑣/𝑣 that appears with opposite sign
+
+431   on the causal and acausal branches; measuring the two branches separately is the diagnostic
+
+432   (Fig.~11a). Seasonally varying noise sources warp the low-SNR late coda, so a late measure-
+
+433   ment window reports a coherent spurious seasonal 𝛿𝑣/𝑣 many times the real signal while an
+
+434   earlier window stays clean (the waveform-level version of Zhan et al., 2013) (Fig.~11b).
+
+
+435   Biases from spurious arrivals could be quantified but mostly we should decontaminate our
+
+436   workflow from these artefacts or not interpret the results.
+
+
+
+
+      Figure 11. Deviations that create spurious 𝛿𝑣/𝑣. (a) A clock drift splits the causal and acausal
+      branches with opposite sign. (b) Seasonal late-coda noise injects a spurious seasonal 𝛿𝑣/𝑣 into a
+      late window but not an early one.
+
+
+
+437   Taken together, the choices compound. We make this concrete in Section~4 by running the
+
+438   full multiverse of best-practice and deviation choices on one synthetic dataset and ranking
+
+439   each by the bias and the error-bar change it induces.
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   2
+440   4   THE COMBINED IMPACT OF PROCESSING CHOICES
+
+
+441   The scenario is a single representative station pair monitoring a shallow volcanic edifice,
+
+442   in the style of the permanent broadband deployments used at effusive/dome volcanoes
+
+443   such as Piton de la Fournaise (Brenguier et al., 2008b): a coda band matched to shallow
+
+444   depths (0.4–1.0 Hz), a coda window past the direct arrival (10–30 s), and daily correlations
+
+445   sampled every 3 days over 2.5 years at a per-day correlation-coefficient SNR of 7, typical of
+
+446   a continuously operating station. The synthetic ground truth combines an annual seasonal
+
+447   𝛿𝑣/𝑣 cycle (as from near-surface thermoelastic/hydrologic effects), a slow pre-eruptive inflation
+
+448   ramp, and a sharp co-eruptive velocity drop with partial recovery. This single-pair scenario
+
+449   isolates the measurement-step choices from the network-aggregation choices already covered
+
+450   in Sections~3.2–3.3.
+
+
+451   The previous sections only identified single choices, but the overall research workflow involves
+
+452   them all. We now estimate the combined effects of these parametric choices. Starting from
+
+453   a single best-practice baseline (trace stretching, a band matched to the target depth, a
+
+454   coda window well past the direct arrival, a 10-day stack, a long stable reference, coherence
+
+455   gating; the cross-cutting rules of Brenguier et al. (2014; Weaver et al., 2011; Clarke et al.,
+
+456   2011) as distilled in our survey), we change one parameter at a time to a deviation from best
+
+457   practice documented in the literature and measure the resulting error against the known truth
+
+458   (Fig.~12). The ranking is unambiguous: relative to a best-practice RMS error of ∼ 0.03 %,
+
+459   the two-dimensionally-unwrapped WCS estimator is catastrophic here (∼ 50× worse), a
+
+460   wrapped-phase MWCS inflates the error by roughly an order of magnitude (∼ 12×), and
+
+461   DTW by ∼ 6×; among the non-estimator choices a moving reference is worst (∼ 5×, and
+
+462   most distorts the recovered drop), while stack length, coda window, and frequency band
+      28    M. A. Denolle
+463   deviations are each more modest (1.5–2.5×). The joint-inversion reference stays closest to
+
+464   the fixed-reference baseline among the reference-scheme deviations.
+
+
+
+
+      Figure 12. One-at-a-time deviations from a best-practice baseline, ranked by the bias they inject
+      (a, log scale) and by how they distort the recovered co-eruptive drop (b, symlog). Bars are coloured
+      red when the error exceeds three times the baseline. The estimator and reference choices dominate;
+      the band and gating are minor for this scenario.
+
+
+
+465   We test the compounding effects of these choices through 108 reasonable workflows selecting
+
+466   three estimators, two frequency bands, three coda windows, three stacking lengths and
+
+467   two reference schemes on a synthetic “volcano” dv/v time series that includes a seasonal
+
+468   oscillation, a slow pre-eruptive inflation ramp, and a sharp co-eruptive drop with partial
+
+469   exponential recovery (Fig.~13a). The per-day standard deviation across the 108 pipelines
+
+470   varies by a factor of ∼ 4–5 over the time series (from ∼ 0.4 % to ∼ 1.7 %), and is widest
+
+471   exactly at the sharp co-eruptive drop; the RMS error against the known truth spans over
+
+472   two orders of magnitude across pipelines (∼ 0.02–2.8 %).
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   2
+473   Attributing the variance of the outcome to each axis with a first-order (main-effect) sensitivity
+
+474   index (Fig.~13b) shows that, for this dataset, the coda window controls the RMS error
+
+475   most, with the estimator second and the stack length third; for the recovered drop amplitude
+
+476   the order changes to stack length first, window second, and estimator third. The first-order
+
+477   indices sum to well under one in both cases (∼ 0.66 for RMS, ∼ 0.63 for the drop), so a large
+
+478   part of the spread is interaction between choices compounding. The appropriate object is
+
+479   therefore not a single curve but a distribution of 𝛿𝑣/𝑣 over the processing choices.
+
+
+
+
+      Figure 13. The full multiverse. (a) 108 reasonable pipelines on one dataset, each coloured by its
+      RMS error against the truth on a colourblind-safe scale (bright accurate, dark biased; the worst
+      run off the clipped axis); the grey band is the 10–90% inter-pipeline spread, widest at the velocity
+      drop. (b) First-order variance attribution: which choice controls the RMS error and the recovered
+      drop. Window, estimator, and stack length dominate, in that order for RMS and reordered for the
+      drop; the sub-unity sum signals strong interactions.
+
+
+
+480   Table~3 summarizes this into the measurement-step best practice and the documented
+
+481   deviation for each choice, with the consequence the synthetic makes concrete. The baseline
+
+482   and deviation sets are the ones our survey extracts from the literature (the cross-cutting
+
+483   rules of Snieder et al. (2002; Clarke et al., 2011; Weaver et al., 2011; Brenguier et al., 2014;
+
+484   Wang et al., 2017; Obermann & Hillers, 2019)) and are implemented in codameter.
+      30       M. A. Denolle
+
+      Table 3. Measurement step: best practice versus the common deviation and its consequence. Rows
+      are the axes swept in Fig. 13; the sets follow the literature survey (Appendix C).
+
+      Choice             Best practice                          Common deviation                   Consequence
+
+      Estimator          Stretching family                      Wrapped-phase MWCS (Clarke         Cycle-skips at large 𝛿𝑣/𝑣; error
+                         (TS/WTS/WCC), robust at low            et al., 2011) without 2-D          inflated ∼ 10× or catastrophic
+                         SNR and large 𝛿𝑣/𝑣 (Mikesell           unwrapping (Mao et al., 2020)
+                         et al., 2015; Yuan et al., 2021)
+      Frequency band     Matched to the target depth:           Off-target or a single wide band   Mixes depths; here mostly sets
+                         ∼ 0.1–2 Hz (volcano, crust),                                              precision
+                         2–4 Hz (aquifer), 4–12 Hz
+                         (shallow damage) (Obermann
+                         et al., 2013, 2016)
+      Coda window        Lapse window past the direct           Fixed late window reused across    Measures noise at high 𝑓; bias
+                         arrival, scaled with the band:         bands                              and inflated 𝜎
+                         ∼ 5–30 s (crustal) up to ∼ 100 s
+                         (station pairs) (Obermann et al.,
+                         2013)
+      Stack length       Short enough to resolve the            Over-long stack (∼ 45 d)           Smears and delays a step;
+                         transient (∼ 10 d), on a long,                                            distorts the recovered drop
+                         stable reference span (Wang
+                         et al., 2017)
+      Reference          Long fixed stack or all-to-all         Moving / trailing reference        Erases slow trends
+                         joint inversion (Brenguier et al.,
+                         2014; Wang et al., 2017)
+      Coherence gating   Discard low-coherence epochs           No gating                          Keeps corrupted epochs; changes
+                         (CC / SNR threshold) (Clarke                                              the effective 𝑁
+                         et al., 2011)
+                                                                                                           √
+      Uncertainty        State it explicitly:                   Left unstated                      Factor 𝑁 ambiguity in
+      definition         within-measurement (Weaver                                                significance (Fig. 3)
+                         et al., 2011; Clarke et al., 2011) /
+                         SE / SD
+
+
+485   Running this many pipelines is only practical if each one is cheap. Testing codameter against
+
+486   a larger, multi-year deployment surfaced real bottlenecks in the per-day estimator loop,
+
+487   which we removed with three vectorized fast paths: a trailing stack built from a difference
+
+488   of cumulative sums instead of a per-day mean (roughly 2× at a 45-day stack length), a
+
+489   vectorized moving-reference stretching estimator that computes the stretch-interpolation
+
+490   weights once per trial epsilon instead of once per day (roughly 3× on a 3-year synthetic),
+
+491   and, for ensembles that share a band, a single shared band-pass instead of one per pipeline
+
+492   member (roughly 3× on a 5-member ensemble). All three reproduce the loops they replace to
+
+493   within 10−15 in 𝛿𝑣/𝑣 (regression-tested at atol = 10−12 ); the reported ratios are wall-clock,
+
+494   vary with system load, and should be read as “roughly 𝑁 ×,” not exact.
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring         3
+495   5    A BAYESIAN MEASUREMENT MODEL AND ITS DATA
+
+496        COVARIANCE
+
+
+497   If the processing choice controls the answer, the principled response is not to select a single
+
+498   pipeline but to treat the choice as a nuisance parameter with a prior and marginalise it
+
+499   out. We propose this as the new best practice for the 𝛿𝑣/𝑣 measurement, and implement it
+
+500   as a Bayesian hierarchical inversion. For configuration 𝑘 drawn from a prior over reasonable
+
+501   pipelines we obtain a measured series 𝑚𝑘 (𝑡) with a coherence-limited within-method floor
+
+502   𝜎𝑘 (𝑡) (Weaver et al., 2011; Clarke et al., 2011), and posit
+
+
+                 𝑚𝑘 (𝑡) = 𝜇(𝑡) + 𝛽𝑘 + 𝜀𝑘 (𝑡),               𝛽𝑘 ∼ 𝒩(0, 𝜏 2 ),       𝜀𝑘 (𝑡) ∼ 𝒩(0, 𝑠2 𝜎𝑘 (𝑡)2 ),    (2)
+
+
+503   with a second-difference random-walk smoothness prior on the latent true series 𝜇(𝑡). Here
+
+504   𝛽𝑘 is configuration 𝑘’s methodological bias (the systematic offset between, say, MWCS and
+
+505   stretching), 𝜏 its scale across the ensemble, and 𝑠 rescales the Weaver floor so the data report
+
+506   whether it is calibrated. A conjugate Gibbs sampler, implemented in codameter with no
+
+507   external sampler dependency, returns the joint posterior.
+
+
+508   The model yields two distinct objects, and conflating them is the error the field makes
+
+509   (Fig.~14). The posterior of 𝜇 is the precision of the combined estimate: it is tight and shrinks
+
+510   with ensemble size — yet it under-covers the truth, because the configurations share a
+
+511   common-mode bias that averaging cannot remove. The object a downstream depth or stress
+
+512   inversion must consume is the marginal measurement covariance
+
+
+          𝐶𝑑 (𝑡, 𝑡′ ) =                      𝐷𝑅𝐷
+                                             ⏟                             +      2 11⊤ ,
+                                                                                 𝜏⏟             𝐷 = diag(𝜎tot (𝑡)),
+                          within ⊕ methodological, temporally correlated       common mode
+                                                                                                                  (3)
+
+513   with 𝜎tot
+            2
+                = 𝑠2 𝜎𝑘2 -average + methodological variance and 𝑅𝑖𝑗 = 𝑒−|𝑡𝑖 −𝑡𝑗 |/𝐿 for a correlation
+      32    M. A. Denolle
+514   length 𝐿 estimated from the ensemble residuals. This 𝐶𝑑 is time-dependent — wider at
+
+515   the sharp drop and at low coherence — and its temporal correlation plus common-mode
+
+516   term collapse the effective number of independent epochs by an order of magnitude. On our
+
+517   synthetic the marginal 𝐶𝑑 covers the truth at the nominal rate while the naive posterior
+
+518   band does not, making concrete that the measurement covariance, not the posterior of the
+
+519   averaged series, is what must be propagated.
+
+
+
+
+      Figure 14. The Bayesian measurement model. (a) The processing ensemble (grey) is marginalised
+      into a posterior mean (purple) with a narrow credible band (the estimator precision) and a much
+      wider ±2𝜎 band from the marginal 𝐶𝑑 (the honest data error), which covers the truth where the
+      credible band does not. (b) The resulting time-dependent data covariance 𝐶𝑑 . (c) Its diagonal 𝜎𝑑 (𝑡)
+      decomposed into within-method and methodological parts, rising at the eruption; the posterior-of-
+      the-mean (dotted) is far tighter, and 𝑁eff is a fraction of the epoch count.
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   3
+520   6   PROPAGATING 𝛿𝑣/𝑣 ERRORS AT DEPTH Δ𝛽/𝐵𝐸𝑇 𝐴(𝑍)
+
+
+521   The remaining sections present a framework rather than new synthetics: they set out how
+
+522   the covariance of Section~5 propagates down the inference chain, and ground each step in
+
+523   what the monitoring literature does and does not yet report. The executable stages are in
+
+524   development in the open codameter package (Section~8).
+
+
+525   The field has converged on one physical rule for depth — depth is set by the frequency band
+
+526   and the coda lapse time, it is not assumed (Obermann et al., 2013, 2016) — and, increasingly,
+
+527   on multi-band measurement as the means to resolve it (Takano et al., 2017; Feng et al., 2020;
+
+528   Mao et al., 2022, 2025). The step from a set of per-band 𝛿𝑣/𝑣 series to a depth profile is
+
+529   where reporting is least consistent: many studies read a single band as a single depth, only
+
+530   a few invert several bands against surface-wave sensitivity kernels, and the propagation of
+
+531   the measurement error into the depth estimate is seldom shown. The depth assignment is
+
+532   frequently the scientific claim itself — whether the change lies in the aquifer or the overlying
+
+533   soil, whether coseismic softening is a shallow site response or slip on the fault at depth
+
+534   (Rubinstein & Beroza, 2005) — so a depth reported without its uncertainty cannot support
+
+535   that claim.
+
+
+536   A 𝛿𝑣/𝑣 measured in band 𝑏 is not a point sample but a weighted integral over depth,
+
+                                                 ∞
+                                                              𝛿𝑉𝑆
+                                  ( 𝛿𝑣
+                                     𝑣 ) =∫          𝐾𝑏 (𝑧)       (𝑧) d𝑧 + 𝜀𝑏 ,                   (4)
+                                       𝑏     0
+                                                               𝑉𝑆
+
+537   where 𝐾𝑏 (𝑧) is the (Rayleigh-wave) depth-sensitivity kernel for band 𝑏 and 𝜀𝑏 carries
+
+538   that band’s measurement covariance from Section~5. Stacking bands gives a linear sys-
+
+539   tem d = G m + 𝜀 with G𝑏𝑧 = 𝐾𝑏 (𝑧) and data covariance 𝐶𝑑 ; the Bayesian solution under a
+
+540   smoothness prior returns a depth profile 𝛿𝑉𝑆 /𝑉𝑆 (𝑧) together with its posterior covariance
+      34    M. A. Denolle
+541   𝐶𝑚 (𝑧), implemented in codameter. The bands must sit where the kernels resolve: too low
+
+542   and the kernel leaks into the half-space, too high and the coda is incoherent (Section~3.4).
+
+543   The width of 𝐶𝑚 (𝑧) — not the profile alone — is the deliverable, and it inherits the temporal
+
+544   correlation and common-mode structure of 𝐶𝑑 .
+
+
+545   One assumption is usually left implicit: that a 𝛿𝑣/𝑣 change is a shear-velocity change alone.
+
+546   In partially saturated ground it is not. Filling or draining pore space changes both the shear
+
+547   modulus and the bulk density, so for the shear-dominated coda the observed change mixes
+
+548   the two,
+
+                                           𝛿𝑣      𝛿𝜇     𝛿𝜌
+                                              ≈ 12    − 12 ,                                     (5)
+                                           𝑣        𝜇     𝜌
+
+549   and velocity alone cannot separate them. A petrophysical model — Gassmann fluid substitu-
+
+550   tion for the modulus and a porosity–saturation relation for the density (Gassmann, 1951;
+
+551   Mavko et al., 2009) — is what breaks the degeneracy, at the cost of its own prior uncertainty
+
+552   on porosity, fluid modulus, and the saturation path. Hydrological and cryospheric targets,
+
+553   where saturation varies strongly (Clements & Denolle, 2018; James et al., 2019), are precisely
+
+554   where neglecting the density term biases the inferred velocity change and, downstream, the
+
+555   stress. The framework carries 𝛿𝜌/𝜌 as a second inverted field with its own kernel and reports
+
+556   how much of the surface 𝛿𝑣/𝑣 each explains; the executable version is a documented extension
+
+557   (Section~8).
+
+
+
+
+558   7    TOWARD A SCALABLE DEPLOYMENT
+
+
+559   Every result so far is on a truth-known synthetic, by design (Section~2): it is the only way to
+
+560   separate a processing artefact from a real signal. The next step is to test whether the same
+
+561   measurement machinery holds up against real data at deployment scale, not just against a
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring                    3
+
+      Table 4. Depth step: best practice versus the common deviation in going from per-band 𝛿𝑣/𝑣 to a
+      depth profile, and the consequence for the interpretation.
+
+      Choice              Best practice                     Common deviation                    Consequence
+
+      Depth assignment    Invert several bands against      Read one band as one depth          No depth resolution and no
+                          sensitivity kernels                                                   depth error
+      Band selection      Bands where the kernels resolve   Convenience band                    Kernel leaks; unstable inversion
+                          (no half-space leak, coherent
+                          coda)
+      Measurement error   Propagate the per-band 𝐶𝑑 into    Plot a profile with no covariance   Overconfident depth attribution
+                          the profile
+      Saturation          Separate 𝛿𝑉𝑆 /𝑉𝑆 and 𝛿𝜌/𝜌         Assume a pure 𝛿𝑉𝑆 /𝑉𝑆 change        Biased velocity change and
+                          with a petrophysical model in                                         stress in hydrological and
+                          partly saturated ground                                               cryospheric targets
+      Velocity model      State the reference 𝑉𝑃 , 𝑉𝑆 (𝑧)   Fixed, unstated model               Hidden systematic in the kernels
+                          and its uncertainty                                                   and the moduli
+
+
+562   synthetic that was built to resemble it. We are building a companion cloud pipeline that
+
+563   correlates real continuous waveforms for station CI.LJR (Lake Hughes, California) — the
+
+564   reference station of Clements & Denolle (2023) — pulled from the public Southern California
+
+565   Earthquake Data Center S3 archive, using the NoisePy package (Jiang & Denolle, 2020)
+
+566   for the correlation step. Correlation and dv/v estimation each run as a cloud batch job on
+
+567   spot compute; dv/v estimation itself is handed to the same codameter measurement and
+
+568   uncertainty functions this paper’s synthetic results are built on, with baseline processing
+
+569   configurations drawn from the same recommendation logic — not a separate reimplementation.
+
+570   The retrospective run is validated against the already-published Clements & Denolle (2023)
+
+571   CI.LJR result before any new claim is drawn from it.
+
+
+572   After the correction, single-station 𝛿𝑣/𝑣 (NoisePy correlations, a codameter 5-member
+
+573   ensemble, 2–4 Hz, 2018–2019) validates against the published Clements & Denolle (2023)
+
+574   product. The comparison is not trivial to get right: the CD2023 90-day-comp product is
+
+575   a trailing 90-day stack, so it lags a centered-smoothed daily series by about 45 days, and
+
+576   comparing without matching that smoothing caps the correlation near 0.7 even on a real
+
+577   annual cycle (Fig.~15). We match by applying the same trailing 90-day mean to the daily
+
+578   series, compare demeaned — the two products reference different epochs, and a constant offset
+      36    M. A. Denolle
+579   is bookkeeping, not error — and exclude the first 150 days of each station’s series as reference
+
+580   burn-in. Under this matched comparison, CI.LJR reaches 𝑟 = 0.990 (681 overlapping days);
+
+581   CI.ARV reaches 𝑟 = 0.66–0.92 depending on the join method, reflecting real 2018 data gaps;
+
+582   CI.RXH reaches 𝑟 = 0.68, the weakest of the three, on a station whose recovered 𝛿𝑣/𝑣 is
+
+583   nearly flat and whose signal is low to begin with.
+
+
+
+
+      Figure 15. Single-station 𝛿𝑣/𝑣 at three CI stations, 2018–2019, against the published Clements &
+      Denolle (2023) product (dashed, reference-shifted). Daily 𝛿𝑣/𝑣 (points) with the ensemble spread
+      (shaded, epistemic) and measurement error bars, and a 45-day-smoothed curve. The annotated 𝑟 is
+      computed on this 45-day-smoothed comparison, not the smoothing-matched comparison reported
+      in the text; matching CD2023’s own trailing 90-day window instead of a centered 45-day one raises
+      𝑟 at every station (to 0.990/0.66–0.92/0.68 for LJR/ARV/RXH), which is why the two numbers
+      differ.
+
+
+584   Why validation quality differs so much by station is visible in the correlation function itself
+
+585   (Fig.~16). CI.LJR shows a stable, narrow coda near zero lag through the year. CI.RXH
+
+586   shows multipath, several coherent arrivals spread across the full ±8 s of lag shown, and a
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   3
+587   visible shift in that pattern in April–May 2019, consistent with a site change rather than a
+
+588   processing artefact. CI.ARV’s coherent energy is compact and concentrated near zero lag but
+
+589   comparatively sparse, consistent with its higher scatter and join-method sensitivity.
+
+
+
+
+      Figure 16. Daily north-south/east-west cross-component correlation functions, 2–4 Hz, ±8 s lag,
+      2019. CI.LJR’s coda is stable and narrow. CI.RXH shows multipath (several coherent bands across
+      the full lag range) and a shift in that pattern in April–May 2019. CI.ARV’s coherent energy is
+      compact and near zero lag but comparatively sparse. The visual difference is the reason validation
+      quality differs by station in Fig. 15.
+
+
+
+590   As an optional supplement, Fig.~17 shows the ensemble’s warm-up behaviour on a separate
+
+591   90-day smoke run at CI.LJR: 𝛿𝑣/𝑣 is undefined until enough history has accumulated for
+
+592   the moving-reference member to compute a trailing reference, and each band’s per-epoch
+
+593   stretching correlation coefficient is reported alongside the recovered series.
+
+
+
+
+594   8   DISCUSSION
+
+
+595   The experiments above share one finding: for ambient-noise 𝛿𝑣/𝑣, the dominant control on
+
+596   both the reported value and its uncertainty is frequently the processing choice, not the data.
+
+597   This is a consequential but tractable problem. We suggest three responses.
+
+
+598   Report the choices. At minimum, a 𝛿𝑣/𝑣 study should state the estimator and its param-
+38    M. A. Denolle
+
+
+
+
+Figure 17. CI.LJR single-station 𝛿𝑣/𝑣, a separate 90-day smoke run (January–April 2023), four
+frequency bands. The ensemble spread (shaded) and measurement error bars are reported once at
+least one member is defined; the annotated member count grows as the moving-reference member’s
+warm-up period elapses, reaching all 5 members later in the window. Bottom panel: per-band
+stretching correlation coefficient.
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring             3
+
+      Table 5. A minimal reporting checklist for an ambient-noise 𝛿𝑣/𝑣 study. Stating these turns an
+      undocumented, irreproducible choice into an inspectable one and makes error bars comparable
+      across studies.
+
+      Step                     What to report
+
+      Pre-processing           Time-domain normalization (one-bit / running-mean), spectral whitening band, sampling rate
+      Correlation & stacking   Components computed, segment length, daily/sub-stack length, total reference span
+      Estimator                Method (TS / WCC / DTW / MWCS / WCS / WTS / WTDTW), its parameters (𝜀-grid, or
+                               sub-window length and step), and whether the phase is unwrapped
+      Frequency band(s)        [𝑓1 , 𝑓2 ] for every reported measurement
+      Coda window(s)           [𝑡1 , 𝑡2 ], the branch(es) used, and how 𝑡1 , 𝑡2 were set relative to the band
+      Reference                Scheme (total stack / trailing / inversion) and period
+      Component aggregation    Approach A or B; weighted (by what) or unweighted
+      Pair / network           Spatial averaging and weighting scheme
+      aggregation
+      Uncertainty              The exact definition of the quoted error: within-measurement (e.g. Weaver),
+                               between-component/pair standard error, or standard deviation
+      Quality control          CC / SNR thresholds, rejection criteria, resulting effective 𝑁
+      Software                 Package, version, and the parameter file or its DOI
+
+
+599   eters, the frequency band(s) and coda window(s) and how the window was set relative to the
+
+600   band, the reference scheme, the stacking, the cross-component and station-pair aggregation
+
+601   and weighting, and — critically — the exact definition of the quoted uncertainty (within-
+
+602   measurement error, between-component/pair standard error, or standard deviation). Our
+                                                                     √
+603   results show that the last item alone can change a stated 1𝜎 by 𝑁. Table~5 collects this
+
+604   into a minimal reporting checklist, and Appendix~C shows how unevenly these items are
+
+605   reported across the literature today.
+
+
+606   Quantify the choice-induced uncertainty. Where a choice is not forced by the physics,
+
+607   it can be sampled. Pushing a distribution of reasonable processing choices through the
+
+608   measurement-error floors of Clarke et al. (2011; Weaver et al., 2011) yields, by the law
+
+609   of total variance, a marginal 𝛿𝑣/𝑣 uncertainty that includes the processing-choice spread
+
+610   — a more honest error bar than any single pipeline provides, and the natural input to a
+
+611   depth/stress inversion. Section~5 makes this a Bayesian measurement model whose deliverable
+
+612   is a time-dependent data covariance 𝐶𝑑 .
+
+
+613   Make it executable. All synthetics, estimators and figures in this paper are released in
+      40    M. A. Denolle
+614   the open codameter package, which reproduces every result with a single command and is
+
+615   unit-tested. An executable record turns an undocumented choice into a versioned, inspectable
+
+616   one, and lets a reader re-run a study’s pipeline on the truth-known synthetic to see its bias
+
+617   before trusting it on data.
+
+
+618   Validate against something you did not generate. Every synthetic test in this paper
+
+619   passed before the discovery below, and that is exactly the danger: a synthetic built under the
+
+620   same sign convention as the estimator reading it will always agree, whether the convention
+
+621   is physically correct or not. Testing codameter’s estimators against a real cross-network
+
+622   deployment (Section~7), recovered 𝛿𝑣/𝑣 anticorrelated with the published Clements & Denolle
+
+623   (2023) product and with seasonal hydrology at three stations (𝑟 = −0.69, −0.45, −0.40).
+
+624   Ground-truthing through the exact call path made the cause obvious: imposing a +0.5 %
+
+625   velocity change returned −0.50 %. The synthetic generator and all seven estimators had
+
+626   consistently used the stretch factor 𝜀 (positive for a coda dilation, i.e. a slowdown), not
+
+627   physical 𝛿𝑣/𝑣 (positive for a speedup) — internally coherent, so every synthetic-recovery test
+
+628   in the sections above passed, but opposite to the sign convention the field expects and to the
+
+629   published product it was compared against. The fix is the convention boxed in Section~1,
+
+630   shipped as codameter v0.4.0. Internal consistency is not correctness: a pipeline that only
+
+631   checks itself will confirm whatever convention it started with, and only the comparison
+
+632   against an independently-produced result caught this one. The fix and its ground-truthing
+
+633   procedure are documented in the codameter release history.
+
+
+634   Propagate the covariance, do not truncate it. The measurement covariance is not the
+
+635   end of the analysis but its first input. Section~6 sets out the next step of the chain: invert the
+
+636   per-band 𝐶𝑑 through sensitivity kernels for a depth profile and its covariance, separating the
+
+637   shear-velocity and density contributions where the ground is partially saturated. Converting
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   4
+638   that depth-resolved posterior to stress or strain requires material priors this paper does
+
+639   not attempt to constrain, and is left to other work; what we deliver is the depth posterior
+
+640   and its covariance, the object any such conversion must consume. Building and testing the
+
+641   depth-propagation stage on truth-known synthetics is the natural continuation of this work,
+
+642   and is under way in the open codameter framework.
+
+
+
+
+643   9   CONCLUSIONS
+
+
+644   Ambient-noise 𝛿𝑣/𝑣 monitoring rests on a chain of processing choices that are made ad hoc
+
+645   and reported incompletely. Using a truth-known synthetic and the full estimator suite of
+
+646   an open toolbox, we have shown that these choices change the recovered 𝛿𝑣/𝑣 and, more
+                                                                       √
+647   consequentially, change the reported uncertainty by a factor of ∼ 𝑁 — enough to flip the
+
+648   significance of a result — all without touching the data. The remedy is not a single mandated
+
+649   pipeline but transparency: report every choice, sample the ones the physics does not fix,
+
+650   carry the resulting measurement covariance into the inference, and release the pipeline as
+
+651   executable code. The same discipline extends down the inference chain: the measurement
+
+652   covariance is the input a depth inversion consumes, and only a pipeline that carries the
+
+653   covariance that far can attach an honest uncertainty to a depth-resolved velocity-change
+
+654   profile. Converting that profile to stress or strain is a further step this paper does not attempt.
+
+655   We offer codameter as one such record, and as the package in which the depth stage is being
+
+656   built.
+      42    M. A. Denolle
+657   APPENDIX A: ESTIMATOR DEFINITIONS
+
+
+658   Let 𝑟(𝑡) and 𝑐(𝑡) be the reference and current cross-correlations, band-passed to [𝑓1 , 𝑓2 ]
+
+659   (central frequency 𝑓𝑐 , bandwidth 𝐵) and read over the coda window 𝑊 = [𝑡1 , 𝑡2 ] on one or
+
+660   both branches. Each method below estimates a trial stretch factor 𝜀, the fractional dilation
+
+661   of the current coda relative to the reference; physical 𝛿𝑣/𝑣 follows via the convention boxed
+
+662   in Section~1, 𝛿𝑣/𝑣 = −𝜀/(1 + 𝜀).
+
+
+663   Trace stretching (TS). For each trial stretch factor 𝜀, the current correlation is interpolated
+
+664   as 𝑐𝜀 (𝑡) = ℐ[𝑐]((1 + 𝜀)𝑡) (interpolation on current only) while the reference 𝑟(𝑡) remains
+
+665   fixed. The windowed correlation coefficient is
+
+                                     ∫ 𝑟(𝑡) 𝑐𝜀 (𝑡) d𝑡
+                       CC(𝜀) =        𝑊
+                                                        1/2
+                                                              ,   𝜀⋆ = arg max CC(𝜀).          (A.1)
+                                 (∫ 𝑟2 d𝑡 ∫ 𝑐𝜀2 d𝑡)
+                                                                           𝜀
+                                   𝑊       𝑊
+
+
+666   The best-fit stretch 𝜀⋆ is then converted to physical 𝛿𝑣/𝑣 via 𝛿𝑣/𝑣⋆ = −𝜀⋆ /(1 + 𝜀⋆ )
+
+667   as boxed in the Introduction. The single-measurement error decreases with the co-
+
+668   herence CC, the bandwidth 𝐵, and the window length, approximately as 𝜎𝜀 ∝
+
+669   √(1 − CC2 )/CC2 /[𝑓𝑐 √𝐵 (𝑡32 − 𝑡31 )] (Weaver et al., 2011).
+
+
+670   Interpolation direction and convention. The interpolation is applied to the current waveform
+
+671   and not the reference so that the high-SNR reference stack remains invariant throughout
+
+672   the epsilon search, which is particularly important when the reference is built as a long-
+
+673   term or moving average. In the continuous-signal, infinite-support limit the two conventions
+
+674   (interpolating current versus interpolating reference) are mathematically equivalent after
+
+675   their fitted parameters are converted to the same physical 𝛿𝑣/𝑣 through the exact relation
+
+676   𝛿𝑣/𝑣 = −𝜀/(1 + 𝜀). In sampled, finite-window signals, that symmetry is broken: interpolation
+
+677   error, edge truncation, and the finite support of the data cause the two conventions to give
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   4
+678   slightly different numerical results even when both use the exact conversion. Therefore the
+
+679   interpolation direction must be reported explicitly and treated as a fixed processing choice.
+
+680   For diffuse codas in ambient-noise and volcanic monitoring, we have verified that the choice
+
+681   has a measurable but small effect: truth-known synthetics recover 𝛿𝑣/𝑣 with sub-10−4 bias
+
+682   when the signal-to-noise ratio is high and the changes are small, with the effect growing as a
+
+683   few percent at landslide-scale perturbations (𝛿𝑣/𝑣 ∼ 4 %).
+
+
+684   Windowed cross-correlation (WCC). In sub-windows centred at lapse 𝑡𝑖 the delay is
+
+685   𝛿𝑡𝑖 = arg max𝜏 ∫ 𝑐(𝑡) 𝑟(𝑡 − 𝜏 ) d𝑡; a least-squares fit of 𝛿𝑡𝑖 = −𝜀 𝑡𝑖 gives 𝜀.
+
+
+686   Moving-window cross-spectrum (MWCS). In each sub-window the cross-spectrum is
+
+687           ̂ 𝑟∗̂ (𝑓) with phase 𝜑(𝑓) = arg 𝑋(𝑓) ≈ 2𝜋𝑓 𝛿𝑡𝑖 ; a coherence-weighted linear fit of
+      𝑋(𝑓) = 𝑐(𝑓)
+
+688   𝜑(𝑓) over [𝑓1 , 𝑓2 ] yields 𝛿𝑡𝑖 , and 𝜀 is minus the slope of 𝛿𝑡𝑖 versus 𝑡𝑖 (Clarke et al., 2011).
+
+689   Because 𝜑 is defined modulo 2𝜋, the estimate cycle-skips once |𝛿𝑡𝑖 | > 1/(2𝑓).
+
+
+690   Dynamic time warping (DTW). A lag path 𝑙(𝑖) minimises
+
+
+                                                 2                           2
+                                ∑ (𝑐𝑖 − 𝑟𝑖+𝑙(𝑖) ) + 𝛾 ∑ (𝑙(𝑖+1) − 𝑙(𝑖)) ,                         (A.2)
+                                 𝑖                        𝑖
+
+
+691   where 𝛾 penalises strain (limits the lag’s rate of change); 𝜀 is minus the slope of 𝑙(𝑖)/𝑓𝑠 versus
+
+692   lapse.
+
+
+693   Wavelet cross-spectrum (WCS). With continuous wavelet transforms 𝑊𝑐 , 𝑊𝑟 , the cross-
+
+694   wavelet spectrum is 𝑊𝑥𝑦 (𝑓, 𝜏 ) = 𝑊𝑐 𝑊𝑟∗ and the delay 𝛿𝑡(𝑓, 𝜏 ) = 𝜑(𝑓, 𝜏 )/(2𝜋𝑓). Unwrapping
+
+695   𝜑 in two dimensions — along lapse (anchored at 𝜏 → 0, where 𝛿𝑡 → 0) then along frequency
+
+696   — removes the cycle-skip; 𝜀 follows from the |𝑊𝑥𝑦 |-weighted regression 𝛿𝑡 = −𝜀 𝜏 over the
+
+697   time–frequency window (Mao et al., 2020).
+      44    M. A. Denolle
+698   Wavelet stretching / warping (WTS, WTDTW). TS (respectively DTW) is applied
+
+699   per wavelet scale (respectively to the wavelet-reconstructed band) and the per-scale estimates
+
+700   are pooled with cross-wavelet-power weights.
+
+
+
+
+701   APPENDIX B: AGGREGATION AND UNCERTAINTY CONVENTIONS
+
+
+702   For component 𝑘 of a station pair, stretching yields the image CC𝑘 (𝜀, 𝑡); each per-component
+
+703   stretch factor converts to physical 𝛿𝑣/𝑣𝑘 via the boxed relation.
+
+
+704   Approach A (average the per-component 𝛿𝑣/𝑣). 𝛿𝑣/𝑣𝑘 (𝑡) follows from 𝜀𝑘 (𝑡) =
+
+705   arg max𝜀 CC𝑘 (𝜀, 𝑡), and the pair estimate is the (possibly weighted) mean 𝑥𝑝 (𝑡) =
+
+706   ∑𝑘 𝑤𝑘 𝛿𝑣/𝑣𝑘 / ∑𝑘 𝑤𝑘 , with 𝑤𝑘 = max𝜀 CC𝑘 (coherence-weighted) or 𝑤𝑘 = 1 (unweighted).
+
+
+707   Approach B (average the images). The pair stretch factor 𝜀𝑝 (𝑡) = arg max𝜀 [ 𝑁1 ∑𝑘 CC𝑘 (𝜀, 𝑡)]
+                                                                                                  𝑐
+
+
+708   converts to 𝑥𝑝 (𝑡) = 𝛿𝑣/𝑣𝑝 (𝑡) via the same relation.
+
+
+709   Network over pairs. With pair weights 𝑊𝑝 (e.g. mean coherence),
+
+                            ∑𝑝 𝑊𝑝 𝑥𝑝             ∑𝑝 𝑊𝑝 (𝑥𝑝 − 𝑥)̄ 2                (∑𝑝 𝑊𝑝 )2
+                     𝑥̄ =              ,   2
+                                           𝑠 =                       ,   𝑁eff =               .       (B.1)
+                             ∑𝑝 𝑊𝑝                   ∑𝑝 𝑊𝑝                         ∑𝑝 𝑊𝑝2
+
+710   The three uncertainty conventions used in Section~3.3 are the weighted standard error
+                                                                        √
+711   𝜎SE,𝑤 = 𝑠/√𝑁eff , the unweighted standard error 𝜎SE = std(𝑥𝑝 )/ 𝑁, and the standard
+                                                                          √
+712   deviation 𝜎SD = std(𝑥𝑝 ). They share the mean 𝑥̄ but obey 𝜎SD /𝜎SE = 𝑁.
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring        4
+713   APPENDIX C: SURVEY OF PROCESSING CHOICES ACROSS THE
+
+714   LITERATURE
+
+
+715   Table~A1 catalogues the processing choices of the 103 ambient-noise 𝛿𝑣/𝑣 monitoring studies
+
+716   we surveyed (the full machine-readable version and provenance are distributed with the
+
+717   codameter package). It is the empirical basis for the paper’s claim that no convention is
+
+718   shared: the estimator, the frequency band, the coda window, the reference scheme and
+
+719   — most unevenly of all — the uncertainty treatment vary study to study, and the last is
+
+720   frequently unreported. Every study is cited here.
+
+
+721   The four measurement fields (frequency band, coda window, estimator and uncertainty
+
+722   treatment) were re-checked against the full text for the 82 studies we could read (open
+
+723   access plus institutional access); for those rows a blank or n/r'' means the value is
+
+724   genuinely not stated in the paper. The remaining rows were populated from
+
+725   abstracts and search metadata, wheren/r’ ’ means only that the value was not found
+
+726   in the abstract, not that the study failed to report it; those cells are flagged in the
+
+727   machine-readable table (measurement_source) and remain to be filled from the paywalled
+
+728   full texts. The apparent under-reporting in the table is therefore a lower bound on what the
+
+729   literature actually states.
+
+      Table A1: Processing choices of the 103 surveyed 𝛿𝑣/𝑣 studies (the literature survey under-
+      pinning this paper). Every study is cited; n/r = not reported in the source. Frequency band,
+      coda window, estimator, reference/stack scheme and uncertainty treatment are the choices
+      Section 3 shows to control the result.
+
+          Study            Site / region Freq (Hz) Coda (s) Method          Reference /       Uncertainty
+                                                                            stack             treatment
+
+          Brenguier et al. Piton de la     0.1-0.9   n/r (slope MWCS        Daily stacks      linear-slope
+          (2008b)          Fournaise, La             of dtau vs (doublet)   referenced to     uncertainty; exclude
+                           Réunion                   tau; short             long-term stack   >0.04%
+                                                     scanning
+                                                     window)
+
+                                                                                              continued on next page
+46     M. A. Denolle
+     Table A1 continued
+     Study              Site / region Freq (Hz) Coda (s) Method                Reference /           Uncertainty
+                                                                               stack                 treatment
+
+     Duputel et al. Piton de la          0.1–1         n/r        Other        Quasi-real-time     n/r
+     (2009)          Fournaise, La                                             stacks vs reference
+                     Réunion
+     Obermann et al. Piton de la         0.1-1.0       10-45      stretching   Daily stacks,         Weaver et al.
+     (2013)          Fournaise, La                                             referenced; coda      coherence-based error
+                     Réunion                                                   at increasing lapse   formula
+                                                                               times
+     HotovecEllis       Mount St.        1-10 (also    windows doublet         Stack across          ~0.1% from SD of
+     et al. (2014)      Helens, WA,      1-5, 5-10)    after S  (Snieder       several hundred       velocity fit
+                        USA                            arrival; 2002)          repeating-
+                                                       >=5 with                earthquake
+                                                       CCC>0.65                families
+                                                                               (multiplets)
+     HotovecEllis       Mount St.        0.5-10        15 s       stretching   Combines              reduced similarity (CC)
+     et al. (2015)      Helens, WA,                    window                  repeating-            in stretching window
+                        USA                            starting 2              earthquake CWI
+                                                       s after                 with
+                                                       first                   ambient-noise
+                                                       motion                  interferometry
+     Rivet    et     al. Piton de la     0.25-2        n/r        MWCS         Daily stacks vs       coherency +
+     (2015)              Fournaise, La                                         reference;            linear-regression error
+                         Réunion                                               network-averaged
+                                                                               dv/v
+     De Plaen et al. Piton de la     0.1-1.0,          5-35      MWCS          n/r                   coherency +
+     (2016)           Fournaise, La 0.5-1.0,           (both                                         linear-regression error
+                      Réunion        1.0-2.0,          branches)                                     QC
+                      (method also   2.0-4.0
+                      re Kawah Ijen)
+     Donaldson et al. Kīlauea        0.33-1.0          30 s        MWCS        Daily NCFs         weighted dt-t
+     (2017)           summit,                          window, (doublet)       stacked over 3-day regression;
+                      Hawaii, USA                      min lag =               moving window      coherence>0.65,
+                                                       intersta-                                  err<0.1 s thresholds
+                                                       tion dist /
+                                                       0.8 km/s
+     Takano    et    al. Izu-Oshima,     0.5-1, 1-2,   -20 to      MWCS        Cross-correlations error bars from
+     (2017)              Japan           2-4           +20                     2012–2015,          coherency
+                                                                               multiple bands
+     Lesage   et     al. Volcán de       0.125-2       10-80      stretching   Daily               empirical noise from
+     (2018)              Colima,                                               cross-correlations; AVV fluctuations
+                         Mexico                                                2013 stack as       (~0.05%)
+                                                                               reference
+     De Plaen et al. Mt. Etna,           1.0-2.0       5-35       MWCS         Daily               cross-coherence +
+     (2019)          Italy                                                     autocorrelations,   squared misfit; reject
+                     (2013–2014)                                               2-day linear stack dt err>0.1 s or
+                                                                                                   coh<0.6
+     Donaldson et al. Northern       0.1-0.4,     per-band stretching          n/r                 reject dv/v when
+     (2019)           Volcanic Zone 0.4-1.0, 1-2, (suppl.   + MWCS                                 stretched-ref CC<0.4
+                      (Askja/Bárðar- 2-4, 4-16    Table S1)
+                      bunga),
+                      Iceland
+     Olivier et al. Kīlauea,         0.08-1.2     30 s      MWCS               n/r (passive image CCF-coherence-based
+     (2019)           Hawaii, USA                 windows;                     interferometry,    uncertainty
+                      (2018                       start =                      daily)
+                      eruption)                   dist/700
+                                                  m/s + 30
+                                                  s
+
+                                                                                                     continued on next page
+The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring              4
+    Table A1 continued
+    Study              Site / region Freq (Hz) Coda (s) Method              Reference /      Uncertainty
+                                                                            stack            treatment
+
+    Yates    et     al. Whakaari /      0.1-1.0   16 s        MWCS          n/r              QC (err<0.1 s,
+    (2019)              White Island,             moving                                     coh>0.7);
+                        New Zealand               windows                                    error-weighted mean
+                                                  within
+                                                  20-80 s
+    Feng     et     al. Kīlauea,        3-8       [-2.8:-0.4] stretching    Jan 2017–Jun     absolute error from
+    (2020)              Hawaii, USA               and                       2018 NCFs        stretching CC
+                                                  [0.4:2.8]
+                                                  (=[-
+                                                  14Dt:2Dt],[2Dt:14Dt])
+    HotovecEllis       Kīlauea,        n/r        n/r         CWIRE      Coda Wave           n/r
+    et al. (2022)      Hawaii, USA                            (stretchingInterferometry
+                       (2018 collapse)                        + damped   with Repeating
+                                                              LSQ)       Earthquakes
+                                                                         (CWIRE),
+                                                                         per-cluster pairs
+    Köpfli et al. Mount St.           n/a          n/a        n/a (no    Long-term NCF       n/a
+    (2024)            Helens, WA,     (wavefield              dv/v;      stacks; many dv/v
+                      USA             amplitude               companion series on a
+                                      features,               is Makus   common grid
+                                      not dv/v)               2024)
+    Yates    et   al. Mt. Ruapehu, 0.25-2.5        min lag 5 CWT         n/r                 slope SD from
+    (2024)            New Zealand (wavelet         s, length (cross-                         covariance; coherence
+                      (2005–2009)     0.1-8.0)     20 cycles wavelet)                        weighting
+                                                   (e.g. 5-25
+                                                   at 1 Hz)
+    Yukutake et al. Izu-Oshima,       0.1-0.9,     20-40      MWCS       Long-term           1-2 sigma errors as
+    (2025)            Japan           0.5-2.0,                           interferometry      inversion weights
+                      (2003–2020)     1.0-4.0                            stacks, 2003–2020
+    Schaff & Beroza 1989 Mw 6.9       n/r          1.4 s      doublet    Repeating-          formal slope SE; CC
+    (2004)            Loma Prieta     (unfiltered) moving                earthquake          weighting
+                      aftershock                   windows               doublets; delays vs
+                      zone,                        through               pre-mainshock
+                      California                   coda                  repeaters
+                      (also Parkfield
+                      repeaters)
+    Pacheco       & Theory /          n/r          n/r        Other      n/r                 n/r (analytical kernel)
+    Snieder (2005) acoustic
+                      diffusion
+                      model
+    Rubinstein    & 2004 M6           n/r          n/a        doublet    Repeating-          CC>0.8 and SNR>4:1
+    Beroza (2005)     Parkfield                    (direct-S (moving-    earthquake          QC
+                      earthquake,                  delays,    window     travel-time delays
+                      San Andreas                  not coda) CC)         before vs after
+                      fault,                                             mainshock
+                      California
+    Wegler & Sens- Mid-Niigata        2-100 (2 Hz 5-14        stretching Daily               day-to-day fluctuation
+    Schönfelder       (Chuetsu)       high-pass)                         autocorrelations    ~0.1%; CC>0.5
+    (2007)            earthquake                                         vs ~two-week
+                      source region,                                     pre-event
+                      Japan; F-Net                                       reference; grid
+                      station KZK                                        search (10000
+                      (~24 km)                                           trials, dv/v…
+    Brenguier et al. Parkfield, San 0.1–0.9        n/r        Stretching 1550-day reference Averaged over 78
+    (2008a)           Andreas fault,                                     vs overlapping      receiver pairs plus
+                      California,                                        5-day moving        5-day segments
+                      USA                                                windows; 30-day
+                                                                         time resolution
+
+                                                                                             continued on next page
+48     M. A. Denolle
+     Table A1 continued
+     Study              Site / region Freq (Hz) Coda (s) Method                 Reference /          Uncertainty
+                                                                                stack                treatment
+
+     Hadziioannou      Laboratory       2.5 MHz       12.5-50 us stretching Noise-correlation        analytic std of
+     et al. (2009)     scattering gel   ultrasonic    (lab)      + doublet  stacking                 stretching-CC
+                       (ultrasonic)     (lab, not                (compared)                          fluctuations
+                                        seismic
+                                        band)
+     Sawazaki et al. Western-           n/r           n/r          Other        Coda                 n/r
+     (2009)          Tottori region,                                            deconvolution of
+                     Japan;                                                     surface vs 100-m
+                     KiK-net                                                    borehole records
+                     borehole
+                     (surface + 100
+                     m); 2000 Mw
+                     6.6 mainshock
+     Wegler et al. 2004 Mw 6.6       2-8 and          5-14 (2-8    stretching   Daily auto-/cross- SD over Green’s-tensor
+     (2009)          Mid-Niigata     0.1-0.5          Hz);                      correlations        components; R>0.5
+                     earthquake                       10-100                    inverted daily for
+                     source region,                   (0.1-0.5                  2 months pre/post;
+                     Japan; 6                         Hz)                       pre-event reference
+                     Hi-net/F-Net
+                     stations <25
+                     km
+     Chen     et     al. Sichuan,     n/r             ~25 s        MWCS       Noise               n/r
+     (2010)              China — 2008                 after                   cross-correlation
+                         Mw 7.9                       ballistic,              stacking;
+                         Wenchuan                     up to                   sub-array
+                         earthquake                   +-200 s                 comparison (156
+                         fault zone                   lapse                   broadband
+                                                                              stations)
+     Nakata        & NE Japan      1-13               n/a          n/a (not   >300 earthquakes SD of travel times over
+     Snieder (2011) (Honshu),                         (deconvo-    coda/noise (Jan 1–May 26       events
+                     KiK-net; 2011                    lution       dv/v)      2011); borehole-to-
+                     Tohoku-Oki                       interfer-               surface
+                     earthquake                       ometry,                 deconvolution
+                                                      direct
+                                                      S-wave)
+     Rivet    etal. Guerrero,           0.037-0.27    n/r (coda doublet         n/r                  previous-epoch
+     (2011)         Mexico              (periods      used, no (MWCS)                                referencing; no explicit
+                    subduction          3.7-27 s)     length)                                        error bars
+                    zone (2006
+                    M7.5 slow slip
+                    event)
+     Hobiger et al. 2008                0.125-0.25,   ten          stretching   Daily                CC weighting;
+     (2012)         Iwate-Miyagi        0.25-0.5,     periods,                  cross-correlations   18-component weighted
+                    Nairiku             0.5-1.0       starting                  vs long-term         average
+                    earthquake                        7.5                       reference Green’s
+                    (Mw 6.9), NE                      periods                   function
+                    Japan                             after
+                                                      direct
+                                                      wave
+     Minato    etal. Southern       2-5               2-10 lag     stretching   n/r                  SD from
+     (2012)          Tohoku                                                                          pre/post-seismic values
+                     (Fukushima/Ibaraki),
+                     Japan; 58
+                     Hi-net
+                     stations; 2011
+                     Tohoku-Oki
+     Obermann et al. Numerical 2-D 20 Hz        1.5 s              stretching   Averaged over 10     std over ten
+     (2013)          elastic media central, ~12 windows,                        random medium        random-media
+                     (lunar-data    Hz bw       centered                        realizations per     realizations
+                     illustration)  (numerical) ~1.8-6.6 s                      configuration
+
+                                                                                                     continued on next page
+The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring                       4
+    Table A1 continued
+    Study              Site / region Freq (Hz) Coda (s) Method                  Reference /          Uncertainty
+                                                                                stack                treatment
+
+    Brenguier et al. Vol-                 0.1–0.9      n/r         MWCS         Daily               Stress sensitivity
+    (2014)             canic/geother-                                           cross-correlations; ~0.001 MPa^-1
+                       mal regions of                                           linear              inferred; detailed dv/v
+                       Honshu,                                                  inversion/regular- uncertainty n/r
+                       Japan; 2011                                              ization for
+                       Mw 9.0                                                   continuous time
+                       Tohoku-Oki                                               series
+    Liu et al. (2014) Epicentral          0.125-1 (1-8 30-130      MWCS         Noise               2-sigma SD across nine
+                       region of 2008     s; subbands                           cross-correlation   components
+                       Mw 7.9             1-2,2-4,4-8                           stacking (Aug
+                       Wenchuan           s)                                    2004 – Sep 2011)
+                       earthquake,
+                       China
+    Taira     et   al. South Napa,        0.1-0.9      -60 to -20 MWCS          MSNoise             Jackknife 95% CI;
+    (2015)             California                      and +20                  cross-correlations; 2-sigma SD
+                       (2014 Mw 6.0                    to +60                   decimated to 20
+                       South Napa                                               Hz
+                       earthquake)
+    Gassenmeier         Station           1-3, 4-6,    10-15 (for stretching    Daily                Gaussian fit to
+    et al. (2016)       PATCX,            7-10         4-6 Hz)    (autocorre-   autocorrelations;    correlation values (CIs)
+                        Atacama           (primary                lation        two-step iterative
+                        Desert,           4-6)                    CWI)          reference
+                        Northern
+                        Chile (IPOC)
+    Hillers et al. San Jacinto            0.2-2        20-50       stretching Average-waveform P-value QC; cc>=0.85
+    (2019)              fault zone,       (sub-bands (also         and MWCS reference for      inversion
+                        California        0.2-0.4,0.4- 20-40,30-   (doublet)  stretching; MWCS
+                        (after 2010       0.8,0.8-     50,40-60)              also applied
+                        M7.2 El           1.6,0.3-1.5)
+                        Mayor-
+                        Cucapah,
+                        M5.4 Collins
+                        Valley)
+    Wang et al. NE Honshu,                period      -400 to    doublet        Monthly              SD error bars from
+    (2019)              Japan (2011       bands 8-30 400                        velocity-change      2009-2010
+                        Mw 9.0            s and 15-50 (moving                   estimates
+                        Tohoku-Oki        s           30 & 50 s)
+                        earthquake)
+    Mao      et     al. Salton Sea        0.5-2.0,     n/r (real   wavelet      Noise                wavelet cross-spectrum
+    (2020)              Geothermal        0.75-3.0,    data);      cross-       cross-correlation    amplitude weighting;
+                        Field,            1.1-2.2,     synthetic   spectrum     stacking             coherence threshold
+                        California        1.5-6.0,     18.65-35    (WCS)
+                        (2009–2011)       2.0-8.0
+    Poli et al. (2020) L’Aquila           0.5-1        start       stretching   n/r                  CC-weighting; cc>0.9
+                        region, central                10/20/30    (doublet                          retained
+                        Italy (2009                    s, length   tested)
+                        Mw 6.3                         20/40/60
+                        L’Aquila                       s
+                        earthquake)
+    Boschelli et al. Ridgecrest           >1 (1 Hz     n/r         stretching   Daily             SD across
+    (2021)              fault zone,       high-pass)   (variable                autocorrelation   non-overlapping
+                        California                     lapse                    functions vs mean windows
+                        (2019 Mw 7.1                   window)                  waveform
+                        Ridgecrest
+                        earthquake)
+    Lu & Ben-Zion Ridgecrest,             8.0–12.0     3 (moving Other          10-min stacks;    Standard deviations
+    (2021)              California                     windows,                 adaptive Gaussian tracked; stabilized via
+                        (2019 Mw 7.1                   1.5 s step)              smoothing (20     smoothing
+                        Ridgecrest                                              min growing to 24
+                        earthquake)                                             hr over 3 days)
+
+                                                                                                     continued on next page
+50     M. A. Denolle
+     Table A1 continued
+     Study            Site / region Freq (Hz) Coda (s) Method               Reference /         Uncertainty
+                                                                            stack               treatment
+
+     Sheng    et  al. San Jacinto     >1           n/r         wavelet      Weekly stacked      dt uncertainty as
+     (2022)           fault, Anza                              (WTS)        correlations with   inverse weight
+                      seismic gap,                                          ~2-month
+                      Southern                                              smoothing
+                      California
+     Mainsant et al. Pont-Bourquin 10-12           0.2-2       stretching   Daily noise         Weaver et al. (2011)
+     (2012)           landslide,      (analyzed    (both                    correlograms        CC-based error
+                      Swiss Alps      4-25)        sides)                   (cross-correlation (~1-2%)
+                      (Switzerland)                                         functions)
+     Voisin et al. Avignonet /        ~6-8         n/r         Stretching   Daily/seasonal      Correlation-coefficient
+     (2016)           Mas             (annual                               stacks vs reference weighting; comparison
+                      d’Avignonet     dv/v                                                      with piezometer
+                      landslide,      pattern
+                      Trièves         best
+                      (French Alps), resolved)
+                      France
+     Harba & Pilecki Just-            High-        n/r (inter- Other        Cross-correlation / Dispersion-inversion
+     (2016)           Tęgoborze       frequency    ferometric               interferometric     misfit; comparison
+                      landslide,      seismic      Green’s-                 stacks; dispersion with MASW
+                      Carpathian      noise        function                 inversion
+                      flysch,         (~5-20+,     retrieval)               (neighbourhood
+                      southern        dispersion-                           algorithm)
+                      Poland          curve
+                                      range)
+     Bertello et al. Montaguto        n/a (active- n/a         n/a          Time-lapse          n/a
+     (2018)           earthflow,      source                                interferometry +
+                      southern Italy ReMi/MASW                              time-lapse active
+                                      dispersion,                           MASW
+                                      not coda
+                                      dv/v)
+     Bièvre et al. Pont-Bourquin ~5-15             n/r         Stretching   Daily correlations, Correlation coefficient;
+     (2018)           landslide,      (surface-                             multi-year          seasonal-cycle
+                      Swiss Alps      wave band;                            reference           modeling to separate
+                      (4.5-yr record) reported                                                  from precursors
+                                      sensitivity
+                                      to shallow
+                                      layer <=2
+                                      m)
+     Colombero et al. Madonna del 2-20             0.5-2 (and Stretching    Daily correlations, Correlation coefficient
+     (2018)           Sasso cliff,    (analysis); symmet-                   multi-year          (~0.9 at low freq) as
+                      NW Italian      2-4          ric -2 to                reference           reliability metric
+                      Alps (Orta      strongest    -0.5)                    (2013-2016)
+                      Lake), Italy    annual
+                                      signal
+     Bontemps et al. Maca             n/r          n/r         n/r          Daily stacks vs     n/r
+     (2020)           slow-moving                                           reference
+                      Andean
+                      landslide,
+                      southern Peru
+                      (3-yr dataset)
+     Fiolleau et al. Harmalière       1-12 (moni- 0.05-1.5     Stretching   Hourly records,    Correlation-coefficient
+     (2020)           landslide,      toring);                              daily averaging vs degradation tracked
+                      French          dv/v in 2-4                           reference          across bands;
+                      Western Alps and 8-10                                                    multi-parameter
+                      (collapsed Nov bands;                                                    precursor timing
+                      2016)           block
+                                      resonance
+                                      ~9-16
+
+                                                                                                continued on next page
+The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring                5
+    Table A1 continued
+    Study            Site / region Freq (Hz) Coda (s) Method              Reference /         Uncertainty
+                                                                          stack               treatment
+
+    Le Breton et al. Global review 1.3-20        end of     stretching    Daily stacks vs     Weaver et al. (2011)
+    (2021)           (9 landslides (commonly     direct     and           long-term           rms + SD over
+                     monitored to 10-14; 0.1-1   waves to doublet         reference           pairs/windows; discard
+                     date)         for           5-10       (MWCS)                            CC<0.6
+                                   large/deep)   periods
+                                                 (site-
+                                                 dependent)
+    Xie et al. (2023) Rock slope,     High-      Sub-       Stretching    Short-window        Decorrelation/CC
+                      southwest       frequency  second to                stacks for rapid    checks; rapid-detection
+                      China           (~5-20)    a few s                  detection           confidence discussion
+    Liu et al. (2026) Xishan Village 5-25 (raw   0.4-2.0    Stretching    20-min interval     95% confidence interval
+                      landslide,      1-30); 15                           CCFs vs reference   (~0.05% uncertainty at
+                      Sichuan         Hz top ~15                          (SNR>4              5 Hz)
+                      Province,       m, 5 Hz                             wave-packet
+                      China           15-40 m                             selection)
+    Watlet et al. Hollin Hill         6-10 (plus n/r         MWCS         Time-lapse          none (data report)
+    (2026)            Landslide       two                                 interferometry +
+                      Observatory,    unspecified                         MASW between
+                      North           bands)                              recording periods
+                      Yorkshire, UK
+                      (2-yr)
+    De     Wit     & Open-pit mine n/r (high- n/r            Stretching   Time-lapse stacks   Decorrelation/CC;
+    Snieder (2026) slope,             frequency                           vs reference        comparison with radar
+                      Australia       near-                                                   surface deformation
+                                      surface)
+    Sens-             Merapi          0.5 Hz      2-8        stretching   Daily autocorr vs   SD over
+    Schönfelder       Volcano,        high-pass                           yearly reference    non-overlapping
+    & Wegler (2006) Indonesia                                                                 windows
+    Tsai (2011)       Theoretical     n/a (theory n/a        n/a          n/r                 n/a
+                      model, applied of thermoe-             (analytic
+                      to southern     lastic/hy-             model, no
+                      California      drologic               measure-
+                                      velocity               ment)
+                                      change)
+    Hillers et al. TCDP               n/r         n/r        n/r          n/r                 n/r
+    (2014)            borehole array,
+                      Chelungpu
+                      fault, Taiwan
+    Lecocq et al. Gräfenberg          0.1-0.8     20-100     MWCS         Daily CCFs,         LSQ slope error as
+    (2017)            Array                       (and -20   (Brenguier   31-day rolling      inverse-variance weight;
+                      (GRA1-4), SE                to -100)   all-pairs)   window              bootstrap
+                      Germany
+                      (karst
+                      limestone
+                      aquifer)
+    Nimiya   et   al. Kyushu Island, 0.1-0.9      100        stretching   Daily CCFs from     SD over six 50-s
+    (2017)            Japan (2016                            (+MWCS       30-min segments;    subwindows
+                      Kumamoto                               check)       1-yr reference,
+                      region)                                             30-day moving
+                                                                          stack
+    Wang     et   al. Japan          0.1-0.25    30 s       MWCS          Daily CCFs; ~1-yr   none (QC only:
+    (2017)            (nationwide;   and 0.5-2.0 (0.1-0.25                reference,          dt<=0.2 s, coh>=0.5)
+                      strongest in               Hz), 10 s                moving-window
+                      Kyushu/vol-                (0.5-2 Hz)               current stack
+                      canic
+                      zones)
+    Clements & De- San Gabriel       0.1-0.25    30 s       MWCS          Daily stacks vs     none (QC only:
+    nolle (2018)   Valley,           and 0.5-2.0 (0.1-0.25                reference           dt<=0.2 s, coh>=0.5)
+                   California,                   Hz), 10 s
+                   USA                           (0.5-2 Hz)
+
+                                                                                              continued on next page
+52     M. A. Denolle
+     Table A1 continued
+     Study             Site / region Freq (Hz) Coda (s) Method               Reference /           Uncertainty
+                                                                             stack                 treatment
+
+     Kim &        Lekic Gulf Coast      0.01-8       n/r        stretching   Multi-year (~20       none (grid-search CC
+     (2019)              Aquifer,                                            yr) record;           max)
+                         southern                                            yearly-scale
+                         Texas                                               comparisons
+                         (IU.HKT near
+                         Houston),
+                         USA
+     Andajani et al. Chugoku &          0.1-0.9      100        stretching   n/r                   stretching CC as
+     (2020)              Shikoku, SW                                                               quality indicator (no
+                         Japan (Hi-net)                                                            error bars)
+     GaubertBastide Crépieux-           2-5          n/a        stretching   Hourly                eps_max +- sigma
+     et al. (2022)       Charmy                      (ballistic              correlations over     (stretching variance)
+                         water-                      Love-                   19 days, two
+                         production                  wave                    fill/drain cycles
+                         field, Lyon,                window,
+                         France                      not coda)
+     Illien    et    al. Nepal          4-8          12         stretching   ~3-yr continuous      none (multi-reference
+     (2022)              Himalaya       (Chaku);     periods                 time series           stack)
+                         (2015 Mw7.8    2-4          (~3 s)
+                         Gorkha         (Gumba)      after
+                         aftermath)                  4-period
+                                                     skip
+     Mao      et   al. Coastal Los     2-4           2-8        stretching   Daily CCFs            cc^2-weighted channel
+     (2022)            Angeles basins,                                       stacked over 20       mean (no explicit error
+                       California,                                           days, 5-day step;     bars)
+                       USA                                                   pairs <50 km
+     Clements & De- Statewide          2-4           2-8        stretching   Daily stacks across   cc^2-weighted channel
+     nolle (2023)      California,                                           ~700 stations vs      mean (no explicit error
+                       USA                                                   reference             bars)
+                       (1999-2021)
+     Delouche      & Greece            0.33-1 (1-3   15-55      stretching   n/r                   Weaver et al. (2011)
+     Stehly (2023)     (aquifer        s period)                                                   RMS error
+                       monitoring
+                       sites)
+     Ermert et al. Mexico City         0.5-1, 1-2,   4-10x and stretching    Clustered (GMM) CC_best>0.6 QC; no
+     (2023)            basin / Valley 2-4, 4-8       8-20x                   autocorrelation formal dv/v error
+                       of Mexico                     longest                 stacks
+                                                     period
+                                                     (e.g. 8-16
+                                                     & 16-40
+                                                     s)
+     Fokker    et   al. Groningen,     1.3-1.6       n/r (coda stretching    n/r                   standard error
+     (2023)             The                          of cross-                                     sigma/sqrt(n)
+                        Netherlands                  coherence)
+     Zhang    et    al. Central        0.1-1.0       n/r        MWCS         Continuous            SD (avg ~0.009%)
+     (2023)             Oklahoma,      (also         (dynamic                2013-2022 record
+                        USA            0.3-1.2,      windows,
+                                       0.5-1.5,      3.0 & 2.0
+                                       1.0-2.0)      km/s)
+     Mao      etal. Greater Los        0.1-0.3       300 s      stretching   Daily CCFs            Weaver et al. (2011)
+     (2025)         Angeles,                         window                  stacked, multi-day    error formula
+                    California,                      from                    step; two-decade
+                    USA                              1.3*t0                  record
+     Mordret et al. Southwest          0.1-0.3       300 s      stretching   Daily                 Weaver et al. (2011)
+     (2016)         Greenland ice                    window                  cross-correlations    error formula
+                    sheet                            from                    over ~2-year
+                                                     1.3*t0                  record
+
+                                                                                                   continued on next page
+The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring                    5
+    Table A1 continued
+    Study             Site / region Freq (Hz) Coda (s) Method                 Reference /           Uncertainty
+                                                                              stack                 treatment
+
+    James    et    al. Interior         3-30 (18      +-0.2 to   MWCS         Daily              95% CI from posterior
+    (2019)             Alaska (Poker bands; 13        2.0                     cross-correlations
+                       Flat /           Hz            (center                 stacked; reference
+                       Fairbanks        inversion)    lag)                    relative to Jan
+                       area), USA                                             2014
+    Guillemot et al. Gugla rock         n/a           n/a        n/a (no      Daily              n/a
+    (2020)             glacier, Valais, (resonance-              dv/v         correlograms from
+                       Switzerland      freq                     computed)    hourly raw data
+                                        tracking,
+                                        not dv/v)
+    Guillemot et al. Laurichard         n/a           n/a        n/a (no      PSD-based;            n/a
+    (2021)             (French Alps) (resonance-                 dv/v         finite-element
+                       and Gugla        freq                     computed)    modal modeling
+                       (Swiss Alps)     tracking,
+                       rock glaciers    not dv/v)
+    Lindner et al. Mt. Zugspitze, 2-8                 -5 to 5 lag wavelet     15-year continuous    1 SD
+    (2021)             German/Aus- (analysis                      cross-      record;
+                       trian            1-20)                     spectrum    daily/seasonal
+                       Alps                                       (Morlet)    stacks
+    Luo et al. (2023) Greenland Ice 0.1-1 (also       20-70       MWCS        Daily                 fitted +-sigma; 95% CI
+                       Sheet (GLISN 0.1-0.5,                                  autocorrelations
+                       stations)        1-2)                                  stacked
+    Gassenmeier        Ketzin CO2       1.5-3         moving     stretching   1-hour segments       Weaver et al. (2011);
+    et al. (2014)      storage site                   windows                 cross-correlated,     scaling-coeff CIs
+                       (CO2SINK),                     after 300               stacked to daily
+                       Brandenburg,                   m/s
+                       Germany                        phase
+    Hillers et al. Basel deep           n/r           Coda of    Stretching   Daily noise           Sensitivity-kernel
+    (2015)             geothermal                     noise cor-              correlations          imaging of
+                       (EGS)                          relations               around 2006           velocity-change
+                       reservoir,                                             stimulation           location
+                       Switzerland
+    Obermann et al. St. Gallen          0.1-1         20 s       stretching   Daily                 none
+    (2015)             geothermal                     window                  cross-correlations;
+                       site,                          centered                reference stacks
+                       Switzerland                    ~15 s in
+                                                      coda
+    Czarny    et  al. Underground 0.6-1.2             n/r        Stretching   Continuous            n/r
+    (2016)            coal mine,                                              cross-correlations
+                      Upper Silesia,                                          over ~42 days
+                      Poland
+    Olivier et al. Active tailings 0.25-1.0,          20 s (-40 MWCS          Daily                 two-sigma SD;
+    (2017)            storage facility 0.5-2.0,       to -20 and (MSNoise)    cross-correlations    CC>0.85 rejection
+                      (mine), South 0.75-3.0,         20 to 40)               across array
+                      Africa           1.0-4.0,
+                                       1.5-6.0,
+                                       2.0-8.0
+    Taira     et  al. Salton Sea       0.25-1.0,      20 s (-40 MWCS          Daily NCFs from       two-sigma SD;
+    (2018)            Geothermal       0.5-2.0,       to -20 and (MSNoise)    30-min segments;      CC>0.85 rejection
+                      Field,           0.75-3.0,      20 to 40)               5-day stacks
+                      California,      1.0-4.0,
+                      USA              1.5-6.0,
+                                       2.0-8.0
+    Kristjánsdóttir Hellisheidi        n/r            n/r        Stretching   Daily correlations    Seasonal and
+    et al. (2019)     geothermal                                              (MSNoise              noise-source effects
+                      field, SW                                               workflow)             discussed as caveats
+                      Iceland
+
+                                                                                                    continued on next page
+54     M. A. Denolle
+     Table A1 continued
+     Study              Site / region Freq (Hz) Coda (s) Method                   Reference /          Uncertainty
+                                                                                  stack                treatment
+
+     Snieder   et    al. theory +       n/a (disper- n/a         n/a (not a       n/r                  n/a
+     (2002)              ultrasonic lab sion/pre-                velocity-
+                                        processing               change
+                                        paper, no                study)
+                                        dv/v)
+     Bensen et al. USArray test 0.1-0.9              6s          MWCS             daily               WLS phase-fit error
+     (2007)            data                          windows                      cross-correlation + (corrected ~6x)
+                                                     overlap-                     temporal stacking
+                                                     ping 3
+                                                     s
+     Clarke et al. synthetic +          0.1-0.9      6s          MWCS             current stack vs     WLS phase-fit error
+     (2011)            real noise tests              windows                      reference,           (corrected ~6x)
+                                                     overlap-                     weighted linear
+                                                     ping 3                       regression dt vs t
+                                                     s
+     Hadziioannou      urban noise      0.1-0.9      n/r         stretching       waveform            remnant coherence
+     et al. (2011)     autocorrela-                  (whole      (and             clustering to       (CC)
+                       tions                         coda        doublet)         enhance daily
+                                                     t1-t2)                       stacks
+     Weaver et al. theory               0.05-0.5     up to       stretching       reference vs        max CC>0.9 (no
+     (2011)                                          t0=30                        current correlation formal error)
+     Zhan      et  al. synthetic +      0.05-0.5     up to       stretching       reference vs        max CC>0.9 (no
+     (2013)            field examples                t0=30                        current             formal error)
+     Lecocq et al. Piton de la          synthetic    1-10        windowed         daily CCF +         WLS lag-vs-lapse;
+     (2014)            Fournaise        (Ricker      lapse; sub- CC,              reference stack     CC>=0.6
+                       (validation)     12.5; noise windows stretching,
+                                        0.5-30)      0.1-1.0 s   DTW
+                                                                 (compared)
+     Mikesell et al. numerical          0.33-1.0     (dist/1.8)+20
+                                                                 stretching       n/a                  Weaver et al. (2011)
+     (2015)            CWI examples (1-3 s)          to 120                                            rms formula
+     Stehly    et    al. Wenchuan Mw 0.1-1.0           [15,35]      stretching    daily correlations   CC>0.7 rejection;
+     (2015)              7.9 region     (real);        and          (+MWCS        curvelet-filtered    ~+-0.1% significance
+                         (test dataset) 0.15-0.65      [-35,-15]    compare)      before stacking
+                                        (synthetic)
+     Daskalakis et al. synthetic +        n/r          1 s over-    stretching    normalized           SD over 20 receivers
+     (2016)            real noise         (numerical   lapping                    cross-correlation
+                                          study)       windows                    functions
+     Obermann et al. 3-D wavefield        0.15-0.90    -60 to       doublet +     n/a                  Bayesian least-squares
+     (2016)          simulations                       +60          Bayesian                           inversion; error bars
+                                                       (doublet     least-                             from inversion
+                                                       over         squares
+                                                       coda)        inversion
+                                                                    (Brenguier
+                                                                    2014)
+     Obermann       & review              scale-       lapse-       Other         reference and       synthesizes error
+     Hillers (2019)                       dependent    time/depth                 moving-stack        sources: noise-source
+                                                       depen-                     strategies reviewed variability, processing
+                                                       dent                                           choices, sensitivity
+                                                                                                      ker…
+     Jiang & Denolle benchmark vs         user-        user-        Other         linear/PWS/ro-      offers multiple dv/v
+     (2020)          MSNoise              defined      defined                    bust stacking;      estimators so users can
+                                                                                  reference +         cross-check;
+                                                                                  moving stacks       parallel/HDF5
+                                                                                                      reproducible pip…
+     Wang &         Yao review            n/r          n/r          stretching,   reference and       Bayesian least-squares
+     (2020)                               (review)     (review)     MWCS,         stacking strategies / MCMC (review)
+                                                                    DTW,          reviewed
+                                                                    WCS
+                                                                    (review)
+
+                                                                                                       continued on next page
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring        5
+          Table A1 continued
+          Study            Site / region Freq (Hz) Coda (s) Method             Reference /   Uncertainty
+                                                                               stack         treatment
+
+          Yuan     et   al. 2-D             varies (e.g. 45-75     WCC, TS,    n/a           residuals vs truth over
+          (2021)            heterogeneous   0.5-2.2)     (example) DTW,                      realizations
+                            half-space                             MWCS,
+                            simulations                            WCS,
+                                                                   WTS,
+                                                                   WTDTW
+                                                                   (7
+                                                                   compared)
+
+
+
+
+730   DATA AVAILABILITY
+
+
+731   All synthetics, estimators, and figures in this paper are implemented in the open-source
+
+732   Python package codameter (version 0.4.0, MIT license), openly available at https://github.c
+
+733   om/Denolle-Lab/codameter. A versioned archive with a Zenodo DOI will be issued alongside
+
+734   publication.
+
+
+
+
+735   Acknowledgements
+
+
+736   [To be completed.]
+
+
+
+
+737   References
+
+
+738    Andajani, R. D., Tsuji, T., Snieder, R., & Ikeda, T., 2020. Spatial and temporal influence
+
+739     of rainfall on crustal pore pressure based on seismic velocity monitoring, Earth, Planets
+
+740     and Space, 72, doi: 10.1186/s40623-020-01311-1.
+
+
+741    Bensen, G. D., Ritzwoller, M. H., Barmin, M. P., Levshin, A. L., Lin, F., Moschetti, M. P.,
+
+742     Shapiro, N. M., & Yang, Y., 2007. Processing seismic ambient noise data to obtain reliable
+      56      M. A. Denolle
+743        broad-band surface wave dispersion measurements, Geophysical Journal International,
+
+744        169(3), 1239–1260, doi: 10.1111/j.1365-246X.2007.03374.x.
+
+
+745    Bertello, L., Berti, M., Castellaro, S., & Squarzoni, G., 2018. Dynamics of an active earthflow
+
+746        inferred from surface wave monitoring, Journal of Geophysical Research: Earth Surface,
+
+747        123, 1811–1834, doi: 10.1029/2017jf004233.
+
+
+748    Bièvre, G., Franz, M., Larose, E., Carrière, S., Jongmans, D., & Jaboyedoff, M., 2018.
+
+749        Influence of environmental parameters on the seismic velocity changes in a clayey mud-
+
+750        flow (pont-bourquin landslide, switzerland), Engineering Geology, 245, 248–257, doi:
+
+751     10.1016/j.enggeo.2018.08.013.
+
+
+752    Bontemps, N., Lacroix, P., Larose, E., Jara, J., & Taipe, E., 2020. Rain and small earthquakes
+
+753        maintain a slow-moving landslide in a persistent critical state, Nature Communications,
+
+754        11, doi: 10.1038/s41467-020-14445-3.
+
+
+755    Boschelli, J., Moschetti, M. P., & SensSchönfelder, C., 2021. Temporal seismic velocity
+
+756     variations: Recovery following from the 2019 mw 7.1 ridgecrest, california earthquake,
+
+757     Journal of Geophysical Research: Solid Earth, 126, doi: 10.1029/2020jb021465.
+
+
+758    Brenguier, F., Campillo, M., Hadziioannou, C., Shapiro, N. M., Nadeau, R. M., & Larose,
+
+759        E., 2008a. Postseismic relaxation along the san andreas fault at parkfield from continuous
+
+760        seismological observations, Science, 321, 1478–1481, doi: 10.1126/science.1160943.
+
+
+761    Brenguier, F., Shapiro, N. M., Campillo, M., Ferrazzini, V., Duputel, Z., Coutant, O., &
+
+762        Nercessian, A., 2008b. Towards forecasting volcanic eruptions using seismic noise, Nature
+
+763    Geoscience, 1, 126–130, doi: 10.1038/ngeo104.
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   5
+764    Brenguier, F., Campillo, M., Takeda, T., Aoki, Y., Shapiro, N. M., Briand, X., Emoto, K.,
+
+765     & Miyake, H., 2014. Mapping pressurized volcanic fluids from induced crustal seismic
+
+766     velocity drops, Science, 345(6192), 80–82, doi: 10.1126/science.1254073.
+
+
+767    Chen, J. H., Froment, B., Liu, Q. Y., & Campillo, M., 2010. Distribution of seismic wave
+
+768     speed changes associated with the 12 may 2008 mw 7.9 wenchuan earthquake, Geophysical
+
+769     Research Letters, 37, doi: 10.1029/2010gl044582.
+
+
+770    Clarke, D., Zaccarelli, L., Shapiro, N. M., & Brenguier, F., 2011. Assessment of resolution
+
+771     and accuracy of the moving window cross spectral technique for monitoring crustal temporal
+
+772     variations using ambient seismic noise, Geophysical Journal International, 186(2), 867–882,
+
+773     doi: 10.1111/j.1365-246X.2011.05074.x.
+
+
+774    Clements, T. & Denolle, M. A., 2018. Tracking groundwater levels using the ambient seismic
+
+775     field, Geophysical Research Letters, 45(13), 6459–6465, doi: 10.1029/2018GL077706.
+
+
+776    Clements, T. & Denolle, M. A., 2023.          The seismic signature of california’s earth-
+
+777     quakes, droughts, and floods, Journal of Geophysical Research: Solid Earth, 128, doi:
+
+778     10.1029/2022jb025553.
+
+
+779    Colombero, C., Baillet, L., Comina, C., Jongmans, D., Larose, E., Valentin, J., & Vinciguerra,
+
+780     S., 2018. Integration of ambient seismic noise monitoring, displacement and meteorological
+
+781     measurements to infer the temperature-controlled long-term evolution of a complex prone-
+
+782     to-fall cliff, Geophysical Journal International, 213, 1876–1897, doi: 10.1093/gji/ggy090.
+
+
+783    Cubuk-Sabuncu, Y., Jónsdóttir, K., Caudron, C., Lecocq, T., Parks, M., Geirsson, H., &
+
+784     Mordret, A., 2021. Temporal seismic velocity changes during the 2020 rapid inflation at
+      58      M. A. Denolle
+785        mt. þorbjörn-svartsengi, iceland, using seismic ambient noise, Geophysical Research Letters,
+
+786        48, e2020GL092265, doi: 10.1029/2020GL092265.
+
+
+787    Czarny, R., Marcak, H., Nakata, N., Pilecki, Z., & Isakow, Z., 2016. Monitoring veloc-
+
+788        ity changes caused by underground coal mining using seismic noise, Pure and Applied
+
+789    Geophysics, 173, 1907–1916, doi: 10.1007/s00024-015-1234-3.
+
+
+790    Daskalakis, E., Evangelidis, C., Garnier, J., Melis, N., Papanicolaou, G., & Tsogka, C., 2016.
+
+791        Robust seismic velocity change estimation using ambient noise recordings, Geophysical
+
+792     Journal International, 205, 1926–1936, doi: 10.1093/gji/ggw142.
+
+
+793    De Plaen, R. S. M., Lecocq, T., Caudron, C., Ferrazzini, V., & Francis, O., 2016. Singlestation
+
+794        monitoring of volcanoes using seismic ambient noise, Geophysical Research Letters, 43,
+
+795        8511–8518, doi: 10.1002/2016gl070078.
+
+
+796    De Plaen, R. S. M., Cannata, A., Cannavo’, F., Caudron, C., Lecocq, T., & Francis,
+
+797        O., 2019. Temporal changes of seismic velocity caused by volcanic activity at mt. etna
+
+798        revealed by the autocorrelation of ambient seismic noise, Frontiers in Earth Science, 6,
+
+799        doi: 10.3389/feart.2018.00251.
+
+
+800    De Wit, T. & Snieder, R., 2026. Did they blow it? time-lapse velocity variations dur-
+
+801        ing an open-pit mine slope failure using seismic noise interferometry, Seismica, 5, doi:
+
+802     10.26443/seismica.v5i1.1902.
+
+
+803    Delouche, E. & Stehly, L., 2023. Seasonal seismic velocity variations measured using seismic
+
+804        noise autocorrelations to monitor the dynamic of aquifers in greece, Journal of Geophysical
+
+805     Research: Solid Earth, 128, doi: 10.1029/2023jb026759.
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   5
+806    Denolle, M. A., Shi, Q., Clements, T., Viens, L., Rodriguez-Tribaldos, V., & Cotton, F.,
+
+807     2025. Ambient field seismology in critical zone hydrological sciences, Comptes Rendus.
+
+808     Géoscience, 357, 425–451, doi: 10.5802/crgeos.310.
+
+
+809    Donaldson, C., Caudron, C., Green, R. G., Thelen, W. A., & White, R. S., 2017. Relative
+
+810     seismic velocity variations correlate with deformation at kīlauea volcano, Science Advances,
+
+811     3, doi: 10.1126/sciadv.1700219.
+
+
+812    Donaldson, C., Winder, T., Caudron, C., & White, R. S., 2019. Crustal seismic velocity
+
+813     responds to a magmatic intrusion and seasonal loading in icelands northern volcanic zone,
+
+814     Science Advances, 5, doi: 10.1126/sciadv.aax6642.
+
+
+815    Duputel, Z., Ferrazzini, V., Brenguier, F., Shapiro, N., Campillo, M., & Nercessian, A.,
+
+816     2009. Real time monitoring of relative velocity changes using ambient seismic noise at
+
+817     the piton de la fournaise volcano (la réunion) from january 2006 to june 2007, Journal of
+
+818    Volcanology and Geothermal Research, 184, 164–173, doi: 10.1016/j.jvolgeores.2008.11.024.
+
+
+819    Ermert, L. A., Cabral-Cano, E., Chaussard, E., Solano-Rojas, D., Quintanar, L.,
+
+820     Morales Padilla, D., Fernández-Torres, E. A., & Denolle, M. A., 2023. Probing envi-
+
+821     ronmental and tectonic changes underneath mexico city with the urban seismic field, Solid
+
+822     Earth, 14, 529–549, doi: 10.5194/se-14-529-2023.
+
+
+823    Feng, K.-F., Huang, H.-H., & Wu, Y.-M., 2020. Detecting pre-eruptive magmatic processes
+
+824     of the 2018 eruption at kilauea, hawaii volcano with ambient noise interferometry, Earth,
+
+825     Planets and Space, 72, doi: 10.1186/s40623-020-01199-x.
+
+
+826    Fiolleau, S., Jongmans, D., Bièvre, G., Chambon, G., Baillet, L., & Vial, B., 2020. Seismic
+      60      M. A. Denolle
+827        characterization of a clay-block rupture in harmalière landslide, french western alps,
+
+828    Geophysical Journal International, 221, 1777–1788, doi: 10.1093/gji/ggaa050.
+
+
+829    Fokker, E., Ruigrok, E., Hawkins, R., & Trampert, J., 2023. 4d physicsbased pore pressure
+
+830        monitoring using passive image interferometry, Geophysical Research Letters, 50, doi:
+
+831     10.1029/2022gl101254.
+
+
+832    Gassenmeier, M., Sens-Schönfelder, C., Delatre, M., & Korn, M., 2014. Monitoring of
+
+833        environmental influences on seismic velocity at the geological storage site for co2 in ketzin
+
+834    (germany) with ambient seismic noise, Geophysical Journal International, 200, 524–533,
+
+835        doi: 10.1093/gji/ggu413.
+
+
+836    Gassenmeier, M., Sens-Schönfelder, C., Eulenfeld, T., Bartsch, M., Victor, P., Tilmann, F.,
+
+837        & Korn, M., 2016. Field observations of seismic velocity changes caused by shaking-induced
+
+838        damage and healing due to mesoscopic nonlinearity, Geophysical Journal International,
+
+839        204, 1490–1502, doi: 10.1093/gji/ggv529.
+
+
+840    Gassmann, F., 1951. Über die elastizität poröser medien, Vierteljahrsschrift der Natur-
+
+841        forschenden Gesellschaft in Zürich, 96, 1–23.
+
+
+842    GaubertBastide, T., Garambois, S., Bordes, C., Voisin, C., Oxarango, L., Brito, D., &
+
+843        Roux, P., 2022. Highresolution monitoring of controlled water table variations from dense
+
+844        seismicnoise acquisitions, Water Resources Research, 58, doi: 10.1029/2021wr030680.
+
+
+845    Gelman, A. & Loken, E., 2013. The garden of forking paths, Department of Statistics,
+
+846    Columbia University (working paper).
+
+
+847    Guillemot, A., Helmstetter, A., Larose, É., Baillet, L., Garambois, S., Mayoraz, R., &
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   6
+848     Delaloye, R., 2020. Seismic monitoring in the gugla rock glacier (switzerland): ambient
+
+849     noise correlation, microseismicity and modelling, Geophysical Journal International, 221,
+
+850     1719–1735, doi: 10.1093/gji/ggaa097.
+
+
+851    Guillemot, A., Baillet, L., Garambois, S., Bodin, X., Helmstetter, A., Mayoraz, R., & Larose,
+
+852     E., 2021. Modal sensitivity of rock glaciers to elastic changes from spectral seismic noise
+
+853     monitoring and modeling, The Cryosphere, 15, 501–529, doi: 10.5194/tc-15-501-2021.
+
+
+854    Hadziioannou, C., Larose, E., Coutant, O., Roux, P., & Campillo, M., 2009. Stability of
+
+855     monitoring weak changes in multiply scattering media with ambient noise correlation:
+
+856     Laboratory experiments, The Journal of the Acoustical Society of America, 125, 3688–3695,
+
+857     doi: 10.1121/1.3125345.
+
+
+858    Hadziioannou, C., Larose, E., Baig, A., Roux, P., & Campillo, M., 2011. Improving temporal
+
+859     resolution in ambient noise monitoring of seismic wave speed, Journal of Geophysical
+
+860     Research: Solid Earth, 116(B7), B07304, doi: 10.1029/2011JB008200.
+
+
+861    Harba, P. & Pilecki, Z., 2016. Assessment of timespatial changes of shear wave velocities
+
+862     of flysch formation prone to mass movements by seismic interferometry with the use of
+
+863     ambient noise, Landslides, 14, 1225–1233, doi: 10.1007/s10346-016-0779-2.
+
+
+864    Hennino, R., Trégourès, N., Shapiro, N. M., Margerin, L., Campillo, M., van Tiggelen, B. A.,
+
+865     & Weaver, R. L., 2001. Observation of equipartition of seismic waves, Physical Review
+
+866     Letters, 86, 3447–3450, doi: 10.1103/PhysRevLett.86.3447.
+
+
+867    Hillers, G., Campillo, M., & Ma, K.-F., 2014. Seismic velocity variations at tcdp are
+
+868     controlled by mjo driven precipitation pattern and high fluid discharge properties, Earth
+
+869     and Planetary Science Letters, 391, 121–127, doi: 10.1016/j.epsl.2014.01.040.
+      62      M. A. Denolle
+870    Hillers, G., Husen, S., Obermann, A., Planès, T., Larose, E., & Campillo, M., 2015. Noise-
+
+871        based monitoring and imaging of aseismic transient deformation induced by the 2006 basel
+
+872        reservoir stimulation, Geophysics, 80, KS51–KS68, doi: 10.1190/geo2014-0455.1.
+
+
+873    Hillers, G., Campillo, M., Brenguier, F., Moreau, L., Agnew, D. C., & BenZion, Y., 2019.
+
+874        Seismic velocity change patterns along the san jacinto fault zone following the 2010 m7.2
+
+875        el mayorcucapah and m5.4 collins valley earthquakes, Journal of Geophysical Research:
+
+876     Solid Earth, 124, 7171–7192, doi: 10.1029/2018jb017143.
+
+
+877    Hobiger, M., Wegler, U., Shiomi, K., & Nakahara, H., 2012. Coseismic and postseismic
+
+878        elastic wave velocity variations caused by the 2008 iwatemiyagi nairiku earthquake, japan,
+
+879     Journal of Geophysical Research: Solid Earth, 117, doi: 10.1029/2012jb009402.
+
+
+880    HotovecEllis, A. J., Gomberg, J., Vidale, J. E., & Creager, K. C., 2014. A continuous
+
+881        record of intereruption velocity change at mount st. helens from coda wave interferometry,
+
+882     Journal of Geophysical Research: Solid Earth, 119, 2199–2214, doi: 10.1002/2013jb010742.
+
+
+883    HotovecEllis, A. J., Vidale, J. E., Gomberg, J., Thelen, W., & Moran, S. C., 2015. Changes
+
+884        in seismic velocity during the first 14 months of the 20042008 eruption of mount st.
+
+885        helens, washington, Journal of Geophysical Research: Solid Earth, 120, 6226–6240, doi:
+
+886     10.1002/2015jb012101.
+
+
+887    HotovecEllis, A. J., Shiro, B. R., Shelly, D. R., Anderson, K. R., Haney, M. M., Thelen,
+
+888     W. A., MontgomeryBrown, E. K., & Johanson, I. A., 2022. Earthquakederived seismic
+
+889     velocity changes during the 2018 caldera collapse of kīlauea volcano, Journal of Geophysical
+
+890     Research: Solid Earth, 127, doi: 10.1029/2021jb023324.
+
+
+891    Illien, L., SensSchönfelder, C., Andermann, C., Marc, O., Cook, K. L., Adhikari, L. B.,
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   6
+892     & Hovius, N., 2022. Seismic velocity recovery in the subsurface: Transient damage and
+
+893     groundwater drainage following the 2015 gorkha earthquake, nepal, Journal of Geophysical
+
+894     Research: Solid Earth, 127, doi: 10.1029/2021jb023402.
+
+
+895    James, S. R., Knox, H. A., Abbott, R. E., & Screaton, E. J., 2017. Improved moving window
+
+896     cross-spectral analysis for resolving large temporal seismic velocity changes in permafrost,
+
+897     Geophysical Research Letters, 44(9), 4018–4026, doi: 10.1002/2016GL072468.
+
+
+898    James, S. R., Knox, H. A., Abbott, R. E., Panning, M. P., & Screaton, E. J., 2019. Insights
+
+899     into permafrost and seasonal activelayer dynamics from ambient seismic noise monitoring,
+
+900     Journal of Geophysical Research: Earth Surface, 124, 1798–1816, doi: 10.1029/2019jf005051.
+
+
+901    Jiang, C. & Denolle, M. A., 2020.        NoisePy: a new high-performance python tool
+
+902     for ambient-noise seismology, Seismological Research Letters, 91(3), 1853–1866, doi:
+
+903     10.1785/0220190364.
+
+
+904    Kidiwela, M., Denolle, M. A., Wilcock, W. S. D., & Feng, K. F., 2026. Active protothrusts
+
+905     and fluid highways: Seismic noise reveals hidden subduction dynamics in cascadia, Science
+
+906     Advances, 12(9), eaea3684, doi: 10.1126/sciadv.aea3684.
+
+
+907    Kim, D. & Lekic, V., 2019. Groundwater variations from autocorrelation and receiver
+
+908     functions, Geophysical Research Letters, 46, 13722–13729, doi: 10.1029/2019gl084719.
+
+
+909    Köpfli, M., Denolle, M. A., Thelen, W. A., Makus, P., & Malone, S. D., 2024. Examining
+
+910     22 years of ambient seismic wavefield at mount st. helens, Seismological Research Letters,
+
+911     95, 2622–2636, doi: 10.1785/0220240079.
+
+
+912    Kristjánsdóttir et al., 2019. https://ui.adsabs.harvard.edu/abs/2019EGUGA..2118643K/
+      64      M. A. Denolle
+913        abstract, dv/v monitoring study (Geothermal wastewater reinjection (water-volume /
+
+914        pore-pressure increase)).
+
+
+915    Le Breton, M., Bontemps, N., Guillemot, A., Baillet, L., & Larose, É., 2021. Landslide
+
+916        monitoring using seismic ambient noise correlation: challenges and applications, Earth-
+
+917     Science Reviews, 216, 103518, doi: 10.1016/j.earscirev.2021.103518.
+
+
+918    Lecocq, T., Caudron, C., & Brenguier, F., 2014. MSNoise, a Python package for monitoring
+
+919        seismic velocity changes using ambient seismic noise, Seismological Research Letters, 85(3),
+
+920     715–726, doi: 10.1785/0220130073.
+
+
+921    Lecocq, T., Longuevergne, L., Pedersen, H. A., Brenguier, F., & Stammler, K., 2017.
+
+922        Monitoring ground water storage at mesoscale using seismic noise: 30 years of continuous
+
+923        observation and thermo-elastic and hydrological modeling, Scientific Reports, 7, doi:
+
+924     10.1038/s41598-017-14468-9.
+
+
+925    Lesage, P., Carrara, A., Pinel, V., & Arámbula-Mendoza, R., 2018. Absence of detectable
+
+926        precursory deformation and velocity variation before the large dome collapse of july 2015
+
+927        at volcán de colima, mexico, Frontiers in Earth Science, 6, doi: 10.3389/feart.2018.00093.
+
+
+928    Lin, F.-C., Moschetti, M. P., & Ritzwoller, M. H., 2008. Surface wave tomography of
+
+929        the western United States from ambient seismic noise: Rayleigh and Love wave phase
+
+930     velocity maps, Geophysical Journal International, 173(1), 281–298, doi: 10.1111/j.1365-
+
+931     246X.2008.03720.x.
+
+
+932    Lindner, F., Wassermann, J., & Igel, H., 2021. Seasonal freezethaw cycles and permafrost
+
+933        degradation on mt. zugspitze (german/austrian alps) revealed by singlestation seismic
+
+934        monitoring, Geophysical Research Letters, 48, doi: 10.1029/2021gl094659.
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   6
+935    Liu, Z., Huang, J., Peng, Z., & Su, J., 2014. Seismic velocity changes in the epicentral region
+
+936     of the 2008 wenchuan earthquake measured from threecomponent ambient noise correlation
+
+937     techniques, Geophysical Research Letters, 41, 37–42, doi: 10.1002/2013gl058682.
+
+
+938    Liu, Z., Li, H., Liang, C., Zhang, T., Jiang, H., & Huang, H., 2026. Enhanced visualization
+
+939     of rainfall infiltration in landslides using high-resolution 4-d noise-based velocity change
+
+940     imaging, Geophysical Journal International, 245, doi: 10.1093/gji/ggag037.
+
+
+941    Lobkis, O. I. & Weaver, R. L., 2003. Coda-wave interferometry in finite solids: Recovery
+
+942     of P-to-S conversion rates in an elastodynamic billiard, Physical Review Letters, 90(25),
+
+943     254302, doi: 10.1103/PhysRevLett.90.254302.
+
+
+944    Lu, Y. & Ben-Zion, Y., 2021. Regional seismic velocity changes following the 2019 mw 7.1
+
+945     ridgecrest, california earthquake from autocorrelations and p/s converted waves, Geophysical
+
+946     Journal International, 228, 620–630, doi: 10.1093/gji/ggab350.
+
+
+947    Luo, B., Zhang, S., & Zhu, H., 2023. Monitoring seasonal fluctuation and longterm trends
+
+948     for the greenland ice sheet using seismic noise autocorrelations, Geophysical Research
+
+949     Letters, 50, doi: 10.1029/2022gl102146.
+
+
+950    Mainsant, G., Larose, E., Brönnimann, C., Jongmans, D., Michoud, C., & Jaboyedoff, M.,
+
+951     2012. Ambient seismic noise monitoring of a clay landslide: Toward failure prediction,
+
+952     Journal of Geophysical Research: Earth Surface, 117, doi: 10.1029/2011jf002159.
+
+
+953    Mao, S., Campillo, M., van der Hilst, R. D., Brenguier, F., Stehly, L., & Hillers, G., 2019.
+
+954     High temporal resolution monitoring of small variations in crustal strain by dense seismic
+
+955     arrays, Geophysical Research Letters, 46(1), 128–137, doi: 10.1029/2018GL079944.
+      66      M. A. Denolle
+956    Mao, S., Mordret, A., Campillo, M., Fang, H., & van der Hilst, R. D., 2020.               On
+
+957        the measurement of seismic traveltime changes in the time–frequency domain with
+
+958     wavelet cross-spectrum analysis, Geophysical Journal International, 221(1), 550–568,
+
+959        doi: 10.1093/gji/ggz495.
+
+
+960    Mao, S., Lecointre, A., van der Hilst, R. D., & Campillo, M., 2022. Space-time monitoring
+
+961        of groundwater fluctuations with passive seismic interferometry, Nature Communications,
+
+962        13, doi: 10.1038/s41467-022-32194-3.
+
+
+963    Mao, S., Ellsworth, W. L., Zheng, Y., & Beroza, G. C., 2025. Depth-dependent seismic
+
+964        sensing of groundwater recovery from the atmospheric-river storms of 2023, Science, 387,
+
+965     758–763, doi: 10.1126/science.adr6139.
+
+
+966    Margerin, L., Campillo, M., & Van Tiggelen, B., 1998. Radiative transfer and diffusion of
+
+967     waves in a layered medium: new insight into coda q, Geophysical Journal International,
+
+968        134(2), 596–612, doi: 10.1046/j.1365-246x.1998.00571.x.
+
+
+969    Margerin, L., Bajaras, A., & Campillo, M., 2019. A scalar radiative transfer model including
+
+970        the coupling between surface and body waves, Geophysical Journal International, 219(2),
+
+971     1092–1108, doi: 10.1093/gji/ggz348.
+
+
+972    Mavko, G., Mukerji, T., & Dvorkin, J., 2009.           The Rock Physics Handbook: Tools
+
+973        for Seismic Analysis of Porous Media, Cambridge University Press, 2nd edition., doi:
+
+974     10.1017/CBO9780511626753.
+
+
+975    Mikesell, T. D., Malcolm, A. E., Yang, D., & Haney, M. M., 2015. A comparison of
+
+976        methods to estimate seismic phase delays: numerical examples for coda wave interferometry,
+
+977    Geophysical Journal International, 202(1), 347–360, doi: 10.1093/gji/ggv138.
+      The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   6
+978    Minato, S., Tsuji, T., Ohmi, S., & Matsuoka, T., 2012. Monitoring seismic velocity change
+
+979     caused by the 2011 tohokuoki earthquake using ambient noise records, Geophysical Research
+
+980     Letters, 39, doi: 10.1029/2012gl051405.
+
+
+981    Mordret, A., Mikesell, T. D., Harig, C., Lipovsky, B. P., & Prieto, G. A., 2016. Monitoring
+
+982     southwest greenlands ice sheet melt with ambient seismic noise, Science Advances, 2, doi:
+
+983     10.1126/sciadv.1501538.
+
+
+984    Moreau, L., Stehly, L., Boué, P., Lu, Y., Larose, E., & Campillo, M., 2017. Improving
+
+985     ambient noise correlation functions with an SVD-based Wiener filter, Geophysical Journal
+
+986     International, 211(1), 418–426, doi: 10.1093/gji/ggx306.
+
+
+987    Nakata, N. & Snieder, R., 2011. Near-surface weakening in japan after the 2011 tohoku-oki
+
+988     earthquake, Geophysical Research Letters, 38, n/a–n/a, doi: 10.1029/2011gl048800.
+
+
+989    Nimiya, H., Ikeda, T., & Tsuji, T., 2017. Spatial and temporal seismic velocity changes on
+
+990     kyushu island during the 2016 kumamoto earthquake, Science Advances, 3, doi: 10.1126/sci-
+
+991     adv.1700813.
+
+
+992    Obermann & Hillers, 2019. Seismic time-lapse interferometry across scales, Advances in
+
+993     Geophysics, pp. 65–143, doi: 10.1016/bs.agph.2019.06.001.
+
+
+994    Obermann, A., Planès, T., Larose, E., Sens-Schönfelder, C., & Campillo, M., 2013. Depth
+
+995     sensitivity of seismic coda waves to velocity perturbations in an elastic heterogeneous
+
+996     medium, Geophysical Journal International, 194(1), 372–382, doi: 10.1093/gji/ggt043.
+
+
+997    Obermann, A., Kraft, T., Larose, E., & Wiemer, S., 2015. Potential of ambient seismic noise
+
+998     techniques to monitor the st. gallen geothermal site (switzerland), Journal of Geophysical
+       68      M. A. Denolle
+999      Research: Solid Earth, 120, 4301–4316, doi: 10.1002/2014jb011817.
+
+
+1000    Obermann, A., Planès, T., Hadziioannou, C., & Campillo, M., 2016. Lapse-time-dependent
+
+1001        coda-wave depth sensitivity to local velocity perturbations in 3-d heterogeneous elastic
+
+1002        media, Geophysical Journal International, 207(1), 59–66, doi: 10.1093/gji/ggw264.
+
+
+1003    Okubo, K., Delbridge, B. G., & Denolle, M. A., 2024. Monitoring velocity change over 20
+
+1004     years at parkfield, Journal of Geophysical Research: Solid Earth, 129(4), e2023JB028084,
+
+1005        doi: 10.1029/2023JB028084.
+
+
+1006    Olivier, G., Brenguier, F., de Wit, T., & Lynch, R., 2017. Monitoring the stability of
+
+1007        tailings dam walls with ambient seismic noise, The Leading Edge, 36, 350a1–350a6, doi:
+
+1008     10.1190/tle36040350a1.1.
+
+
+1009    Olivier, G., Brenguier, F., Carey, R., Okubo, P., & Donaldson, C., 2019. Decrease in seismic
+
+1010     velocity observed prior to the 2018 eruption of kīlauea volcano with ambient seismic noise
+
+1011        interferometry, Geophysical Research Letters, 46, 3734–3744, doi: 10.1029/2018gl081609.
+
+
+1012    Ouellet, S. M., Dettmer, J., Olivier, G., de Wit, T., & Lato, M., 2022. Advanced monitoring
+
+1013        of tailings dam performance using seismic noise and stress models, Communications Earth
+
+1014    & Environment, 3, 301, doi: 10.1038/s43247-022-00629-w.
+
+
+1015    Paasschens, J. C. J., 1997. Solution of the time-dependent boltzmann equation, Physical
+
+1016     Review E, 56(1), 1135–1141, doi: 10.1103/PhysRevE.56.1135.
+
+
+1017    Pacheco, C. & Snieder, R., 2005. Time-lapse travel time change of multiply scattered
+
+1018        acoustic waves, The Journal of the Acoustical Society of America, 118(3), 1300–1310, doi:
+
+1019     10.1121/1.1979437.
+       The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   6
+1020    Planès, T., Mooney, M. A., Rittgers, J. B. R., Parekh, M. L., Behm, M., & Snieder, R.,
+
+1021     2016. Time-lapse monitoring of internal erosion in earthen dams and levees using ambient
+
+1022     seismic noise, Géotechnique, 66(4), 301–312, doi: 10.1680/jgeot.14.P.268.
+
+
+1023    Poli, P., Marguin, V., Wang, Q., D’Agostino, N., & Johnson, P., 2020. Seasonal and
+
+1024     coseismic velocity variation in the region of l’aquila from single station measurements and
+
+1025     implications for crustal rheology, Journal of Geophysical Research: Solid Earth, 125, doi:
+
+1026     10.1029/2019jb019316.
+
+
+1027    Poupinet, G., Ellsworth, W. L., & Frechet, J., 1984. Monitoring velocity variations in the
+
+1028     crust using earthquake doublets: An application to the Calaveras fault, California, Journal
+
+1029     of Geophysical Research: Solid Earth, 89(B7), 5719–5731, doi: 10.1029/jb089ib07p05719.
+
+
+1030    Rivet, D., Campillo, M., Shapiro, N. M., Cruz-Atienza, V., Radiguet, M., Cotte, N., &
+
+1031     Kostoglodov, V., 2011. Seismic evidence of nonlinear crustal deformation during a large slow
+
+1032     slip event in mexico, Geophysical Research Letters, 38, n/a–n/a, doi: 10.1029/2011gl047151.
+
+
+1033    Rivet, D., Brenguier, F., Clarke, D., Shapiro, N. M., & Peltier, A., 2014. Long-term dynamics
+
+1034     of Piton de la Fournaise volcano from 13 years of seismic velocity change measurements
+
+1035     and GPS observations, Journal of Geophysical Research: Solid Earth, 119(10), 7654–7666,
+
+1036     doi: 10.1002/2014JB011307.
+
+
+1037    Rivet, D., Brenguier, F., & Cappa, F., 2015. Improved detection of preeruptive seismic
+
+1038     velocity drops at the piton de la fournaise volcano, Geophysical Research Letters, 42,
+
+1039     6332–6339, doi: 10.1002/2015gl064835.
+
+
+1040    Rubinstein, J. L. & Beroza, G. C., 2005. Depth constraints on nonlinear strong ground
+       70      M. A. Denolle
+1041        motion from the 2004 parkfield earthquake, Geophysical Research Letters, 32, doi:
+
+1042     10.1029/2005gl023189.
+
+
+1043    Sato, H., 1993. Energy transportation in one- and two-dimensional scattering media: analytic
+
+1044        solutions of the multiple isotropic scattering model, Geophysical Journal International,
+
+1045        112(1), 141–146, doi: 10.1111/j.1365-246X.1993.tb01443.x.
+
+
+1046    Sawazaki, K., Sato, H., Nakahara, H., & Nishimura, T., 2009. Time-lapse changes of
+
+1047        seismic velocity in the shallow ground caused by strong ground motion shock of the 2000
+
+1048     western-tottori earthquake, japan, as revealed from coda deconvolution analysis, Bulletin
+
+1049     of the Seismological Society of America, 99, 352–366, doi: 10.1785/0120080058.
+
+
+1050    Schaff, D. P. & Beroza, G. C., 2004. Coseismic and postseismic velocity changes mea-
+
+1051        sured by repeating earthquakes, Journal of Geophysical Research: Solid Earth, 109, doi:
+
+1052     10.1029/2004jb003011.
+
+
+1053    Sens-Schönfelder, C. & Wegler, U., 2006. Passive image interferometry and seasonal
+
+1054     variations of seismic velocities at Merapi volcano, Indonesia, Geophysical Research Letters,
+
+1055        33(21), L21302, doi: 10.1029/2006GL027797.
+
+
+1056    Sens-Schönfelder, C., Pomponi, E., & Peltier, A., 2014. Dynamics of Piton de la Fournaise
+
+1057     volcano observed by passive image interferometry with multiple references, Journal of
+
+1058    Volcanology and Geothermal Research, 276, 32–45, doi: 10.1016/j.jvolgeores.2014.02.012.
+
+
+1059    Sheng, Y., Mordret, A., Sager, K., Brenguier, F., Boué, P., Rousset, B., Vernon, F.,
+
+1060        Higueret, Q., & BenZion, Y., 2022. Monitoring seismic velocity changes across the
+
+1061        san jacinto fault using traingenerated seismic tremors, Geophysical Research Letters, 49,
+
+1062        doi: 10.1029/2022gl098509.
+       The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   7
+1063    Snieder, R., Grêt, A., Douma, H., & Scales, J., 2002. Coda wave interferometry for
+
+1064     estimating nonlinear behavior in seismic velocity, Science, 295(5563), 2253–2255, doi:
+
+1065     10.1126/science.1070015.
+
+
+1066    Steegen, S., Tuerlinckx, F., Gelman, A., & Vanpaemel, W., 2016. Increasing transparency
+
+1067     through a multiverse analysis, Perspectives on Psychological Science, 11(5), 702–712, doi:
+
+1068     10.1177/1745691616658637.
+
+
+1069    Stehly, L., Campillo, M., & Shapiro, N. M., 2006. A study of the seismic noise from its
+
+1070     long-range correlation properties, Journal of Geophysical Research, 111, B10306, doi:
+
+1071     10.1029/2005JB004237.
+
+
+1072    Stehly, L., Froment, B., Campillo, M., Liu, Q. Y., & Chen, J. H., 2015. Monitoring seismic
+
+1073     wave velocity changes associated with the Mw 7.9 Wenchuan earthquake: increasing
+
+1074     the temporal resolution using curvelet filters, Geophysical Journal International, 201(3),
+
+1075     1939–1949, doi: 10.1093/gji/ggv110.
+
+
+1076    Taira, T., Brenguier, F., & Kong, Q., 2015. Ambient noisebased monitoring of seismic
+
+1077     velocity changes associated with the 2014 mw 6.0 south napa earthquake, Geophysical
+
+1078     Research Letters, 42, 6997–7004, doi: 10.1002/2015gl065308.
+
+
+1079    Taira, T., Nayak, A., Brenguier, F., & Manga, M., 2018. Monitoring reservoir response to
+
+1080     earthquakes and fluid extraction, salton sea geothermal field, california, Science Advances,
+
+1081     4, doi: 10.1126/sciadv.1701536.
+
+
+1082    Takano, T., Nishimura, T., & Nakahara, H., 2017. Seismic velocity changes concentrated
+
+1083     at the shallow structure as inferred from correlation analyses of ambient noise during
+       72      M. A. Denolle
+1084     volcano deformation at izuoshima, japan, Journal of Geophysical Research: Solid Earth,
+
+1085        122, 6721–6736, doi: 10.1002/2017jb014340.
+
+
+1086    Tsai, V. C., 2011. A model for seasonal changes in gps positions and seismic wave speeds
+
+1087        due to thermoelastic and hydrologic variations, Journal of Geophysical Research, 116, doi:
+
+1088     10.1029/2010jb008156.
+
+
+1089    Tsuji, T., Ikeda, T., Matsuura, R., Mukumoto, K., Hutapea, F. L., Kimura, T., Yamaoka, K.,
+
+1090        & Shinohara, M., 2021. Continuous monitoring system for safe managements of CO2 storage
+
+1091        and geothermal reservoirs, Scientific Reports, 11, 19120, doi: 10.1038/s41598-021-97881-5.
+
+
+1092    Viens, L. & Van Houtte, C., 2020. Denoising ambient seismic field correlation functions
+
+1093     with convolutional autoencoders, Geophysical Journal International, 220(3), 1521–1535,
+
+1094        doi: 10.1093/gji/ggz509.
+
+
+1095    Voisin, C., Garambois, S., Massey, C., & Brossier, R., 2016. Seismic noise monitoring of
+
+1096        the water table in a deep-seated, slow-moving landslide, Interpretation, 4, SJ67–SJ76, doi:
+
+1097     10.1190/int-2016-0010.1.
+
+
+1098    Wang, Q., Brenguier, F., Campillo, M., Lecointre, A., Takeda, T., & Aoki, Y., 2017. Seasonal
+
+1099        crustal seismic velocity changes throughout japan, Journal of Geophysical Research: Solid
+
+1100     Earth, 122, 7987–8002, doi: 10.1002/2017jb014307.
+
+
+1101    Wang, Q., Campillo, M., Brenguier, F., Lecointre, A., Takeda, T., & Hashima, A., 2019.
+
+1102        Evidence of changes of seismic properties in the entire crust beneath japan after the mw 9.0,
+
+1103     2011 tohokuoki earthquake, Journal of Geophysical Research: Solid Earth, 124, 8924–8941,
+
+1104        doi: 10.1029/2019jb017803.
+       The reproducibility cost of ad-hoc processing choices in ambient-noise seismic velocity-change monitoring   7
+1105    Wang, Q.-Y. & Yao, H., 2020. Monitoring of velocity changes based on seismic ambi-
+
+1106     ent noise: A brief review and perspective, Earth and Planetary Physics, 4, 1–11, doi:
+
+1107     10.26464/epp2020048.
+
+
+1108    Watlet, A., Whiteley, J., Dashwood, B., Morgan, D., Lane, V., Finch, L., Gunn, D., Lecocq,
+
+1109     T., & Chambers, J., 2026. Seismic response of a slow-moving landslide: exploring data
+
+1110     from two years of seismic monitoring at the hollin hill landslide observatory (uk), Seismica,
+
+1111     5, doi: 10.26443/seismica.v5i1.1478.
+
+
+1112    Weaver, R. L., Hadziioannou, C., Larose, E., & Campillo, M., 2011. On the precision of
+
+1113     noise correlation interferometry, Geophysical Journal International, 185(3), 1384–1392,
+
+1114     doi: 10.1111/j.1365-246X.2011.05015.x.
+
+
+1115    Wegler, U. & Sens-Schönfelder, C., 2007. Fault zone monitoring with passive image
+
+1116     interferometry, Geophysical Journal International, 168, 1029–1033, doi: 10.1111/j.1365-
+
+1117     246x.2006.03284.x.
+
+
+1118    Wegler, U., Nakahara, H., SensSchönfelder, C., Korn, M., & Shiomi, K., 2009. Sudden
+
+1119     drop of seismic velocity after the 2004 mw 6.6 midniigata earthquake, japan, observed
+
+1120     with passive image interferometry, Journal of Geophysical Research: Solid Earth, 114, doi:
+
+1121     10.1029/2008jb005869.
+
+
+1122    Xie, F., Larose, E., Wang, Q., & Zhang, Y., 2023. In-situ monitoring of rock slope
+
+1123     destabilization with ambient seismic noise interferometry in southwest china, Engineering
+
+1124     Geology, 312, 106922, doi: 10.1016/j.enggeo.2022.106922.
+
+
+1125    Yates, A. S., Savage, M. K., Jolly, A. D., Caudron, C., & Hamling, I. J., 2019. Volcanic, coseis-
+       74      M. A. Denolle
+1126        mic, and seasonal changes detected at white island (whakaari) volcano, new zealand, using
+
+1127        seismic ambient noise, Geophysical Research Letters, 46, 99–108, doi: 10.1029/2018gl080580.
+
+
+1128    Yates, A. S., Caudron, C., Mordret, A., Lesage, P., Pinel, V., Lecocq, T., Miller, C. A.,
+
+1129        Lamb, O. D., & Fournier, N., 2024. Seasonal snow cycles and their possible influence on
+
+1130        seismic velocity changes and eruptive activity at ruapehu volcano, new zealand, Journal
+
+1131    of Geophysical Research: Solid Earth, 129, doi: 10.1029/2024jb029568.
+
+
+1132    Yuan, C., Bryan, J., & Denolle, M., 2021. Numerical comparison of time-, frequency- and
+
+1133     wavelet-domain methods for coda wave interferometry, Geophysical Journal International,
+
+1134        226(2), 828–846, doi: 10.1093/gji/ggab140.
+
+
+1135    Yukutake, Y., Taira, T., Onizawa, S., & Morita, Y., 2025. Decadal monitoring of seismic
+
+1136     velocity changes beneath izuoshima, central japan, using ambient seismic noise records,
+
+1137     Journal of Geophysical Research: Solid Earth, 130, doi: 10.1029/2025jb031170.
+
+
+1138    Zhan, Z., Tsai, V. C., & Clayton, R. W., 2013. Spurious velocity changes caused by temporal
+
+1139     variations in ambient noise frequency content, Geophysical Journal International, 194(3),
+
+1140     1574–1581, doi: 10.1093/gji/ggt170.
+
+
+1141    Zhang, S., Luo, B., BenZion, Y., Lumley, D. E., & Zhu, H., 2023. Monitoring terrestrial
+
+1142     water storage, drought and seasonal changes in central oklahoma with ambient seismic
+
+1143        noise, Geophysical Research Letters, 50, doi: 10.1029/2023gl103419.
+
+
+1144    Zotz-Wilson, R., Boerrigter, T., & Barnhoorn, A., 2019. Coda-wave monitoring of continu-
+
+1145        ously evolving material properties and the precursory detection of yielding, The Journal
+
+1146    of the Acoustical Society of America, 145(2), 1060–1068, doi: 10.1121/1.5091012.

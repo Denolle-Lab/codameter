@@ -1,0 +1,30 @@
+{
+  "command": [
+    ".pixi/envs/test/bin/python",
+    "-m",
+    "pytest",
+    "-ra",
+    "-p",
+    "no:cacheprovider",
+    "--junitxml=review/evidence/pytest.xml"
+  ],
+  "python": "3.12.13",
+  "platform": "macOS-15.7.4-arm64-arm-64bit",
+  "versions": {
+    "codameter": "0.2.1",
+    "numpy": "2.4.3",
+    "scipy": "1.17.1",
+    "pandas": "3.0.2",
+    "pytest": "9.0.3",
+    "disba": "0.7.0"
+  },
+  "status": "timeout",
+  "timeout_seconds": 540,
+  "elapsed_seconds": 540.088,
+  "visible_pass_marks": 261,
+  "visible_skip_marks": 1,
+  "collected": 301,
+  "uncompleted": 39,
+  "skip_reason_from_source": "tests/test_kernels.py:136: disba is installed; cannot test missing-import path",
+  "no_failures_visible": true
+}

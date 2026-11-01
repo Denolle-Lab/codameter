@@ -1,0 +1,265 @@
+{
+ "manuscript_id": "codameter-gji",
+ "before_commit": "b6dbbd03ad3a9e7b8daac3847a470b93b6918cc8",
+ "after_commit": "c10a1085cdc97d0c436180105c099dc92fd28e7c",
+ "after_hash": "sha256:6b4b9eb91fb2c0701d0f3cca9e8279ae8bcc1a29795de3b5d563556a86059ae4",
+ "lines_before": 1442,
+ "lines_after": 1738,
+ "changed_lines_after": 581,
+ "changed_lines_before": 285,
+ "references_changed": true,
+ "methods_or_data_changed": true,
+ "sections": [
+  {
+   "section": "Front matter / Abstract",
+   "lines": [
+    1,
+    72
+   ],
+   "changed_lines": 39,
+   "total_lines": 72,
+   "changed": true
+  },
+  {
+   "section": "Introduction",
+   "lines": [
+    73,
+    186
+   ],
+   "changed_lines": 38,
+   "total_lines": 114,
+   "changed": true
+  },
+  {
+   "section": "Synthetic framework",
+   "lines": [
+    187,
+    340
+   ],
+   "changed_lines": 46,
+   "total_lines": 154,
+   "changed": true
+  },
+  {
+   "section": "parameter-dependent \\dvv\\ and its errors",
+   "lines": [
+    341,
+    400
+   ],
+   "changed_lines": 18,
+   "total_lines": 60,
+   "changed": true
+  },
+  {
+   "section": "Estimator family",
+   "lines": [
+    401,
+    467
+   ],
+   "changed_lines": 22,
+   "total_lines": 67,
+   "changed": true
+  },
+  {
+   "section": "Aggregating cross-component results",
+   "lines": [
+    468,
+    509
+   ],
+   "changed_lines": 1,
+   "total_lines": 42,
+   "changed": true
+  },
+  {
+   "section": "Aggregating across station pairs",
+   "lines": [
+    510,
+    571
+   ],
+   "changed_lines": 21,
+   "total_lines": 62,
+   "changed": true
+  },
+  {
+   "section": "Frequency band",
+   "lines": [
+    572,
+    606
+   ],
+   "changed_lines": 2,
+   "total_lines": 35,
+   "changed": true
+  },
+  {
+   "section": "Reference",
+   "lines": [
+    607,
+    708
+   ],
+   "changed_lines": 3,
+   "total_lines": 102,
+   "changed": true
+  },
+  {
+   "section": "Substacking",
+   "lines": [
+    709,
+    789
+   ],
+   "changed_lines": 12,
+   "total_lines": 81,
+   "changed": true
+  },
+  {
+   "section": "Coda window",
+   "lines": [
+    790,
+    843
+   ],
+   "changed_lines": 4,
+   "total_lines": 54,
+   "changed": true
+  },
+  {
+   "section": "Causal and acausal branches",
+   "lines": [
+    844,
+    888
+   ],
+   "changed_lines": 11,
+   "total_lines": 45,
+   "changed": true
+  },
+  {
+   "section": "Choices that create spurious \\texorpdfstring{\\dvv}{dv/v}",
+   "lines": [
+    889,
+    917
+   ],
+   "changed_lines": 3,
+   "total_lines": 29,
+   "changed": true
+  },
+  {
+   "section": "The combined impact of processing choices",
+   "lines": [
+    918,
+    1057
+   ],
+   "changed_lines": 21,
+   "total_lines": 140,
+   "changed": true
+  },
+  {
+   "section": "A Bayesian measurement model and its data covariance",
+   "lines": [
+    1058,
+    1194
+   ],
+   "changed_lines": 109,
+   "total_lines": 137,
+   "changed": true
+  },
+  {
+   "section": "Propagating \\dvv\\ errors at depth $\\Delta\\beta/\\beta(z)$",
+   "lines": [
+    1195,
+    1279
+   ],
+   "changed_lines": 10,
+   "total_lines": 85,
+   "changed": true
+  },
+  {
+   "section": "Real-data comparison and deployment",
+   "lines": [
+    1280,
+    1416
+   ],
+   "changed_lines": 82,
+   "total_lines": 137,
+   "changed": true
+  },
+  {
+   "section": "Discussion",
+   "lines": [
+    1417,
+    1543
+   ],
+   "changed_lines": 54,
+   "total_lines": 127,
+   "changed": true
+  },
+  {
+   "section": "Conclusions",
+   "lines": [
+    1544,
+    1568
+   ],
+   "changed_lines": 17,
+   "total_lines": 25,
+   "changed": true
+  },
+  {
+   "section": "Estimator definitions",
+   "lines": [
+    1569,
+    1644
+   ],
+   "changed_lines": 31,
+   "total_lines": 76,
+   "changed": true
+  },
+  {
+   "section": "Aggregation and uncertainty conventions",
+   "lines": [
+    1645,
+    1673
+   ],
+   "changed_lines": 1,
+   "total_lines": 29,
+   "changed": true
+  },
+  {
+   "section": "Survey of processing choices across the literature",
+   "lines": [
+    1674,
+    1700
+   ],
+   "changed_lines": 9,
+   "total_lines": 27,
+   "changed": true
+  },
+  {
+   "section": "Data availability {.unnumbered}",
+   "lines": [
+    1701,
+    1722
+   ],
+   "changed_lines": 19,
+   "total_lines": 22,
+   "changed": true
+  },
+  {
+   "section": "Acknowledgements {.unnumbered}",
+   "lines": [
+    1723,
+    1733
+   ],
+   "changed_lines": 8,
+   "total_lines": 11,
+   "changed": true
+  },
+  {
+   "section": "References {.unnumbered}",
+   "lines": [
+    1734,
+    1738
+   ],
+   "changed_lines": 0,
+   "total_lines": 5,
+   "changed": false
+  }
+ ],
+ "note": "Cosmetic hunks (tilde-to-nonbreaking-space before \\ref, joined lines ending in \\dvv\\) are counted as changed lines; see the diff for substance."
+}

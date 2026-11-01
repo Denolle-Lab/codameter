@@ -1,0 +1,54 @@
+{
+ "figure": "demo_8_artifacts",
+ "generator": "codameter.synthetic_demo.fig_artifacts",
+ "codameter_version": "0.4.0",
+ "git_commit": "141e7bc25bb439420c5ee73223bf78eb4ca7a839",
+ "generated_utc": "2026-09-10T18:32:30+00:00",
+ "python": "3.12.13",
+ "numpy": "2.4.3",
+ "matplotlib": "3.10.9",
+ "axes": [
+  {
+   "axes": "ax0",
+   "title": "(a) clock drift splits the branches",
+   "xlabel": "time (years)",
+   "ylabel": "apparent dv/v (%)",
+   "lines": [
+    "truth (no change)",
+    "causal branch",
+    "acausal branch"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 0
+  },
+  {
+   "axes": "ax1",
+   "title": "(b) late-coda noise -> spurious cycle",
+   "xlabel": "time (years)",
+   "ylabel": "dv/v (%)",
+   "lines": [
+    "truth",
+    "early 8\u201318 s window (clean)",
+    "late 28\u201345 s window (contaminated)"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 0
+  }
+ ],
+ "arrays": [
+  "ax0/line0/x",
+  "ax0/line0/y",
+  "ax0/line1/x",
+  "ax0/line1/y",
+  "ax0/line2/x",
+  "ax0/line2/y",
+  "ax1/line0/x",
+  "ax1/line0/y",
+  "ax1/line1/x",
+  "ax1/line1/y",
+  "ax1/line2/x",
+  "ax1/line2/y"
+ ]
+}

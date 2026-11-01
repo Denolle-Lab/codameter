@@ -1,0 +1,21 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/marinedenolle/GitHub/codameter
+configfile: pyproject.toml
+plugins: cov-7.1.0, nbval-0.11.0, hypothesis-6.152.4
+collected 144 items
+
+tests/test_uq_bayes.py .....                                             [  3%]
+tests/test_uq_depth.py .....                                             [  6%]
+tests/test_uq_measurement.py .......                                     [ 11%]
+tests/test_uq_processing.py ....                                         [ 14%]
+tests/test_sign_convention.py ...............                            [ 25%]
+tests/test_stretching_interpolation.py ................................. [ 47%]
+......................                                                   [ 63%]
+tests/test_linear_inversion.py .............                             [ 72%]
+tests/test_staged_workflow.py ....                                       [ 75%]
+tests/test_forcing_models.py ...........                                 [ 82%]
+tests/test_forward_models.py .........................                   [100%]
+
+- generated xml file: /Users/marinedenolle/GitHub/codameter/review/evidence/pytest_targeted.xml -
+============================= 144 passed in 38.02s =============================

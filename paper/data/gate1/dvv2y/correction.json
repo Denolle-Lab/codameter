@@ -1,0 +1,281 @@
+{
+ "files": {
+  "band=1.0-2.0/CI.ARV.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    1.0,
+    2.0
+   ],
+   "T_s": 0.48301205684678217,
+   "prefactor_and_T": 0.4914326285701745,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.4633271255444004,
+   "original": "CI.ARV.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.3989313054832341,
+    "dvv_err_within": 0.38496608755057693,
+    "dvv_err_method": 0.09072053739899266
+   },
+   "median_after_percent": {
+    "dvv_err": 0.2063324371110779,
+    "dvv_err_within": 0.1783652307768828,
+    "dvv_err_method": 0.09072053739899266
+   }
+  },
+  "band=1.0-2.0/CI.LJR.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    1.0,
+    2.0
+   ],
+   "T_s": 0.48301205684678217,
+   "prefactor_and_T": 0.4914326285701745,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.4633271255444004,
+   "original": "CI.LJR.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.14980899342552628,
+    "dvv_err_within": 0.1427022119473286,
+    "dvv_err_method": 0.037576960375098424
+   },
+   "median_after_percent": {
+    "dvv_err": 0.07878918271268028,
+    "dvv_err_within": 0.06611780567038356,
+    "dvv_err_method": 0.037576960375098424
+   }
+  },
+  "band=1.0-2.0/CI.RXH.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    1.0,
+    2.0
+   ],
+   "T_s": 0.48301205684678217,
+   "prefactor_and_T": 0.4914326285701745,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.4633271255444004,
+   "original": "CI.RXH.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.1482549188791674,
+    "dvv_err_within": 0.14297336722058265,
+    "dvv_err_method": 0.03553232820378844
+   },
+   "median_after_percent": {
+    "dvv_err": 0.0773387393354241,
+    "dvv_err_within": 0.06624343926371656,
+    "dvv_err_method": 0.03553232820378844
+   }
+  },
+  "band=2.0-4.0/CI.ARV.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    2.0,
+    4.0
+   ],
+   "T_s": 0.24150602842339108,
+   "prefactor_and_T": 0.34749534415830025,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.3276217523801163,
+   "original": "CI.ARV.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.4039569780775442,
+    "dvv_err_within": 0.38160709775532387,
+    "dvv_err_method": 0.12892133751168672
+   },
+   "median_after_percent": {
+    "dvv_err": 0.17944456849907658,
+    "dvv_err_within": 0.12502278608728956,
+    "dvv_err_method": 0.12892133751168672
+   }
+  },
+  "band=2.0-4.0/CI.LJR.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    2.0,
+    4.0
+   ],
+   "T_s": 0.24150602842339108,
+   "prefactor_and_T": 0.34749534415830025,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.3276217523801163,
+   "original": "CI.LJR.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.12336355702542022,
+    "dvv_err_within": 0.08173836352725314,
+    "dvv_err_method": 0.09308926644633768
+   },
+   "median_after_percent": {
+    "dvv_err": 0.09659110748682291,
+    "dvv_err_within": 0.026779265895481658,
+    "dvv_err_method": 0.09308926644633768
+   }
+  },
+  "band=2.0-4.0/CI.RXH.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    2.0,
+    4.0
+   ],
+   "T_s": 0.24150602842339108,
+   "prefactor_and_T": 0.34749534415830025,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.3276217523801163,
+   "original": "CI.RXH.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.21072846383525445,
+    "dvv_err_within": 0.20671927993664127,
+    "dvv_err_method": 0.03374568666381958
+   },
+   "median_after_percent": {
+    "dvv_err": 0.07763734252207219,
+    "dvv_err_within": 0.06772573274359824,
+    "dvv_err_method": 0.03374568666381958
+   }
+  },
+  "band=4.0-8.0/CI.ARV.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    4.0,
+    8.0
+   ],
+   "T_s": 0.12075301421169554,
+   "prefactor_and_T": 0.24571631428508725,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.2316635627722002,
+   "original": "CI.ARV.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.2630361448680867,
+    "dvv_err_within": 0.2542477184061325,
+    "dvv_err_method": 0.06387822119108076
+   },
+   "median_after_percent": {
+    "dvv_err": 0.08735855716623209,
+    "dvv_err_within": 0.05889993227266775,
+    "dvv_err_method": 0.06387822119108076
+   }
+  },
+  "band=4.0-8.0/CI.LJR.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    4.0,
+    8.0
+   ],
+   "T_s": 0.12075301421169554,
+   "prefactor_and_T": 0.24571631428508725,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.2316635627722002,
+   "original": "CI.LJR.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.17242362230984834,
+    "dvv_err_within": 0.09705472945336975,
+    "dvv_err_method": 0.14551989453957587
+   },
+   "median_after_percent": {
+    "dvv_err": 0.14692144974261456,
+    "dvv_err_within": 0.022484044409059635,
+    "dvv_err_method": 0.14551989453957587
+   }
+  },
+  "band=4.0-8.0/CI.RXH.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    4.0,
+    8.0
+   ],
+   "T_s": 0.12075301421169554,
+   "prefactor_and_T": 0.24571631428508725,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.2316635627722002,
+   "original": "CI.RXH.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.21484229485676792,
+    "dvv_err_within": 0.19525503354426074,
+    "dvv_err_method": 0.05860339340347467
+   },
+   "median_after_percent": {
+    "dvv_err": 0.0761872429037315,
+    "dvv_err_within": 0.0452334767200689,
+    "dvv_err_method": 0.05860339340347467
+   }
+  },
+  "band=8.0-16.0/CI.ARV.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    8.0,
+    16.0
+   ],
+   "T_s": 0.06037650710584777,
+   "prefactor_and_T": 0.17374767207915012,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.16381087619005816,
+   "original": "CI.ARV.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.1364112483898754,
+    "dvv_err_within": 0.13476775490085302,
+    "dvv_err_method": 0.024494540673929175
+   },
+   "median_after_percent": {
+    "dvv_err": 0.032691826831880724,
+    "dvv_err_within": 0.022076424012475736,
+    "dvv_err_method": 0.024494540673929175
+   }
+  },
+  "band=8.0-16.0/CI.LJR.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    8.0,
+    16.0
+   ],
+   "T_s": 0.06037650710584777,
+   "prefactor_and_T": 0.17374767207915012,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.16381087619005816,
+   "original": "CI.LJR.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.12024332647840354,
+    "dvv_err_within": 0.10509781435262401,
+    "dvv_err_method": 0.05390649245896394
+   },
+   "median_after_percent": {
+    "dvv_err": 0.056500560904500736,
+    "dvv_err_within": 0.017216165054763408,
+    "dvv_err_method": 0.05390649245896394
+   }
+  },
+  "band=8.0-16.0/CI.RXH.parquet": {
+   "date": "2026-09-10T22:44:34+00:00",
+   "codameter_version": "0.4.0",
+   "band_hz": [
+    8.0,
+    16.0
+   ],
+   "T_s": 0.06037650710584777,
+   "prefactor_and_T": 0.17374767207915012,
+   "centre_frequency": 0.9428090415820635,
+   "factor": 0.16381087619005816,
+   "original": "CI.RXH.v040.parquet",
+   "median_before_percent": {
+    "dvv_err": 0.11704864315284673,
+    "dvv_err_within": 0.10556651392490583,
+    "dvv_err_method": 0.051641487436389875
+   },
+   "median_after_percent": {
+    "dvv_err": 0.055154950356061445,
+    "dvv_err_within": 0.0172929431423688,
+    "dvv_err_method": 0.051641487436389875
+   }
+  }
+ },
+ "note": "dvv_err_within rescaled to the corrected Weaver floor (codameter >= 0.5): sqrt(T/2) for the missing spectral timescale and the eq. 20 prefactor, times f_geo/f_arith for the centre-frequency convention; dvv_err recomputed."
+}

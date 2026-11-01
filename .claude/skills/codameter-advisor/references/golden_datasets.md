@@ -1,8 +1,10 @@
 # Golden datasets
 
 Seeded synthetic CCF suites with known ground-truth dv/v(t), organised as a
-**graded benchmark**: 30 cases, 10 per difficulty grade, spanning the monitoring
-applications. Two consumers: the pytest regression oracle
+**graded template family**: 30 templates, 10 per difficulty grade.
+The checkout exposes three public cases, one per grade. A separately
+provisioned corpus supplies private cases. Public examples are development
+checks; no completed external-model evaluation is claimed. Two consumers: the pytest regression oracle
 (`tests/test_golden.py`) and this advisor's live validation.
 
 ## Layout
@@ -27,11 +29,12 @@ earthquake/fault, landslide, groundwater, cryosphere, geothermal).
 - **medium** (split `validation`): a transient coseismic-style drop with
   logarithmic partial healing, plus more measurement noise (SNR 3-5).
 - **hard** (split `test`): a **multi-channel** (4-channel) *and*
-  **depth/frequency-dependent** problem. A shallow (high-frequency) layer carries
+  **frequency-component selection** problem. A shallow (high-frequency) layer carries
   a coseismic drop-and-heal plus a full hydrological seasonal cycle; a deep
   (low-frequency) layer carries a long-term trend. Each case targets one depth
-  (`target: shallow|deep`), so the measurement **band selects the depth** and must
-  match the target. Low SNR (2-4) with waveform decorrelation; channels are
+  (`target: shallow|deep`), so the measurement band selects the imposed component and must
+  match the target. This separated-band surrogate does not validate physical
+  depth resolution or kernels. Low SNR (2-4) with waveform decorrelation; channels are
   measured independently and aggregated (`golden.recover`).
 
 The benchmark therefore grades estimator, reference, stacking, aggregation *and*
@@ -51,9 +54,9 @@ for c in m['cases']:
 
 ## Add or change a case
 
-1. Append a recipe dict to `codameter.golden.CASES` (see the docstring there for
-   the fields). Reuse the synthesis geometry from `codameter.use_cases` via the
-   `use_case` key; only add a new ground-truth generator in `golden.TRUTH` if no
+1. Append a recipe dict to the explicit public recipe source or private corpus builder, as appropriate.
+   `CASES` is populated when the module loads; it is not a persistent registry. Reuse the synthesis geometry from `codameter.use_cases` via the
+   `use_case` key; only add a new ground-truth generator in `golden.MOTIF` if no
    existing one fits.
 2. Regenerate the oracle: `pixi run golden`. Review the printed RMS values; they
    should be small for a recovery case and a stable non-zero value for an
@@ -75,3 +78,17 @@ The same cases are exposed as a FrugalMind benchmark through
 regression vs truth). Export with `pixi run frugalmind-export`; the drop-in
 suite is in `integrations/frugalmind/`. Adding or changing a golden case updates
 the FrugalMind rows automatically, since both read `golden.CASES`.
+
+## Evaluation limits
+
+Public templates and application defaults share construction assumptions.
+Hidden amplitudes do not establish a holdout of waveform physics. Difficulty
+and split are confounded in the current template family. Frozen RMS tolerances
+are regression tolerances, not scientific accuracy requirements.
+
+`observed()` removes truth keys from a dictionary; it is not a sandbox.
+An evaluated agent must not access recipe files, truth caches, scorer metadata,
+or generator routes that reconstruct the answer. Process and filesystem
+isolation remain work for the evaluation harness. Scorer support is fixed per
+case; missing predictions are scored as null change and availability is reported.
+No model transcripts or validated agent-performance claims accompany this corpus.

@@ -31,12 +31,15 @@ from .uq_depth import (
 from .uq_measurement import (
     EnsembleResult,
     GlobalReferenceSolution,
+    bandwidth_timescale,
     effective_sample_size,
     global_reference_inversion,
     processing_ensemble,
     single_reference_dvv,
     temporal_error_covariance,
+    weaver_rms_dilation,
     weaver_stretching_error,
+    weaver_stretching_error_band,
 )
 from .uq_processing import (
     ProcessingChoice,
@@ -70,6 +73,9 @@ __all__ = [
     "GoalReadiness",
     # Measurement (aleatoric) uncertainty of the dv/v observation
     "weaver_stretching_error",
+    "weaver_stretching_error_band",
+    "weaver_rms_dilation",
+    "bandwidth_timescale",
     "processing_ensemble",
     "EnsembleResult",
     "temporal_error_covariance",

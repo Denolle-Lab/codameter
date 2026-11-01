@@ -1,0 +1,20 @@
+{
+  "bounded_fit_mean": [
+    0.0
+  ],
+  "bounded_fit_covariance": [
+    [
+      0.0
+    ]
+  ],
+  "disconnected_reference_solution": [
+    0.004999999999999999,
+    -0.004999999999999998,
+    -2.8912057932946783e-19
+  ],
+  "disconnected_reference_std": [
+    0.0004999999999999999,
+    0.0004999999999999999,
+    0.0
+  ]
+}

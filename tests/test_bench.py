@@ -5,9 +5,7 @@ from __future__ import annotations
 import json
 
 import numpy as np
-
-from codameter import bench
-from codameter import golden
+from codameter import bench, golden
 
 EASY = "easy-volcano-01"
 HARD = next(c["id"] for c in golden.CASES if c["grade"] == "hard")
@@ -16,7 +14,9 @@ HARD = next(c["id"] for c in golden.CASES if c["grade"] == "hard")
 def test_build_grid_shapes_and_counts():
     case = golden.CASES_BY_ID[EASY]
     cfgs = bench.build_grid(case, "compact")
-    assert len(cfgs) == 4  # 2 estimators x 2 references; rec band/window/stack, gate=[True]
+    assert (
+        len(cfgs) == 4
+    )  # 2 estimators x 2 references; rec band/window/stack, gate=[True]
     for c in cfgs:
         assert set(c) == {"estimator", "band", "window", "stack", "reference", "gate"}
         assert isinstance(c["band"], tuple) and isinstance(c["window"], tuple)
@@ -88,7 +88,7 @@ def test_score_cell_aggregates_multichannel_and_grades_depth():
     miss = bench.score_cell(HARD, 1, uc.recommend(app, band=wrong))
     assert hit["ok"] and miss["ok"]
     assert hit["target"] in ("shallow", "deep")
-    assert hit["rms"] < miss["rms"]      # picking the right depth wins
+    assert hit["rms"] < miss["rms"]  # picking the right depth wins
 
 
 def test_run_sweep_and_roundtrip(tmp_path):
@@ -97,8 +97,9 @@ def test_run_sweep_and_roundtrip(tmp_path):
     assert all(r["case_id"] == EASY for r in rows)
     dest = bench._write_jsonl(rows, str(tmp_path), "shard-00000-of-00001.jsonl")
     assert dest.endswith(".jsonl")
-    back = list(bench._read_jsonl_dir(str(tmp_path)))
+    back = [r for _, r in bench._read_jsonl_dir(str(tmp_path))]
     assert len(back) == 4
+    assert all(r["codameter_version"] for r in back)
     json.dumps(back)  # serializable
 
 
@@ -108,3 +109,44 @@ def test_best_config_is_the_recommended_one():
     best = min(ok, key=lambda r: r["rms"])
     assert best["estimator"] == "stretching (TS)"
     assert best["reference"] == "fixed"
+
+
+def test_score_cell_rows_carry_generator_digest_and_commit():
+    from codameter import golden
+    from codameter import use_cases as uc
+
+    row = bench.score_cell(EASY, 0, uc.recommend("volcano"))
+    assert row["generator_hash"] == golden._generator_hash()
+    assert "git_commit" in row
+
+
+def test_check_shards_refuses_rows_from_different_generators():
+    base = {
+        "case_id": "c",
+        "codameter_version": "1",
+        "generator_hash": "aaaa",
+        "git_commit": "x",
+    }
+    pairs = [
+        ("shard-00000-of-00002.jsonl", dict(base, config_index=0)),
+        ("shard-00001-of-00002.jsonl", dict(base, config_index=1)),
+    ]
+    assert bench.check_shards(pairs)["complete"]
+    pairs[1] = (pairs[1][0], dict(pairs[1][1], generator_hash="bbbb"))
+    inv = bench.check_shards(pairs)
+    assert not inv["complete"]
+    assert any("generator digest" in p for p in inv["problems"])
+    # A different commit alone is listed, not refused.
+    pairs[1] = (pairs[1][0], dict(pairs[1][1], generator_hash="aaaa", git_commit="y"))
+    inv = bench.check_shards(pairs)
+    assert inv["complete"] and inv["git_commits"] == ["x", "y"]
+    # a missing commit is omitted from the list, not stringified
+    row = dict(pairs[1][1], git_commit=None)
+    assert bench.check_shards([pairs[0], (pairs[1][0], row)])["git_commits"] == ["x"]
+    # A row without a digest is refused, not treated as the digest "None".
+    row = dict(pairs[1][1])
+    del row["generator_hash"]
+    inv = bench.check_shards([pairs[0], (pairs[1][0], row)])
+    assert not inv["complete"] and any(
+        "no generator digest" in p for p in inv["problems"]
+    )

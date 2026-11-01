@@ -5,7 +5,8 @@ The single editable source is the manuscript ``.qmd`` file in this directory
 (currently ``manuscript_marine.qmd`` --- see :data:`SOURCE_CANDIDATES` if it is
 ever renamed). This script
 
-  1. (optionally) regenerates the synthetic-demo figures into ``literature/figs/``;
+  1. (optionally) regenerates every generated figure into ``literature/figs/``
+     with numerical sidecars (``python -m codameter.figures``);
   2. regenerates the 103-study ``survey.bib`` and ``appendix_table.tex`` from the
      literature CSV (``paper/build_survey.py``);
   3. runs ``quarto render <source>.qmd --to pdf`` which, with ``keep-tex: true``,
@@ -20,6 +21,7 @@ Usage::
     python paper/build.py --no-survey  # skip the survey/appendix regeneration
     python paper/build.py --qmd manuscript_marine.qmd  # pin the source explicitly
 """
+
 from __future__ import annotations
 
 import argparse
@@ -122,10 +124,18 @@ def main() -> int:
     print(f"manuscript source: {source.relative_to(ROOT)}")
 
     if args.figures:
-        run([sys.executable, "literature/synthetic_dvv_demo.py"], ROOT)
+        # One driver for every generated figure, each with .npz/.json sidecars
+        # (codameter.figures). The three real-data figures are external; see
+        # literature/figs/SOURCES.md.
+        run(
+            [sys.executable, "-m", "codameter.figures", "--out", "literature/figs"],
+            ROOT,
+        )
 
     if not args.no_survey:
         run([sys.executable, "paper/build_survey.py"], ROOT)
+    # Calibration table from the archived runs (paper/data/calibration/).
+    run([sys.executable, "paper/build_calibration_table.py"], ROOT)
 
     # Quarto reads/writes relative to the .qmd directory.
     run(["quarto", "render", source.name, "--to", "pdf"], HERE)

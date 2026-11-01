@@ -28,23 +28,41 @@ Two task kinds, matching the two natural output types:
 Both are scored by recovery against ground truth, not by matching a fixed answer,
 so a different-but-good pipeline scores well. Negatives are first-class: a config
 that cycle-skips or picks the wrong depth band scores near zero.
+
+Scoring support (scorer version 2). Each gold record fixes, per case, the epochs
+on which the submission is evaluated (``support``: where the case's reference
+pipeline is valid) and the datum epochs (``baseline``: the earliest 20% of the
+support) over which truth and prediction are demeaned. A missing or non-finite
+prediction inside the support is scored as the null prediction (no change), via
+:func:`codameter.golden.rms_on_support`. Version 1 took both the support and the
+datum from the submission's own finite values, so ten zeros followed by nulls
+scored 1.0 on every public case (2026-09-10 audit, EV-01).
 """
+
 from __future__ import annotations
 
 import ast
 import json
 import re
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 
 from . import golden
 from . import use_cases as uc
 
-DATASET_ID = "codameter"   # the name the suites appear under in FrugalMind
-VERSION = "v0.1"
+DATASET_ID = "codameter"  # the name the suites appear under in FrugalMind
+VERSION = "v0.2"
 TASKS = ("param_recommendation", "dvv_series")
+# Scoring rule carried in every row's scorer_spec so an exported dataset is
+# self-describing. Bump when the rule changes; keep the thresholds in the manifest.
+SCORER_CONFIG = {
+    "version": 2,
+    "support": "reference_pipeline_valid",
+    "missing": "null_prediction",
+}
 
 # Task kind (FrugalMind TaskKind value) per suite. Both are framed as the agent
 # generating something the scorer executes/regresses, i.e. code_generation.
@@ -57,29 +75,41 @@ TASK_KIND = {
 # band/window, so the agent must supply the domain knowledge. The scorer grades
 # on recovery, never on matching these.
 SCENARIO = {
-    "volcano": ("Ambient-noise monitoring of an active volcanic edifice. You want "
-                "to track a slow pre-eruptive velocity change and a sharp "
-                "co-eruptive drop in the shallow, crack-rich edifice (roughly the "
-                "upper few km). Station pairs are available."),
-    "earthquake_fault": ("Ambient-noise monitoring across a crustal fault zone. "
-                         "You want to resolve a coseismic velocity drop and its "
-                         "gradual, partial healing, dominated by the shallow "
-                         "(top ~100 m to a few km) nonlinear site response."),
-    "landslide": ("Dense-array monitoring of a clay-rich landslide body. "
-                  "Inter-sensor distances are tens of meters, the failure surface "
-                  "is in the top few meters to ~40 m, and you expect a large "
-                  "(several percent) accelerating velocity drop before failure, on "
-                  "top of a rainfall-driven seasonal swing."),
-    "groundwater": ("Single-station and small-array monitoring of a shallow "
-                    "aquifer, roughly the upper few hundred meters. You want the "
-                    "seasonal hydrologic velocity change and a slow multi-year "
-                    "drought trend."),
-    "cryosphere": ("Shallow high-frequency array monitoring of a permafrost active "
-                   "layer / rock glacier, top ~0-10 m. You expect a large, sharply "
-                   "seasonal freeze-thaw velocity swing."),
-    "geothermal": ("Monitoring of a geothermal reservoir at depths of hundreds of "
-                   "meters to a few km, tracking a slow injection-driven velocity "
-                   "decline. Station pairs are available."),
+    "volcano": (
+        "Ambient-noise monitoring of an active volcanic edifice. You want "
+        "to track a slow pre-eruptive velocity change and a sharp "
+        "co-eruptive drop in the shallow, crack-rich edifice (roughly the "
+        "upper few km). Station pairs are available."
+    ),
+    "earthquake_fault": (
+        "Ambient-noise monitoring across a crustal fault zone. "
+        "You want to resolve a coseismic velocity drop and its "
+        "gradual, partial healing, dominated by the shallow "
+        "(top ~100 m to a few km) nonlinear site response."
+    ),
+    "landslide": (
+        "Dense-array monitoring of a clay-rich landslide body. "
+        "Inter-sensor distances are tens of meters, the failure surface "
+        "is in the top few meters to ~40 m, and you expect a large "
+        "(several percent) accelerating velocity drop before failure, on "
+        "top of a rainfall-driven seasonal swing."
+    ),
+    "groundwater": (
+        "Single-station and small-array monitoring of a shallow "
+        "aquifer, roughly the upper few hundred meters. You want the "
+        "seasonal hydrologic velocity change and a slow multi-year "
+        "drought trend."
+    ),
+    "cryosphere": (
+        "Shallow high-frequency array monitoring of a permafrost active "
+        "layer / rock glacier, top ~0-10 m. You expect a large, sharply "
+        "seasonal freeze-thaw velocity swing."
+    ),
+    "geothermal": (
+        "Monitoring of a geothermal reservoir at depths of hundreds of "
+        "meters to a few km, tracking a slow injection-driven velocity "
+        "decline. Station pairs are available."
+    ),
 }
 
 _ESTIMATORS = {"stretching (TS)", "MWCS", "WCS", "DTW", "WCC", "WTS", "WTDTW"}
@@ -123,7 +153,7 @@ def _series_prompt(case: dict) -> str:
         f'codameter as golden.observed("{case["id"]}") -> {{"ccfs", "t", "days", '
         '"fs", ...}}. (That is the observables-only view; it does not contain the '
         "answer.) Choose an appropriate pipeline, recover the dv/v(t) series, "
-        f'and return ONLY a JSON array of {golden.observed(case["id"])["days"].size} '
+        f"and return ONLY a JSON array of {golden.observed(case['id'])['days'].size} "
         "floats: the fractional dv/v for each day in order. No prose."
     )
 
@@ -147,22 +177,35 @@ def _thresholds(case_id: str) -> dict:
 
 
 def _gold(case: dict, task: str) -> dict:
+    """Scorer-side record: thresholds plus the fixed evaluation support.
+
+    ``support`` and ``baseline`` come from the case's reference pipeline (the
+    use-case recommendation with the case's own config overrides), never from
+    the submission; see :func:`codameter.golden.scoring_support`.
+    """
     g = {"case_id": case["id"], "use_case": case["use_case"], **_thresholds(case["id"])}
+    d = golden.generate(case["id"])
+    cfg = uc.recommend(case["use_case"], **case.get("config", {}))
+    sup = golden.scoring_support(d, cfg, uc.eps_max(case["use_case"]))
+    g["n_days"] = int(d["days"].size)
+    g["support"] = sup["support"]
+    g["baseline"] = sup["baseline"]
     if task == "dvv_series":
-        d = golden.generate(case["id"])
-        g["n_days"] = int(d["days"].size)
-        # Anchor "clearly wrong" to the null (no-change) prediction: a returned
-        # series of zeros should score ~0. For a low-amplitude target the fixed
-        # rms_bad is too lenient, so use the larger of the two.
-        null_rms = golden._rms(np.zeros_like(d["truth"]), d["truth"], d["days"],
-                               np.ones_like(d["truth"], bool))
+        # Anchor "clearly wrong" to the null (no-change) prediction, which is
+        # also what a missing prediction is scored as: a series of zeros should
+        # score ~0. For a low-amplitude target the fixed rms_bad is too lenient,
+        # so use the larger of the two.
+        null_rms, _ = golden.rms_on_support(
+            np.zeros_like(d["truth"]), d["truth"], g["support"], g["baseline"]
+        )
         if np.isfinite(null_rms) and null_rms > g["rms_ceiling"]:
             g["rms_bad"] = float(null_rms)
     return g
 
 
-def build_rows(task: str, *, split: str | None = None,
-               visibility: str | None = None) -> list[dict]:
+def build_rows(
+    task: str, *, split: str | None = None, visibility: str | None = None
+) -> list[dict]:
     """Return BenchmarkRow-shaped dicts for one task over the golden cases.
 
     Filter by ``split`` ("validation"/"test") and/or ``visibility``
@@ -171,31 +214,37 @@ def build_rows(task: str, *, split: str | None = None,
     if task not in TASKS:
         raise ValueError(f"task must be one of {TASKS}; got {task!r}")
     prompt_fn = _param_prompt if task == "param_recommendation" else _series_prompt
-    scorer_name = ("dvv_recovery" if task == "param_recommendation"
-                   else "dvv_series_regression")
+    scorer_name = (
+        "dvv_recovery" if task == "param_recommendation" else "dvv_series_regression"
+    )
     rows = []
     for case in golden.CASES:
         if split is not None and golden.case_split(case) != split:
             continue
         if visibility is not None and golden.case_visibility(case) != visibility:
             continue
-        rows.append({
-            "id": f"{DATASET_ID}/{task}/{case['id']}",
-            "dataset_id": DATASET_ID,
-            "suite_id": task,
-            "version": VERSION,
-            "task_kind": TASK_KIND[task],
-            "split": golden.case_split(case),
-            "visibility": golden.case_visibility(case),
-            "prompt": prompt_fn(case),
-            "gold": _gold(case, task),
-            "scorer_spec": {"name": scorer_name, "config": {}},
-            "metadata": {
-                "case_id": case["id"], "use_case": case["use_case"],
-                "grade": case["grade"],
-                "recommended_config": golden._jsonable(uc.recommend(case["use_case"])),
-            },
-        })
+        rows.append(
+            {
+                "id": f"{DATASET_ID}/{task}/{case['id']}",
+                "dataset_id": DATASET_ID,
+                "suite_id": task,
+                "version": VERSION,
+                "task_kind": TASK_KIND[task],
+                "split": golden.case_split(case),
+                "visibility": golden.case_visibility(case),
+                "prompt": prompt_fn(case),
+                "gold": _gold(case, task),
+                "scorer_spec": {"name": scorer_name, "config": dict(SCORER_CONFIG)},
+                "metadata": {
+                    "case_id": case["id"],
+                    "use_case": case["use_case"],
+                    "grade": case["grade"],
+                    "recommended_config": golden._jsonable(
+                        uc.recommend(case["use_case"])
+                    ),
+                },
+            }
+        )
     return rows
 
 
@@ -214,7 +263,7 @@ def _first_json(text: str, opener: str, closer: str):
         elif text[i] == closer:
             depth -= 1
             if depth == 0:
-                blob = text[start:i + 1]
+                blob = text[start : i + 1]
                 for loader in (json.loads, ast.literal_eval):
                     try:
                         return loader(blob)
@@ -231,7 +280,7 @@ def parse_config(text: str) -> dict | None:
 
 
 def _as_pair(v):
-    if isinstance(v, (list, tuple)) and len(v) == 2:
+    if isinstance(v, list | tuple) and len(v) == 2:
         return (float(v[0]), float(v[1]))
     if isinstance(v, str):
         m = re.findall(r"[-+]?\d*\.?\d+", v)
@@ -292,7 +341,11 @@ def score_param_recommendation(output_text: str, gold: dict) -> float:
         dvv, valid = golden.recover(d, cfg, uc.eps_max(gold["use_case"]))
     except Exception:
         return 0.0
-    rms = golden._rms(dvv, d["truth"], d["days"], valid)
+    # Epochs the submitted pipeline could not estimate are scored as the null
+    # prediction on the case's fixed support (they are not dropped).
+    rms, _availability = golden.rms_on_support(
+        np.where(valid, dvv, np.nan), d["truth"], gold["support"], gold["baseline"]
+    )
     return _score_from_rms(rms, gold["rms_ceiling"], gold["rms_bad"])
 
 
@@ -302,8 +355,9 @@ def score_dvv_series(output_text: str, gold: dict) -> float:
     series = parse_series(output_text, n=int(gold["n_days"]))
     if series is None:
         return 0.0
-    valid = np.isfinite(series)
-    rms = golden._rms(series, d["truth"], d["days"], valid)
+    rms, _availability = golden.rms_on_support(
+        series, d["truth"], gold["support"], gold["baseline"]
+    )
     return _score_from_rms(rms, gold["rms_ceiling"], gold["rms_bad"])
 
 
@@ -326,8 +380,9 @@ def make_scorer_from_spec(spec: dict) -> Callable[[str, Any], float]:
 # ---------------------------------------------------------------------------
 # Self-hosted JSONL export (mirrors frugalmind.export, no FrugalMind import)
 # ---------------------------------------------------------------------------
-def export_jsonl(out_dir: str | Path, *, version: str = VERSION,
-                 visibility: str | None = None) -> dict:
+def export_jsonl(
+    out_dir: str | Path, *, version: str = VERSION, visibility: str | None = None
+) -> dict:
     """Write ``<out_dir>/<dataset>/<version>/<task>.jsonl`` + a sha256 manifest.
 
     This lets codameter self-host the benchmark in the canonical FrugalMind
@@ -357,8 +412,12 @@ def main(argv: list[str] | None = None) -> int:
 
     ap = argparse.ArgumentParser(description="Export the dv/v benchmark as JSONL.")
     ap.add_argument("--out", default="datasets", help="output root directory")
-    ap.add_argument("--visibility", default=None, choices=[None, "public", "private"],
-                    help="export only rows with this visibility")
+    ap.add_argument(
+        "--visibility",
+        default=None,
+        choices=[None, "public", "private"],
+        help="export only rows with this visibility",
+    )
     args = ap.parse_args(argv)
     manifest = export_jsonl(args.out, visibility=args.visibility)
     dest = Path(args.out) / DATASET_ID / VERSION

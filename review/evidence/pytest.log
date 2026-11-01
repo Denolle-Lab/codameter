@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/marinedenolle/GitHub/codameter
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0, nbval-0.11.0, hypothesis-6.152.4
+collected 301 items
+
+tests/test_bench.py .........                                            [  2%]
+tests/test_cli.py ....                                                   [  4%]
+tests/test_coupling.py ...............                                   [  9%]
+tests/test_coupling_tiers.py .......                                     [ 11%]
+tests/test_data_loaders.py ............                                  [ 15%]
+tests/test_data_readiness.py ...                                         [ 16%]
+tests/test_deviations.py ...............                                 [ 21%]
+tests/test_forcing_models.py ...........                                 [ 25%]
+tests/test_forward_models.py .........................                   [ 33%]
+tests/test_frugalmind_export.py .........                                [ 36%]
+tests/test_golden.py ......................                              [ 43%]
+tests/test_kernels.py .........s                                         [ 47%]
+tests/test_linear_inversion.py .............                             [ 51%]
+tests/test_private_golden.py ......                                      [ 53%]
+tests/test_property_providers.py .........                               [ 56%]
+tests/test_sign_convention.py ...............                            [ 61%]
+tests/test_staged_workflow.py ....                                       [ 62%]
+tests/test_stretching_interpolation.py ................................. [ 73%]
+......................                                                   [ 81%]
+tests/test_synthetic_demo.py ..................

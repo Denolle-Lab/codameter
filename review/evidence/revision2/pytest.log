@@ -1,0 +1,15 @@
+........................................................................ [ 20%]
+........................................................................ [ 41%]
+.....................s.................................................. [ 62%]
+........................................................................ [ 83%]
+.......................................................                  [100%]
+=============================== warnings summary ===============================
+tests/test_cli.py::test_data_check_reports_missing_goal_inputs
+tests/test_cli.py::test_data_check_can_fail_on_missing
+  /Users/marinedenolle/GitHub/codameter/src/codameter/cli.py:397: UserWarning: dvv_err column not found in dvv.csv; defaulting to dvv_err = 0.001 (0.1 %). Provide an err column for proper WLS weighting in Phase 3.
+    dvv_data = load_dvv(args.dvv, units=args.dvv_units)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_kernels.py:136: disba is installed; cannot test missing-import path
+342 passed, 1 skipped, 2 warnings in 754.52s (0:12:34)

@@ -1,0 +1,69 @@
+{
+  "python": "3.12.13 | packaged by conda-forge | (main, Mar  5 2026, 17:06:14) [Clang 19.1.7 ]",
+  "numpy": "2.4.3",
+  "scipy": "1.17.1",
+  "sparse_score": {
+    "easy-volcano-01": {
+      "n_days": 1095,
+      "n_finite_sparse": 10,
+      "all_zero_score": 0.0,
+      "ten_zero_rest_null_score": 1.0
+    },
+    "medium-earthquake_fault-02": {
+      "n_days": 1095,
+      "n_finite_sparse": 10,
+      "all_zero_score": 0.0,
+      "ten_zero_rest_null_score": 1.0
+    },
+    "hard-groundwater-04": {
+      "n_days": 913,
+      "n_finite_sparse": 10,
+      "all_zero_score": 0.0,
+      "ten_zero_rest_null_score": 1.0
+    }
+  },
+  "advisor_mapping": {
+    "volcano": "easy-volcano-01",
+    "earthquake_fault": "medium-earthquake_fault-02",
+    "landslide": "KeyError: 'landslide'",
+    "groundwater": "hard-groundwater-04",
+    "cryosphere": "KeyError: 'cryosphere'",
+    "geothermal": "KeyError: 'geothermal'"
+  },
+  "floor_time_unit_probe": {
+    "seconds": 0.0009269543467363752,
+    "milliseconds_reexpression": 2.9312870226804134e-05,
+    "ratio": 0.0316227766016838,
+    "note": "Dimensional diagnostic, not a supported milliseconds API call."
+  },
+  "mixture_variance": {
+    "zero_mean_mixture_true_variance": 1.7952069683788366e-06,
+    "reported_variance": 2.4620556958918783e-06,
+    "extra_floor_variance": 6.668487275130417e-07,
+    "note": "No conditional-mean difference is supplied."
+  },
+  "shared_bias_counterexample": {
+    "true_signal": "zero; all pipelines share the same sinusoidal artifact",
+    "error_rms": 0.00212135623401608,
+    "median_Cd_std": 5.998023899798922e-05,
+    "fraction_zero_inside_mu_plusminus_2sd": 0.06666666666666667,
+    "note": "Constructed counterexample, not an empirical coverage estimate."
+  },
+  "irregular_time": {
+    "mu_identical_after_1000_day_gap": true,
+    "note": "Times affect posthoc Cd, not the index-based smoothness prior."
+  },
+  "bayes_config_semantics": {
+    "fixed_gated_equals_moving_ungated": true,
+    "labels_identical": true,
+    "cadence_days": 3,
+    "stack_records": 10,
+    "window_span_days": 27
+  },
+  "cache_consistency": {
+    "cold_dtype": "float64",
+    "warm_dtype": "float32",
+    "array_equal": false,
+    "max_absolute_difference": 4.768302961366544e-07
+  }
+}

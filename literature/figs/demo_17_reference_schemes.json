@@ -1,0 +1,51 @@
+{
+ "figure": "demo_17_reference_schemes",
+ "generator": "codameter.synthetic_demo.fig_reference_schemes",
+ "codameter_version": "0.4.0",
+ "git_commit": "141e7bc25bb439420c5ee73223bf78eb4ca7a839",
+ "generated_utc": "2026-09-10T18:39:35+00:00",
+ "python": "3.12.13",
+ "numpy": "2.4.3",
+ "matplotlib": "3.10.9",
+ "axes": [
+  {
+   "axes": "ax0",
+   "title": "(a) five reference schemes",
+   "xlabel": "",
+   "ylabel": "RMS error vs truth (dv/v, %, log)",
+   "lines": [],
+   "images": 0,
+   "collections": [],
+   "patches": 10
+  },
+  {
+   "axes": "ax1",
+   "title": "(b) a longer trailing window helps,\nbut never converges",
+   "xlabel": "moving-reference length (days)",
+   "ylabel": "RMS error vs truth (dv/v, %)",
+   "lines": [
+    "_child0",
+    "whole-record reference"
+   ],
+   "images": 0,
+   "collections": [],
+   "patches": 0
+  }
+ ],
+ "arrays": [
+  "ax0/patch0/xywh",
+  "ax0/patch1/xywh",
+  "ax0/patch2/xywh",
+  "ax0/patch3/xywh",
+  "ax0/patch4/xywh",
+  "ax0/patch5/xywh",
+  "ax0/patch6/xywh",
+  "ax0/patch7/xywh",
+  "ax0/patch8/xywh",
+  "ax0/patch9/xywh",
+  "ax1/line0/x",
+  "ax1/line0/y",
+  "ax1/line1/x",
+  "ax1/line1/y"
+ ]
+}

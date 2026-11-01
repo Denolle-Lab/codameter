@@ -1,101 +1,77 @@
-# Live validation
+# Live synthetic assessment
 
-This is the step that makes the advice more than an opinion. Run the recommended
-config and a comparison config on a matched synthetic with known ground truth,
-and report the difference in bias and error bar. The truth is known exactly, so
-every difference is an artifact of the processing choice, not of nature.
+Use public development scenarios for advice. Synthetic recovery measures
+performance conditional on the imposed truth, waveform, noise, and choices.
+It does not prove a recommendation for field observations.
 
-## The primitives
+## Recommended versus comparison
 
-- `codameter.golden.generate(case_id)` returns `{ccfs, t, days, truth, fs, ...}`
-  for a seeded case. `codameter.golden.MAINSTREAM_BY_USE_CASE[use_case]` gives a matched
-  (easy-grade) case id for an application.
-- `codameter.deviations.run_pipeline(ccfs, t, fs, cfg, eps_max=...)` returns
-  `(dvv, valid)` for one config.
-- `codameter.golden._rms(dvv, truth, days, valid)` is the baseline-aligned RMS
-  error (removes the unobservable DC offset of a relative measurement).
-- `codameter.deviations.multiverse(...)` returns the first-order variance
-  attribution (volcano synthetic; use it for the "which choice controls the
-  answer" statement).
-- `codameter.uq_bayes.bayes_dvv_from_ccfs(ccfs, t, fs, truth=truth, days=days)`
-  returns `(BayesResult, EnsembleRun)`; `BayesResult.Cd` is the marginal
-  measurement covariance for a downstream inversion.
+`golden.advisory_case` builds a seasonal example for every application.
+It does not depend on `MAINSTREAM_BY_USE_CASE` or private cases.
+The returned recipe records the seed, duration, application, and noise.
+Application defaults share assumptions with the generator. This is a
+consistency check, not an independent generalization benchmark.
 
-## Recommended vs comparison, on a matched synthetic
-
-Fill `USER_CFG` with the user's current choices (or a deliberately naive config
-if they have none). Run:
-
-```bash
-pixi run python - <<'PY'
-from codameter import use_cases as uc, golden
-from codameter.deviations import run_pipeline
-
-USE_CASE = "volcano"                     # from Step 1
-USER_CFG = {"reference": "moving"}       # the user's current choice(s), as overrides
-
-key = uc.resolve(USE_CASE)
-d = golden.generate(golden.MAINSTREAM_BY_USE_CASE[key])
-eps = uc.eps_max(key)
-
-rec = uc.recommend(key)
-usr = uc.recommend(key, **USER_CFG)
-
-for label, cfg in [("recommended", rec), ("user/naive", usr)]:
-    dvv, valid = run_pipeline(d["ccfs"], d["t"], d["fs"], cfg, eps_max=eps)
-    rms = golden._rms(dvv, d["truth"], d["days"], valid)
-    print(f"{label:<12} {cfg}")
-    print(f"{'':<12} RMS vs truth = {rms*100:.4f} %  (valid epochs {int(valid.sum())})")
-PY
-```
-
-Report the two RMS values and the ratio. If the user's config is within ~20 % of
-the recommended RMS, tell them their choice is fine; do not invent a penalty.
-
-## Which choice controls the answer (volcano factorial)
-
-For the ranking of axes by impact, run the one-at-a-time sweep or the multiverse:
-
-```bash
-pixi run python - <<'PY'
-from codameter.deviations import multiverse
-mv = multiverse(years=1.5, cadence=4)
-print("pipelines:", mv["n_pipelines"])
-for axis, frac in sorted(mv["sobol_rms"].items(), key=lambda kv: -(kv[1] or 0)):
-    print(f"  {axis:<11} first-order variance share of RMS = {frac:.2f}")
-PY
-```
-
-`multiverse` is wired to the volcano truth and geometry. For other applications,
-report the OAT contrast from the recommended-vs-comparison run above rather than
-claiming a full factorial you did not run.
-
-## Optional: the marginal covariance C_d
-
-For a user heading into a depth or stress inversion, show that the honest error
-bar comes from marginalising the processing choice:
-
-```bash
-pixi run python - <<'PY'
-from codameter import golden
-from codameter.uq_bayes import bayes_dvv_from_ccfs
-d = golden.generate("easy-volcano-01")
-res, ens = bayes_dvv_from_ccfs(d["ccfs"], d["t"], d["fs"],
-                               truth=d["truth"], days=d["days"], cadence=4)
+```python
 import numpy as np
-print("posterior median dv/v std:", float(np.nanmedian(np.sqrt(np.diag(res.Cd))))*100, "%")
-PY
+from codameter import use_cases as uc, golden
+
+key = uc.resolve("volcano")
+user_overrides = {"reference": "moving"}
+d = golden.advisory_case(key, seed=101)
+rec = uc.recommend(key)
+usr = uc.recommend(key, **user_overrides)
+eps = uc.eps_max(key)
+support = golden.scoring_support(d, rec, eps)
+print("scenario:", d["recipe"])
+for label, cfg in [("recommended", rec), ("comparison", usr)]:
+    dvv, valid = golden.recover(d, cfg, eps)
+    prediction = np.where(valid, dvv, np.nan)
+    rms, availability = golden.rms_on_support(prediction, d["truth"], **support)
+    print(label, cfg, "RMS [%]", rms * 100, "availability", availability)
 ```
 
-This is slower (it runs an ensemble of pipelines plus a Gibbs sampler); only run
-it when the user cares about the propagated uncertainty, and say it is running.
+`recover` measures each channel before averaging multi-channel cases.
+Both configurations use the reference configuration's fixed epochs and datum.
+Missing predictions on that support count as zero baseline-relative change.
+Report availability separately. Selective abstention can still improve a poor
+prediction; the score is not evidence of complete temporal recovery.
+A non-finite RMS means the comparison lacks a usable datum.
 
-## Reading the numbers honestly
+For a named public evaluation case, inspect `golden.CASES_BY_ID` first.
+Apply the recipe's `config` overrides before creating the reference config.
+A hard groundwater case targets a particular frequency component; its band
+is not the generic groundwater default. Never open private evaluation data
+for routine advice or display scorer truth to an evaluated agent.
 
-- A lower RMS is better recovery; state the percentage, not an adjective.
-- A `moving` reference erases the slow trend, so on a trend case it shows a large
-  RMS by design. That is the point, not a bug.
-- Harder cases (medium = transient + noise; hard = multi-channel composite)
-  are in the golden manifest; pull one with `golden.generate("<grade>-<app>-<nn>")`
-  when the user's situation is noisier or more complex than a clean seasonal one.
-  Ids are in `golden.CASES_BY_ID`.
+## Interpret the comparison
+
+Report RMS in percent, the difference, and both availabilities.
+Do not call choices equivalent because their RMS values differ by 20 percent.
+Repeated independent waveform/noise realizations are needed to quantify the
+uncertainty of that difference. Record all seeds and settings when repeating.
+The default example is seasonal; transient recovery requires a stated
+transient scenario, not a claim inferred from the seasonal run.
+A trailing reference without accumulation measures a different temporal
+quantity. Label that comparison as an ablation.
+
+The six pipeline axes are executable overrides. Other elicited properties
+are context until explicitly encoded in the generator. State unmodeled
+geometry, target depth, forcings, SNR, artifacts, and gaps.
+
+## Optional factorial and covariance
+
+`codameter.deviations.multiverse` uses the volcano scenario. Its sensitivity
+ranking is conditional on that waveform and sampled configuration menu.
+Do not report it as an application-independent ranking or an attribution
+across independent field observations.
+
+`bayes_dvv_from_ccfs` accepts a complete daily CCF grid. It returns a model
+posterior and a separately constructed single-member covariance `Cd`.
+`mu_cov` describes the combined estimate under the conditional-independence
+model. Neither object automatically captures shared artifacts. The locked
+calibration reports poor credible-band coverage on the combined estimate.
+A single-member `Cd` is not a calibrated covariance of that estimate or a
+cross-band covariance for depth inversion. Explain these distinctions before
+using either object downstream. Report standard deviations in fractional
+dv/v or percent explicitly; covariance units are fractional dv/v squared.

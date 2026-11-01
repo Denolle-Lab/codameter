@@ -1,0 +1,72 @@
+{
+  "python": "3.12.13 | packaged by conda-forge | (main, Mar  5 2026, 17:06:14) [Clang 19.1.7 ]",
+  "numpy": "2.4.3",
+  "scipy": "1.17.1",
+  "sparse_score": {
+    "easy-volcano-01": {
+      "n_days": 1095,
+      "all_zero_score": 0.0,
+      "ten_zero_rest_null_score": 0.0,
+      "truth_score": 1.0,
+      "support_epochs": 1095
+    },
+    "medium-earthquake_fault-02": {
+      "n_days": 1095,
+      "all_zero_score": 0.0,
+      "ten_zero_rest_null_score": 0.0,
+      "truth_score": 1.0,
+      "support_epochs": 1095
+    },
+    "hard-groundwater-04": {
+      "n_days": 913,
+      "all_zero_score": 0.0,
+      "ten_zero_rest_null_score": 0.0,
+      "truth_score": 1.0,
+      "support_epochs": 913
+    }
+  },
+  "advisor_mapping": {
+    "volcano": "easy-volcano-01",
+    "earthquake_fault": "medium-earthquake_fault-02",
+    "landslide": "KeyError: 'landslide'",
+    "groundwater": "hard-groundwater-04",
+    "cryosphere": "KeyError: 'cryosphere'",
+    "geothermal": "KeyError: 'geothermal'"
+  },
+  "floor_time_unit_probe": {
+    "seconds": 0.00046347717336818765,
+    "milliseconds_reexpression": 0.0004634771733681876,
+    "ratio": 0.9999999999999999,
+    "band_dependence_ratio_B0.5_over_B2": 2.0,
+    "weaver_eq21_anchor_over_4e-4": 0.9750189652898391
+  },
+  "mixture_variance": {
+    "zero_mean_mixture_true_variance": 4.33553305131169e-07,
+    "reported_variance": 4.33553305131169e-07,
+    "reported_processing_term": 0.0
+  },
+  "shared_bias_counterexample": {
+    "error_rms": 0.00212135623401608,
+    "median_Cd_std": 5.998023899798946e-05,
+    "fraction_zero_inside_mu_plusminus_2sd": 0.06666666666666667,
+    "note": "Unchanged by design; documented as a limitation and tested."
+  },
+  "irregular_time": {
+    "mu_identical_after_1000_day_gap": false,
+    "max_abs_difference": 1.2128780700808528e-07
+  },
+  "bayes_config_semantics": {
+    "fixed_gated_equals_moving_ungated": false,
+    "labels": [
+      "stretching (TS) 0.4-1Hz 10-30s stack10d fixed gated",
+      "stretching (TS) 0.4-1Hz 10-30s stack10d moving"
+    ],
+    "moving_member_has_warmup_nan": true
+  },
+  "cache_consistency": {
+    "cold_dtype": "float64",
+    "warm_dtype": "float64",
+    "array_equal": true,
+    "generator_hash": "0225266e"
+  }
+}

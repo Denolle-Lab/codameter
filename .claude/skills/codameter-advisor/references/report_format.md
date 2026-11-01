@@ -24,25 +24,24 @@ difference or invent one that is not there.
 3. **Why**: one line per axis, each with its driver and a citation from
    `USE_CASES[key]`. Name the one or two axes that matter most for this use case.
 
-4. **Validation**: the table from Step 3:
+4. **Validation**: report measured RMS, fixed-support availability, and the
+   scenario recipe from Step 3. The following values illustrate formatting only:
 
    | Config | RMS vs truth | Recovered signal |
    | --- | --- | --- |
    | recommended | 0.024 % | drop -0.40 % (true -0.40 %) |
    | user / naive | 0.31 % | drop -0.18 % |
 
-   State the ratio and what it means in one sentence. If a factorial was run, add
+   State the difference and availability. Do not infer equivalence from one seed. If a factorial was run, add
    the top variance-driving axis.
 
 5. **Reproduce**: a short snippet the user can paste:
 
    ```python
    from codameter import use_cases as uc, golden
-   from codameter.deviations import run_pipeline
    key = "volcano"
-   d = golden.generate(golden.MAINSTREAM_BY_USE_CASE[key])
-   dvv, valid = run_pipeline(d["ccfs"], d["t"], d["fs"],
-                             uc.recommend(key), eps_max=uc.eps_max(key))
+   d = golden.advisory_case(key, seed=101)
+   dvv, valid = golden.recover(d, uc.recommend(key), uc.eps_max(key))
    ```
 
 6. **One caveat**: the `key_rule` for this use case, verbatim in substance (for
