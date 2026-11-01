@@ -43,8 +43,12 @@ is the archived one times a constant per band (0.463, 0.328, 0.232 and
 `scripts/correct_gate1_within_error.py`, `dvv_err` recomputed, the
 originals kept as `CI.<STA>.v040.parquet`, and the factors and
 before/after medians logged in `dvv2y/correction.json`. The comparison
-statistics do not use these columns. The figures in `../figures/gate1/`
-still show the uncorrected bars.
+statistics do not use these columns. The manuscript's comparison figure
+(`literature/figs/realdata_1_validation.png`) is now generated in this
+repository by `codameter.gate1` from the rescaled products and
+`comparison.json`, so it shows the corrected bars and the matched-rule r;
+the cloud-run figures in `../figures/gate1/` still show the uncorrected
+bars and the centred-rule r.
 
 Ensemble members (from `noisepy_dvv_cloud/dvv.py`): the codameter
 recommendation for the `--use-case` passed to the run, at the product's

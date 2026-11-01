@@ -1,0 +1,102 @@
+name: paper
+
+# Checks for the manuscript branch: the generated figures still reproduce
+# their committed sidecars, the survey bibliography regenerates identically,
+# and the PDF builds without unresolved references or the artefacts the
+# iteration-2 review caught. The pre-submission reviewer itself stays on
+# demand (review/REVISION_PLAN_ITER3.md, P3).
+
+on:
+  push:
+    branches: [docs/sign-convention-manuscript]
+  pull_request:
+    branches: [docs/sign-convention-manuscript]
+  workflow_dispatch:
+
+concurrency:
+  group: paper-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sidecars:
+    name: figure sidecars reproduce
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[test]"
+      - name: regenerate the fast figures in memory and diff against the sidecars
+        run: python -m codameter.figures --check --skip-slow --rtol 1e-5
+
+  survey:
+    name: survey bibliography regenerates identically
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: rebuild survey.bib and appendix_table.tex
+        run: python paper/build_survey.py
+      - name: no drift from the committed files
+        run: git diff --exit-code -- paper/survey.bib paper/appendix_table.tex
+
+  pdf:
+    name: PDF builds and passes the text checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          tinytex: true
+      - name: TeX packages the rendered manuscript loads
+        # quarto's TinyTeX installs missing packages on demand during the render;
+        # this pre-installs the ones the gji class, natbib and the tables need so
+        # the render does not stop on the first missing .sty.
+        run: |
+          tlmgr install latexmk natbib tabularx booktabs longtable caption \
+            lineno xcolor amsmath amsfonts siunitx float fontspec unicode-math \
+            lm-math upquote microtype etoolbox parskip footnote setspace \
+            iftex textcomp lmodern calc || true
+      - name: install codameter (for the version string)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: build
+        run: python paper/build.py --no-survey
+      - name: text checks
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
+          pdftotext -layout paper/manuscript_marine.pdf /tmp/paper.txt
+          n_unresolved=$(grep -c '??' /tmp/paper.txt || true)
+          n_commapct=$(grep -c ',%' /tmp/paper.txt || true)
+          n_lt=$(grep -c '<<' /tmp/paper.txt || true)
+          n_tilde=$(grep -cE '(Table|Fig\.|Section|eq\.)~' /tmp/paper.txt || true)
+          echo "pages: $(pdfinfo paper/manuscript_marine.pdf | awk '/Pages/{print $2}')"
+          echo "unresolved: $n_unresolved  commapct: $n_commapct  lt: $n_lt  tilde: $n_tilde"
+          test "$n_unresolved" -eq 0 && test "$n_commapct" -eq 0 && test "$n_lt" -eq 0 && test "$n_tilde" -eq 0
+      - name: upload the PDF
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manuscript-pdf
+          path: |
+            paper/manuscript_marine.pdf
+            paper/manuscript_marine.tex
+          if-no-files-found: ignore

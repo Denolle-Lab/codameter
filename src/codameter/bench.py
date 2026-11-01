@@ -26,6 +26,7 @@ Run ``codameter-bench --help``.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import re
@@ -43,6 +44,7 @@ from . import golden
 from . import use_cases as uc
 from ._version import __version__
 from .deviations import metrics
+from .provenance import git_commit
 
 # ---------------------------------------------------------------------------
 # Config grids, built relative to each case's recommended config.
@@ -195,6 +197,12 @@ def _case(case_id: str) -> dict:
     return golden.generate(case_id)
 
 
+@functools.lru_cache(maxsize=1)
+def _generator_hash_cached() -> str:
+    """golden._generator_hash() once per process (it rereads source files)."""
+    return golden._generator_hash()
+
+
 def score_cell(case_id: str, config_index: int, cfg: dict) -> dict:
     """Score one ``(case, config)`` cell into a JSON-serializable row."""
     case = golden.CASES_BY_ID[case_id]
@@ -213,6 +221,11 @@ def score_cell(case_id: str, config_index: int, cfg: dict) -> dict:
         "target": case.get("target"),
         "eps_max": uc.eps_max(use_case),
         "codameter_version": __version__,
+        # The generator digest and commit pin the synthesis code the golden
+        # arrays were built with (audit S-RP.4); check_shards refuses to merge
+        # rows whose digests differ.
+        "generator_hash": _generator_hash_cached(),
+        "git_commit": git_commit(),
     }
     try:
         d = _case(case_id)
@@ -334,8 +347,11 @@ def check_shards(pairs: list[tuple[str, dict]]) -> dict:
 
     A merge is complete only if every shard ``k`` of the declared ``N`` is
     present, every ``(case_id, config_index)`` cell appears exactly once, and
-    all rows come from one codameter version (audit SCALE-02). Retries that
-    rewrite a shard file are fine; a shard appended twice is not.
+    all rows come from one codameter version and one generator digest
+    (audits SCALE-02 and S-RP.4). Retries that rewrite a shard file are fine;
+    a shard appended twice is not. The commits the rows were produced at are
+    listed but not required to agree: a digest pins the synthesis code, a
+    commit only the tree it was run from.
     """
     names = sorted({n for n, _ in pairs})
     ks: set[int] = set()
@@ -366,12 +382,23 @@ def check_shards(pairs: list[tuple[str, dict]]) -> dict:
     versions = sorted({str(r.get("codameter_version")) for _, r in pairs})
     if len(versions) > 1:
         problems.append(f"rows from different codameter versions: {versions}")
+    n_no_hash = sum(1 for _, r in pairs if not r.get("generator_hash"))
+    if n_no_hash:
+        problems.append(f"{n_no_hash} row(s) carry no generator digest")
+    hashes = sorted(
+        {str(r["generator_hash"]) for _, r in pairs if r.get("generator_hash")}
+    )
+    if len(hashes) > 1:
+        problems.append(f"rows from different generator digests: {hashes}")
+    commits = sorted({r["git_commit"] for _, r in pairs if r.get("git_commit")})
     return {
         "n_shards": n_shards,
         "shards_present": sorted(ks),
         "missing": missing,
         "duplicate_cells": len(dups),
         "codameter_versions": versions,
+        "generator_hashes": hashes,
+        "git_commits": commits,
         "n_rows": len(pairs),
         "unique_cells": len(cells),
         "problems": problems,
