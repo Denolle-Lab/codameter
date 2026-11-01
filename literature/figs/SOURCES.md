@@ -18,7 +18,7 @@ prints the registry. `paper/build.py --figures` runs the driver.
 | `demo_11_multiverse` | `codameter.deviations.multiverse` + `fig_multiverse_full` (slow) |
 | `demo_12_bayes` | `codameter.uq_bayes._build_bayes` + `_fig_bayes` (slow) |
 
-| `realdata_1_validation` | `codameter.gate1.fig_gate1_comparison`: needs the untracked daily products under `paper/data/gate1/dvv2y/` (skipped with a message where they are absent); every plotted array is in the sidecar |
+| `realdata_1_validation` | `codameter.gate1.fig_gate1_comparison`: reads the daily products archived under `paper/data/gate1/dvv2y/` (skipped with a message where they are absent); every plotted array is in the sidecar |
 
 Every `.json` sidecar records `git_commit`; sidecars written since
 2026-09-13 also record `git_dirty` (true when tracked files under `src/`
@@ -39,8 +39,10 @@ noisepy-dvv-cloud Gate 1 run (CI.LJR / CI.RXH / CI.ARV, 2018-2019; see
 run, which are not archived here, so they are committed as produced. The
 comparison figure (`realdata_1_validation`) used to be produced there as well;
 it is now generated in this repository from the archived daily products and
-`paper/data/gate1/comparison.json`. The Gate 1 run commit and `--use-case`
-are to be pinned in `paper/data/gate1/README.md` (issue #46).
-Until then the two interferogram-based figures cannot be regenerated from
-this checkout; the comparison figure can, wherever the daily products are
-present.
+`paper/data/gate1/comparison.json`. The run is pinned to noisepy-dvv-cloud
+`be1538b` with the `groundwater` use case; the evidence for both is in
+`paper/data/gate1/README.md` (issue #46).
+The two interferogram-based figures cannot be regenerated from this
+checkout, because the correlations they are drawn from are not archived.
+The comparison figure regenerates from any checkout: its inputs are
+archived with the paper.

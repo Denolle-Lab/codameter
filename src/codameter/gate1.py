@@ -5,9 +5,11 @@ Inputs (see ``paper/data/gate1/README.md``):
 - ``paper/data/gate1/dvv2y/band=2.0-4.0/CI.<STA>.parquet``: the daily
   single-station ensemble dv/v of the noisepy-dvv-cloud Gate 1 run, with the
   error columns rescaled to the corrected Weaver floor
-  (``scripts/correct_gate1_within_error.py``); not tracked by git until the
-  redistribution terms are settled (issue #46), so the generator raises
-  :class:`codameter.errors.MissingInputs` where they are absent.
+  (``scripts/correct_gate1_within_error.py``); archived with the paper since
+  the redistribution terms were settled (issue #46), so a checkout can
+  regenerate this figure. The generator still raises
+  :class:`codameter.errors.MissingInputs` where the inputs are absent, which
+  is what a partial copy of the data directory looks like.
 - ``paper/data/gate1/legacy_cd2022/CI.<STA>.arrow``: the published
   Clements and Denolle (2022) product (tracked).
 - ``paper/data/gate1/comparison.json``: the statistics of
@@ -57,7 +59,7 @@ def load_station(sta: str, *, gate1: Path = GATE1, band: str = BAND):
 
     pq = gate1 / "dvv2y" / f"band={band}" / f"CI.{sta}.parquet"
     if not pq.exists():
-        raise MissingInputs(f"{pq} is not available (untracked Gate 1 product)")
+        raise MissingInputs(f"{pq} is not available (archived Gate 1 product)")
     d = pd.read_parquet(pq)
     d["date"] = pd.to_datetime(d["date"])
     d = d.set_index("date").sort_index()
