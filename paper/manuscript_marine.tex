@@ -102,7 +102,7 @@
 
 
 
- 
+
 \usepackage[]{natbib}
 \bibliographystyle{gji}
 
@@ -2303,14 +2303,25 @@ three scenarios (about two hours per scenario on six worker processes;
 the settings and seeds of each run are stored with the archived run);
 and how Table~\ref{tab:gate1} and Fig.~\ref{fig:realdata-validation} are
 recomputed from the daily products and the published
-\citet{Clements2023} series archived with the paper. The daily products
-and the two remaining real-data figures were produced by the
-noisepy-dvv-cloud Gate 1 run from public Southern California Earthquake
-Data Center waveforms; the products are available locally during this
-analysis but are not tracked in the repository. The exact Gate 1 run
-commit, run configuration and redistribution archive remain to be
-supplied; their current provenance limits are recorded with the archived
-products. A versioned archive is planned but has not yet been deposited.
+\citet{Clements2023} series archived with the paper. Those daily
+products cover all four octave bands (1--2, 2--4, 4--8 and
+8--16\(\,\)Hz) at the three stations, and are deposited with their
+pre-correction originals, a SHA-256 digest for each file, and the terms
+they are distributed under. They were produced by the noisepy-dvv-cloud
+pipeline at commit \texttt{be1538b} with the groundwater use case, which
+sets the 2--8\(\,\)s coda window at 2--4\(\,\)Hz; the use case is not
+recorded in the products but is recoverable from the configuration
+digest they carry, which it reproduces on all four bands and no other
+use case does. The correlations behind them come from the public
+Southern California Earthquake Data Center archive, network CI
+\citep{SCEDC2013, SCSN1926}, which grants the right to reproduce and
+publicly display these data and requires both citations; the waveforms
+and correlations themselves are not redistributed here. The comparison
+product is the published 90-day composite of \citet{Clements2023}. The
+two remaining real-data figures were produced inside the same cloud run
+from correlations that are not archived. A versioned deposit of the
+archive, with a DOI, is planned at the next release and has not yet been
+made.
 
 \section*{Acknowledgements}\label{acknowledgements}
 \addcontentsline{toc}{section}{Acknowledgements}

@@ -54,6 +54,10 @@ Thumbs.db
 runs/
 *.parquet
 !tests/data/*.parquet
+# The Gate 1 daily dv/v products are archived with the paper: derived data
+# from the public SCEDC archive, redistributable under its licence
+# (paper/data/gate1/DATA_LICENCE.md). About 0.8 MB in total.
+!paper/data/gate1/dvv2y/**/*.parquet
 !tests/data/*.feather
 *.feather
 !tests/data/*.feather

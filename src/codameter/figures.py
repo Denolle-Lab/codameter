@@ -310,7 +310,7 @@ def generators() -> dict[str, tuple[str, Generator]]:
         _gen_demo_12,
     )
     gens["realdata_1_validation"] = (
-        "codameter.gate1.fig_gate1_comparison (needs paper/data/gate1/dvv2y)",
+        "codameter.gate1.fig_gate1_comparison (from the archived Gate 1 products)",
         _gen_realdata_1,
     )
     return gens
