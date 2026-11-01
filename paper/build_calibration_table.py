@@ -20,6 +20,17 @@ SRC = HERE / "data" / "calibration"
 OUT = HERE / "calibration_table.tex"
 
 
+def _mean_se(values: list[float]) -> dict:
+    n = len(values)
+    mean = sum(values) / n
+    se = (
+        (sum((v - mean) ** 2 for v in values) / (n - 1)) ** 0.5 / n**0.5
+        if n > 1
+        else None
+    )
+    return {"mean": mean, "se": se, "n": n}
+
+
 def _pm(m: dict, scale: float = 1.0, digits: int = 3) -> str:
     if m is None or m.get("mean") is None:
         return "--"
@@ -46,19 +57,35 @@ def main() -> int:
         + f" ($n={r['summary']['n_realizations']}$)"
         for r in runs
     ]
+    for r in runs:  # per-realisation max of the finite split R-hats, then mean, se
+        vals = []
+        for x in r["results"]:
+            if not x.get("ok"):
+                continue
+            finite = [
+                float(x[k])
+                for k in ("rhat_tau2", "rhat_s2", "rhat_lambda")
+                if isinstance(x.get(k), int | float) and x[k] == x[k]
+            ]
+            if finite:
+                vals.append(max(finite))
+        r["summary"]["rhat_max_realisation"] = _mean_se(vals) if vals else None
     metrics = [
         ("Member 68\\%", "member_coverage68", 1, 3),
         ("Member 95\\%", "member_coverage95", 1, 3),
+        ("Member 95\\%, held-out half", "heldout_member_coverage95", 1, 3),
         ("Posterior 95\\%", "coverage95_posterior", 1, 3),
         (r"Median $\sigma_{C_d}$ (\%)", "median_sd", 100, 3),
         ("Bias (\\%)", "shared_bias", 100, 3),
         (r"RMSE($\mu$) (\%)", "rmse", 100, 3),
         (r"Rescale $s$", "s", 1, 2),
+        (r"Correlation length $L$ (d)", "corr_length_days", 1, 1),
+        (r"Split $\hat R$, largest of three", "rhat_max_realisation", 1, 3),
         (r"Prior scale share $\tau^2$", "prior_weight_tau2", 1, 2),
     ]
     rows = []
     for label, key, scale, digits in metrics:
-        cells = [_pm(r["summary"][key], scale, digits) for r in runs]
+        cells = [_pm(r["summary"].get(key), scale, digits) for r in runs]
         rows.append(label + " & " + " & ".join(cells) + r" \\")
     body = "\n".join(rows)
     header = "Quantity & " + " & ".join(headings) + r" \\"
@@ -71,8 +98,14 @@ def main() -> int:
         "target of the proposed single-member error scale; $z=1$ for the 68\\% "
         "level and $z=1.96$ for the 95\\% level. "
         "Posterior: fraction of epochs whose 95\\% credible band on $\\mu$ contains "
-        "the truth. Rescale $s$: the fitted factor on the within-method floor of "
-        "eq.~\\ref{eq:weaver}. "
+        "the truth. Held-out half: $C_d$ fitted on a random six of the twelve "
+        "members and scored on the other six. Rescale $s$: the fitted factor on the "
+        "within-method floor of eq.~\\ref{eq:weaver}. $L$: fitted temporal "
+        "correlation length of the residuals. Split $\\hat R$: two Gibbs chains "
+        "from different seeds, each split in halves, largest of the three scale "
+        "hyper-parameters per realisation. A realisation redraws the additive "
+        "noise on one fixed generating coda; the truth and the twelve "
+        "configurations are the same in every realisation. "
         "Means with standard errors across realisations; no realisation failed; "
         "$\\sigma_{C_d}$, bias and RMSE in percent; prior $\\tau^2$ is the fraction of "
         "conditional posterior rate supplied by the prior scale term (the $\\lambda$ ratio is "
@@ -80,8 +113,8 @@ def main() -> int:
         "Clock drift: $4\\times10^{-5}$\\,s/day from 40\\% of the record. "
         "Shared source: a seasonal source "
         "effect warping the coda beyond 6\\,s lapse with a spurious 0.2\\% "
-        "seasonal \\dvv, seen by every configuration. Generated from "
-        "\\texttt{paper/data/calibration/} by \\texttt{paper/build\\_calibration\\_table.py}.}\n"
+        "seasonal \\dvv, seen by every configuration. Generated from the archived "
+        "runs distributed with the paper.}\n"
         "\\label{tab:calibration}\n"
         "\\begin{tabularx}{\\textwidth}{@{}L"
         + "r" * len(runs)

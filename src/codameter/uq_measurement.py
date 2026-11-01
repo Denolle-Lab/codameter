@@ -28,11 +28,14 @@ These choices induce two things a diagonal ``dvv_err`` cannot represent:
    a common reference injects a fully correlated *common-mode* term.
 
 The deliverable of this module is therefore not a scalar per epoch but a
-**measurement covariance** :math:`C_d`. That matrix is exactly the object the
-weighted-least-squares likelihood in :mod:`codameter.inverse.linear_fit`
-assumes (it currently uses ``W = diag(1/sigma^2)``, i.e. a *diagonal*
-:math:`C_d`). Feeding the full :math:`C_d` from here into that inversion closes
-the loop between the measurement and inference uncertainty budgets.
+**measurement covariance** :math:`C_d`. The weighted-least-squares
+likelihood in :mod:`codameter.inverse.linear_fit` uses a *diagonal* weight
+``W = diag(1/sigma^2)`` and does not consume the full matrix; the depth
+inversion in :mod:`codameter.uq_depth` accepts a per-band covariance but no
+routine in this package builds that cross-band covariance from the temporal
+:math:`C_d` produced here. The propagation of :math:`C_d` into an inference
+is therefore an interface, not a closed loop (manuscript Section 6; audit
+INV-01).
 
 References
 ----------

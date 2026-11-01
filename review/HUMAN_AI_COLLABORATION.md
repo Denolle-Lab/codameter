@@ -19,12 +19,18 @@ Agents involved: Astra (Codex/GPT-6), which produced the iteration-1 review, the
 11. **"Sorry, I meant GitHub issues."** Fable recommended one issue per work package plus separate issues for the inputs and decisions only the author can supply, all under one milestone, so that status lives in the issues and the plan stays stable.
 12. **"Yes, go for it. We will have a CLI multi-agent system tackle them; we may need to bundle them into individual PRs and have Copilot automatically review them before approval."** The author approved. Fable opened thirteen issues (#38 to #50) under the milestone "Iteration 3 revision": eight package issues P0 to P7 with ledger identifiers, acceptance criteria, file pointers and a working agreement (one pull request per issue, Copilot review requested, no hand edits to the ledger), and five author-input issues (Gate 1 provenance and rights, the Yuan et al. 2021 Table B3 ranking, the survey rows to verify, the Fig 8 decision, the step-error metric). Automatic Copilot review needs a repository ruleset that the author must enable; the repository has none.
 
+## Session of 2026-09-13 (Fable, then Opus after a session restart)
+
+13. **"PR51 is merged. Move on to P1?"** The author merged the P0 pull request and asked for P1. The agent branched `iter3/P1`, executed the package (daily-grid multiverse, robust step metric, gate probe, three-seed sweep, hyper-priors and chain settings stated, held-out coverage and split R-hat in the calibration driver, the depth and framework wording), and opened PR #52. Two of the plan's diagnostics found errors the plan had not anticipated: the correlation-length fit of the temporal covariance was wrong (39 days from an intercept fit over 40 lags, 5.7 days from the short-lag decay), and the credible band on the ensemble mean is about 80 percent set by the smoothness prior. Both were corrected or stated, not hidden. Where an author decision was pending (#50, the step metric), the agent proceeded under a stated default and recorded it in the issue.
+14. **"Back in here, keep working; some Copilot reviews came in."** The author asked the agent to continue and to handle the automatic Copilot reviews. The agent answered every Copilot thread on PRs #52, #53 and #54 with a fix and a reply (zero-variance rows in the autocorrelation, a stale docstring, the wavefield split among measuring rows, a false "one DOI each", a markdown code-span corruption in Appendix C that predated the branch, an untracked-file leak in the dirty flag, a literal tilde, an over-claim about sidecar fields, the tolerance scale of the sidecar check). It then went on to the next agent-ready packages without being asked package by package: P4 (survey hygiene, PR #53) and P3 part 1 (provenance, sidecar check, in-repo Gate 1 figure, paper workflow, PR #54). The locked calibration reruns were lost to a machine restart and rerun.
+
 ## Decisions that were the author's
 
 - The scope of the paper: depth propagation as an interface, the advisor as infrastructure, no cloud-scalability claim.
 - The rescaling of the archived field error bars.
 - The impact framing and the extension to engineering applications.
 - Tracking the revision through GitHub issues with one pull request per issue and Copilot review before approval.
+- Merging each package; the agent opens pull requests and answers reviews but does not merge.
 - Adjudication of every reviewer finding remains the author's; no finding was closed on the agent's say-so, and the iteration-2 verdicts came from independent subagents.
 
 ## What the agents did not do

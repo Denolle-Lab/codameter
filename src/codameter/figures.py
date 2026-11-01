@@ -256,7 +256,12 @@ def generators() -> dict[str, tuple[str, Generator]]:
     for name, builder in sd.FIGURES.items():
 
         def _gen(b=builder):
-            return b(), {}, {}
+            # A builder may attach extra sidecar content to the figure object:
+            # ``fig.codameter_arrays`` (name -> array) and ``fig.codameter_meta``.
+            fig = b()
+            arrays = dict(getattr(fig, "codameter_arrays", {}) or {})
+            meta = dict(getattr(fig, "codameter_meta", {}) or {})
+            return fig, arrays, meta
 
         gens[name] = (f"codameter.synthetic_demo.{builder.__name__}", _gen)
     gens["demo_10_deviations"] = (
