@@ -179,10 +179,14 @@ def invert_depth_profile(
         \hat C_m = (G^\top C_d^{-1} G + C_{m0}^{-1})^{-1},\quad
         \hat m = \hat C_m G^\top C_d^{-1} d .
 
-    The **measurement** covariance ``cov_bands`` (:math:`C_d`) is exactly the
-    object produced by the measurement- and processing-uncertainty modules — so
-    band errors, their cross-band correlation, and the processing-choice spread
-    all flow into the depth uncertainty ``DepthProfilePosterior.std``.
+    The **measurement** covariance ``cov_bands`` (:math:`C_d`) is whatever the
+    caller supplies: a diagonal of per-band variances, or a full matrix with
+    cross-band correlation. The depth uncertainty ``DepthProfilePosterior.std``
+    inherits exactly the correlation that matrix carries and no more. No
+    routine in this package builds the cross-band covariance from the temporal
+    single-member covariance of :mod:`codameter.uq_bayes`; that construction,
+    and the evaluation of this stage on truth-known synthetics, are open
+    (manuscript Section 6; audit INV-01).
 
     Parameters
     ----------
