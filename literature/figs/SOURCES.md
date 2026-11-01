@@ -39,8 +39,9 @@ noisepy-dvv-cloud Gate 1 run (CI.LJR / CI.RXH / CI.ARV, 2018-2019; see
 run, which are not archived here, so they are committed as produced. The
 comparison figure (`realdata_1_validation`) used to be produced there as well;
 it is now generated in this repository from the archived daily products and
-`paper/data/gate1/comparison.json`. The Gate 1 run commit and `--use-case`
-are to be pinned in `paper/data/gate1/README.md` (issue #46).
+`paper/data/gate1/comparison.json`. The run is pinned to noisepy-dvv-cloud
+`be1538b` with the `groundwater` use case; the evidence for both is in
+`paper/data/gate1/README.md` (issue #46).
 The two interferogram-based figures cannot be regenerated from this
 checkout, because the correlations they are drawn from are not archived.
 The comparison figure regenerates from any checkout: its inputs are
